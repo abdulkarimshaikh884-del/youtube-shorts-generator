@@ -1,65 +1,234 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YouTube Shorts Script Generator</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShortsCraft — Viral Script Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── SIDEBAR ─────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">📚 History</span>
+      <button class="sidebar-close" id="sidebarClose">✕</button>
+    </div>
+    <div class="sidebar-section">
+      <p class="sidebar-section-label">Recent Scripts</p>
+      <div id="historyList" class="history-list">
+        <div class="empty-history">
+          <span>🎬</span>
+          <p>No scripts yet.<br/>Generate one to get started!</p>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <p class="sidebar-section-label">Saved Scripts</p>
+      <div id="savedList" class="history-list">
+        <div class="empty-history">
+          <span>🔖</span>
+          <p>No saved scripts yet.<br/>Click ♡ to save one!</p>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="sidebar-clear-btn" id="clearHistoryBtn">🗑 Clear History</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ── TOPBAR ──────────────────────────────────────── -->
+  <header class="topbar">
+    <button class="topbar-btn sidebar-toggle" id="sidebarToggle" title="History">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <nav class="topbar-nav" id="topbarNav">
+      <button class="nav-tab active" data-tab="script">📝 Script</button>
+      <button class="nav-tab" data-tab="titles">🎯 Titles</button>
+      <button class="nav-tab" data-tab="hooks">🔥 Hooks</button>
+      <button class="nav-tab" data-tab="hashtags">#️⃣ Hashtags</button>
+      <button class="nav-tab" data-tab="ideas">💡 Ideas</button>
+      <button class="nav-tab" data-tab="thumbnail">🖼 Thumbnail</button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="user-area" id="userArea">
+        <button class="login-btn" id="loginBtn">Sign In</button>
+        <div class="profile-menu hidden" id="profileMenu">
+          <button class="profile-avatar" id="profileAvatar" title="Account">
+            <span id="avatarInitial">U</span>
+          </button>
+          <div class="profile-dropdown hidden" id="profileDropdown">
+            <div class="profile-info">
+              <div class="profile-avatar-lg"><span id="avatarInitialLg">U</span></div>
+              <div>
+                <p class="profile-name" id="profileName">User</p>
+                <p class="profile-email" id="profileEmail">user@email.com</p>
+              </div>
+            </div>
+            <hr class="dropdown-divider" />
+            <button class="dropdown-item" id="viewSavedBtn">🔖 Saved Scripts</button>
+            <button class="dropdown-item" id="viewHistoryBtn">📚 View History</button>
+            <hr class="dropdown-divider" />
+            <button class="dropdown-item danger" id="logoutBtn">🚪 Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── AUTH MODAL ──────────────────────────────────── -->
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="modal">
+      <button class="modal-close" id="authModalClose">✕</button>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-auth="login">Sign In</button>
+        <button class="modal-tab" data-auth="signup">Sign Up</button>
+      </div>
+
+      <div id="auth-login" class="auth-form active">
+        <h3>Welcome back! 👋</h3>
+        <p class="auth-subtitle">Sign in to save your scripts</p>
+        <input type="email" id="loginEmail" placeholder="Email" class="auth-input" />
+        <input type="password" id="loginPassword" placeholder="Password" class="auth-input" />
+        <p class="auth-error hidden" id="loginError"></p>
+        <button class="auth-submit" id="loginSubmit">Sign In</button>
+      </div>
+
+      <div id="auth-signup" class="auth-form">
+        <h3>Join ShortsCraft! 🚀</h3>
+        <p class="auth-subtitle">Create your free account</p>
+        <input type="text" id="signupName" placeholder="Your Name" class="auth-input" />
+        <input type="email" id="signupEmail" placeholder="Email" class="auth-input" />
+        <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" class="auth-input" />
+        <p class="auth-error hidden" id="signupError"></p>
+        <button class="auth-submit" id="signupSubmit">Create Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ────────────────────────────────────────── -->
+  <main class="main">
     <div class="bg-orbs">
       <div class="orb orb-1"></div>
       <div class="orb orb-2"></div>
       <div class="orb orb-3"></div>
     </div>
 
-    <main class="app">
-      <div class="header">
-        <div class="badge">
-          <span class="badge-dot"></span>
-          AI Powered
-        </div>
-        <h1>YouTube Shorts<br /><span class="gradient-text">Script Generator</span></h1>
-        <p class="subtitle">Viral Hinglish scripts — seconds mein ready! 🔥</p>
+    <div class="hero">
+      <div class="badge"><span class="badge-dot"></span>AI Powered • Free</div>
+      <h1>YouTube Shorts<br/><span class="gradient-text">Script Generator</span></h1>
+      <p class="subtitle">Viral Hinglish content — titles, hooks, hashtags sab ek jagah 🔥</p>
+    </div>
+
+    <!-- INPUT -->
+    <div class="card input-card">
+      <label class="label" for="topic">Apna topic kya hai?</label>
+      <div class="input-row">
+        <input id="topic" type="text" placeholder="e.g., Morning productivity hacks, cricket tips..." autocomplete="off" />
+        <button id="generateBtn" type="button">
+          <span class="btn-text">Generate All</span>
+          <span class="btn-icon">✦</span>
+        </button>
       </div>
+      <p id="status" class="status" aria-live="polite"></p>
+    </div>
 
-      <div class="card input-card">
-        <label for="topic" class="label">Apna topic kya hai?</label>
-        <div class="input-row">
-          <input
-            id="topic"
-            type="text"
-            placeholder="e.g., Morning productivity hacks"
-            autocomplete="off"
-          />
-          <button id="generateBtn" type="button">
-            <span class="btn-text">Generate</span>
-            <span class="btn-icon">✦</span>
-          </button>
-        </div>
-        <p id="status" class="status" aria-live="polite"></p>
-      </div>
+    <!-- CONTENT TABS -->
+    <div id="resultsArea" class="results-area hidden">
 
-      <div class="card output-card" id="outputCard">
-        <div class="output-header">
-          <h2>Generated Script</h2>
-          <button id="copyBtn" class="copy-btn" type="button" disabled>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy
-          </button>
-        </div>
-
-        <div class="script-sections" id="scriptSections">
-          <div class="section-block placeholder-block">
-            <p class="placeholder-text">Tumhara viral script yahan aayega... ⚡</p>
+      <!-- SCRIPT TAB -->
+      <div class="tab-panel active" id="panel-script">
+        <div class="card output-card">
+          <div class="output-header">
+            <h2>📝 Generated Script</h2>
+            <div class="output-actions">
+              <button class="icon-btn save-btn" id="saveScriptBtn" title="Save script">♡</button>
+              <button class="copy-btn" id="copyScriptBtn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+          </div>
+          <div class="script-sections" id="scriptSections">
+            <div class="placeholder-block"><p class="placeholder-text">Topic likho aur Generate dabao ⚡</p></div>
           </div>
         </div>
       </div>
-    </main>
 
-    <script src="script.js"></script>
-  </body>
+      <!-- TITLES TAB -->
+      <div class="tab-panel" id="panel-titles">
+        <div class="card output-card">
+          <div class="output-header">
+            <h2>🎯 Video Title Suggestions</h2>
+            <button class="copy-btn" id="copyTitlesBtn">Copy All</button>
+          </div>
+          <div id="titlesContent" class="list-content">
+            <div class="placeholder-block"><p class="placeholder-text">Titles yahan aayenge 🎯</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOOKS TAB -->
+      <div class="tab-panel" id="panel-hooks">
+        <div class="card output-card">
+          <div class="output-header">
+            <h2>🔥 Hook Variations</h2>
+            <button class="copy-btn" id="copyHooksBtn">Copy All</button>
+          </div>
+          <div id="hooksContent" class="list-content">
+            <div class="placeholder-block"><p class="placeholder-text">Hooks yahan aayenge 🔥</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HASHTAGS TAB -->
+      <div class="tab-panel" id="panel-hashtags">
+        <div class="card output-card">
+          <div class="output-header">
+            <h2>#️⃣ Hashtags</h2>
+            <button class="copy-btn" id="copyHashtagsBtn">Copy All</button>
+          </div>
+          <div id="hashtagsContent" class="list-content">
+            <div class="placeholder-block"><p class="placeholder-text">Hashtags yahan aayenge #️⃣</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- IDEAS TAB -->
+      <div class="tab-panel" id="panel-ideas">
+        <div class="card output-card">
+          <div class="output-header">
+            <h2>💡 Content Ideas</h2>
+            <button class="copy-btn" id="copyIdeasBtn">Copy All</button>
+          </div>
+          <div id="ideasContent" class="list-content">
+            <div class="placeholder-block"><p class="placeholder-text">Content ideas yahan aayenge 💡</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THUMBNAIL TAB -->
+      <div class="tab-panel" id="panel-thumbnail">
+        <div class="card output-card">
+          <div class="output-header">
+            <h2>🖼 Thumbnail Text Ideas</h2>
+            <button class="copy-btn" id="copyThumbnailBtn">Copy All</button>
+          </div>
+          <div id="thumbnailContent" class="list-content">
+            <div class="placeholder-block"><p class="placeholder-text">Thumbnail ideas yahan aayenge 🖼</p></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /resultsArea -->
+  </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
 </html>
