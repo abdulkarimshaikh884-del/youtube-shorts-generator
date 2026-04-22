@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube Shorts Script Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+
+    <main class="app">
+      <div class="header">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          AI Powered
+        </div>
+        <h1>YouTube Shorts<br /><span class="gradient-text">Script Generator</span></h1>
+        <p class="subtitle">Viral Hinglish scripts — seconds mein ready! 🔥</p>
+      </div>
+
+      <div class="card input-card">
+        <label for="topic" class="label">Apna topic kya hai?</label>
+        <div class="input-row">
+          <input
+            id="topic"
+            type="text"
+            placeholder="e.g., Morning productivity hacks"
+            autocomplete="off"
+          />
+          <button id="generateBtn" type="button">
+            <span class="btn-text">Generate</span>
+            <span class="btn-icon">✦</span>
+          </button>
+        </div>
+        <p id="status" class="status" aria-live="polite"></p>
+      </div>
+
+      <div class="card output-card" id="outputCard">
+        <div class="output-header">
+          <h2>Generated Script</h2>
+          <button id="copyBtn" class="copy-btn" type="button" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+
+        <div class="script-sections" id="scriptSections">
+          <div class="section-block placeholder-block">
+            <p class="placeholder-text">Tumhara viral script yahan aayega... ⚡</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
