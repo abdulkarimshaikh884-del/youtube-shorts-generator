@@ -20,7 +20,6 @@ const thumbnailContent=document.getElementById('thumbnailContent');
 
 // ── STATE ────────────────────────────────────────────────────
 let lastScript='', lastTitles=[], lastHooks=[], lastHashtags=[], lastIdeas=[], lastThumbnail=[];
-let currentUser = JSON.parse(localStorage.getItem('sc_user') || 'null');
 let history     = JSON.parse(localStorage.getItem('sc_history') || '[]');
 let saved       = JSON.parse(localStorage.getItem('sc_saved') || '[]');
 
