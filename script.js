@@ -1,3 +1,62 @@
+// ── TAB SWITCH + DYNAMIC HEADING ─────────────────────────────
+
+const tabs = document.querySelectorAll(".nav-tab");
+const panels = document.querySelectorAll(".tab-panel");
+
+const heroTitle = document.querySelector(".hero h1");
+const heroSubtitle = document.querySelector(".hero p");
+
+const tabContent = {
+  script: {
+    title: "YouTube Shorts Script Generator",
+    subtitle: "Viral Hinglish scripts — hook, story aur CTA ek jagah 🔥"
+  },
+  titles: {
+    title: "YouTube Shorts Title Generator",
+    subtitle: "High CTR clickbait titles jo views le aaye 🎯"
+  },
+  hooks: {
+    title: "YouTube Shorts Hook Generator",
+    subtitle: "Scroll-stopping hooks jo audience ko rok de 🔥"
+  },
+  hashtags: {
+    title: "YouTube Shorts Hashtag Generator",
+    subtitle: "Trending hashtags jo reach boost kare 🚀"
+  },
+  ideas: {
+    title: "YouTube Shorts Ideas Generator",
+    subtitle: "Unlimited viral content ideas 💡"
+  },
+  thumbnail: {
+    title: "YouTube Shorts Thumbnail Prompt Generator",
+    subtitle: "AI thumbnail prompts jo CTR explode kare 🖼"
+  }
+};
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+
+    tabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const target = tab.dataset.tab;
+
+    panels.forEach(panel => {
+      panel.style.display =
+        panel.id === `panel-${target}` ? "block" : "none";
+    });
+
+    if (tabContent[target]) {
+      heroTitle.textContent = tabContent[target].title;
+      heroSubtitle.textContent = tabContent[target].subtitle;
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  panels.forEach(panel => panel.style.display = "none");
+  document.getElementById("panel-script").style.display = "block";
+});
 // ── SUPABASE INIT ─────────────────────────────────────────────
 const SUPABASE_URL  = 'https://mqsimdmogbycrbizrrsm.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_r_S9UYXjN-I-xfx7s8Plrg_oIL64NEZ';
