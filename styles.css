@@ -265,3 +265,73 @@ h2{font-family:"Syne",sans-serif;font-size:1.05rem;font-weight:700}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* ── GOOGLE BUTTON ─────────────────────────────── */
+.google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: var(--radius-sm);
+  color: #3c4043;
+  font-family: "Nunito", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.google-btn:hover {
+  background: #f8f8f8;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.google-btn:active { transform: scale(0.99); }
+
+/* ── AUTH DIVIDER ──────────────────────────────── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 2px 0;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--card-border);
+}
+
+/* ── TOAST ─────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: rgba(20,25,40,0.97);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 12px 22px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 9999;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+.toast.success { border-color: rgba(34,197,94,0.4); }
+.toast.error   { border-color: rgba(255,69,96,0.4); }
