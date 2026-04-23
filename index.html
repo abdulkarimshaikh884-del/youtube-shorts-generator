@@ -20,19 +20,13 @@
     <div class="sidebar-section">
       <p class="sidebar-section-label">Recent Scripts</p>
       <div id="historyList" class="history-list">
-        <div class="empty-history">
-          <span>🎬</span>
-          <p>No scripts yet.<br/>Generate one to get started!</p>
-        </div>
+        <div class="empty-history"><span>🎬</span><p>No scripts yet.<br/>Generate one to get started!</p></div>
       </div>
     </div>
     <div class="sidebar-section">
       <p class="sidebar-section-label">Saved Scripts</p>
       <div id="savedList" class="history-list">
-        <div class="empty-history">
-          <span>🔖</span>
-          <p>No saved scripts yet.<br/>Click ♡ to save one!</p>
-        </div>
+        <div class="empty-history"><span>🔖</span><p>No saved scripts yet.<br/>Click ♡ to save one!</p></div>
       </div>
     </div>
     <div class="sidebar-footer">
@@ -43,11 +37,13 @@
 
   <!-- ── TOPBAR ──────────────────────────────────────── -->
   <header class="topbar">
-    <button class="topbar-btn sidebar-toggle" id="sidebarToggle" title="History">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <button class="topbar-btn" id="sidebarToggle" title="History">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
     </button>
 
-    <nav class="topbar-nav" id="topbarNav">
+    <nav class="topbar-nav">
       <button class="nav-tab active" data-tab="script">📝 Script</button>
       <button class="nav-tab" data-tab="titles">🎯 Titles</button>
       <button class="nav-tab" data-tab="hooks">🔥 Hooks</button>
@@ -57,26 +53,30 @@
     </nav>
 
     <div class="topbar-right">
-      <div class="user-area" id="userArea">
-        <button class="login-btn" id="loginBtn">Sign In</button>
-        <div class="profile-menu hidden" id="profileMenu">
-          <button class="profile-avatar" id="profileAvatar" title="Account">
-            <span id="avatarInitial">U</span>
-          </button>
-          <div class="profile-dropdown hidden" id="profileDropdown">
-            <div class="profile-info">
-              <div class="profile-avatar-lg"><span id="avatarInitialLg">U</span></div>
-              <div>
-                <p class="profile-name" id="profileName">User</p>
-                <p class="profile-email" id="profileEmail">user@email.com</p>
-              </div>
+      <!-- Logged OUT state -->
+      <button class="login-btn" id="loginBtn">Sign In</button>
+      <!-- Logged IN state -->
+      <div class="profile-menu hidden" id="profileMenu">
+        <button class="profile-avatar" id="profileAvatar">
+          <img id="avatarImg" src="" alt="" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+          <span id="avatarInitial">U</span>
+        </button>
+        <div class="profile-dropdown hidden" id="profileDropdown">
+          <div class="profile-info">
+            <div class="profile-avatar-lg">
+              <img id="avatarImgLg" src="" alt="" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;" />
+              <span id="avatarInitialLg">U</span>
             </div>
-            <hr class="dropdown-divider" />
-            <button class="dropdown-item" id="viewSavedBtn">🔖 Saved Scripts</button>
-            <button class="dropdown-item" id="viewHistoryBtn">📚 View History</button>
-            <hr class="dropdown-divider" />
-            <button class="dropdown-item danger" id="logoutBtn">🚪 Sign Out</button>
+            <div>
+              <p class="profile-name" id="profileName">User</p>
+              <p class="profile-email" id="profileEmail">user@email.com</p>
+            </div>
           </div>
+          <hr class="dropdown-divider"/>
+          <button class="dropdown-item" id="viewSavedBtn">🔖 Saved Scripts</button>
+          <button class="dropdown-item" id="viewHistoryBtn">📚 View History</button>
+          <hr class="dropdown-divider"/>
+          <button class="dropdown-item danger" id="logoutBtn">🚪 Sign Out</button>
         </div>
       </div>
     </div>
@@ -91,24 +91,33 @@
         <button class="modal-tab" data-auth="signup">Sign Up</button>
       </div>
 
+      <!-- SIGN IN -->
       <div id="auth-login" class="auth-form active">
         <h3>Welcome back! 👋</h3>
         <p class="auth-subtitle">Sign in to save your scripts</p>
-        <input type="email" id="loginEmail" placeholder="Email" class="auth-input" />
-        <input type="password" id="loginPassword" placeholder="Password" class="auth-input" />
+        <button class="google-btn" id="googleSignInBtn">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.5 5C9.7 39.6 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
+        <input type="email" id="loginEmail" placeholder="Email" class="auth-input"/>
+        <input type="password" id="loginPassword" placeholder="Password" class="auth-input"/>
         <p class="auth-error hidden" id="loginError"></p>
         <button class="auth-submit" id="loginSubmit">Sign In</button>
       </div>
 
+      <!-- SIGN UP -->
       <div id="auth-signup" class="auth-form">
         <h3>Join ShortsCraft! 🚀</h3>
         <p class="auth-subtitle">Create your free account</p>
-        <button id="googleSignInBtn" class="google-btn">
-  🔵 Continue with Google
-</button>
-        <input type="text" id="signupName" placeholder="Your Name" class="auth-input" />
-        <input type="email" id="signupEmail" placeholder="Email" class="auth-input" />
-        <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" class="auth-input" />
+        <button class="google-btn" id="googleSignUpBtn">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.5 5C9.7 39.6 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+          Continue with Google
+        </button>
+        <div class="auth-divider"><span>or</span></div>
+        <input type="text" id="signupName" placeholder="Your Name" class="auth-input"/>
+        <input type="email" id="signupEmail" placeholder="Email" class="auth-input"/>
+        <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" class="auth-input"/>
         <p class="auth-error hidden" id="signupError"></p>
         <button class="auth-submit" id="signupSubmit">Create Account</button>
       </div>
@@ -122,18 +131,16 @@
       <div class="orb orb-2"></div>
       <div class="orb orb-3"></div>
     </div>
-
     <div class="hero">
       <div class="badge"><span class="badge-dot"></span>AI Powered • Free</div>
       <h1>YouTube Shorts<br/><span class="gradient-text">Script Generator</span></h1>
       <p class="subtitle">Viral Hinglish content — titles, hooks, hashtags sab ek jagah 🔥</p>
     </div>
 
-    <!-- INPUT -->
     <div class="card input-card">
       <label class="label" for="topic">Apna topic kya hai?</label>
       <div class="input-row">
-        <input id="topic" type="text" placeholder="e.g., Morning productivity hacks, cricket tips..." autocomplete="off" />
+        <input id="topic" type="text" placeholder="e.g., Morning productivity hacks, cricket tips..." autocomplete="off"/>
         <button id="generateBtn" type="button">
           <span class="btn-text">Generate All</span>
           <span class="btn-icon">✦</span>
@@ -142,16 +149,13 @@
       <p id="status" class="status" aria-live="polite"></p>
     </div>
 
-    <!-- CONTENT TABS -->
     <div id="resultsArea" class="results-area hidden">
-
-      <!-- SCRIPT TAB -->
       <div class="tab-panel active" id="panel-script">
         <div class="card output-card">
           <div class="output-header">
             <h2>📝 Generated Script</h2>
             <div class="output-actions">
-              <button class="icon-btn save-btn" id="saveScriptBtn" title="Save script">♡</button>
+              <button class="icon-btn" id="saveScriptBtn" title="Save">♡</button>
               <button class="copy-btn" id="copyScriptBtn">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 Copy
@@ -163,75 +167,40 @@
           </div>
         </div>
       </div>
-
-      <!-- TITLES TAB -->
       <div class="tab-panel" id="panel-titles">
         <div class="card output-card">
-          <div class="output-header">
-            <h2>🎯 Video Title Suggestions</h2>
-            <button class="copy-btn" id="copyTitlesBtn">Copy All</button>
-          </div>
-          <div id="titlesContent" class="list-content">
-            <div class="placeholder-block"><p class="placeholder-text">Titles yahan aayenge 🎯</p></div>
-          </div>
+          <div class="output-header"><h2>🎯 Video Title Suggestions</h2><button class="copy-btn" id="copyTitlesBtn">Copy All</button></div>
+          <div id="titlesContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Titles yahan aayenge 🎯</p></div></div>
         </div>
       </div>
-
-      <!-- HOOKS TAB -->
       <div class="tab-panel" id="panel-hooks">
         <div class="card output-card">
-          <div class="output-header">
-            <h2>🔥 Hook Variations</h2>
-            <button class="copy-btn" id="copyHooksBtn">Copy All</button>
-          </div>
-          <div id="hooksContent" class="list-content">
-            <div class="placeholder-block"><p class="placeholder-text">Hooks yahan aayenge 🔥</p></div>
-          </div>
+          <div class="output-header"><h2>🔥 Hook Variations</h2><button class="copy-btn" id="copyHooksBtn">Copy All</button></div>
+          <div id="hooksContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Hooks yahan aayenge 🔥</p></div></div>
         </div>
       </div>
-
-      <!-- HASHTAGS TAB -->
       <div class="tab-panel" id="panel-hashtags">
         <div class="card output-card">
-          <div class="output-header">
-            <h2>#️⃣ Hashtags</h2>
-            <button class="copy-btn" id="copyHashtagsBtn">Copy All</button>
-          </div>
-          <div id="hashtagsContent" class="list-content">
-            <div class="placeholder-block"><p class="placeholder-text">Hashtags yahan aayenge #️⃣</p></div>
-          </div>
+          <div class="output-header"><h2>#️⃣ Hashtags</h2><button class="copy-btn" id="copyHashtagsBtn">Copy All</button></div>
+          <div id="hashtagsContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Hashtags yahan aayenge #️⃣</p></div></div>
         </div>
       </div>
-
-      <!-- IDEAS TAB -->
       <div class="tab-panel" id="panel-ideas">
         <div class="card output-card">
-          <div class="output-header">
-            <h2>💡 Content Ideas</h2>
-            <button class="copy-btn" id="copyIdeasBtn">Copy All</button>
-          </div>
-          <div id="ideasContent" class="list-content">
-            <div class="placeholder-block"><p class="placeholder-text">Content ideas yahan aayenge 💡</p></div>
-          </div>
+          <div class="output-header"><h2>💡 Content Ideas</h2><button class="copy-btn" id="copyIdeasBtn">Copy All</button></div>
+          <div id="ideasContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Content ideas yahan aayenge 💡</p></div></div>
         </div>
       </div>
-
-      <!-- THUMBNAIL TAB -->
       <div class="tab-panel" id="panel-thumbnail">
         <div class="card output-card">
-          <div class="output-header">
-            <h2>🖼 Thumbnail Text Ideas</h2>
-            <button class="copy-btn" id="copyThumbnailBtn">Copy All</button>
-          </div>
-          <div id="thumbnailContent" class="list-content">
-            <div class="placeholder-block"><p class="placeholder-text">Thumbnail ideas yahan aayenge 🖼</p></div>
-          </div>
+          <div class="output-header"><h2>🖼 Thumbnail Text Ideas</h2><button class="copy-btn" id="copyThumbnailBtn">Copy All</button></div>
+          <div id="thumbnailContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Thumbnail ideas yahan aayenge 🖼</p></div></div>
         </div>
       </div>
-
-    </div><!-- /resultsArea -->
+    </div>
   </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
 </body>
 </html>
