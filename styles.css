@@ -561,7 +561,6 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
     width: 85vw;
     max-width: 85vw;
     height: 100dvh;
-    min-height: 100vh;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
