@@ -18,8 +18,17 @@ const thumbnailContent = document.getElementById('thumbnailContent');
 
 // ── STATE ─────────────────────────────────────────────────────
 let currentUser = null;
-let isPro       = false;
+let isPro       = localStorage.getItem('sc_is_pro') === '1';
 let lastScript='', lastTitles=[], lastDesc='', lastHashtags=[], lastIdeas=[], lastThumbnail=[];
+let hasLoadedTrendingIdeas = false;
+const FALLBACK_TRENDING_TOPICS = [
+  'AI tools that save 2 hours daily',
+  'Simple side hustles students can start',
+  'Phone camera hacks for cinematic Shorts'
+];
+const THUMBNAIL_OVERLAYS = ['STOP MAKING THIS MISTAKE', 'DO THIS INSTEAD', 'THE SMART SHORTS FORMULA'];
+// Enforces English-only professional thumbnail outputs by filtering common Hinglish terms.
+const THUMBNAIL_BANNED_REGEX = /\b(yaar|bhai|zindagi|paisa|kaise|kya|kyu|kyon|aur|nahi|mat|jaldi|sach|desi|jugaad|apna|tum|aap|sab|chalo|dekho)\b/i;
 
 // ── DYNAMIC HERO HEADING ──────────────────────────────────────
 const TAB_LABELS = {
@@ -179,6 +188,12 @@ async function dbDeleteSaved(topic) {
   catch(e) { console.error('Delete saved:', e); }
 }
 
+async function dbDeleteHistory(historyId) {
+  if (!currentUser || !historyId) return;
+  try { await sb.from('script_history').delete().eq('user_id', currentUser.id).eq('id', historyId); }
+  catch(e) { console.error('Delete history:', e); }
+}
+
 // ── AUTH UI ───────────────────────────────────────────────────
 function updateAuthUI(user) {
   currentUser = user;
@@ -283,7 +298,10 @@ document.getElementById('noCreditsModalClose').addEventListener('click',()=> clo
 });
 
 document.getElementById('upgradeBtn').addEventListener('click',        () => { closeDropdown(); openModal('upgradeModal'); });
-document.getElementById('upgradeSubmit').addEventListener('click',     () => toast('Payment coming soon! Contact us 📧'));
+document.getElementById('upgradeSubmit').addEventListener('click',     () => {
+  setProStatus(true);
+  closeModal('upgradeModal');
+});
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsEarnBtn').addEventListener('click',  () => { closeModal('noCreditsModal'); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsUpgradeBtn').addEventListener('click',()=>{ closeModal('noCreditsModal'); openModal('upgradeModal'); });
@@ -329,6 +347,7 @@ document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar
 
 document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
   if (currentUser) { try { await sb.from('script_history').delete().eq('user_id', currentUser.id); } catch(e){} }
+  window._histData = [];
   document.getElementById('historyList').innerHTML = '<div class="empty-history"><span>🎬</span><p>History cleared!</p></div>';
   toast('History cleared 🗑');
 });
@@ -352,8 +371,10 @@ async function renderSidebar() {
   histList.innerHTML = histData.length === 0
     ? '<div class="empty-history"><span>🎬</span><p>No scripts yet!</p></div>'
     : histData.map((item,i) => `
-        <div class="history-item" onclick="loadHistoryItem(${i},'history')">
+        <div class="history-item">
           <div style="flex:1"><div class="history-topic">${escapeHtml(item.topic)}</div><div class="history-time">${timeAgo(item.created_at)}</div></div>
+          <button class="item-copy-btn" onclick="loadHistoryItem(${i},'history')">Open</button>
+          <button class="item-copy-btn" onclick="deleteHistoryItem(${i},this,event)">🗑</button>
         </div>`).join('');
 
   savedList.innerHTML = savedData.length === 0
@@ -364,7 +385,7 @@ async function renderSidebar() {
             <div class="history-topic">🔖 ${escapeHtml(item.topic)}</div>
             <div class="history-time">${timeAgo(item.updated_at)}</div>
           </div>
-          <button class="item-copy-btn" onclick="deleteSaved('${escapeHtml(item.topic)}',this)">🗑</button>
+          <button class="item-copy-btn" onclick="deleteSavedIndex(${i},this,event)">🗑</button>
         </div>`).join('');
 }
 
@@ -377,10 +398,24 @@ window.loadHistoryItem = function(i, type) {
   closeSidebar();
 };
 
-window.deleteSaved = async function(topic, btn) {
+window.deleteSavedIndex = async function(i, btn, ev) {
+  ev?.stopPropagation();
+  const item = window._savedData?.[i];
+  if (!item) return;
   btn.textContent='...'; btn.disabled=true;
-  await dbDeleteSaved(topic);
+  await dbDeleteSaved(item.topic);
   toast('Deleted 🗑');
+  renderSidebar();
+};
+
+window.deleteHistoryItem = async function(i, btn, ev) {
+  ev?.stopPropagation();
+  const item = window._histData?.[i];
+  if (!item) return;
+  btn.textContent='...'; btn.disabled=true;
+  await dbDeleteHistory(item.id);
+  window._histData.splice(i, 1);
+  toast('History item deleted 🗑');
   renderSidebar();
 };
 
@@ -425,12 +460,146 @@ function escapeHtml(t) { const d=document.createElement('div'); d.appendChild(do
 function setStatus(msg,type='') { statusText.textContent=msg; statusText.className=`status ${type}`; }
 function setLoading(v) { generateBtn.disabled=v; generateBtn.querySelector('.btn-text').textContent=v?'Generating...':'Generate All'; }
 function showSkeleton(el,n=3) { el.innerHTML=Array(n).fill('<div class="skeleton"></div>').join(''); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function encodeDataText(v){ return encodeURIComponent(String(v ?? '')); }
+function decodeDataText(v){ try { return decodeURIComponent(v || ''); } catch { return v || ''; } }
 function timeAgo(ts) {
   const ms = typeof ts==='string' ? new Date(ts).getTime() : ts;
   const m  = Math.floor((Date.now()-ms)/60000);
   if(m<1) return 'Just now'; if(m<60) return `${m}m ago`;
   const h=Math.floor(m/60); if(h<24) return `${h}h ago`;
   return `${Math.floor(h/24)}d ago`;
+}
+
+function setProStatus(value,{silent=false}={}) {
+  isPro = !!value;
+  localStorage.setItem('sc_is_pro', isPro ? '1' : '0');
+  updateCreditsBadge();
+  if (isPro && !silent) toast('Pro Activated (Demo)', 'success');
+}
+
+function showWakeScreen(msg='Waking server... please wait') {
+  let el = document.getElementById('wakeOverlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'wakeOverlay';
+    el.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(5,8,14,.92);display:flex;align-items:center;justify-content:center;padding:20px;color:#fff;font-family:"Nunito",sans-serif;font-weight:700;font-size:1rem;text-align:center';
+    el.innerHTML = '<div style="padding:18px 22px;border:1px solid rgba(255,255,255,.16);border-radius:14px;background:rgba(255,255,255,.04)">Waking server... please wait</div>';
+    document.body.appendChild(el);
+  }
+  el.querySelector('div').textContent = msg;
+  el.style.display = 'flex';
+}
+
+function hideWakeScreen() {
+  const el = document.getElementById('wakeOverlay');
+  if (el) el.style.display = 'none';
+}
+
+async function ensureServerAwake(maxAttempts = 5) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(`${window.location.origin}/`, { cache: 'no-store' });
+      if (response.ok) return true;
+    } catch {}
+    if (attempt === 1) showWakeScreen();
+    await sleep(Math.min(1000 * Math.pow(2, attempt - 1), 5000));
+  }
+  return false;
+}
+
+async function postJsonWithRetry(url, topic, { maxAttempts = 4 } = {}) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ topic })
+      });
+      if (response.ok) return await response.json();
+      if (response.status >= 500 || response.status === 429 || response.status === 408) {
+        lastError = new Error(`HTTP ${response.status}`);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      lastError = e;
+    }
+    if (attempt === 2) showWakeScreen();
+    await sleep(Math.min(1000 * Math.pow(2, attempt - 1), 5000));
+  }
+  throw lastError || new Error('Server unavailable');
+}
+
+function createFallbackDescription(topic, scriptText = '', hashtags = []) {
+  const points = (scriptText || '')
+    .split('\n')
+    .map(x => x.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .map(x => `✅ ${x.replace(/^Hook:|^Main Content:|^CTA:/g, '').trim()}`);
+  const normalizedTags = (hashtags || [])
+    .filter(Boolean)
+    .slice(0, 10)
+    .map(h => h.startsWith('#') ? h : `#${h.replace(/\s+/g, '')}`);
+  const tagLine = normalizedTags.length ? normalizedTags.join(' ') : '#shorts #youtube #viral #contentcreator #growth';
+  return [
+    `🚀 Want to master "${topic}" in under a minute? This Shorts breaks it down in a clear and practical way.`,
+    '',
+    'In this video you\'ll learn:',
+    ...(points.length ? points : ['✅ A practical framework you can apply today', '✅ Common mistakes to avoid', '✅ A fast action plan for better results']),
+    '',
+    '💬 If this helped, like the video, comment your biggest takeaway, and subscribe for daily Shorts tips!',
+    '',
+    tagLine
+  ].join('\n');
+}
+
+function buildProfessionalThumbnailPrompt(topic, index) {
+  return `Ultra-realistic YouTube thumbnail featuring a confident creator demonstrating "${topic}" with an expressive face and dynamic hand gesture, dramatic cinematic rim lighting with high-contrast shadows, a detailed modern studio background with subtle storytelling elements tied to ${topic}, vibrant saturated red-orange-blue color palette, bold English text overlay "${THUMBNAIL_OVERLAYS[index % THUMBNAIL_OVERLAYS.length]}", close-up composition in 16:9 aspect ratio, eye-catching viral YouTube thumbnail style, 8k cinematic clarity.`;
+}
+
+function normalizeThumbnailPrompts(prompts, topic) {
+  const clean = Array.isArray(prompts) ? prompts.filter(Boolean).slice(0, 3) : [];
+  while (clean.length < 3) clean.push(buildProfessionalThumbnailPrompt(topic, clean.length));
+  return clean.map((line, i) => {
+    const text = String(line).trim();
+    if (!text || THUMBNAIL_BANNED_REGEX.test(text) || /[^\x00-\x7F]/.test(text)) return buildProfessionalThumbnailPrompt(topic, i);
+    return text;
+  });
+}
+
+function ensureMobileNavbarVisibility() {
+  const brandName = document.querySelector('.brand-name');
+  const brandWrap = document.querySelector('.topbar-brand');
+  const rightWrap = document.querySelector('.topbar-right');
+  if (brandName) {
+    brandName.style.setProperty('display', 'inline-block', 'important');
+    brandName.style.whiteSpace = 'nowrap';
+  }
+  if (brandWrap) brandWrap.style.minWidth = 'max-content';
+  if (rightWrap) rightWrap.style.minWidth = '0';
+}
+
+function applyMobileSidebarFixes() {
+  const sidebar = document.getElementById('sidebar');
+  const footer = sidebar?.querySelector('.sidebar-footer');
+  const clearBtn = document.getElementById('clearHistoryBtn');
+  if (!sidebar || !footer || !clearBtn) return;
+  if (window.innerWidth <= 640) {
+    sidebar.style.width = '92vw';
+    footer.style.position = 'sticky';
+    footer.style.bottom = '0';
+    footer.style.background = 'rgba(8,11,22,0.98)';
+    clearBtn.style.display = 'block';
+    clearBtn.style.width = '100%';
+  } else {
+    sidebar.style.width = '';
+    footer.style.position = '';
+    footer.style.bottom = '';
+    footer.style.background = '';
+  }
 }
 
 function applyResults(data) {
@@ -454,7 +623,7 @@ function renderScript(data) {
 }
 
 function renderTitles(arr) {
-  titlesContent.innerHTML = arr.map((t,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(t)}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(t)})'>Copy</button></div>`).join('');
+  titlesContent.innerHTML = arr.map((t,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(t)}</span><button class="item-copy-btn" data-copy-text="${encodeDataText(t)}">Copy</button></div>`).join('');
   lastTitles=arr;
 }
 
@@ -464,18 +633,19 @@ function renderDesc(text) {
 }
 
 function renderHashtags(arr) {
-  hashtagsContent.innerHTML = `<div class="hashtags-grid">${arr.map((h,i)=>`<span class="hashtag-chip" style="animation-delay:${i*.04}s" onclick='copyOne(this,${JSON.stringify(h)})'>${escapeHtml(h)}</span>`).join('')}</div>`;
+  hashtagsContent.innerHTML = `<div class="hashtags-grid">${arr.map((h,i)=>`<span class="hashtag-chip" style="animation-delay:${i*.04}s" data-copy-text="${encodeDataText(h)}">${escapeHtml(h)}</span>`).join('')}</div>`;
   lastHashtags=arr;
 }
 
 function renderIdeas(arr) {
-  ideasContent.innerHTML = arr.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x)}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(x)})'>Copy</button></div>`).join('');
+  ideasContent.innerHTML = arr.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x)}</span><button class="item-copy-btn" data-copy-text="${encodeDataText(x)}">Copy</button></div>`).join('');
   lastIdeas=arr;
 }
 
 function renderThumbnail(arr) {
-  thumbnailContent.innerHTML = arr.map((t,i)=>`<div class="list-item thumb-prompt-item" style="animation-delay:${i*.1}s"><div class="thumb-prompt-header"><span class="thumb-prompt-num">PROMPT ${i+1}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(t)})'>Copy</button></div><div class="thumb-prompt-text">${escapeHtml(t)}</div></div>`).join('');
-  lastThumbnail=arr;
+  const normalized = normalizeThumbnailPrompts(arr, topicInput.value.trim() || 'YouTube Shorts');
+  thumbnailContent.innerHTML = normalized.map((t,i)=>`<div class="list-item thumb-prompt-item" style="animation-delay:${i*.1}s"><div class="thumb-prompt-header"><span class="thumb-prompt-num">PROMPT ${i+1}</span><button class="item-copy-btn" data-copy-text="${encodeDataText(t)}">Copy</button></div><div class="thumb-prompt-text">${escapeHtml(t)}</div></div>`).join('');
+  lastThumbnail=normalized;
 }
 
 // ── COPY ──────────────────────────────────────────────────────
@@ -486,6 +656,12 @@ window.copyOne = async function(btn,text) {
     setTimeout(()=>{ btn.textContent=orig; btn.classList.remove('copied'); },1500);
   } catch { toast('Copy failed','error'); }
 };
+document.addEventListener('click', (e) => {
+  const copyEl = e.target.closest('[data-copy-text]');
+  if (!copyEl) return;
+  const text = decodeDataText(copyEl.dataset.copyText);
+  copyOne(copyEl, text);
+});
 async function copyAll(text,btn) {
   try {
     await navigator.clipboard.writeText(text);
@@ -500,6 +676,80 @@ document.getElementById('copyDescBtn').addEventListener('click',      function()
 document.getElementById('copyHashtagsBtn').addEventListener('click',  function(){ if(lastHashtags.length) copyAll(lastHashtags.join(' '),this); });
 document.getElementById('copyIdeasBtn').addEventListener('click',     function(){ if(lastIdeas.length)    copyAll(lastIdeas.join('\n'),this); });
 document.getElementById('copyThumbnailBtn').addEventListener('click', function(){ if(lastThumbnail.length)copyAll(lastThumbnail.join('\n\n---\n\n'),this); });
+
+// ── IDEAS (TRENDING FALLBACK) ──────────────────────────────────
+function renderTrendingIdeas(topics, source = 'Trending Now') {
+  const top3 = (topics || []).filter(Boolean).slice(0, 3);
+  if (!top3.length) return;
+  ideasContent.innerHTML = top3.map((idea, i) => `
+    <div class="list-item" style="animation-delay:${i * .08}s">
+      <span class="item-num">🔥</span>
+      <span class="item-text">${escapeHtml(idea)}</span>
+      <button class="item-copy-btn" data-copy-text="${encodeDataText(idea)}">Copy</button>
+    </div>`).join('');
+  lastIdeas = top3;
+  const hint = document.createElement('p');
+  hint.className = 'tab-hint';
+  hint.style.marginTop = '12px';
+  hint.textContent = `${source}: 3 trending YouTube topics`;
+  ideasContent.appendChild(hint);
+}
+
+async function loadTrendingIdeas() {
+  if (hasLoadedTrendingIdeas) return;
+  hasLoadedTrendingIdeas = true;
+  try {
+    const data = await postJsonWithRetry('/api/ideas', 'Top 3 trending YouTube Shorts topics right now for creators', { maxAttempts: 2 });
+    const ideas = (data?.ideas || []).slice(0, 3);
+    if (ideas.length) {
+      renderTrendingIdeas(ideas, 'Live Trends');
+      return;
+    }
+  } catch {}
+  renderTrendingIdeas(FALLBACK_TRENDING_TOPICS, 'Fallback Trends');
+}
+
+// ── FEEDBACK ────────────────────────────────────────────────────
+function initFeedbackUI() {
+  if (document.getElementById('feedbackBtn')) return;
+  const topbarRight = document.querySelector('.topbar-right');
+  if (!topbarRight) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'feedbackBtn';
+  btn.className = 'login-btn';
+  btn.textContent = 'Feedback';
+  topbarRight.prepend(btn);
+
+  const modal = document.createElement('div');
+  modal.id = 'feedbackModal';
+  modal.className = 'modal-overlay hidden';
+  modal.innerHTML = `
+    <div class="modal">
+      <button class="modal-close" id="feedbackModalClose">✕</button>
+      <h3>Share Feedback</h3>
+      <p class="auth-subtitle">Tell us what to improve</p>
+      <textarea id="feedbackText" class="auth-input" rows="5" placeholder="Write your feedback..." style="resize:vertical"></textarea>
+      <button class="auth-submit" id="feedbackSubmit">Submit Feedback</button>
+    </div>`;
+  document.body.appendChild(modal);
+
+  btn.addEventListener('click', () => openModal('feedbackModal'));
+  document.getElementById('feedbackModalClose')?.addEventListener('click', () => closeModal('feedbackModal'));
+  modal.addEventListener('click', e => { if (e.target.id === 'feedbackModal') closeModal('feedbackModal'); });
+  document.getElementById('feedbackSubmit')?.addEventListener('click', () => {
+    const text = (document.getElementById('feedbackText')?.value || '').trim();
+    if (!text) { toast('Please write feedback first', 'error'); return; }
+    let prev = [];
+    try { prev = JSON.parse(localStorage.getItem('sc_feedback') || '[]'); }
+    catch (e) { console.warn('Failed to parse stored feedback:', e); prev = []; }
+    prev.unshift({ text, at: new Date().toISOString() });
+    localStorage.setItem('sc_feedback', JSON.stringify(prev.slice(0, 100)));
+    document.getElementById('feedbackText').value = '';
+    closeModal('feedbackModal');
+    toast('Feedback saved successfully ✅', 'success');
+  });
+}
 
 // ── GENERATE ──────────────────────────────────────────────────
 async function handleGenerate() {
@@ -524,41 +774,42 @@ async function handleGenerate() {
   document.getElementById('saveScriptBtn').classList.remove('saved');
   document.getElementById('resultsTopic').textContent = `Results for: "${topic}"`;
 
-  const post = url => fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic})});
-
   try {
+    await ensureServerAwake();
     const [sR,tR,dR,htR,iR,thR] = await Promise.allSettled([
-      post('/api/generate'),
-      post('/api/titles'),
-      post('/api/description'),
-      post('/api/hashtags'),
-      post('/api/ideas'),
-      post('/api/thumbnail'),
+      postJsonWithRetry('/api/generate', topic),
+      postJsonWithRetry('/api/titles', topic),
+      postJsonWithRetry('/api/description', topic),
+      postJsonWithRetry('/api/hashtags', topic),
+      postJsonWithRetry('/api/ideas', topic),
+      postJsonWithRetry('/api/thumbnail', topic),
     ]);
 
     let scriptData = { hook:'', mainContent:'', cta:'' };
 
-    if(sR.status==='fulfilled'&&sR.value.ok) { const d=await sR.value.json(); renderScript(d); scriptData=d; }
+    if(sR.status==='fulfilled'&&sR.value) { renderScript(sR.value); scriptData=sR.value; }
     else scriptSections.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Script error 😔 Retry karo</p></div>';
 
-    if(tR.status==='fulfilled'&&tR.value.ok)  renderTitles((await tR.value.json()).titles||[]);
+    if(tR.status==='fulfilled'&&tR.value)  renderTitles(tR.value.titles||[]);
     else titlesContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Titles error 😔</p></div>';
 
-    if(dR.status==='fulfilled'&&dR.value.ok)  {
-      const dData = await dR.value.json();
-      renderDesc(dData.description || '');
+    if(dR.status==='fulfilled'&&dR.value)  {
+      const safeDesc = (dR.value.description || '').trim() || createFallbackDescription(topic, lastScript, lastHashtags);
+      renderDesc(safeDesc);
     } else {
-      descContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Description error 😔</p></div>';
+      const currentScript = [scriptData.hook, scriptData.mainContent, scriptData.cta].filter(Boolean).join('\n');
+      renderDesc(createFallbackDescription(topic, currentScript || lastScript, lastHashtags));
+      toast('Description generated with smart fallback ✅', 'success');
     }
 
-    if(htR.status==='fulfilled'&&htR.value.ok) renderHashtags((await htR.value.json()).hashtags||[]);
+    if(htR.status==='fulfilled'&&htR.value) renderHashtags(htR.value.hashtags||[]);
     else hashtagsContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Hashtags error 😔</p></div>';
 
-    if(iR.status==='fulfilled'&&iR.value.ok)  renderIdeas((await iR.value.json()).ideas||[]);
+    if(iR.status==='fulfilled'&&iR.value)  renderIdeas(iR.value.ideas||[]);
     else ideasContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Ideas error 😔</p></div>';
 
-    if(thR.status==='fulfilled'&&thR.value.ok) renderThumbnail((await thR.value.json()).thumbnail||[]);
-    else thumbnailContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Thumbnail error 😔</p></div>';
+    if(thR.status==='fulfilled'&&thR.value) renderThumbnail(thR.value.thumbnail||[]);
+    else renderThumbnail([]);
 
     const allData={script:scriptData,titles:lastTitles,desc:lastDesc,hashtags:lastHashtags,ideas:lastIdeas,thumbnail:lastThumbnail};
     await dbSaveHistory(topic, allData);
@@ -573,6 +824,7 @@ async function handleGenerate() {
   } catch(err) {
     setStatus(err.message || 'Kuch problem ho gayi. Retry karo!', 'error');
   } finally {
+    hideWakeScreen();
     setLoading(false);
   }
 }
@@ -591,4 +843,16 @@ function toast(msg, type='') {
 }
 
 // ── INIT ──────────────────────────────────────────────────────
+document.querySelector('.upgrade-note')?.remove();
+initFeedbackUI();
+ensureMobileNavbarVisibility();
+applyMobileSidebarFixes();
+window.addEventListener('resize', () => {
+  ensureMobileNavbarVisibility();
+  applyMobileSidebarFixes();
+});
+document.querySelector('.nav-tab[data-tab="ideas"]')?.addEventListener('click', () => {
+  if (!lastIdeas.length) loadTrendingIdeas();
+});
+setProStatus(isPro, { silent: true });
 updateCreditsBadge();
