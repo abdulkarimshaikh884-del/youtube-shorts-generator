@@ -91,6 +91,9 @@ body {
 .brand-icon { font-size: 1.1rem; }
 .brand-name { font-family: "Syne",sans-serif; font-weight: 800; font-size: 1rem; background: linear-gradient(135deg,#ff4560,#ff8c3a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
+.feedback-trigger-btn { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; }
+.feedback-btn-icon { flex-shrink: 0; }
+.feedback-btn-label { line-height: 1; }
 
 /* ── TABBAR (below topbar, always visible & scrollable) ────── */
 .tabbar {
@@ -226,6 +229,11 @@ body {
 }
 .auth-submit:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(255,69,96,0.42); }
 .auth-submit:active { transform: scale(0.99); }
+.feedback-modal { width: min(460px, 100%); }
+.feedback-form { display: flex; flex-direction: column; gap: 13px; margin-top: 18px; }
+.feedback-textarea { min-height: 140px; resize: vertical; }
+.feedback-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.feedback-close-btn { min-width: 96px; }
 
 /* GOOGLE BUTTON */
 .google-btn {
@@ -511,6 +519,8 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
   .topbar-brand { display: flex; }
   .brand-name { font-size: 0.95rem; }
   .login-btn { padding: 5px 11px; font-size: 0.78rem; }
+  .feedback-trigger-btn { padding: 5px 10px; }
+  .feedback-btn-label { display: none; }
   .credits-badge { padding: 4px 9px; font-size: 0.74rem; }
   .credits-label { display: none; }
 
@@ -561,6 +571,8 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
   .profile-dropdown { width: 230px; }
 
   .modal { padding: 22px; border-radius: 16px; }
+  .feedback-actions { flex-direction: column-reverse; align-items: stretch; }
+  .feedback-close-btn { width: 100%; }
 
   .example-preview { padding: 0 2px; }
   .example-card { padding: 12px 14px; font-size: 0.8rem; }
@@ -568,6 +580,7 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
 
 @media (max-width: 380px) {
   .brand-name { display: none; }
+  .feedback-trigger-btn { padding-left: 9px; padding-right: 9px; }
   .hero-title { font-size: 1.6rem; }
   .stat-item { padding: 0 10px; }
   .stat-item strong { font-size: 1.1rem; }
