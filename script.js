@@ -82,6 +82,8 @@ function setProStatus(v, persist = true) {
   const upgradeBtn = document.getElementById('upgradeBtn');
   if (upgradeBtn) {
     upgradeBtn.disabled = isPro;
+    upgradeBtn.setAttribute('aria-disabled', isPro ? 'true' : 'false');
+    upgradeBtn.setAttribute('aria-label', isPro ? 'Pro plan active' : 'Upgrade to Pro');
     upgradeBtn.textContent = isPro ? '✅ Pro Active' : '⭐ Upgrade — ₹99/month';
   }
   updateCreditsBadge();
@@ -308,17 +310,14 @@ document.getElementById('noCreditsModalClose').addEventListener('click',()=> clo
 
 document.getElementById('upgradeBtn').addEventListener('click',        () => { closeDropdown(); openModal('upgradeModal'); });
 async function handleUpgradeSubmit() {
-  if (isPro) { toast('You are already Pro! ⭐', 'success'); closeModal('upgradeModal'); return; }
   const btn = document.getElementById('upgradeSubmit');
-  const oldText = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Upgrading...';
   await new Promise(resolve => setTimeout(resolve, UPGRADE_SIMULATION_DELAY_MS));
   setProStatus(true);
+  btn.textContent = 'Pro Active ✅';
   closeModal('upgradeModal');
   toast('Upgrade successful! Unlimited credits unlocked ♾️', 'success');
-  btn.disabled = false;
-  btn.textContent = oldText;
 }
 document.getElementById('upgradeSubmit').addEventListener('click', handleUpgradeSubmit);
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
