@@ -61,11 +61,12 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 // ── CREDITS ───────────────────────────────────────────────────
 const DAILY_FREE = 5;
 const PRO_STORAGE_KEY = 'sc_is_pro';
+const UPGRADE_SIMULATION_DELAY_MS = 900;
 
 function getTodayStr() { return new Date().toISOString().split('T')[0]; }
 
 function loadProStatus() {
-  isPro = localStorage.getItem(PRO_STORAGE_KEY) === '1';
+  setProStatus(localStorage.getItem(PRO_STORAGE_KEY) === '1');
 }
 
 function setProStatus(v) {
@@ -300,7 +301,7 @@ document.getElementById('upgradeSubmit').addEventListener('click', async functio
   const oldText = btn.textContent;
   btn.disabled = true;
   btn.textContent = 'Upgrading...';
-  await new Promise(resolve => setTimeout(resolve, 900));
+  await new Promise(resolve => setTimeout(resolve, UPGRADE_SIMULATION_DELAY_MS));
   setProStatus(true);
   btn.disabled = false;
   btn.textContent = oldText;
