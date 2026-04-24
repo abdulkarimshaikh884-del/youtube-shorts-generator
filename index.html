@@ -3,7 +3,21 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ShortsCraft — Viral Script Generator</title>
+
+  <!-- SEO -->
+  <title>ShortsCraft — Free AI YouTube Shorts Generator (Scripts, Titles, Description, Hashtags)</title>
+  <meta name="description" content="Generate viral Hinglish YouTube Shorts scripts, SEO titles, descriptions, hashtags & AI thumbnail prompts in seconds. 100% free. No login required."/>
+  <meta name="keywords" content="youtube shorts generator, ai script generator, hinglish script, youtube title generator, free youtube tools"/>
+  <meta property="og:title" content="ShortsCraft — Free AI YouTube Shorts Generator"/>
+  <meta property="og:description" content="Create viral YouTube Shorts scripts, titles, descriptions & thumbnails in seconds. Free AI tool for Indian creators."/>
+  <meta property="og:type" content="website"/>
+  <link rel="canonical" href="https://youtube-shorts-generator-yngg.onrender.com"/>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","description":"Free AI YouTube Shorts script and content generator for Indian creators","applicationCategory":"CreativeWork","offers":{"@type":"Offer","price":"0","priceCurrency":"INR"}}
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -11,7 +25,7 @@
 </head>
 <body>
 
-<!-- SIDEBAR -->
+<!-- ── SIDEBAR ──────────────────────────────────────────────── -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <span class="sidebar-title">📚 History</span>
@@ -35,25 +49,31 @@
 </aside>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<!-- TOPBAR -->
+<!-- ── TOPBAR ───────────────────────────────────────────────── -->
 <header class="topbar">
   <button class="topbar-btn" id="sidebarToggle" title="History">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   </button>
+
+  <div class="topbar-brand">
+    <span class="brand-icon">⚡</span>
+    <span class="brand-name">ShortsCraft</span>
+  </div>
+
   <nav class="topbar-nav">
-    <button class="nav-tab active" data-tab="script">📝 Script</button>
-    <button class="nav-tab" data-tab="titles">🎯 Titles</button>
-    <button class="nav-tab" data-tab="hooks">🔥 Hooks</button>
-    <button class="nav-tab" data-tab="hashtags">#️⃣ Hashtags</button>
-    <button class="nav-tab" data-tab="ideas">💡 Ideas</button>
-    <button class="nav-tab" data-tab="thumbnail">🖼 Thumbnail</button>
+    <button class="nav-tab active" data-tab="script"      data-label="Script">📝 Script</button>
+    <button class="nav-tab"        data-tab="titles"      data-label="Title">🎯 Titles</button>
+    <button class="nav-tab"        data-tab="description" data-label="Description">📄 Description</button>
+    <button class="nav-tab"        data-tab="hashtags"    data-label="Hashtag">️#️⃣ Hashtags</button>
+    <button class="nav-tab"        data-tab="ideas"       data-label="Ideas">💡 Ideas</button>
+    <button class="nav-tab"        data-tab="thumbnail"   data-label="Thumbnail">🖼 Thumbnail</button>
   </nav>
+
   <div class="topbar-right">
-    <!-- Credits badge (shown when logged in) -->
-    <div class="credits-badge hidden" id="creditsBadge" title="Your credits">
-      <span class="credits-icon">⚡</span>
+    <div class="credits-badge hidden" id="creditsBadge">
+      <span>⚡</span>
       <span id="creditsCount">5</span>
       <span class="credits-label">/day</span>
     </div>
@@ -75,7 +95,7 @@
           </div>
         </div>
         <div class="credits-info-row">
-          <span>⚡ Credits today:</span>
+          <span>⚡ Credits:</span>
           <strong id="creditsInfoCount">5</strong>
           <button class="earn-link" id="earnCreditsLink">Earn more</button>
         </div>
@@ -91,7 +111,7 @@
   </div>
 </header>
 
-<!-- AUTH MODAL -->
+<!-- ── AUTH MODAL ───────────────────────────────────────────── -->
 <div class="modal-overlay hidden" id="authModal">
   <div class="modal">
     <button class="modal-close" id="authModalClose">✕</button>
@@ -129,7 +149,7 @@
   </div>
 </div>
 
-<!-- UPGRADE MODAL -->
+<!-- ── UPGRADE MODAL ────────────────────────────────────────── -->
 <div class="modal-overlay hidden" id="upgradeModal">
   <div class="modal upgrade-modal">
     <button class="modal-close" id="upgradeModalClose">✕</button>
@@ -140,9 +160,10 @@
     </div>
     <div class="upgrade-features">
       <div class="upgrade-feature">✅ Unlimited daily generations</div>
-      <div class="upgrade-feature">✅ Save unlimited scripts</div>
+      <div class="upgrade-feature">✅ Save unlimited scripts to cloud</div>
       <div class="upgrade-feature">✅ Priority AI speed</div>
       <div class="upgrade-feature">✅ All 6 content tabs</div>
+      <div class="upgrade-feature">✅ Download as TXT/PDF</div>
       <div class="upgrade-feature">✅ Cancel anytime</div>
     </div>
     <div class="upgrade-price">
@@ -154,18 +175,18 @@
   </div>
 </div>
 
-<!-- EARN CREDITS MODAL -->
+<!-- ── EARN CREDITS MODAL ───────────────────────────────────── -->
 <div class="modal-overlay hidden" id="earnModal">
   <div class="modal">
     <button class="modal-close" id="earnModalClose">✕</button>
     <h3>⚡ Earn Free Credits</h3>
     <p class="auth-subtitle">Complete tasks to earn +1 credit each</p>
     <div id="tasksList" class="tasks-list"></div>
-    <p class="earn-note">Credits reset daily at midnight. Pro users get unlimited credits!</p>
+    <p class="earn-note">Credits reset daily at midnight. Pro users get unlimited!</p>
   </div>
 </div>
 
-<!-- NO CREDITS MODAL -->
+<!-- ── NO CREDITS MODAL ─────────────────────────────────────── -->
 <div class="modal-overlay hidden" id="noCreditsModal">
   <div class="modal">
     <button class="modal-close" id="noCreditsModalClose">✕</button>
@@ -178,41 +199,96 @@
       <button class="auth-submit" id="noCreditsEarnBtn">⚡ Tasks karke Earn karo</button>
       <button class="auth-submit upgrade-submit" id="noCreditsUpgradeBtn">⭐ Pro upgrade karo — ₹99/month</button>
     </div>
-    <p class="earn-note">Ya kal wapas aao — credits automatically reset honge!</p>
+    <p class="earn-note">Ya kal wapas aao — credits auto-reset honge!</p>
   </div>
 </div>
 
-<!-- MAIN -->
-<main class="main">
+<!-- ── MAIN ─────────────────────────────────────────────────── -->
+<main class="main" id="mainContent">
   <div class="bg-orbs">
-    <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
   </div>
+
+  <!-- HERO -->
   <div class="hero">
-    <div class="badge"><span class="badge-dot"></span>AI Powered • Free</div>
-    <h1>YouTube Shorts<br/><span class="gradient-text">Script Generator</span></h1>
-    <p class="subtitle">Viral Hinglish content — titles, hooks, hashtags sab ek jagah 🔥</p>
+    <div class="badge"><span class="badge-dot"></span>AI Powered • Free • No Login Required</div>
+    <h1 class="hero-title">
+      <span class="hero-line1">YouTube Shorts</span><br/>
+      <span class="hero-line2 gradient-text" id="heroAccent">Script Generator</span>
+    </h1>
+    <p class="subtitle">Create viral Hinglish content in seconds — scripts, titles, descriptions, hashtags & AI thumbnail prompts, all in one place 🔥</p>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-item"><strong>6</strong><span>Content Types</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><strong>Free</strong><span>No Credit Card</span></div>
+      <div class="stat-divider"></div>
+      <div class="stat-item"><strong>5s</strong><span>Generation Time</span></div>
+    </div>
   </div>
+
+  <!-- EXAMPLE PREVIEW -->
+  <div class="example-preview" id="examplePreview">
+    <div class="example-label">✨ Example Output</div>
+    <div class="example-cards">
+      <div class="example-card">
+        <div class="example-card-tag hook-tag">🔥 Hook</div>
+        <p>"Yaar, kya tumhe pata hai ki subah ki 1 adat tumhari poori zindagi badal sakti hai? 99% log ye galti karte hain!"</p>
+      </div>
+      <div class="example-card">
+        <div class="example-card-tag title-tag">🎯 Title</div>
+        <p>"Subah Ki 5 Aadtein Jo Life Badal Deti Hain 🔥 #shorts"</p>
+      </div>
+      <div class="example-card">
+        <div class="example-card-tag hash-tag">#️⃣ Hashtags</div>
+        <p>#morningroutine #motivation #shorts #viral #hinglish</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUT CARD -->
   <div class="card input-card">
     <label class="label" for="topic">Apna topic kya hai?</label>
     <div class="input-row">
-      <input id="topic" type="text" placeholder="e.g., Morning productivity hacks, cricket tips..." autocomplete="off"/>
+      <input id="topic" type="text" placeholder="e.g., Morning productivity hacks, cricket tips, study motivation..." autocomplete="off"/>
       <button id="generateBtn" type="button">
         <span class="btn-text">Generate All</span>
         <span class="btn-icon">✦</span>
       </button>
     </div>
+    <div class="input-hints">
+      <span class="hint-tag" onclick="setTopic('Morning productivity hacks')">☀️ Morning routine</span>
+      <span class="hint-tag" onclick="setTopic('Cricket tips for beginners')">🏏 Cricket tips</span>
+      <span class="hint-tag" onclick="setTopic('Study motivation for students')">📚 Study motivation</span>
+      <span class="hint-tag" onclick="setTopic('Money saving hacks India')">💰 Money hacks</span>
+    </div>
     <p id="status" class="status" aria-live="polite"></p>
   </div>
+
+  <!-- RESULTS -->
   <div id="resultsArea" class="results-area hidden">
+
+    <!-- DOWNLOAD BAR -->
+    <div class="results-actions-bar">
+      <span class="results-topic-label" id="resultsTopic"></span>
+      <button class="download-btn" id="downloadTxtBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download TXT
+      </button>
+    </div>
+
+    <!-- SCRIPT TAB -->
     <div class="tab-panel active" id="panel-script">
       <div class="card output-card">
         <div class="output-header">
           <h2>📝 Generated Script</h2>
           <div class="output-actions">
-            <button class="icon-btn" id="saveScriptBtn" title="Save">♡</button>
+            <button class="icon-btn" id="saveScriptBtn" title="Save to account">♡</button>
             <button class="copy-btn" id="copyScriptBtn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Copy
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy
             </button>
           </div>
         </div>
@@ -221,38 +297,53 @@
         </div>
       </div>
     </div>
+
+    <!-- TITLES TAB -->
     <div class="tab-panel" id="panel-titles">
       <div class="card output-card">
         <div class="output-header"><h2>🎯 Video Title Suggestions</h2><button class="copy-btn" id="copyTitlesBtn">Copy All</button></div>
         <div id="titlesContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Titles yahan aayenge 🎯</p></div></div>
       </div>
     </div>
-    <div class="tab-panel" id="panel-hooks">
+
+    <!-- DESCRIPTION TAB -->
+    <div class="tab-panel" id="panel-description">
       <div class="card output-card">
-        <div class="output-header"><h2>🔥 Hook Variations</h2><button class="copy-btn" id="copyHooksBtn">Copy All</button></div>
-        <div id="hooksContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Hooks yahan aayenge 🔥</p></div></div>
+        <div class="output-header">
+          <h2>📄 YouTube Description</h2>
+          <button class="copy-btn" id="copyDescBtn">Copy All</button>
+        </div>
+        <p class="tab-hint">SEO-optimized, ready-to-paste YouTube description with emojis & keywords 👇</p>
+        <div id="descContent" class="desc-content"><div class="placeholder-block"><p class="placeholder-text">Description yahan aayegi 📄</p></div></div>
       </div>
     </div>
+
+    <!-- HASHTAGS TAB -->
     <div class="tab-panel" id="panel-hashtags">
       <div class="card output-card">
         <div class="output-header"><h2>#️⃣ Hashtags</h2><button class="copy-btn" id="copyHashtagsBtn">Copy All</button></div>
         <div id="hashtagsContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Hashtags yahan aayenge #️⃣</p></div></div>
       </div>
     </div>
+
+    <!-- IDEAS TAB -->
     <div class="tab-panel" id="panel-ideas">
       <div class="card output-card">
         <div class="output-header"><h2>💡 Content Ideas</h2><button class="copy-btn" id="copyIdeasBtn">Copy All</button></div>
         <div id="ideasContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Content ideas yahan aayenge 💡</p></div></div>
       </div>
     </div>
+
+    <!-- THUMBNAIL TAB -->
     <div class="tab-panel" id="panel-thumbnail">
       <div class="card output-card">
-        <div class="output-header"><h2>🖼 AI Thumbnail Prompts</h2><button class="copy-btn" id="copyThumbnailBtn">Copy All</button></div>
-        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">In prompts ko Midjourney, DALL-E ya Stable Diffusion mein paste karo 👇</p>
+        <div class="output-header"><h2>🖼 Thumbnail Prompt Generator</h2><button class="copy-btn" id="copyThumbnailBtn">Copy All</button></div>
+        <p class="tab-hint">Paste these prompts in <strong>Midjourney, DALL-E or Stable Diffusion</strong> to generate professional thumbnails 👇</p>
         <div id="thumbnailContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">AI thumbnail prompts yahan aayenge 🖼</p></div></div>
       </div>
     </div>
-  </div>
+
+  </div><!-- /resultsArea -->
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
