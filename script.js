@@ -20,11 +20,15 @@ const thumbnailContent = document.getElementById('thumbnailContent');
 let currentUser = null;
 let isPro       = localStorage.getItem('sc_is_pro') === '1';
 let lastScript='', lastTitles=[], lastDesc='', lastHashtags=[], lastIdeas=[], lastThumbnail=[];
+let hasLoadedTrendingIdeas = false;
 const FALLBACK_TRENDING_TOPICS = [
   'AI tools that save 2 hours daily',
   'Simple side hustles students can start',
   'Phone camera hacks for cinematic Shorts'
 ];
+const THUMBNAIL_OVERLAYS = ['STOP MAKING THIS MISTAKE', 'DO THIS INSTEAD', 'THE SMART SHORTS FORMULA'];
+// Enforces English-only professional thumbnail outputs by filtering common Hinglish terms.
+const THUMBNAIL_BANNED_REGEX = /\b(yaar|bhai|zindagi|paisa|kaise|kya|kyu|kyon|aur|nahi|mat|jaldi|sach|desi|jugaad|apna|tum|aap|sab|chalo|dekho)\b/i;
 
 // ── DYNAMIC HERO HEADING ──────────────────────────────────────
 const TAB_LABELS = {
@@ -499,7 +503,7 @@ async function ensureServerAwake(maxAttempts = 5) {
       if (response.ok) return true;
     } catch {}
     if (attempt === 1) showWakeScreen();
-    await sleep(Math.min(1200 * attempt, 5000));
+    await sleep(Math.min(1000 * Math.pow(2, attempt - 1), 5000));
   }
   return false;
 }
@@ -523,7 +527,7 @@ async function postJsonWithRetry(url, topic, { maxAttempts = 4 } = {}) {
       lastError = e;
     }
     if (attempt === 2) showWakeScreen();
-    await sleep(Math.min(1200 * attempt, 5000));
+    await sleep(Math.min(1000 * Math.pow(2, attempt - 1), 5000));
   }
   throw lastError || new Error('Server unavailable');
 }
@@ -553,17 +557,15 @@ function createFallbackDescription(topic, scriptText = '', hashtags = []) {
 }
 
 function buildProfessionalThumbnailPrompt(topic, index) {
-  const overlays = ['STOP MAKING THIS MISTAKE', 'DO THIS INSTEAD', 'THE SMART SHORTS FORMULA'];
-  return `Ultra-realistic YouTube thumbnail featuring a confident creator demonstrating "${topic}" with an expressive face and dynamic hand gesture, dramatic cinematic rim lighting with high-contrast shadows, a detailed modern studio background with subtle storytelling elements tied to ${topic}, vibrant saturated red-orange-blue color palette, bold English text overlay "${overlays[index % overlays.length]}", close-up composition in 16:9 aspect ratio, eye-catching viral YouTube thumbnail style, 8k cinematic clarity.`;
+  return `Ultra-realistic YouTube thumbnail featuring a confident creator demonstrating "${topic}" with an expressive face and dynamic hand gesture, dramatic cinematic rim lighting with high-contrast shadows, a detailed modern studio background with subtle storytelling elements tied to ${topic}, vibrant saturated red-orange-blue color palette, bold English text overlay "${THUMBNAIL_OVERLAYS[index % THUMBNAIL_OVERLAYS.length]}", close-up composition in 16:9 aspect ratio, eye-catching viral YouTube thumbnail style, 8k cinematic clarity.`;
 }
 
 function normalizeThumbnailPrompts(prompts, topic) {
-  const banned = /\b(yaar|bhai|zindagi|paisa|kaise|kya|kyu|kyon|aur|nahi|mat|jaldi|sach|desi|jugaad|apna|tum|aap|sab|chalo|dekho)\b/i;
   const clean = Array.isArray(prompts) ? prompts.filter(Boolean).slice(0, 3) : [];
   while (clean.length < 3) clean.push(buildProfessionalThumbnailPrompt(topic, clean.length));
   return clean.map((line, i) => {
     const text = String(line).trim();
-    if (!text || banned.test(text) || /[^\x00-\x7F]/.test(text)) return buildProfessionalThumbnailPrompt(topic, i);
+    if (!text || THUMBNAIL_BANNED_REGEX.test(text) || /[^\x00-\x7F]/.test(text)) return buildProfessionalThumbnailPrompt(topic, i);
     return text;
   });
 }
@@ -694,6 +696,8 @@ function renderTrendingIdeas(topics, source = 'Trending Now') {
 }
 
 async function loadTrendingIdeas() {
+  if (hasLoadedTrendingIdeas) return;
+  hasLoadedTrendingIdeas = true;
   try {
     const data = await postJsonWithRetry('/api/ideas', 'Top 3 trending YouTube Shorts topics right now for creators', { maxAttempts: 2 });
     const ideas = (data?.ideas || []).slice(0, 3);
@@ -736,7 +740,9 @@ function initFeedbackUI() {
   document.getElementById('feedbackSubmit')?.addEventListener('click', () => {
     const text = (document.getElementById('feedbackText')?.value || '').trim();
     if (!text) { toast('Please write feedback first', 'error'); return; }
-    const prev = JSON.parse(localStorage.getItem('sc_feedback') || '[]');
+    let prev = [];
+    try { prev = JSON.parse(localStorage.getItem('sc_feedback') || '[]'); }
+    catch (e) { console.warn('Failed to parse stored feedback:', e); prev = []; }
     prev.unshift({ text, at: new Date().toISOString() });
     localStorage.setItem('sc_feedback', JSON.stringify(prev.slice(0, 100)));
     document.getElementById('feedbackText').value = '';
@@ -791,7 +797,8 @@ async function handleGenerate() {
       const safeDesc = (dR.value.description || '').trim() || createFallbackDescription(topic, lastScript, lastHashtags);
       renderDesc(safeDesc);
     } else {
-      renderDesc(createFallbackDescription(topic, lastScript, lastHashtags));
+      const currentScript = [scriptData.hook, scriptData.mainContent, scriptData.cta].filter(Boolean).join('\n');
+      renderDesc(createFallbackDescription(topic, currentScript || lastScript, lastHashtags));
       toast('Description generated with smart fallback ✅', 'success');
     }
 
@@ -847,6 +854,5 @@ window.addEventListener('resize', () => {
 document.querySelector('.nav-tab[data-tab="ideas"]')?.addEventListener('click', () => {
   if (!lastIdeas.length) loadTrendingIdeas();
 });
-loadTrendingIdeas();
 setProStatus(isPro, { silent: true });
 updateCreditsBadge();
