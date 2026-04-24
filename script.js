@@ -60,6 +60,7 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 
 // ── CREDITS ───────────────────────────────────────────────────
 const DAILY_FREE = 5;
+const PRO_UNLIMITED_CREDITS = 999;
 const PRO_STORAGE_KEY = 'sc_is_pro';
 const UPGRADE_SIMULATION_DELAY_MS = 900;
 
@@ -78,11 +79,16 @@ function loadProStatus() {
 function setProStatus(v, persist = true) {
   isPro = !!v;
   if (persist) localStorage.setItem(PRO_STORAGE_KEY, isPro ? '1' : '0');
+  const upgradeBtn = document.getElementById('upgradeBtn');
+  if (upgradeBtn) {
+    upgradeBtn.disabled = isPro;
+    upgradeBtn.textContent = isPro ? '✅ Pro Active' : '⭐ Upgrade — ₹99/month';
+  }
   updateCreditsBadge();
 }
 
 function getCredits() {
-  if (isPro) return 999;
+  if (isPro) return PRO_UNLIMITED_CREDITS;
   const today = getTodayStr();
   if (localStorage.getItem('sc_credit_date') !== today) {
     localStorage.setItem('sc_credit_date', today);
@@ -305,19 +311,14 @@ async function handleUpgradeSubmit() {
   if (isPro) { toast('You are already Pro! ⭐', 'success'); closeModal('upgradeModal'); return; }
   const btn = document.getElementById('upgradeSubmit');
   const oldText = btn.textContent;
-  try {
-    btn.disabled = true;
-    btn.textContent = 'Upgrading...';
-    await new Promise(resolve => setTimeout(resolve, UPGRADE_SIMULATION_DELAY_MS));
-    setProStatus(true);
-    closeModal('upgradeModal');
-    toast('Upgrade successful! Unlimited credits unlocked ♾️', 'success');
-  } catch (e) {
-    toast('Upgrade failed. Please try again.', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = oldText;
-  }
+  btn.disabled = true;
+  btn.textContent = 'Upgrading...';
+  await new Promise(resolve => setTimeout(resolve, UPGRADE_SIMULATION_DELAY_MS));
+  setProStatus(true);
+  closeModal('upgradeModal');
+  toast('Upgrade successful! Unlimited credits unlocked ♾️', 'success');
+  btn.disabled = false;
+  btn.textContent = oldText;
 }
 document.getElementById('upgradeSubmit').addEventListener('click', handleUpgradeSubmit);
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
