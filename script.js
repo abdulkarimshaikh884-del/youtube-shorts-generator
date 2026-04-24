@@ -50,6 +50,11 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
     const tabId = tab.dataset.tab;
     document.getElementById(`panel-${tabId}`)?.classList.add('active');
     updateHeroHeading(tabId);
+
+    // Scroll active tab into view on mobile
+    try {
+      tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    } catch (_) {}
   });
 });
 
@@ -88,9 +93,12 @@ function addCredit(n = 1) {
 function updateCreditsBadge() {
   const c = getCredits();
   const display = isPro ? '∞' : c;
-  document.getElementById('creditsCount').textContent     = display;
-  document.getElementById('creditsInfoCount').textContent = display;
+  const cntEl = document.getElementById('creditsCount');
+  const infoEl = document.getElementById('creditsInfoCount');
+  if (cntEl)  cntEl.textContent  = display;
+  if (infoEl) infoEl.textContent = display;
   const badge = document.getElementById('creditsBadge');
+  if (!badge) return;
   if (currentUser) badge.classList.remove('hidden');
   else badge.classList.add('hidden');
   badge.classList.toggle('low', !isPro && c <= 1);
@@ -265,9 +273,6 @@ function openModal(id)  { document.getElementById(id).classList.remove('hidden')
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 document.getElementById('loginBtn').addEventListener('click', () => openModal('authModal'));
-['authModalClose','upgradeModalClose','earnModalClose','noCreditsModalClose'].forEach(id => {
-  document.getElementById(id)?.addEventListener('click', () => closeModal(id.replace('Close','').replace('Modal','Modal')));
-});
 document.getElementById('authModalClose').addEventListener('click',    () => closeModal('authModal'));
 document.getElementById('upgradeModalClose').addEventListener('click', () => closeModal('upgradeModal'));
 document.getElementById('earnModalClose').addEventListener('click',    () => closeModal('earnModal'));
@@ -297,7 +302,12 @@ document.getElementById('profileAvatar')?.addEventListener('click', e => {
   e.stopPropagation();
   document.getElementById('profileDropdown').classList.toggle('hidden');
 });
-document.addEventListener('click', closeDropdown);
+document.addEventListener('click', (e) => {
+  const dd = document.getElementById('profileDropdown');
+  const menu = document.getElementById('profileMenu');
+  if (!dd || !menu) return;
+  if (!menu.contains(e.target)) closeDropdown();
+});
 function closeDropdown() { document.getElementById('profileDropdown')?.classList.add('hidden'); }
 
 document.getElementById('viewHistoryBtn')?.addEventListener('click', () => { closeDropdown(); openSidebar(); });
@@ -395,11 +405,11 @@ window.setTopic = function(text) {
 document.getElementById('downloadTxtBtn').addEventListener('click', () => {
   const topic = topicInput.value.trim() || 'shortscraft';
   const parts = [];
-  if (lastScript)         parts.push(`=== SCRIPT ===\n${lastScript}`);
-  if (lastTitles.length)  parts.push(`\n=== TITLES ===\n${lastTitles.map((t,i)=>`${i+1}. ${t}`).join('\n')}`);
-  if (lastDesc)           parts.push(`\n=== DESCRIPTION ===\n${lastDesc}`);
-  if (lastHashtags.length)parts.push(`\n=== HASHTAGS ===\n${lastHashtags.join(' ')}`);
-  if (lastIdeas.length)   parts.push(`\n=== IDEAS ===\n${lastIdeas.map((t,i)=>`${i+1}. ${t}`).join('\n')}`);
+  if (lastScript)          parts.push(`=== SCRIPT ===\n${lastScript}`);
+  if (lastTitles.length)   parts.push(`\n=== TITLES ===\n${lastTitles.map((t,i)=>`${i+1}. ${t}`).join('\n')}`);
+  if (lastDesc)            parts.push(`\n=== DESCRIPTION ===\n${lastDesc}`);
+  if (lastHashtags.length) parts.push(`\n=== HASHTAGS ===\n${lastHashtags.join(' ')}`);
+  if (lastIdeas.length)    parts.push(`\n=== IDEAS ===\n${lastIdeas.map((t,i)=>`${i+1}. ${t}`).join('\n')}`);
   if (lastThumbnail.length)parts.push(`\n=== THUMBNAIL PROMPTS ===\n${lastThumbnail.map((t,i)=>`[Prompt ${i+1}]\n${t}`).join('\n\n')}`);
   if (!parts.length) { toast('Pehle kuch generate karo!', 'error'); return; }
   const blob = new Blob([parts.join('\n')], { type: 'text/plain' });
@@ -444,27 +454,27 @@ function renderScript(data) {
 }
 
 function renderTitles(arr) {
-  titlesContent.innerHTML = arr.map((t,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(t)}</span><button class="item-copy-btn" onclick="copyOne(this,${JSON.stringify(t)})">Copy</button></div>`).join('');
+  titlesContent.innerHTML = arr.map((t,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(t)}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(t)})'>Copy</button></div>`).join('');
   lastTitles=arr;
 }
 
 function renderDesc(text) {
-  descContent.innerHTML = `<div class="desc-content" style="opacity:1;animation:none"><div class="desc-text">${escapeHtml(text)}</div></div>`;
+  descContent.innerHTML = `<div class="desc-content"><div class="desc-text">${escapeHtml(text)}</div></div>`;
   lastDesc = text;
 }
 
 function renderHashtags(arr) {
-  hashtagsContent.innerHTML = `<div class="hashtags-grid">${arr.map((h,i)=>`<span class="hashtag-chip" style="animation-delay:${i*.04}s" onclick="copyOne(this,${JSON.stringify(h)})">${escapeHtml(h)}</span>`).join('')}</div>`;
+  hashtagsContent.innerHTML = `<div class="hashtags-grid">${arr.map((h,i)=>`<span class="hashtag-chip" style="animation-delay:${i*.04}s" onclick='copyOne(this,${JSON.stringify(h)})'>${escapeHtml(h)}</span>`).join('')}</div>`;
   lastHashtags=arr;
 }
 
 function renderIdeas(arr) {
-  ideasContent.innerHTML = arr.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x)}</span><button class="item-copy-btn" onclick="copyOne(this,${JSON.stringify(x)})">Copy</button></div>`).join('');
+  ideasContent.innerHTML = arr.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x)}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(x)})'>Copy</button></div>`).join('');
   lastIdeas=arr;
 }
 
 function renderThumbnail(arr) {
-  thumbnailContent.innerHTML = arr.map((t,i)=>`<div class="list-item thumb-prompt-item" style="animation-delay:${i*.1}s"><div class="thumb-prompt-header"><span class="thumb-prompt-num">PROMPT ${i+1}</span><button class="item-copy-btn" onclick="copyOne(this,${JSON.stringify(t)})">Copy</button></div><div class="thumb-prompt-text">${escapeHtml(t)}</div></div>`).join('');
+  thumbnailContent.innerHTML = arr.map((t,i)=>`<div class="list-item thumb-prompt-item" style="animation-delay:${i*.1}s"><div class="thumb-prompt-header"><span class="thumb-prompt-num">PROMPT ${i+1}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(t)})'>Copy</button></div><div class="thumb-prompt-text">${escapeHtml(t)}</div></div>`).join('');
   lastThumbnail=arr;
 }
 
@@ -496,18 +506,10 @@ async function handleGenerate() {
   const topic = topicInput.value.trim();
   if (!topic) { setStatus('Pehle topic likho! 👆','error'); topicInput.focus(); return; }
 
-  // Credit check — logged in users only need credits; guests get 3 free tries via sessionStorage
-  if (currentUser) {
-    if (!isPro && getCredits() <= 0) { openModal('noCreditsModal'); return; }
+  // Credit check — ONLY for logged in users. Guests can generate unlimited.
+  if (currentUser && !isPro) {
+    if (getCredits() <= 0) { openModal('noCreditsModal'); return; }
     if (!useCredit()) { openModal('noCreditsModal'); return; }
-  } else {
-    // Guest: 3 free generations per session
-    const guestCount = parseInt(sessionStorage.getItem('sc_guest') || '0');
-    if (guestCount >= 3) {
-      toast('Sign in karo for unlimited generations! 🔐', 'error');
-      openModal('authModal'); return;
-    }
-    sessionStorage.setItem('sc_guest', guestCount + 1);
   }
 
   setLoading(true);
@@ -526,8 +528,12 @@ async function handleGenerate() {
 
   try {
     const [sR,tR,dR,htR,iR,thR] = await Promise.allSettled([
-      post('/api/generate'), post('/api/titles'), post('/api/description'),
-      post('/api/hashtags'), post('/api/ideas'),  post('/api/thumbnail'),
+      post('/api/generate'),
+      post('/api/titles'),
+      post('/api/description'),
+      post('/api/hashtags'),
+      post('/api/ideas'),
+      post('/api/thumbnail'),
     ]);
 
     let scriptData = { hook:'', mainContent:'', cta:'' };
@@ -538,8 +544,12 @@ async function handleGenerate() {
     if(tR.status==='fulfilled'&&tR.value.ok)  renderTitles((await tR.value.json()).titles||[]);
     else titlesContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Titles error 😔</p></div>';
 
-    if(dR.status==='fulfilled'&&dR.value.ok)  renderDesc((await dR.value.json()).description||'');
-    else descContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Description error 😔</p></div>';
+    if(dR.status==='fulfilled'&&dR.value.ok)  {
+      const dData = await dR.value.json();
+      renderDesc(dData.description || '');
+    } else {
+      descContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Description error 😔</p></div>';
+    }
 
     if(htR.status==='fulfilled'&&htR.value.ok) renderHashtags((await htR.value.json()).hashtags||[]);
     else hashtagsContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Hashtags error 😔</p></div>';
@@ -550,14 +560,12 @@ async function handleGenerate() {
     if(thR.status==='fulfilled'&&thR.value.ok) renderThumbnail((await thR.value.json()).thumbnail||[]);
     else thumbnailContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Thumbnail error 😔</p></div>';
 
-    // Save to DB history
     const allData={script:scriptData,titles:lastTitles,desc:lastDesc,hashtags:lastHashtags,ideas:lastIdeas,thumbnail:lastThumbnail};
     await dbSaveHistory(topic, allData);
 
     const credLeft = currentUser && !isPro ? ` • ${getCredits()} credits left` : '';
     setStatus(`Sab ready hai! 🎉${credLeft}`, 'success');
 
-    // Auto-scroll to results
     setTimeout(() => {
       resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 200);
