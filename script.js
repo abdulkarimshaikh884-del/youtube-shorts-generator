@@ -82,7 +82,6 @@ function setProStatus(v, persist = true) {
   const upgradeBtn = document.getElementById('upgradeBtn');
   if (upgradeBtn) {
     upgradeBtn.disabled = isPro;
-    upgradeBtn.setAttribute('aria-disabled', isPro ? 'true' : 'false');
     upgradeBtn.setAttribute('aria-label', isPro ? 'Pro plan active' : 'Upgrade to Pro');
     upgradeBtn.textContent = isPro ? '✅ Pro Active' : '⭐ Upgrade — ₹99/month';
   }
@@ -308,14 +307,24 @@ document.getElementById('noCreditsModalClose').addEventListener('click',()=> clo
   document.getElementById(id)?.addEventListener('click', e => { if(e.target.id===id) closeModal(id); });
 });
 
-document.getElementById('upgradeBtn').addEventListener('click',        () => { closeDropdown(); openModal('upgradeModal'); });
+document.getElementById('upgradeBtn').addEventListener('click',        () => {
+  closeDropdown();
+  const submitBtn = document.getElementById('upgradeSubmit');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Upgrade to Pro ⭐';
+  }
+  openModal('upgradeModal');
+});
 async function handleUpgradeSubmit() {
   const btn = document.getElementById('upgradeSubmit');
+  if (!btn) return;
   btn.disabled = true;
   btn.textContent = 'Upgrading...';
   await new Promise(resolve => setTimeout(resolve, UPGRADE_SIMULATION_DELAY_MS));
   setProStatus(true);
-  btn.textContent = 'Pro Active ✅';
+  btn.disabled = false;
+  btn.textContent = 'Upgrade to Pro ⭐';
   closeModal('upgradeModal');
   toast('Upgrade successful! Unlimited credits unlocked ♾️', 'success');
 }
