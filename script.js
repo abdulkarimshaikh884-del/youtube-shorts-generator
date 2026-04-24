@@ -66,12 +66,18 @@ const UPGRADE_SIMULATION_DELAY_MS = 900;
 function getTodayStr() { return new Date().toISOString().split('T')[0]; }
 
 function loadProStatus() {
-  setProStatus(localStorage.getItem(PRO_STORAGE_KEY) === '1');
+  const saved = localStorage.getItem(PRO_STORAGE_KEY);
+  if (saved === null) {
+    isPro = false;
+    updateCreditsBadge();
+    return;
+  }
+  setProStatus(saved === '1', false);
 }
 
-function setProStatus(v) {
+function setProStatus(v, persist = true) {
   isPro = !!v;
-  localStorage.setItem(PRO_STORAGE_KEY, isPro ? '1' : '0');
+  if (persist) localStorage.setItem(PRO_STORAGE_KEY, isPro ? '1' : '0');
   updateCreditsBadge();
 }
 
@@ -295,19 +301,25 @@ document.getElementById('noCreditsModalClose').addEventListener('click',()=> clo
 });
 
 document.getElementById('upgradeBtn').addEventListener('click',        () => { closeDropdown(); openModal('upgradeModal'); });
-document.getElementById('upgradeSubmit').addEventListener('click', async function() {
+async function handleUpgradeSubmit() {
   if (isPro) { toast('You are already Pro! ⭐', 'success'); closeModal('upgradeModal'); return; }
-  const btn = this;
+  const btn = document.getElementById('upgradeSubmit');
   const oldText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Upgrading...';
-  await new Promise(resolve => setTimeout(resolve, UPGRADE_SIMULATION_DELAY_MS));
-  setProStatus(true);
-  btn.disabled = false;
-  btn.textContent = oldText;
-  closeModal('upgradeModal');
-  toast('Upgrade successful! Unlimited credits unlocked ♾️', 'success');
-});
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Upgrading...';
+    await new Promise(resolve => setTimeout(resolve, UPGRADE_SIMULATION_DELAY_MS));
+    setProStatus(true);
+    closeModal('upgradeModal');
+    toast('Upgrade successful! Unlimited credits unlocked ♾️', 'success');
+  } catch (e) {
+    toast('Upgrade failed. Please try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
+}
+document.getElementById('upgradeSubmit').addEventListener('click', handleUpgradeSubmit);
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsEarnBtn').addEventListener('click',  () => { closeModal('noCreditsModal'); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsUpgradeBtn').addEventListener('click',()=>{ closeModal('noCreditsModal'); openModal('upgradeModal'); });
@@ -616,4 +628,3 @@ function toast(msg, type='') {
 
 // ── INIT ──────────────────────────────────────────────────────
 loadProStatus();
-updateCreditsBadge();
