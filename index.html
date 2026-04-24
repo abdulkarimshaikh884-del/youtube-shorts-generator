@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 
   <!-- SEO -->
   <title>ShortsCraft — Free AI YouTube Shorts Generator (Scripts, Titles, Description, Hashtags)</title>
@@ -11,6 +11,7 @@
   <meta property="og:title" content="ShortsCraft — Free AI YouTube Shorts Generator"/>
   <meta property="og:description" content="Create viral YouTube Shorts scripts, titles, descriptions & thumbnails in seconds. Free AI tool for Indian creators."/>
   <meta property="og:type" content="website"/>
+  <meta name="theme-color" content="#07090f"/>
   <link rel="canonical" href="https://youtube-shorts-generator-yngg.onrender.com"/>
 
   <!-- Structured Data -->
@@ -29,7 +30,7 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <span class="sidebar-title">📚 History</span>
-    <button class="sidebar-close" id="sidebarClose">✕</button>
+    <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">✕</button>
   </div>
   <div class="sidebar-section">
     <p class="sidebar-section-label">Recent Scripts</p>
@@ -51,7 +52,7 @@
 
 <!-- ── TOPBAR ───────────────────────────────────────────────── -->
 <header class="topbar">
-  <button class="topbar-btn" id="sidebarToggle" title="History">
+  <button class="topbar-btn" id="sidebarToggle" title="History" aria-label="Open history">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
@@ -62,15 +63,6 @@
     <span class="brand-name">ShortsCraft</span>
   </div>
 
-  <nav class="topbar-nav">
-    <button class="nav-tab active" data-tab="script"      data-label="Script">📝 Script</button>
-    <button class="nav-tab"        data-tab="titles"      data-label="Title">🎯 Titles</button>
-    <button class="nav-tab"        data-tab="description" data-label="Description">📄 Description</button>
-    <button class="nav-tab"        data-tab="hashtags"    data-label="Hashtag">️#️⃣ Hashtags</button>
-    <button class="nav-tab"        data-tab="ideas"       data-label="Ideas">💡 Ideas</button>
-    <button class="nav-tab"        data-tab="thumbnail"   data-label="Thumbnail">🖼 Thumbnail</button>
-  </nav>
-
   <div class="topbar-right">
     <div class="credits-badge hidden" id="creditsBadge">
       <span>⚡</span>
@@ -79,7 +71,7 @@
     </div>
     <button class="login-btn" id="loginBtn">Sign In</button>
     <div class="profile-menu hidden" id="profileMenu">
-      <button class="profile-avatar" id="profileAvatar">
+      <button class="profile-avatar" id="profileAvatar" aria-label="Profile menu">
         <img id="avatarImg" src="" alt="" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;"/>
         <span id="avatarInitial">U</span>
       </button>
@@ -110,6 +102,18 @@
     </div>
   </div>
 </header>
+
+<!-- Secondary tab bar (below topbar) -->
+<nav class="tabbar" id="tabbar">
+  <div class="tabbar-scroll">
+    <button class="nav-tab active" data-tab="script">📝 Script</button>
+    <button class="nav-tab" data-tab="titles">🎯 Titles</button>
+    <button class="nav-tab" data-tab="description">📄 Description</button>
+    <button class="nav-tab" data-tab="hashtags">#️⃣ Hashtags</button>
+    <button class="nav-tab" data-tab="ideas">💡 Ideas</button>
+    <button class="nav-tab" data-tab="thumbnail">🖼 Thumbnail</button>
+  </div>
+</nav>
 
 <!-- ── AUTH MODAL ───────────────────────────────────────────── -->
 <div class="modal-overlay hidden" id="authModal">
@@ -215,18 +219,17 @@
   <div class="hero">
     <div class="badge"><span class="badge-dot"></span>AI Powered • Free • No Login Required</div>
     <h1 class="hero-title">
-      <span class="hero-line1">YouTube Shorts</span><br/>
+      <span class="hero-line1">YouTube Shorts</span>
       <span class="hero-line2 gradient-text" id="heroAccent">Script Generator</span>
     </h1>
     <p class="subtitle">Create viral Hinglish content in seconds — scripts, titles, descriptions, hashtags & AI thumbnail prompts, all in one place 🔥</p>
 
-    <!-- STATS ROW -->
     <div class="stats-row">
       <div class="stat-item"><strong>6</strong><span>Content Types</span></div>
       <div class="stat-divider"></div>
-      <div class="stat-item"><strong>Free</strong><span>No Credit Card</span></div>
+      <div class="stat-item"><strong>Free</strong><span>No Card</span></div>
       <div class="stat-divider"></div>
-      <div class="stat-item"><strong>5s</strong><span>Generation Time</span></div>
+      <div class="stat-item"><strong>5s</strong><span>Generation</span></div>
     </div>
   </div>
 
@@ -236,7 +239,7 @@
     <div class="example-cards">
       <div class="example-card">
         <div class="example-card-tag hook-tag">🔥 Hook</div>
-        <p>"Yaar, kya tumhe pata hai ki subah ki 1 adat tumhari poori zindagi badal sakti hai? 99% log ye galti karte hain!"</p>
+        <p>"Yaar, kya tumhe pata hai ki subah ki 1 adat tumhari poori zindagi badal sakti hai?"</p>
       </div>
       <div class="example-card">
         <div class="example-card-tag title-tag">🎯 Title</div>
@@ -271,7 +274,6 @@
   <!-- RESULTS -->
   <div id="resultsArea" class="results-area hidden">
 
-    <!-- DOWNLOAD BAR -->
     <div class="results-actions-bar">
       <span class="results-topic-label" id="resultsTopic"></span>
       <button class="download-btn" id="downloadTxtBtn">
@@ -314,7 +316,7 @@
           <button class="copy-btn" id="copyDescBtn">Copy All</button>
         </div>
         <p class="tab-hint">SEO-optimized, ready-to-paste YouTube description with emojis & keywords 👇</p>
-        <div id="descContent" class="desc-content"><div class="placeholder-block"><p class="placeholder-text">Description yahan aayegi 📄</p></div></div>
+        <div id="descContent" class="desc-content-wrap"><div class="placeholder-block"><p class="placeholder-text">Description yahan aayegi 📄</p></div></div>
       </div>
     </div>
 
@@ -338,15 +340,15 @@
     <div class="tab-panel" id="panel-thumbnail">
       <div class="card output-card">
         <div class="output-header"><h2>🖼 Thumbnail Prompt Generator</h2><button class="copy-btn" id="copyThumbnailBtn">Copy All</button></div>
-        <p class="tab-hint">Paste these prompts in <strong>Midjourney, DALL-E or Stable Diffusion</strong> to generate professional thumbnails 👇</p>
+        <p class="tab-hint">Paste these English prompts in <strong>Midjourney, DALL-E or Stable Diffusion</strong> 👇</p>
         <div id="thumbnailContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">AI thumbnail prompts yahan aayenge 🖼</p></div></div>
       </div>
     </div>
 
-  </div><!-- /resultsArea -->
+  </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 </body>
-</html>
+                </html>
