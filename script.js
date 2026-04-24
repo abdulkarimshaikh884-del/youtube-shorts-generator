@@ -371,9 +371,8 @@ async function renderSidebar() {
   histList.innerHTML = histData.length === 0
     ? '<div class="empty-history"><span>🎬</span><p>No scripts yet!</p></div>'
     : histData.map((item,i) => `
-        <div class="history-item">
-          <div style="flex:1"><div class="history-topic">${escapeHtml(item.topic)}</div><div class="history-time">${timeAgo(item.created_at)}</div></div>
-          <button class="item-copy-btn" onclick="loadHistoryItem(${i},'history')">Open</button>
+        <div class="history-item" onclick="loadHistoryItem(${i},'history')">
+          <div style="flex:1;min-width:0"><div class="history-topic">${escapeHtml(item.topic)}</div><div class="history-time">${timeAgo(item.created_at)}</div></div>
           <button class="item-copy-btn" onclick="deleteHistoryItem(${i},this,event)">🗑</button>
         </div>`).join('');
 
