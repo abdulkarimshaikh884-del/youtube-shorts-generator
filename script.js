@@ -454,12 +454,13 @@ function renderScript(data) {
 }
 
 function renderTitles(arr) {
-  titlesContent.innerHTML = arr.map((t,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(t)}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(t)})'>Copy</button></div>`).join('');
+  titlesContent.innerHTML = arr.map((t,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(t)}</span><button class="item-copy-btn" onclick="copyByIndex(this,'titles',${i})">Copy</button></div>`).join('');
   lastTitles=arr;
 }
 
 function renderDesc(text) {
-  descContent.innerHTML = `<div class="desc-content"><div class="desc-text">${escapeHtml(text)}</div></div>`;
+  const html = escapeHtml(text).replace(/\n/g, '<br>');
+  descContent.innerHTML = `<div class="desc-content"><div class="desc-text">${html}</div></div>`;
   lastDesc = text;
 }
 
@@ -469,12 +470,12 @@ function renderHashtags(arr) {
 }
 
 function renderIdeas(arr) {
-  ideasContent.innerHTML = arr.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x)}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(x)})'>Copy</button></div>`).join('');
+  ideasContent.innerHTML = arr.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x)}</span><button class="item-copy-btn" onclick="copyByIndex(this,'ideas',${i})">Copy</button></div>`).join('');
   lastIdeas=arr;
 }
 
 function renderThumbnail(arr) {
-  thumbnailContent.innerHTML = arr.map((t,i)=>`<div class="list-item thumb-prompt-item" style="animation-delay:${i*.1}s"><div class="thumb-prompt-header"><span class="thumb-prompt-num">PROMPT ${i+1}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(t)})'>Copy</button></div><div class="thumb-prompt-text">${escapeHtml(t)}</div></div>`).join('');
+  thumbnailContent.innerHTML = arr.map((t,i)=>`<div class="list-item thumb-prompt-item" style="animation-delay:${i*.1}s"><div class="thumb-prompt-header"><span class="thumb-prompt-num">PROMPT ${i+1}</span><button class="item-copy-btn" onclick="copyByIndex(this,'thumbnail',${i})">Copy</button></div><div class="thumb-prompt-text">${escapeHtml(t)}</div></div>`).join('');
   lastThumbnail=arr;
 }
 
@@ -485,6 +486,11 @@ window.copyOne = async function(btn,text) {
     const orig=btn.textContent; btn.textContent='✓'; btn.classList.add('copied');
     setTimeout(()=>{ btn.textContent=orig; btn.classList.remove('copied'); },1500);
   } catch { toast('Copy failed','error'); }
+};
+window.copyByIndex = async function(btn, type, index) {
+  const map = { titles: lastTitles, ideas: lastIdeas, thumbnail: lastThumbnail };
+  const text = map[type]?.[index];
+  if (text != null) await window.copyOne(btn, text);
 };
 async function copyAll(text,btn) {
   try {
@@ -545,8 +551,16 @@ async function handleGenerate() {
     else titlesContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Titles error 😔</p></div>';
 
     if(dR.status==='fulfilled'&&dR.value.ok)  {
-      const dData = await dR.value.json();
-      renderDesc(dData.description || '');
+      try {
+        const dData = await dR.value.json();
+        if (dData.description) {
+          renderDesc(dData.description);
+        } else {
+          descContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Description error 😔 Retry karo</p></div>';
+        }
+      } catch(e) {
+        descContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Description error 😔 Retry karo</p></div>';
+      }
     } else {
       descContent.innerHTML='<div class="placeholder-block"><p class="placeholder-text">Description error 😔</p></div>';
     }
