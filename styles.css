@@ -557,7 +557,24 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
 
   .thumb-prompt-text { font-size: 0.8rem; }
 
-  .sidebar { width: 85vw; }
+  .sidebar {
+    width: 85vw;
+    max-width: 85vw;
+    height: 100dvh;
+    min-height: 100vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .sidebar-section { flex: 0 0 auto; overflow: visible; }
+  .sidebar-footer {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    z-index: 1;
+    background: rgba(8,11,22,0.98);
+    backdrop-filter: blur(24px);
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
   .profile-dropdown { width: 230px; }
 
   .modal { padding: 22px; border-radius: 16px; }
@@ -567,7 +584,7 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
 }
 
 @media (max-width: 380px) {
-  .brand-name { display: none; }
+  .brand-name { display: inline-block; font-size: 0.82rem; }
   .hero-title { font-size: 1.6rem; }
   .stat-item { padding: 0 10px; }
   .stat-item strong { font-size: 1.1rem; }
