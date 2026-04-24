@@ -60,8 +60,19 @@ document.querySelectorAll('.nav-tab').forEach(tab => {
 
 // ── CREDITS ───────────────────────────────────────────────────
 const DAILY_FREE = 5;
+const PRO_STORAGE_KEY = 'sc_is_pro';
 
 function getTodayStr() { return new Date().toISOString().split('T')[0]; }
+
+function loadProStatus() {
+  isPro = localStorage.getItem(PRO_STORAGE_KEY) === '1';
+}
+
+function setProStatus(v) {
+  isPro = !!v;
+  localStorage.setItem(PRO_STORAGE_KEY, isPro ? '1' : '0');
+  updateCreditsBadge();
+}
 
 function getCredits() {
   if (isPro) return 999;
@@ -283,7 +294,19 @@ document.getElementById('noCreditsModalClose').addEventListener('click',()=> clo
 });
 
 document.getElementById('upgradeBtn').addEventListener('click',        () => { closeDropdown(); openModal('upgradeModal'); });
-document.getElementById('upgradeSubmit').addEventListener('click',     () => toast('Payment coming soon! Contact us 📧'));
+document.getElementById('upgradeSubmit').addEventListener('click', async function() {
+  if (isPro) { toast('You are already Pro! ⭐', 'success'); closeModal('upgradeModal'); return; }
+  const btn = this;
+  const oldText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Upgrading...';
+  await new Promise(resolve => setTimeout(resolve, 900));
+  setProStatus(true);
+  btn.disabled = false;
+  btn.textContent = oldText;
+  closeModal('upgradeModal');
+  toast('Upgrade successful! Unlimited credits unlocked ♾️', 'success');
+});
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsEarnBtn').addEventListener('click',  () => { closeModal('noCreditsModal'); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsUpgradeBtn').addEventListener('click',()=>{ closeModal('noCreditsModal'); openModal('upgradeModal'); });
@@ -591,4 +614,5 @@ function toast(msg, type='') {
 }
 
 // ── INIT ──────────────────────────────────────────────────────
+loadProStatus();
 updateCreditsBadge();
