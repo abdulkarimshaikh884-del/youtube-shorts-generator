@@ -29,6 +29,8 @@ const FALLBACK_TRENDING_TOPICS = [
 const THUMBNAIL_OVERLAYS = ['STOP MAKING THIS MISTAKE', 'DO THIS INSTEAD', 'THE SMART SHORTS FORMULA'];
 // Enforces English-only professional thumbnail outputs by filtering common Hinglish terms.
 const THUMBNAIL_BANNED_REGEX = /\b(yaar|bhai|zindagi|paisa|kaise|kya|kyu|kyon|aur|nahi|mat|jaldi|sach|desi|jugaad|apna|tum|aap|sab|chalo|dekho)\b/i;
+const FEEDBACK_STORAGE_KEY = 'sc_feedback';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ── DYNAMIC HERO HEADING ──────────────────────────────────────
 const TAB_LABELS = {
@@ -194,6 +196,17 @@ async function dbDeleteHistory(historyId) {
   catch(e) { console.error('Delete history:', e); }
 }
 
+async function dbSaveFeedback(payload) {
+  try {
+    const { error } = await sb.from('feedback').insert(payload);
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.error('Feedback save:', e);
+    return false;
+  }
+}
+
 // ── AUTH UI ───────────────────────────────────────────────────
 function updateAuthUI(user) {
   currentUser = user;
@@ -222,6 +235,7 @@ function updateAuthUI(user) {
     document.getElementById('creditsBadge').classList.add('hidden');
     currentUser = null;
   }
+  syncFeedbackFormUser();
 }
 
 sb.auth.onAuthStateChange((event, session) => {
@@ -292,8 +306,10 @@ document.getElementById('authModalClose').addEventListener('click',    () => clo
 document.getElementById('upgradeModalClose').addEventListener('click', () => closeModal('upgradeModal'));
 document.getElementById('earnModalClose').addEventListener('click',    () => closeModal('earnModal'));
 document.getElementById('noCreditsModalClose').addEventListener('click',()=> closeModal('noCreditsModal'));
+document.getElementById('feedbackModalClose')?.addEventListener('click',() => closeModal('feedbackModal'));
+document.getElementById('feedbackCancelBtn')?.addEventListener('click', () => closeModal('feedbackModal'));
 
-['authModal','upgradeModal','earnModal','noCreditsModal'].forEach(id => {
+['authModal','upgradeModal','earnModal','noCreditsModal','feedbackModal'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', e => { if(e.target.id===id) closeModal(id); });
 });
 
@@ -305,6 +321,8 @@ document.getElementById('upgradeSubmit').addEventListener('click',     () => {
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsEarnBtn').addEventListener('click',  () => { closeModal('noCreditsModal'); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsUpgradeBtn').addEventListener('click',()=>{ closeModal('noCreditsModal'); openModal('upgradeModal'); });
+document.getElementById('feedbackBtn')?.addEventListener('click',      () => openFeedbackModal());
+document.getElementById('profileFeedbackBtn')?.addEventListener('click',() => { closeDropdown(); openFeedbackModal(); });
 
 document.querySelectorAll('.modal-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -751,6 +769,127 @@ function initFeedbackUI() {
 }
 
 // ── GENERATE ──────────────────────────────────────────────────
+function getFeedbackStorage() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FEEDBACK_STORAGE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveFeedbackBackup(entry) {
+  const stored = getFeedbackStorage();
+  stored.unshift(entry);
+  localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(stored.slice(0, 100)));
+}
+
+function getFeedbackFormData() {
+  return {
+    name: document.getElementById('feedbackName')?.value.trim() || '',
+    email: document.getElementById('feedbackEmail')?.value.trim() || '',
+    message: document.getElementById('feedbackMessage')?.value.trim() || '',
+  };
+}
+
+function getFeedbackUserName() {
+  return currentUser?.user_metadata?.full_name
+    || currentUser?.user_metadata?.name
+    || currentUser?.email?.split('@')[0]
+    || '';
+}
+
+function syncFeedbackFormUser() {
+  const nameInput = document.getElementById('feedbackName');
+  const emailInput = document.getElementById('feedbackEmail');
+  if (!nameInput || !emailInput) return;
+
+  if (currentUser) {
+    nameInput.value = getFeedbackUserName();
+    emailInput.value = currentUser.email || '';
+  } else {
+    nameInput.value = '';
+    emailInput.value = '';
+  }
+}
+
+function openFeedbackModal() {
+  syncFeedbackFormUser();
+  openModal('feedbackModal');
+  document.getElementById('feedbackMessage')?.focus();
+}
+
+async function sendFeedbackEmail(payload) {
+  const serviceId = window.EMAILJS_SERVICE_ID;
+  const templateId = window.EMAILJS_TEMPLATE_ID;
+  const publicKey = window.EMAILJS_PUBLIC_KEY;
+  if (!serviceId || !templateId || !publicKey || !window.emailjs?.send) return false;
+
+  try {
+    await window.emailjs.send(serviceId, templateId, payload, publicKey);
+    return true;
+  } catch (e) {
+    console.error('Feedback email:', e);
+    return false;
+  }
+}
+
+async function submitFeedback() {
+  const submitBtn = document.getElementById('feedbackSubmit');
+  const messageInput = document.getElementById('feedbackMessage');
+  const { name, email, message } = getFeedbackFormData();
+
+  if (!message) {
+    toast('Message is required.', 'error');
+    messageInput?.focus();
+    return;
+  }
+  if (message.length < 5) {
+    toast('Message must be at least 5 characters.', 'error');
+    messageInput?.focus();
+    return;
+  }
+  if (email && !EMAIL_REGEX.test(email)) {
+    toast('Please enter a valid email address.', 'error');
+    document.getElementById('feedbackEmail')?.focus();
+    return;
+  }
+
+  const entry = {
+    user_id: currentUser?.id || null,
+    name,
+    email,
+    message,
+    page_url: window.location.href,
+    user_agent: navigator.userAgent,
+    created_at: new Date().toISOString(),
+  };
+
+  submitBtn.textContent = 'Submitting...';
+  submitBtn.disabled = true;
+
+  let savedRemotely = false;
+  try {
+    savedRemotely = await dbSaveFeedback(entry);
+    await sendFeedbackEmail(entry);
+    saveFeedbackBackup({ ...entry, source: savedRemotely ? 'supabase' : 'local' });
+    messageInput.value = '';
+    closeModal('feedbackModal');
+    toast('Thanks! Feedback sent successfully.', 'success');
+  } finally {
+    submitBtn.textContent = 'Submit';
+    submitBtn.disabled = false;
+  }
+}
+
+function initFeedbackUI() {
+  document.getElementById('feedbackSubmit')?.addEventListener('click', submitFeedback);
+  document.getElementById('feedbackMessage')?.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') submitFeedback();
+  });
+  syncFeedbackFormUser();
+}
+
 async function handleGenerate() {
   const topic = topicInput.value.trim();
   if (!topic) { setStatus('Pehle topic likho! 👆','error'); topicInput.focus(); return; }
