@@ -64,6 +64,7 @@
   </div>
 
   <div class="topbar-right">
+    <button class="topbar-btn" id="feedbackBtn" title="Feedback" aria-label="Give feedback">💬</button>
     <div class="credits-badge hidden" id="creditsBadge">
       <span>⚡</span>
       <span id="creditsCount">5</span>
@@ -207,6 +208,18 @@
   </div>
 </div>
 
+<!-- ── FEEDBACK MODAL ─────────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="feedbackModal">
+  <div class="modal">
+    <button class="modal-close" id="feedbackModalClose">✕</button>
+    <h3>💬 Share Feedback</h3>
+    <p class="auth-subtitle">Tell us what to improve in ShortsCraft</p>
+    <input type="text" id="feedbackTopic" class="auth-input" placeholder="Topic (optional)"/>
+    <textarea id="feedbackText" class="auth-input" rows="4" placeholder="Write your feedback..." style="resize:vertical;min-height:110px;"></textarea>
+    <button class="auth-submit" id="feedbackSubmit">Submit Feedback</button>
+  </div>
+</div>
+
 <!-- ── MAIN ─────────────────────────────────────────────────── -->
 <main class="main" id="mainContent">
   <div class="bg-orbs">
@@ -332,6 +345,11 @@
     <div class="tab-panel" id="panel-ideas">
       <div class="card output-card">
         <div class="output-header"><h2>💡 Content Ideas</h2><button class="copy-btn" id="copyIdeasBtn">Copy All</button></div>
+        <div class="list-content" style="margin-bottom:12px;">
+          <div class="list-item"><span class="item-num">🔥</span><span class="item-text"><strong>Title:</strong> “AI Side Hustles for Students in 2026”<br><strong>Reason:</strong> AI + earning content is highly searched and shareable.<br><strong>Angle:</strong> Show 3 realistic low-investment tools with monthly earning potential.</span></div>
+          <div class="list-item"><span class="item-num">📱</span><span class="item-text"><strong>Title:</strong> “Hidden WhatsApp Features You’re Not Using”<br><strong>Reason:</strong> App hacks consistently perform well in Shorts discovery feed.<br><strong>Angle:</strong> Fast before/after demo with one feature per 5 seconds.</span></div>
+          <div class="list-item"><span class="item-num">💸</span><span class="item-text"><strong>Title:</strong> “UPI Scam Alerts: 3 Red Flags in 15 Seconds”<br><strong>Reason:</strong> Safety + money topics drive strong watch time and saves.<br><strong>Angle:</strong> Urgent warning format: “Never do this” with practical prevention tips.</span></div>
+        </div>
         <div id="ideasContent" class="list-content"><div class="placeholder-block"><p class="placeholder-text">Content ideas yahan aayenge 💡</p></div></div>
       </div>
     </div>

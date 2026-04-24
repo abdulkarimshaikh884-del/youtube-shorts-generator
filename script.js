@@ -158,6 +158,21 @@ async function dbLoadHistory() {
   } catch { return []; }
 }
 
+async function dbDeleteHistory(item) {
+  if (!currentUser || !item) return;
+  try {
+    if (item.id != null) {
+      await sb.from('script_history').delete().eq('user_id', currentUser.id).eq('id', item.id);
+      return;
+    }
+    if (item.created_at) {
+      await sb.from('script_history').delete().eq('user_id', currentUser.id).eq('topic', item.topic).eq('created_at', item.created_at);
+      return;
+    }
+    await sb.from('script_history').delete().eq('user_id', currentUser.id).eq('topic', item.topic);
+  } catch (e) { console.error('Delete history:', e); }
+}
+
 async function dbSaveScript(topic, data) {
   if (!currentUser) return;
   try {
@@ -277,8 +292,9 @@ document.getElementById('authModalClose').addEventListener('click',    () => clo
 document.getElementById('upgradeModalClose').addEventListener('click', () => closeModal('upgradeModal'));
 document.getElementById('earnModalClose').addEventListener('click',    () => closeModal('earnModal'));
 document.getElementById('noCreditsModalClose').addEventListener('click',()=> closeModal('noCreditsModal'));
+document.getElementById('feedbackModalClose').addEventListener('click',()=> closeModal('feedbackModal'));
 
-['authModal','upgradeModal','earnModal','noCreditsModal'].forEach(id => {
+['authModal','upgradeModal','earnModal','noCreditsModal','feedbackModal'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', e => { if(e.target.id===id) closeModal(id); });
 });
 
@@ -287,6 +303,25 @@ document.getElementById('upgradeSubmit').addEventListener('click',     () => toa
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsEarnBtn').addEventListener('click',  () => { closeModal('noCreditsModal'); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsUpgradeBtn').addEventListener('click',()=>{ closeModal('noCreditsModal'); openModal('upgradeModal'); });
+document.getElementById('feedbackBtn').addEventListener('click',       () => openModal('feedbackModal'));
+
+document.getElementById('feedbackSubmit').addEventListener('click', () => {
+  const text = document.getElementById('feedbackText').value.trim();
+  if (!text) { toast('Feedback likho pehle ✍️', 'error'); return; }
+  const topic = document.getElementById('feedbackTopic').value.trim() || topicInput.value.trim() || '';
+  const feedbackStore = JSON.parse(localStorage.getItem('sc_feedback') || '[]');
+  feedbackStore.unshift({
+    text,
+    topic,
+    createdAt: new Date().toISOString(),
+    userEmail: currentUser?.email || null,
+  });
+  localStorage.setItem('sc_feedback', JSON.stringify(feedbackStore.slice(0, 100)));
+  document.getElementById('feedbackText').value = '';
+  document.getElementById('feedbackTopic').value = '';
+  closeModal('feedbackModal');
+  toast('Feedback saved locally ✅', 'success');
+});
 
 document.querySelectorAll('.modal-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -352,8 +387,12 @@ async function renderSidebar() {
   histList.innerHTML = histData.length === 0
     ? '<div class="empty-history"><span>🎬</span><p>No scripts yet!</p></div>'
     : histData.map((item,i) => `
-        <div class="history-item" onclick="loadHistoryItem(${i},'history')">
-          <div style="flex:1"><div class="history-topic">${escapeHtml(item.topic)}</div><div class="history-time">${timeAgo(item.created_at)}</div></div>
+        <div class="history-item">
+          <div style="flex:1;cursor:pointer" onclick="loadHistoryItem(${i},'history')">
+            <div class="history-topic">${escapeHtml(item.topic)}</div>
+            <div class="history-time">${timeAgo(item.created_at)}</div>
+          </div>
+          <button class="item-copy-btn" onclick="deleteHistoryItem(${i},this)">🗑</button>
         </div>`).join('');
 
   savedList.innerHTML = savedData.length === 0
@@ -381,6 +420,16 @@ window.deleteSaved = async function(topic, btn) {
   btn.textContent='...'; btn.disabled=true;
   await dbDeleteSaved(topic);
   toast('Deleted 🗑');
+  renderSidebar();
+};
+
+window.deleteHistoryItem = async function(i, btn) {
+  const item = window._histData?.[i];
+  if (!item) return;
+  btn.textContent = '...'; btn.disabled = true;
+  await dbDeleteHistory(item);
+  window._histData.splice(i, 1);
+  toast('History item deleted 🗑');
   renderSidebar();
 };
 
@@ -469,8 +518,16 @@ function renderHashtags(arr) {
 }
 
 function renderIdeas(arr) {
-  ideasContent.innerHTML = arr.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x)}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(x)})'>Copy</button></div>`).join('');
-  lastIdeas=arr;
+  const normalized = (arr || []).map((x, i) => {
+    if (typeof x === 'string') return { view: x, copy: x };
+    const title = x?.title ? `Title: ${x.title}` : '';
+    const reason = x?.reason ? `Reason: ${x.reason}` : '';
+    const angle = x?.angle ? `Angle: ${x.angle}` : '';
+    const view = [title, reason, angle].filter(Boolean).join('\n') || `Idea ${i + 1}`;
+    return { view, copy: view };
+  });
+  ideasContent.innerHTML = normalized.map((x,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(x.view).replace(/\n/g,'<br>')}</span><button class="item-copy-btn" onclick='copyOne(this,${JSON.stringify(x.copy)})'>Copy</button></div>`).join('');
+  lastIdeas=normalized.map(x => x.copy);
 }
 
 function renderThumbnail(arr) {
