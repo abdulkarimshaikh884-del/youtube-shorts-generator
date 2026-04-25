@@ -333,17 +333,74 @@ document.querySelectorAll('.modal-tab').forEach(tab => {
 });
 
 // ── PROFILE DROPDOWN ──────────────────────────────────────────
-document.getElementById('profileAvatar')?.addEventListener('click', e => {
-  e.stopPropagation();
-  document.getElementById('profileDropdown').classList.toggle('hidden');
-});
-document.addEventListener('click', (e) => {
+(function initProfileDropdown() {
+  const avatarBtn = document.getElementById('profileAvatar');
+  const dropdown  = document.getElementById('profileDropdown');
+  const menu      = document.getElementById('profileMenu');
+  if (!avatarBtn || !dropdown || !menu) return;
+
+  // Toggle on avatar click — works for both mouse and touch
+  function toggleDropdown(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    const isOpen = !dropdown.classList.contains('hidden');
+    if (isOpen) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  }
+
+  function openDropdown() {
+    dropdown.classList.remove('hidden');
+
+    // On mobile: use fixed positioning anchored below topbar
+    if (window.innerWidth <= 640) {
+      const topbarH = document.querySelector('.topbar')?.offsetHeight || 58;
+      dropdown.style.top   = (topbarH + 8) + 'px';
+      dropdown.style.right = '12px';
+    } else {
+      dropdown.style.top   = '';
+      dropdown.style.right = '';
+    }
+  }
+
+  avatarBtn.addEventListener('click',      toggleDropdown);
+  avatarBtn.addEventListener('touchstart', toggleDropdown, { passive: false });
+
+  // Close when clicking/touching OUTSIDE the dropdown
+  function handleOutsideInteraction(e) {
+    if (!dropdown || dropdown.classList.contains('hidden')) return;
+    // If the click is inside the dropdown or on the avatar, do NOT close
+    if (dropdown.contains(e.target) || avatarBtn.contains(e.target)) return;
+    closeDropdown();
+  }
+
+  document.addEventListener('click',      handleOutsideInteraction);
+  document.addEventListener('touchstart', handleOutsideInteraction, { passive: true });
+
+  // Re-position on resize (desktop↔mobile switch)
+  window.addEventListener('resize', () => {
+    if (!dropdown.classList.contains('hidden')) {
+      if (window.innerWidth > 640) {
+        dropdown.style.top   = '';
+        dropdown.style.right = '';
+      } else {
+        const topbarH = document.querySelector('.topbar')?.offsetHeight || 58;
+        dropdown.style.top   = (topbarH + 8) + 'px';
+        dropdown.style.right = '12px';
+      }
+    }
+  });
+})();
+
+function closeDropdown() {
   const dd = document.getElementById('profileDropdown');
-  const menu = document.getElementById('profileMenu');
-  if (!dd || !menu) return;
-  if (!menu.contains(e.target)) closeDropdown();
-});
-function closeDropdown() { document.getElementById('profileDropdown')?.classList.add('hidden'); }
+  if (!dd) return;
+  dd.classList.add('hidden');
+  dd.style.top   = '';
+  dd.style.right = '';
+}
 
 document.getElementById('viewHistoryBtn')?.addEventListener('click', () => { closeDropdown(); openSidebar(); });
 document.getElementById('viewSavedBtn')?.addEventListener('click',   () => { closeDropdown(); openSidebar(); });
