@@ -3,6 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
+// RENDER_EXTERNAL_URL is auto-set by Render (e.g. https://yourapp.onrender.com)
+// Add it manually in Render → Environment → RENDER_EXTERNAL_URL if not present
+// This enables the self-ping keep-alive so the free server never sleeps
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -268,81 +272,27 @@ Return ONLY a valid JSON array of 3 strings. No markdown, no extra text.`,
   }
 });
 
-// ── RAZORPAY ─────────────────────────────────────────────────
-const crypto = require('crypto');
-
-app.post("/api/create-order", async (req, res) => {
-  const keyId     = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
-  if (!keyId || !keySecret) {
-    return res.status(503).json({ error: "Payment setup incomplete. Please contact admin." });
-  }
-
-  try {
-    const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
-    const response = await fetch("https://api.razorpay.com/v1/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Basic ${authHeader}`,
-      },
-      body: JSON.stringify({
-        amount: 9900,       // ₹99 in paise
-        currency: "INR",
-        receipt: `sc_${Date.now()}`,
-        notes: { product: "ShortsCraft Pro", plan: "monthly" },
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Razorpay create-order error:", errText);
-      return res.status(500).json({ error: "Could not create payment order. Try again." });
-    }
-
-    const order = await response.json();
-    return res.json({
-      order_id: order.id,
-      key_id: keyId,        // Safe to expose key_id (public key)
-      amount: order.amount,
-      currency: order.currency,
-    });
-  } catch (e) {
-    console.error("create-order error:", e);
-    return res.status(500).json({ error: e.message });
-  }
-});
-
-app.post("/api/verify-payment", (req, res) => {
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
-  if (!keySecret) {
-    return res.status(503).json({ success: false, error: "Payment setup incomplete." });
-  }
-
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-
-  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-    return res.status(400).json({ success: false, error: "Missing payment fields." });
-  }
-
-  try {
-    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
-    const expectedSignature = crypto
-      .createHmac("sha256", keySecret)
-      .update(body)
-      .digest("hex");
-
-    const isValid = expectedSignature === razorpay_signature;
-    return res.json({ success: isValid });
-  } catch (e) {
-    console.error("verify-payment error:", e);
-    return res.status(500).json({ success: false, error: e.message });
-  }
+// ── HEALTH CHECK (prevents Render cold start) ─────────────────
+app.get("/api/ping", (req, res) => {
+  res.json({ status: "ok", ts: Date.now() });
 });
 
 app.listen(PORT, () => {
   console.log(`✅ Server: http://localhost:${PORT}`);
   console.log(`🔑 Groq: ${process.env.GROQ_API_KEY ? "Loaded ✓" : "MISSING ✗"}`);
+
+  // Self-ping every 13 minutes so Render free tier doesn't sleep
+  // Render spins down after 15 min of inactivity — we ping at 13 to stay warm
+  if (process.env.RENDER_EXTERNAL_URL) {
+    const pingUrl = `${process.env.RENDER_EXTERNAL_URL}/api/ping`;
+    setInterval(async () => {
+      try {
+        const r = await fetch(pingUrl);
+        console.log(`🏓 Keep-alive ping → ${r.status}`);
+      } catch (e) {
+        console.warn("Keep-alive ping failed:", e.message);
+      }
+    }, 13 * 60 * 1000); // 13 minutes
+    console.log(`🏓 Keep-alive enabled → ${pingUrl}`);
+  }
 });
