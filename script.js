@@ -315,8 +315,7 @@ document.getElementById('feedbackCancelBtn')?.addEventListener('click', () => cl
 
 document.getElementById('upgradeBtn').addEventListener('click',        () => { closeDropdown(); openModal('upgradeModal'); });
 document.getElementById('upgradeSubmit').addEventListener('click',     () => {
-  setProStatus(true);
-  closeModal('upgradeModal');
+  startRazorpayPayment();
 });
 document.getElementById('earnCreditsLink').addEventListener('click',   () => { closeDropdown(); openModal('earnModal'); renderTasks(); });
 document.getElementById('noCreditsEarnBtn').addEventListener('click',  () => { closeModal('noCreditsModal'); openModal('earnModal'); renderTasks(); });
@@ -488,11 +487,11 @@ function timeAgo(ts) {
   return `${Math.floor(h/24)}d ago`;
 }
 
-function setProStatus(value,{silent=false}={}) {
+function setProStatus(value,{silent=false, label='Pro Activated! ⭐'}={}) {
   isPro = !!value;
   localStorage.setItem('sc_is_pro', isPro ? '1' : '0');
   updateCreditsBadge();
-  if (isPro && !silent) toast('Pro Activated (Demo)', 'success');
+  if (isPro && !silent) toast(label, 'success');
 }
 
 function showWakeScreen(msg='Waking server... please wait') {
@@ -726,49 +725,92 @@ async function loadTrendingIdeas() {
   renderTrendingIdeas(FALLBACK_TRENDING_TOPICS, 'Fallback Trends');
 }
 
-// ── FEEDBACK ────────────────────────────────────────────────────
-function initFeedbackUI() {
-  if (document.getElementById('feedbackBtn')) return;
-  const topbarRight = document.querySelector('.topbar-right');
-  if (!topbarRight) return;
+// ── RAZORPAY PAYMENT ──────────────────────────────────────────
+async function startRazorpayPayment() {
+  const btn = document.getElementById('upgradeSubmit');
+  const noteEl = document.getElementById('upgradeNote');
+  btn.disabled = true;
+  btn.textContent = 'Setting up payment...';
+  if (noteEl) noteEl.style.display = 'none';
 
-  const btn = document.createElement('button');
-  btn.id = 'feedbackBtn';
-  btn.className = 'login-btn';
-  btn.textContent = 'Feedback';
-  topbarRight.prepend(btn);
+  try {
+    const orderRes = await fetch('/api/create-order', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    const orderData = await orderRes.json();
 
-  const modal = document.createElement('div');
-  modal.id = 'feedbackModal';
-  modal.className = 'modal-overlay hidden';
-  modal.innerHTML = `
-    <div class="modal">
-      <button class="modal-close" id="feedbackModalClose">✕</button>
-      <h3>Share Feedback</h3>
-      <p class="auth-subtitle">Tell us what to improve</p>
-      <textarea id="feedbackText" class="auth-input" rows="5" placeholder="Write your feedback..." style="resize:vertical"></textarea>
-      <button class="auth-submit" id="feedbackSubmit">Submit Feedback</button>
-    </div>`;
-  document.body.appendChild(modal);
+    if (!orderRes.ok || orderData.error) {
+      const msg = orderData.error || 'Payment setup failed.';
+      if (noteEl) { noteEl.textContent = msg; noteEl.style.display = 'block'; }
+      toast(msg, 'error');
+      return;
+    }
 
-  btn.addEventListener('click', () => openModal('feedbackModal'));
-  document.getElementById('feedbackModalClose')?.addEventListener('click', () => closeModal('feedbackModal'));
-  modal.addEventListener('click', e => { if (e.target.id === 'feedbackModal') closeModal('feedbackModal'); });
-  document.getElementById('feedbackSubmit')?.addEventListener('click', () => {
-    const text = (document.getElementById('feedbackText')?.value || '').trim();
-    if (!text) { toast('Please write feedback first', 'error'); return; }
-    let prev = [];
-    try { prev = JSON.parse(localStorage.getItem('sc_feedback') || '[]'); }
-    catch (e) { console.warn('Failed to parse stored feedback:', e); prev = []; }
-    prev.unshift({ text, at: new Date().toISOString() });
-    localStorage.setItem('sc_feedback', JSON.stringify(prev.slice(0, 100)));
-    document.getElementById('feedbackText').value = '';
-    closeModal('feedbackModal');
-    toast('Feedback saved successfully ✅', 'success');
-  });
+    const { order_id, key_id, amount, currency } = orderData;
+    const userName = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || '';
+    const userEmail = currentUser?.email || '';
+
+    const options = {
+      key: key_id,
+      amount,
+      currency,
+      name: 'ShortsCraft',
+      description: 'ShortsCraft Pro — ₹99/month',
+      order_id,
+      prefill: { name: userName, email: userEmail },
+      theme: { color: '#ff4560' },
+      handler: async function(response) {
+        btn.textContent = 'Verifying payment...';
+        try {
+          const verifyRes = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+
+          if (verifyData.success) {
+            // Save pro status
+            localStorage.setItem('sc_is_pro', '1');
+            localStorage.setItem('sc_pro_payment_id', response.razorpay_payment_id);
+            if (currentUser) {
+              try {
+                await sb.from('profiles').upsert({ user_id: currentUser.id, is_pro: true, pro_payment_id: response.razorpay_payment_id, pro_since: new Date().toISOString() }, { onConflict: 'user_id' });
+              } catch(e) { console.warn('Pro save to Supabase failed:', e); }
+            }
+            setProStatus(true, { label: '🎉 Welcome to Pro! Unlimited generations unlocked!' });
+            closeModal('upgradeModal');
+          } else {
+            toast('Payment verification failed. Contact support.', 'error');
+          }
+        } catch(e) {
+          toast('Verification error: ' + e.message, 'error');
+        }
+      },
+      modal: {
+        ondismiss: function() {
+          btn.disabled = false;
+          btn.textContent = 'Upgrade to Pro — ₹99/month ⭐';
+        }
+      }
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+  } catch(e) {
+    const msg = e.message || 'Payment error. Try again.';
+    if (noteEl) { noteEl.textContent = msg; noteEl.style.display = 'block'; }
+    toast(msg, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Upgrade to Pro — ₹99/month ⭐';
+  }
 }
 
-// ── GENERATE ──────────────────────────────────────────────────
+// ── FEEDBACK ────────────────────────────────────────────────────
 function getFeedbackStorage() {
   try {
     const parsed = JSON.parse(localStorage.getItem(FEEDBACK_STORAGE_KEY) || '[]');
@@ -781,7 +823,7 @@ function getFeedbackStorage() {
 function saveFeedbackBackup(entry) {
   const stored = getFeedbackStorage();
   stored.unshift(entry);
-  localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(stored.slice(0, 100)));
+  localStorage.setItem('sc_feedback_backup', JSON.stringify(stored.slice(0, 100)));
 }
 
 function getFeedbackFormData() {
@@ -872,10 +914,16 @@ async function submitFeedback() {
   try {
     savedRemotely = await dbSaveFeedback(entry);
     await sendFeedbackEmail(entry);
-    saveFeedbackBackup({ ...entry, source: savedRemotely ? 'supabase' : 'local' });
-    messageInput.value = '';
-    closeModal('feedbackModal');
-    toast('Thanks! Feedback sent successfully.', 'success');
+    if (!savedRemotely) {
+      saveFeedbackBackup({ ...entry, source: 'local' });
+      messageInput.value = '';
+      closeModal('feedbackModal');
+      toast('Feedback saved locally. Supabase failed.', 'error');
+    } else {
+      messageInput.value = '';
+      closeModal('feedbackModal');
+      toast('Thanks! Feedback sent successfully.', 'success');
+    }
   } finally {
     submitBtn.textContent = 'Submit';
     submitBtn.disabled = false;
