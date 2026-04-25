@@ -69,6 +69,7 @@
       <span id="creditsCount">5</span>
       <span class="credits-label">/day</span>
     </div>
+    <button class="feedback-nav-btn" id="feedbackBtn">💬 Feedback</button>
     <button class="login-btn" id="loginBtn">Sign In</button>
     <div class="profile-menu hidden" id="profileMenu">
       <button class="profile-avatar" id="profileAvatar" aria-label="Profile menu">
@@ -96,6 +97,7 @@
         <hr class="dropdown-divider"/>
         <button class="dropdown-item" id="viewSavedBtn">🔖 Saved Scripts</button>
         <button class="dropdown-item" id="viewHistoryBtn">📚 View History</button>
+        <button class="dropdown-item" id="profileFeedbackBtn">💬 Feedback</button>
         <hr class="dropdown-divider"/>
         <button class="dropdown-item danger" id="logoutBtn">🚪 Sign Out</button>
       </div>
@@ -174,8 +176,8 @@
       <span class="price-amount">₹99</span>
       <span class="price-period">/month</span>
     </div>
-    <button class="auth-submit upgrade-submit" id="upgradeSubmit">Upgrade to Pro ⭐</button>
-    <p class="upgrade-note">Payment integration coming soon. Contact us to upgrade manually.</p>
+    <button class="auth-submit upgrade-submit" id="upgradeSubmit">Upgrade to Pro — ₹99/month ⭐</button>
+    <p class="upgrade-note" id="upgradeNote" style="display:none"></p>
   </div>
 </div>
 
@@ -348,7 +350,24 @@
   </div>
 </main>
 
+<!-- ── FEEDBACK MODAL ─────────────────────────────────────── -->
+<div class="modal-overlay hidden" id="feedbackModal">
+  <div class="modal">
+    <button class="modal-close" id="feedbackModalClose">✕</button>
+    <h3>💬 Share Feedback</h3>
+    <p class="auth-subtitle">Tell us what you think or what to improve</p>
+    <input type="text" id="feedbackName" placeholder="Your Name" class="auth-input"/>
+    <input type="email" id="feedbackEmail" placeholder="Email (optional)" class="auth-input"/>
+    <textarea id="feedbackMessage" class="auth-input" rows="4" placeholder="Your message (min 5 characters)..." style="resize:vertical;min-height:100px;line-height:1.5"></textarea>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="auth-submit" id="feedbackSubmit" style="flex:1">Submit</button>
+      <button class="auth-submit" id="feedbackCancelBtn" style="flex:0 0 auto;background:rgba(255,255,255,0.06);color:var(--muted)">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="script.js"></script>
 </body>
                 </html>
