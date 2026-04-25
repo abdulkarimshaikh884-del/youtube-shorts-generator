@@ -522,14 +522,41 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
 @media (max-width: 640px) {
   :root { --topbar-h: 52px; --tabbar-h: 46px; }
 
-  .topbar { padding: 0 10px; gap: 8px; }
-  .topbar-brand { display: flex; }
-  .brand-name { font-size: 0.95rem; }
-  .login-btn { padding: 5px 11px; font-size: 0.78rem; }
-  .feedback-trigger-btn { padding: 5px 10px; }
-  .feedback-btn-label { display: none; }
-  .credits-badge { padding: 4px 9px; font-size: 0.74rem; }
+  /* ── TOPBAR MOBILE FIX ── */
+  .topbar { padding: 0 8px; gap: 6px; overflow: hidden; }
+
+  /* Brand: shrinks slightly but stays visible */
+  .topbar-brand { flex-shrink: 1; min-width: 0; gap: 4px; }
+  .brand-icon   { font-size: 1rem; flex-shrink: 0; }
+  .brand-name   { font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Right cluster: no shrink on individual items, but cluster itself can compress */
+  .topbar-right { gap: 5px; flex-shrink: 0; }
+
+  /* Feedback button: icon-only on mobile */
+  .feedback-nav-btn {
+    padding: 6px 8px;
+    font-size: 0;          /* hides text without display:none */
+    line-height: 0;
+    border-radius: 8px;
+  }
+  /* Show only the emoji character — it's the first text node "💬" */
+  .feedback-nav-btn::before {
+    content: "💬";
+    font-size: 1rem;
+    line-height: 1;
+    display: block;
+  }
+
+  /* Credits badge: tighter */
+  .credits-badge { padding: 4px 8px; font-size: 0.73rem; gap: 3px; }
   .credits-label { display: none; }
+
+  /* Sign In button: compact but always visible */
+  .login-btn { padding: 5px 10px; font-size: 0.78rem; white-space: nowrap; flex-shrink: 0; }
+
+  /* Profile avatar: fixed size, never shrinks */
+  .profile-avatar { flex-shrink: 0; }
 
   .tabbar-scroll { padding: 0 12px; gap: 6px; }
   .nav-tab { font-size: 0.78rem; padding: 6px 12px; }
@@ -586,8 +613,15 @@ h2 { font-family: "Syne",sans-serif; font-size: 1.02rem; font-weight: 700; }
 }
 
 @media (max-width: 380px) {
+  /* Extreme narrow: hide brand text, keep icon */
   .brand-name { display: none; }
-  .feedback-trigger-btn { padding-left: 9px; padding-right: 9px; }
+  .brand-icon { font-size: 1.1rem; }
+
+  .topbar { gap: 5px; padding: 0 6px; }
+  .topbar-right { gap: 4px; }
+  .credits-badge { padding: 4px 6px; }
+  .login-btn { padding: 5px 9px; font-size: 0.76rem; }
+
   .hero-title { font-size: 1.6rem; }
   .stat-item { padding: 0 10px; }
   .stat-item strong { font-size: 1.1rem; }
