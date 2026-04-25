@@ -91,6 +91,13 @@ body {
 .brand-icon { font-size: 1.1rem; }
 .brand-name { font-family: "Syne",sans-serif; font-weight: 800; font-size: 1rem; background: linear-gradient(135deg,#ff4560,#ff8c3a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto; }
+.feedback-nav-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text); font-family: "Nunito",sans-serif; font-size: 0.8rem; font-weight: 700;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+}
+.feedback-nav-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
 .feedback-trigger-btn { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; }
 .feedback-btn-icon { flex-shrink: 0; }
 .feedback-btn-label { line-height: 1; }
