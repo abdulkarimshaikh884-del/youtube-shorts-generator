@@ -7,10 +7,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
+
+// Serve favicon/manifest assets from /public at the root URL
+// Example: public/favicon.ico => https://shortscraft.online/favicon.ico
+app.use(express.static(path.join(__dirname, "public"), {
+  maxAge: "7d"
+}));
+
+// Keep existing root static serving for index.html, styles.css, script.js, etc.
 app.use(express.static(path.join(__dirname)));
-// Serve /public folder (favicons, manifest, icons)
-app.use("/public", express.static(path.join(__dirname, "public")));
+
+// Backward compatibility: old /public/... links still work
+app.use("/public", express.static(path.join(__dirname, "public"), {
+  maxAge: "7d"
+}));
 
 // robots.txt — let Google crawl everything
 app.get("/robots.txt", (req, res) => {
