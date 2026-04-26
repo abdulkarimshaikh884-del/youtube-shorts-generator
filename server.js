@@ -9,6 +9,28 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
+// Serve /public folder (favicons, manifest, icons)
+app.use("/public", express.static(path.join(__dirname, "public")));
+
+// robots.txt — let Google crawl everything
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.send("User-agent: *\nAllow: /\nSitemap: https://shortscraft.online/sitemap.xml");
+});
+
+// sitemap.xml
+app.get("/sitemap.xml", (req, res) => {
+  res.header("Content-Type", "application/xml");
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://shortscraft.online/</loc>
+    <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+});
 
 function parseSections(text) {
   const hookMatch = text.match(/Hook:\s*([\s\S]*?)(?=Main Content:|CTA:|$)/i);
