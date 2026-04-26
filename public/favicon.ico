@@ -1,0 +1,63 @@
+{
+  "name": "ShortsCraft — Viral YouTube Shorts Generator",
+  "short_name": "ShortsCraft",
+  "description": "Free AI YouTube Shorts script generator for Indian creators",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#07090f",
+  "theme_color": "#07090f",
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0f1a"/>
+      <stop offset="100%" style="stop-color:#1a0d2e"/>
+    </linearGradient>
+    <linearGradient id="text" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4560"/>
+      <stop offset="100%" style="stop-color:#ff8c3a"/>
+    </linearGradient>
+    <linearGradient id="border" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4560;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#ff8c3a;stop-opacity:0.8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  <!-- Gradient border -->
+  <rect width="512" height="512" rx="96" ry="96" fill="none" stroke="url(#border)" stroke-width="18"/>
+  <!-- SC text with glow -->
+  <text
+    x="256" y="330"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="248"
+    font-weight="900"
+    text-anchor="middle"
+    fill="url(#text)"
+    filter="url(#glow)"
+    letter-spacing="-8"
+  >SC</text>
+  <!-- Small accent dot -->
+  <circle cx="256" cy="420" r="14" fill="url(#text)" opacity="0.6"/>
+</svg>
