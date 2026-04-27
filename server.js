@@ -55,6 +55,12 @@ app.get("/sitemap.xml", (req, res) => {
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>${SITE_URL}/about</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>${SITE_URL}/privacy</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
@@ -78,6 +84,10 @@ app.get("/sitemap.xml", (req, res) => {
 // ── PAGE ROUTES ───────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/about", (req, res) => {
+  res.sendFile(path.join(__dirname, "about.html"));
 });
 
 app.get("/privacy", (req, res) => {
