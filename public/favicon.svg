@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1f35"/>
+      <stop offset="100%" stop-color="#07090f"/>
+    </radialGradient>
+    <linearGradient id="bolt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff8c3a"/>
+      <stop offset="100%" stop-color="#ff4560"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#bg)"/>
+  <circle cx="50" cy="50" r="47" fill="none" stroke="#ff4560" stroke-width="2" opacity="0.6"/>
+  <!-- Lightning bolt -->
+  <polygon points="57,5 43,48 56,48 43,95 62,42 48,42 62,5" fill="url(#bolt)"/>
+</svg>
