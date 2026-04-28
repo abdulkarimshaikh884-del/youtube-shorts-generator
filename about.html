@@ -3,76 +3,304 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>About ShortsCraft — Free AI Tool for YouTube Shorts Creators</title>
-  <meta name="description" content="Learn about ShortsCraft, a free AI tool that helps creators generate YouTube Shorts scripts, titles, descriptions, hashtags, ideas, and thumbnail prompts."/>
+  <title>About ShortsCraft — Free AI YouTube Shorts Generator</title>
+  <meta name="description" content="Learn about ShortsCraft — a free AI-powered tool built for Indian creators to generate YouTube Shorts scripts, titles, descriptions, hashtags, ideas, and thumbnail prompts instantly."/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="https://shortscraft.online/about"/>
+  <meta property="og:title" content="About ShortsCraft — Free AI YouTube Shorts Generator"/>
+  <meta property="og:description" content="ShortsCraft helps Indian creators make better YouTube Shorts content faster using AI. Free, no login required."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://shortscraft.online/about"/>
+  <meta property="og:image" content="https://shortscraft.online/favicon-512.png"/>
   <link rel="icon" href="/favicon.ico" sizes="any"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    :root{--bg:#07090f;--card:rgba(14,18,32,.82);--card-border:rgba(255,255,255,.07);--text:#eef0ff;--muted:#6b7590;--accent:#ff4560;--accent-2:#ff8c3a;--green:#22c55e;--radius:16px;--radius-sm:10px;}
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html,body{max-width:100%;overflow-x:hidden}body{font-family:"Nunito",sans-serif;color:var(--text);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;}
-    body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 10%,rgba(109,40,217,.22),transparent 32%),radial-gradient(circle at 90% 28%,rgba(255,69,96,.18),transparent 30%),radial-gradient(circle at 30% 100%,rgba(255,140,58,.13),transparent 32%);}
-    .topbar{position:sticky;top:0;left:0;right:0;height:56px;z-index:100;display:flex;align-items:center;padding:0 24px;background:rgba(7,9,15,.95);border-bottom:1px solid var(--card-border);backdrop-filter:blur(20px)}
-    .brand{display:flex;align-items:center;gap:6px;text-decoration:none}.brand-icon{font-size:1.1rem}.brand-name{font-family:"Syne",sans-serif;font-weight:800;font-size:1rem;background:linear-gradient(135deg,#ff4560,#ff8c3a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.topbar-back{margin-left:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text);font-family:"Nunito",sans-serif;font-size:.82rem;font-weight:700;padding:6px 14px;border-radius:999px;cursor:pointer;text-decoration:none;transition:background .2s}.topbar-back:hover{background:rgba(255,255,255,.1)}
-    .page-wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:48px 24px 80px}.page-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,69,96,.1);border:1px solid rgba(255,69,96,.25);color:var(--accent);font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:999px;margin-bottom:20px}.page-title{font-family:"Syne",sans-serif;font-weight:800;font-size:clamp(1.9rem,5vw,3.1rem);line-height:1.12;margin-bottom:14px;background:linear-gradient(135deg,#fff 30%,var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.page-sub{font-size:1rem;color:rgba(238,240,255,.68);line-height:1.75;max-width:720px;margin-bottom:34px}
-    .content-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}.about-card,.wide-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:26px 28px;backdrop-filter:blur(14px);box-shadow:0 20px 60px rgba(0,0,0,.28)}.wide-card{grid-column:1/-1}.about-card h2,.wide-card h2{font-family:"Syne",sans-serif;font-size:1.15rem;margin-bottom:12px}.about-card p,.wide-card p{font-size:.93rem;line-height:1.8;color:rgba(238,240,255,.75);margin-bottom:10px}.about-card p:last-child,.wide-card p:last-child{margin-bottom:0}.feature-list{list-style:none;display:grid;gap:10px;margin-top:12px}.feature-list li{font-size:.92rem;line-height:1.55;color:rgba(238,240,255,.78);padding:11px 13px;border-radius:var(--radius-sm);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}.feature-list strong{color:var(--accent-2)}
-    .notice{border-color:rgba(34,197,94,.22);background:rgba(34,197,94,.06)}.notice h2{color:#86efac}.footer{margin-top:34px;padding-top:24px;border-top:1px solid var(--card-border);text-align:center}.footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:10px 16px;margin-bottom:12px}.footer-links a{color:rgba(238,240,255,.7);text-decoration:none;font-size:.84rem;font-weight:700}.footer-links a:hover{color:var(--accent-2)}.footer p{color:var(--muted);font-size:.82rem;line-height:1.6}
-    @media(max-width:720px){.topbar{padding:0 16px}.page-wrap{padding:36px 18px 64px}.content-grid{grid-template-columns:1fr}.about-card,.wide-card{padding:22px 20px}.footer-links{flex-direction:column;gap:10px}}
+    :root {
+      --bg: #07090f; --card: rgba(14,18,32,0.82); --card-border: rgba(255,255,255,0.07);
+      --text: #eef0ff; --muted: #6b7590; --accent: #ff4560; --accent-2: #ff8c3a;
+      --green: #22c55e; --radius: 16px; --radius-sm: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { font-family: "Nunito", sans-serif; color: var(--text); background: var(--bg); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
+      display: flex; align-items: center; padding: 0 24px;
+      background: rgba(7,9,15,0.95); border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(20px);
+    }
+    .brand { display: flex; align-items: center; gap: 6px; text-decoration: none; }
+    .brand-icon { font-size: 1.1rem; }
+    .brand-name {
+      font-family: "Syne", sans-serif; font-weight: 800; font-size: 1rem;
+      background: linear-gradient(135deg, #ff4560, #ff8c3a);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .topbar-back {
+      margin-left: auto;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text); font-family: "Nunito", sans-serif; font-size: 0.82rem; font-weight: 700;
+      padding: 6px 14px; border-radius: 999px; cursor: pointer; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .topbar-back:hover { background: rgba(255,255,255,0.1); }
+
+    /* PAGE LAYOUT */
+    .page-wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .page-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,69,96,0.1); border: 1px solid rgba(255,69,96,0.25);
+      color: var(--accent); font-size: 0.75rem; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 5px 14px; border-radius: 999px; margin-bottom: 20px;
+    }
+    .page-title {
+      font-family: "Syne", sans-serif; font-weight: 800; font-size: clamp(1.9rem, 5vw, 3rem);
+      line-height: 1.12; margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-sub {
+      font-size: 1.05rem; color: rgba(238,240,255,0.65); line-height: 1.65; margin-bottom: 48px;
+      max-width: 640px;
+    }
+
+    /* MISSION CARD */
+    .mission-card {
+      background: linear-gradient(135deg, rgba(255,69,96,0.08), rgba(255,140,58,0.06));
+      border: 1px solid rgba(255,69,96,0.2); border-radius: var(--radius);
+      padding: 32px 36px; margin-bottom: 32px;
+    }
+    .mission-card h2 {
+      font-family: "Syne", sans-serif; font-weight: 700; font-size: 1.3rem;
+      margin-bottom: 14px; color: var(--text);
+    }
+    .mission-card p {
+      font-size: 0.97rem; line-height: 1.82; color: rgba(238,240,255,0.8); margin-bottom: 12px;
+    }
+    .mission-card p:last-child { margin-bottom: 0; }
+
+    /* FEATURES GRID */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: var(--radius); padding: 24px 20px;
+      backdrop-filter: blur(12px); transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(255,255,255,0.14); transform: translateY(-2px); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 12px; display: block; }
+    .feature-title { font-family: "Syne", sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; color: var(--text); }
+    .feature-desc { font-size: 0.85rem; line-height: 1.65; color: rgba(238,240,255,0.6); }
+
+    /* WHO SECTION */
+    .about-section {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: var(--radius); padding: 28px 32px; margin-bottom: 20px;
+      backdrop-filter: blur(12px); transition: border-color 0.2s;
+    }
+    .about-section:hover { border-color: rgba(255,255,255,0.12); }
+    .about-section h2 {
+      font-family: "Syne", sans-serif; font-weight: 700; font-size: 1.15rem;
+      margin-bottom: 14px; color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .about-section p { font-size: 0.93rem; line-height: 1.8; color: rgba(238,240,255,0.75); margin-bottom: 10px; }
+    .about-section p:last-child { margin-bottom: 0; }
+    .about-section ul { list-style: none; padding: 0; margin: 10px 0; }
+    .about-section ul li {
+      font-size: 0.93rem; line-height: 1.7; color: rgba(238,240,255,0.75);
+      padding: 5px 0 5px 22px; position: relative;
+    }
+    .about-section ul li::before { content: "→"; position: absolute; left: 0; color: var(--accent); font-size: 0.85rem; }
+
+    /* STATS ROW */
+    .stats-band {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px;
+    }
+    .stat-box {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm); padding: 20px 16px; text-align: center;
+      backdrop-filter: blur(12px);
+    }
+    .stat-box strong { display: block; font-family: "Syne", sans-serif; font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 4px; }
+    .stat-box span { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+
+    /* CTA BANNER */
+    .cta-banner {
+      background: linear-gradient(135deg, rgba(255,69,96,0.12), rgba(255,140,58,0.08));
+      border: 1px solid rgba(255,69,96,0.25); border-radius: var(--radius);
+      padding: 32px; text-align: center; margin-bottom: 32px;
+    }
+    .cta-banner h2 { font-family: "Syne", sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; }
+    .cta-banner p { color: rgba(238,240,255,0.65); font-size: 0.95rem; margin-bottom: 22px; }
+    .cta-btn {
+      display: inline-block; padding: 13px 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 999px; color: #fff; font-family: "Syne", sans-serif; font-weight: 700;
+      font-size: 1rem; text-decoration: none; transition: opacity 0.2s, transform 0.15s;
+    }
+    .cta-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* FOOTER */
+    .page-footer { text-align: center; margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--card-border); }
+    .footer-brand { font-family: "Syne", sans-serif; font-weight: 800; background: linear-gradient(135deg, #ff4560, #ff8c3a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 1.1rem; margin-bottom: 10px; }
+    .footer-links { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 14px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 0.78rem; color: var(--muted); }
+
+    @media (max-width: 700px) {
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .stats-band { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .stats-band { grid-template-columns: 1fr 1fr; }
+      .about-section { padding: 20px 18px; }
+      .mission-card { padding: 22px 20px; }
+      .page-wrap { padding: 32px 16px 60px; }
+    }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="ShortsCraft Home"><span class="brand-icon">⚡</span><span class="brand-name">ShortsCraft</span></a>
-    <a class="topbar-back" href="/">Back to Tool</a>
-  </header>
 
-  <main class="page-wrap">
-    <div class="page-badge">About ShortsCraft</div>
-    <h1 class="page-title">A free AI workspace for YouTube Shorts creators</h1>
-    <p class="page-sub">ShortsCraft helps creators turn simple video topics into practical short-form content ideas, scripts, titles, descriptions, hashtags, and thumbnail prompts. It is built to make the planning stage faster, cleaner, and easier for anyone creating YouTube Shorts.</p>
+<header class="topbar">
+  <a href="/" class="brand">
+    <span class="brand-icon">⚡</span>
+    <span class="brand-name">ShortsCraft</span>
+  </a>
+  <a href="/" class="topbar-back">← Try the Tool</a>
+</header>
 
-    <section class="content-grid" aria-label="About ShortsCraft information">
-      <article class="about-card">
-        <h2>What ShortsCraft does</h2>
-        <p>ShortsCraft is a free AI tool for creators who want quick inspiration for YouTube Shorts. You can type a topic and generate a content package that includes a script, title suggestions, description copy, hashtags, new ideas, and thumbnail prompts.</p>
-        <p>The goal is simple: help creators move from idea to draft faster while keeping the editing and final creative control in their own hands.</p>
-      </article>
+<main class="page-wrap">
 
-      <article class="about-card">
-        <h2>Who it is for</h2>
-        <p>ShortsCraft is useful for YouTubers, students, educators, editors, influencers, small business owners, and faceless channel creators who publish short-form videos regularly.</p>
-        <p>Whether you make facts, motivation, tutorials, entertainment, or educational Shorts, the tool can help you create a clear starting point.</p>
-      </article>
+  <span class="page-badge">⚡ About Us</span>
+  <h1 class="page-title">Built for Indian Creators.<br/>Powered by AI.</h1>
+  <p class="page-sub">ShortsCraft is a free, AI-powered content generator designed specifically for YouTube Shorts creators — with a focus on Hinglish content that resonates with Indian audiences.</p>
 
-      <article class="wide-card">
-        <h2>How creators can use it</h2>
-        <ul class="feature-list">
-          <li><strong>Scripts:</strong> Generate short-form video scripts that you can adjust for your voiceover style.</li>
-          <li><strong>Titles and descriptions:</strong> Create useful metadata ideas for YouTube uploads.</li>
-          <li><strong>Hashtags:</strong> Get relevant hashtag suggestions for discoverability.</li>
-          <li><strong>Ideas:</strong> Find new angles when you are stuck or planning multiple uploads.</li>
-          <li><strong>Thumbnail prompts:</strong> Create prompt ideas for AI image tools or thumbnail design inspiration.</li>
-        </ul>
-      </article>
+  <!-- STATS -->
+  <div class="stats-band">
+    <div class="stat-box"><strong>6</strong><span>Content Tools</span></div>
+    <div class="stat-box"><strong>Free</strong><span>No Card Needed</span></div>
+    <div class="stat-box"><strong>5s</strong><span>Avg. Generate Time</span></div>
+    <div class="stat-box"><strong>100%</strong><span>Hinglish Ready</span></div>
+  </div>
 
-      <article class="wide-card notice">
-        <h2>Important content note</h2>
-        <p>ShortsCraft is designed to support creativity, not replace human review. AI-generated content may need corrections, fact-checking, tone changes, or additional context before publishing. Creators should always review the output, remove anything inaccurate, and make the final content original and suitable for their audience.</p>
-      </article>
-    </section>
+  <!-- MISSION -->
+  <div class="mission-card">
+    <h2>🎯 Our Mission</h2>
+    <p>Creating quality content for YouTube Shorts takes time — writing a compelling hook, coming up with the right title, optimizing the description, finding trending hashtags, and brainstorming ideas for the next video. For solo creators, this can eat up hours every single day.</p>
+    <p>ShortsCraft was built to solve exactly this problem. Our mission is to give every Indian creator — whether you have 100 subscribers or 1 million — access to professional-grade content generation tools, completely free, without needing any technical knowledge.</p>
+    <p>We believe great content creation should be about creativity, not copy-pasting and formatting. Let AI handle the drafts — you add the personality.</p>
+  </div>
 
-    <footer class="footer">
-      <nav class="footer-links" aria-label="Footer navigation">
-        <a href="/about">About</a>
-        <a href="/privacy">Privacy Policy</a>
-        <a href="/terms">Terms &amp; Conditions</a>
-        <a href="/contact">Contact / Support</a>
-      </nav>
-      <p>© ShortsCraft. Free AI content generation support for creators.</p>
-    </footer>
-  </main>
+  <!-- FEATURES GRID -->
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">📝</span>
+      <div class="feature-title">Script Generator</div>
+      <p class="feature-desc">Full Hinglish YouTube Shorts scripts with Hook, Main Content, and a strong Call-to-Action — ready to record.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🎯</span>
+      <div class="feature-title">Title Generator</div>
+      <p class="feature-desc">5 SEO-optimized, clickable video titles with numbers and emojis — crafted to improve click-through rates.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">📄</span>
+      <div class="feature-title">Description Writer</div>
+      <p class="feature-desc">Full YouTube descriptions with bullet points, keywords, CTAs, and hashtags — ready to paste directly into YouTube Studio.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">#️⃣</span>
+      <div class="feature-title">Hashtag Generator</div>
+      <p class="feature-desc">15 relevant hashtags per video — a mix of broad, niche, and Hindi-specific tags to maximize discoverability.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">💡</span>
+      <div class="feature-title">Content Ideas</div>
+      <p class="feature-desc">7 unique video ideas related to your topic so you always know what to create next — no more creator's block.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">🖼</span>
+      <div class="feature-title">Thumbnail Prompts</div>
+      <p class="feature-desc">3 detailed AI image prompts for Midjourney, DALL-E, or Stable Diffusion — in English, optimized for viral YouTube thumbnails.</p>
+    </div>
+  </div>
+
+  <!-- WHO IS IT FOR -->
+  <div class="about-section">
+    <h2>👥 Who Is ShortsCraft For?</h2>
+    <p>ShortsCraft is designed for anyone who creates — or wants to create — content for YouTube Shorts, especially within the Indian creator ecosystem:</p>
+    <ul>
+      <li><strong>Beginner creators</strong> who don't know how to write scripts or structure videos</li>
+      <li><strong>Consistent creators</strong> who need to produce content daily but run out of ideas</li>
+      <li><strong>Educators and coaches</strong> who want to repurpose their knowledge into short-form content</li>
+      <li><strong>Business owners</strong> using YouTube Shorts to promote their brand or services</li>
+      <li><strong>Students and hobbyists</strong> exploring content creation for the first time</li>
+    </ul>
+    <p>You don't need to understand AI or be a professional writer. Just enter your topic, click Generate, and ShortsCraft does the rest in seconds.</p>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="about-section">
+    <h2>⚙️ How It Works</h2>
+    <p>ShortsCraft uses large language models (LLaMA via Groq API) trained on massive amounts of text to understand your topic and generate contextually relevant, creative content in Hinglish — the natural mix of Hindi and English spoken by millions of Indians every day.</p>
+    <p>Here's the process:</p>
+    <ul>
+      <li>You enter a topic — anything from "morning routine" to "stock market basics"</li>
+      <li>Our AI generates a full script, 5 titles, an SEO description, 15 hashtags, 7 content ideas, and 3 thumbnail prompts simultaneously</li>
+      <li>All output appears in organized tabs so you can copy exactly what you need</li>
+      <li>Signed-in users can save scripts to their account for later reference</li>
+    </ul>
+    <p>The entire generation process typically takes under 10 seconds. No waiting, no queues.</p>
+  </div>
+
+  <!-- IMPORTANT DISCLAIMER -->
+  <div class="about-section">
+    <h2>⚠️ Important: Review Before You Publish</h2>
+    <p>ShortsCraft generates content using artificial intelligence. While the output is designed to be high-quality and useful, AI-generated content should always be reviewed by a human before publishing.</p>
+    <ul>
+      <li>Verify any factual claims made in the generated script</li>
+      <li>Edit the content to match your personal voice and style</li>
+      <li>Ensure the content complies with YouTube's Community Guidelines</li>
+      <li>Do not republish AI content without reading and understanding it first</li>
+    </ul>
+    <p>Think of ShortsCraft as a smart first draft — you bring the creativity, authenticity, and final judgment. The AI just saves you the blank-page problem.</p>
+  </div>
+
+  <!-- PRIVACY COMMITMENT -->
+  <div class="about-section">
+    <h2>🔒 Privacy & Trust</h2>
+    <p>We take your privacy seriously. ShortsCraft does not sell your data, does not show intrusive ads, and does not require a credit card to use the free tier. Topics you generate are processed through our AI provider (Groq) and are not stored or used to train models without consent.</p>
+    <p>For full details, read our <a href="/privacy" style="color:var(--accent-2);text-decoration:none;border-bottom:1px solid rgba(255,140,58,0.3)">Privacy Policy</a>.</p>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-banner">
+    <h2>Ready to Create? 🚀</h2>
+    <p>Join thousands of Indian creators who use ShortsCraft to build their YouTube channel faster.</p>
+    <a href="/" class="cta-btn">Start Generating — It's Free ⚡</a>
+  </div>
+
+</main>
+
+<footer class="page-footer" style="max-width:860px;margin:0 auto;padding:0 24px 40px;">
+  <div class="footer-brand">⚡ ShortsCraft</div>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms">Terms &amp; Conditions</a>
+    <a href="/contact">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 ShortsCraft. All rights reserved. Built for Indian Creators 🇮🇳</p>
+</footer>
+
 </body>
 </html>
