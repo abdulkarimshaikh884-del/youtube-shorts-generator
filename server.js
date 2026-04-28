@@ -58,7 +58,7 @@ app.get("/sitemap.xml", (req, res) => {
     <loc>${SITE_URL}/about</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>${SITE_URL}/privacy</loc>
