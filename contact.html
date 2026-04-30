@@ -7,7 +7,13 @@
   <meta name="description" content="Contact ShortsCraft support. We're here to help with any questions about our AI YouTube Shorts generator."/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="https://shortscraft.online/contact"/>
-  <link rel="icon" href="/favicon.ico" sizes="any"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#07090f">
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -156,16 +162,70 @@
       .form-card { padding: 22px 18px; }
       .page-wrap { padding: 32px 16px 60px; }
     }
+
+
+    /* Premium neon polish */
+    body {
+      background:
+        radial-gradient(circle at 12% 12%, rgba(255,140,58,.14), transparent 34%),
+        radial-gradient(circle at 85% 8%, rgba(109,40,217,.18), transparent 30%),
+        radial-gradient(circle at 70% 65%, rgba(255,69,96,.10), transparent 34%),
+        var(--bg);
+    }
+    .topbar { box-shadow: 0 12px 42px rgba(0,0,0,.28); }
+    .brand-icon {
+      width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #110910;
+      box-shadow: 0 0 28px rgba(255,69,96,.30);
+    }
+    .page-wrap { position: relative; }
+    .page-wrap::before {
+      content: ""; position: absolute; inset: 18px 12px auto auto; width: 240px; height: 240px;
+      border-radius: 999px; background: radial-gradient(circle, rgba(255,69,96,.14), transparent 70%);
+      filter: blur(18px); pointer-events: none; z-index: -1;
+    }
+    .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card {
+      box-shadow: 0 18px 58px rgba(0,0,0,.25);
+    }
+    .topbar-back, .cta-btn, .submit-btn {
+      box-shadow: 0 12px 34px rgba(255,69,96,.16);
+    }
+
+  
+
+    /* Premium ambient polish */
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background: radial-gradient(circle at 10% 12%, rgba(255,140,58,0.18), transparent 32%),
+                  radial-gradient(circle at 86% 18%, rgba(155,92,255,0.16), transparent 30%),
+                  radial-gradient(circle at 55% 92%, rgba(255,69,96,0.12), transparent 30%);
+    }
+    body::after {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.08;
+      background-image: linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px);
+      background-size: 76px 76px;
+    }
+    .topbar { box-shadow: 0 10px 40px rgba(0,0,0,.28); }
+    .brand-icon { width: 34px; height: 34px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#07090f; box-shadow:0 0 28px rgba(255,69,96,.3); }
+    .page-title { letter-spacing: -0.055em; }
+    .policy-section, .mission-card, .about-section, .contact-card, .info-card, .feature-card, .stats-band, .cta-banner {
+      box-shadow: 0 20px 70px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.04);
+      transform: translateZ(0); transition: transform .22s ease, border-color .22s ease, background .22s ease;
+    }
+    .policy-section:hover, .mission-card:hover, .about-section:hover, .contact-card:hover, .info-card:hover, .feature-card:hover {
+      transform: translateY(-3px); border-color: rgba(255,140,58,.24);
+    }
+
   </style>
 </head>
 <body>
 
 <header class="topbar">
-  <a href="/" class="brand">
+  <a href="index.html" class="brand">
     <span class="brand-icon">⚡</span>
     <span class="brand-name">ShortsCraft</span>
   </a>
-  <a href="/" class="topbar-back">← Back to App</a>
+  <a href="index.html" class="topbar-back">← Back to ShortsCraft</a>
 </header>
 
 <main class="page-wrap">
@@ -225,12 +285,12 @@
 <footer class="page-footer" style="max-width:680px;margin:0 auto;padding:0 24px 40px;">
   <div class="footer-brand">⚡ ShortsCraft</div>
   <div class="footer-links">
-    <a href="/">Home</a>
-    <a href="/privacy">Privacy Policy</a>
-    <a href="/terms">Terms &amp; Conditions</a>
-    <a href="/contact">Contact</a>
+    <a href="index.html">Home</a>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms &amp; Conditions</a>
+    <a href="contact.html">Contact</a>
   </div>
-  <p class="footer-copy">© 2025 ShortsCraft. All rights reserved.</p>
+  <p class="footer-copy">© 2026 ShortsCraft. All rights reserved.</p>
 </footer>
 
 <script>
