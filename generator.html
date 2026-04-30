@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="site.webmanifest" rel="manifest"/>
+<meta content="#07090f" name="theme-color"/>
+<meta content="KckEE4905aYu5yDZGFCOJL-idueOTy1ozrLsW_U8MWw" name="google-site-verification">
+<title>ShortsCraft Studio — Premium YouTube Shorts Generator Workspace</title>
+<meta content="Use the ShortsCraft Studio to generate YouTube Shorts scripts, titles, descriptions, hashtags, ideas and thumbnail prompts in one premium workspace." name="description"/>
+<meta content="index, follow" name="robots"/>
+<meta content="ShortsCraft Studio — Premium YouTube Shorts Generator Workspace" property="og:title"/>
+<meta content="Dedicated ShortsCraft generator page with a premium AI creator workflow." property="og:description"/>
+<meta content="website" property="og:type"/>
+<meta content="https://shortscraft.online/generator" property="og:url"/>
+<meta content="https://shortscraft.online/favicon-512.png" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<link href="https://shortscraft.online/generator" rel="canonical">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&amp;family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="styles.css" rel="stylesheet"/>
+</link></link></meta></head>
+<body class="generator-page">
+<div aria-hidden="true" class="ambient-bg">
+<span class="ambient-orb ambient-orb-a"></span>
+<span class="ambient-orb ambient-orb-b"></span>
+<span class="ambient-orb ambient-orb-c"></span>
+<span class="ambient-grid"></span>
+</div>
+<div aria-hidden="true" class="scroll-progress" id="scrollProgress"></div>
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<div class="sidebar-brand-block">
+<div class="sidebar-brand-mark">SC</div>
+<div>
+<span class="sidebar-eyebrow">Workspace Panel</span>
+<span class="sidebar-title">History &amp; Library</span>
+</div>
+</div>
+<button aria-label="Close sidebar" class="sidebar-close" id="sidebarClose">✕</button>
+</div>
+<div class="sidebar-section">
+<p class="sidebar-section-label">Recent Scripts</p>
+<div class="history-list" id="historyList">
+<div class="empty-history">
+<span>⏱</span>
+<p>No recent scripts yet.<br/>Generate one to start building history.</p>
+</div>
+</div>
+</div>
+<div class="sidebar-section">
+<p class="sidebar-section-label">Saved Scripts</p>
+<div class="history-list" id="savedList">
+<div class="empty-history">
+<span>★</span>
+<p>No saved scripts yet.<br/>Save your best drafts for later.</p>
+</div>
+</div>
+</div>
+<div class="sidebar-footer">
+<button class="sidebar-clear-btn" id="clearHistoryBtn">🗑 Clear History</button>
+</div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<header class="topbar generator-topbar">
+<button aria-label="Open history" class="topbar-btn" id="sidebarToggle" title="History">
+<svg fill="none" height="20" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24" width="20">
+<line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line>
+</svg>
+</button>
+<a aria-label="ShortsCraft home" class="topbar-brand" href="index.html">
+<span aria-hidden="true" class="brand-mark">
+<span class="brand-mark-ring"></span>
+<span class="brand-mark-core"></span>
+<svg aria-hidden="true" class="brand-mark-bolt" fill="none" viewbox="0 0 24 24"><path d="M13.8 2 6.7 13h4.8L10 22l7.3-11h-4.9L13.8 2Z" fill="currentColor"></path></svg>
+</span>
+<span class="brand-name-wrap"><span class="brand-name">ShortsCraft</span><small>Studio Workspace</small></span>
+</a>
+<nav aria-label="Primary navigation" class="topbar-nav">
+<a href="index.html">Home</a>
+<a href="#generator">Studio</a>
+<a href="#studio-benefits">Benefits</a>
+<a href="#pricing">Pricing</a>
+<a href="#faq">FAQ</a>
+</nav>
+<button aria-expanded="false" aria-label="Open menu" class="mobile-nav-toggle" id="mobileNavToggle" type="button">☰</button>
+<div class="topbar-right">
+<div class="credits-badge hidden" id="creditsBadge">
+<span>⚡</span>
+<span id="creditsCount">5</span>
+<span class="credits-label">/day</span>
+</div>
+<button class="feedback-nav-btn" id="feedbackBtn">💬 Feedback</button>
+<button class="login-btn" id="loginBtn">Sign In</button>
+<div class="profile-menu hidden" id="profileMenu">
+<button aria-label="Profile menu" class="profile-avatar" id="profileAvatar">
+<img alt="" id="avatarImg" src="" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;"/>
+<span id="avatarInitial">U</span>
+</button>
+<div class="profile-dropdown hidden" id="profileDropdown">
+<div class="profile-info">
+<div class="profile-avatar-lg">
+<img alt="" id="avatarImgLg" src="" style="display:none;width:100%;height:100%;border-radius:50%;object-fit:cover;"/>
+<span id="avatarInitialLg">U</span>
+</div>
+<div>
+<p class="profile-name" id="profileName">User</p>
+<p class="profile-email" id="profileEmail">user@email.com</p>
+</div>
+</div>
+<div class="credits-info-row">
+<span>⚡ Credits:</span>
+<strong id="creditsInfoCount">5</strong>
+<button class="earn-link" id="earnCreditsLink">Earn more</button>
+</div>
+<hr class="dropdown-divider"/>
+<button class="dropdown-item upgrade-item" id="upgradeBtn">⭐ Upgrade — ₹99/month</button>
+<hr class="dropdown-divider"/>
+<button class="dropdown-item" id="viewSavedBtn">🔖 Saved Scripts</button>
+<button class="dropdown-item" id="viewHistoryBtn">📚 View History</button>
+<button class="dropdown-item" id="profileFeedbackBtn">💬 Feedback</button>
+<hr class="dropdown-divider"/>
+<button class="dropdown-item danger" id="logoutBtn">🚪 Sign Out</button>
+</div>
+</div>
+</div>
+</header>
+<nav aria-label="Mobile navigation" class="mobile-nav-panel hidden" id="mobileNavPanel">
+<a href="index.html">Home</a>
+<a href="#generator">Studio</a>
+<a href="#studio-benefits">Benefits</a>
+<a href="#pricing">Pricing</a>
+<a href="#faq">FAQ</a>
+<a href="about.html">About</a>
+<a href="contact.html">Contact</a>
+</nav>
+<div class="modal-overlay hidden" id="authModal">
+<div class="modal">
+<button class="modal-close" id="authModalClose">✕</button>
+<div class="modal-tabs">
+<button class="modal-tab active" data-auth="login">Sign In</button>
+<button class="modal-tab" data-auth="signup">Sign Up</button>
+</div>
+<div class="auth-form active" id="auth-login">
+<h3>Welcome back! 👋</h3>
+<p class="auth-subtitle">Sign in to save your scripts</p>
+<button class="google-btn" id="googleSignInBtn">
+<svg height="18" viewbox="0 0 48 48" width="18"><path d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z" fill="#FFC107"></path><path d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z" fill="#FF3D00"></path><path d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.5 5C9.7 39.6 16.4 44 24 44z" fill="#4CAF50"></path><path d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z" fill="#1976D2"></path></svg>
+        Continue with Google
+      </button>
+<div class="auth-divider"><span>or</span></div>
+<input class="auth-input" id="loginEmail" placeholder="Email" type="email"/>
+<input class="auth-input" id="loginPassword" placeholder="Password" type="password"/>
+<p class="auth-error hidden" id="loginError"></p>
+<button class="auth-submit" id="loginSubmit">Sign In</button>
+</div>
+<div class="auth-form" id="auth-signup">
+<h3>Join ShortsCraft! 🚀</h3>
+<p class="auth-subtitle">Create your free account</p>
+<button class="google-btn" id="googleSignUpBtn">
+<svg height="18" viewbox="0 0 48 48" width="18"><path d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z" fill="#FFC107"></path><path d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z" fill="#FF3D00"></path><path d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.5 5C9.7 39.6 16.4 44 24 44z" fill="#4CAF50"></path><path d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z" fill="#1976D2"></path></svg>
+        Continue with Google
+      </button>
+<div class="auth-divider"><span>or</span></div>
+<input class="auth-input" id="signupName" placeholder="Your Name" type="text"/>
+<input class="auth-input" id="signupEmail" placeholder="Email" type="email"/>
+<input class="auth-input" id="signupPassword" placeholder="Password (min 6 chars)" type="password"/>
+<p class="auth-error hidden" id="signupError"></p>
+<button class="auth-submit" id="signupSubmit">Create Account</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay hidden" id="upgradeModal">
+<div class="modal upgrade-modal">
+<button class="modal-close" id="upgradeModalClose">✕</button>
+<div class="upgrade-header">
+<div class="upgrade-icon">⭐</div>
+<h3>ShortsCraft Pro</h3>
+<p class="auth-subtitle">Unlimited generations, every day!</p>
+</div>
+<div class="upgrade-features">
+<div class="upgrade-feature">✅ Unlimited daily generations</div>
+<div class="upgrade-feature">✅ Save unlimited scripts to cloud</div>
+<div class="upgrade-feature">✅ Priority AI speed</div>
+<div class="upgrade-feature">✅ All 6 content tabs</div>
+<div class="upgrade-feature">✅ Download as TXT/PDF</div>
+<div class="upgrade-feature">✅ Cancel anytime</div>
+</div>
+<div class="upgrade-price">
+<span class="price-amount">₹99</span>
+<span class="price-period">/month</span>
+</div>
+<button class="auth-submit upgrade-submit" id="upgradeSubmit">Upgrade to Pro — ₹99/month ⭐</button>
+<p class="upgrade-note" id="upgradeNote" style="display:none"></p>
+</div>
+</div>
+<div class="modal-overlay hidden" id="earnModal">
+<div class="modal">
+<button class="modal-close" id="earnModalClose">✕</button>
+<h3>⚡ Earn Free Credits</h3>
+<p class="auth-subtitle">Complete tasks to earn +1 credit each</p>
+<div class="tasks-list" id="tasksList"></div>
+<p class="earn-note">Credits reset daily at midnight. Pro users get unlimited!</p>
+</div>
+</div>
+<div class="modal-overlay hidden" id="noCreditsModal">
+<div class="modal">
+<button class="modal-close" id="noCreditsModalClose">✕</button>
+<div class="upgrade-header">
+<div class="upgrade-icon">😔</div>
+<h3>Credits Khatam!</h3>
+<p class="auth-subtitle">Aaj ke 5 free credits use ho gaye.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+<button class="auth-submit" id="noCreditsEarnBtn">⚡ Tasks karke Earn karo</button>
+<button class="auth-submit upgrade-submit" id="noCreditsUpgradeBtn">⭐ Pro upgrade karo — ₹99/month</button>
+</div>
+<p class="earn-note">Ya kal wapas aao — credits auto-reset honge!</p>
+</div>
+</div>
+<main class="main premium-main workspace-main" id="mainContent">
+<section class="workspace-shell-section" id="generator">
+<div class="section-heading center workspace-heading">
+<span class="section-kicker">Premium Studio</span>
+<h1>Your AI Shorts Workspace</h1>
+<p>All your generation tools now live on a dedicated page — cleaner, more focused, and more premium.</p>
+</div>
+<div class="workspace-grid">
+<aside class="workspace-intro-panel">
+<div class="workspace-intro-card gradient-border-card">
+<div class="workspace-mini-badge">⚡ Studio Ready</div>
+<h2>Generate creator-ready content from one topic</h2>
+<p>Use the tools below to create a complete Shorts content pack without jumping across multiple screens.</p>
+<div class="workspace-stats">
+<div><strong>6</strong><span>Tools</span></div>
+<div><strong>5/day</strong><span>Free Credits</span></div>
+<div><strong>Fast</strong><span>Workflow</span></div>
+</div>
+<button class="ghost-cta workspace-example-btn" id="tryExampleTopicBtn" type="button">Try Example Topic</button>
+</div>
+<div class="workspace-preview-card">
+<div class="workspace-preview-top">
+<span class="section-kicker small">Live Preview</span>
+<div class="workspace-badge-row"><span>Premium feel</span><span>Creator flow</span></div>
+</div>
+<div class="workspace-preview-topic">
+<small>Suggested topic</small>
+<strong id="mockupTypedTopic">YouTube Shorts algorithm secret</strong>
+</div>
+<div class="example-preview" id="examplePreview">
+<div class="example-label">✨ Example Output</div>
+<div class="example-cards">
+<div class="example-card"><div class="example-card-tag hook-tag">🔥 Hook</div><p>"Yaar, kya tumhe pata hai ki subah ki 1 adat tumhari poori zindagi badal sakti hai?"</p></div>
+<div class="example-card"><div class="example-card-tag title-tag">🎯 Title</div><p>"Subah Ki 5 Aadtein Jo Life Badal Deti Hain 🔥 #shorts"</p></div>
+<div class="example-card"><div class="example-card-tag hash-tag">#️⃣ Hashtags</div><p>#morningroutine #motivation #shorts #viral #hinglish</p></div>
+</div>
+</div>
+</div>
+</aside>
+<section class="workspace-app-card gradient-border-card">
+<div class="workspace-card-top">
+<div>
+<span class="section-kicker small">Workspace Mode</span>
+<h2 class="workspace-title"><span>Shorts Generator</span> <em id="heroAccent">Script Generator</em></h2>
+</div>
+<div class="workspace-score-pill"><span>Creator flow</span><strong>94%</strong></div>
+</div>
+<div class="workspace-tool-switcher">
+<button class="nav-tab active" data-tab="script">📝 Script</button>
+<button class="nav-tab" data-tab="titles">🎯 Titles</button>
+<button class="nav-tab" data-tab="description">📄 Description</button>
+<button class="nav-tab" data-tab="hashtags">#️⃣ Hashtags</button>
+<button class="nav-tab" data-tab="ideas">💡 Ideas</button>
+<button class="nav-tab" data-tab="thumbnail">🖼 Thumbnail</button>
+</div>
+<div class="card input-card premium-input-card">
+<label class="label" for="topic">Apna topic kya hai?</label>
+<div class="input-row">
+<input autocomplete="off" id="topic" placeholder="e.g., Morning productivity hacks, cricket tips, study motivation..." type="text"/>
+<button id="generateBtn" type="button"><span class="btn-text">Generate All</span><span class="btn-icon">✦</span></button>
+</div>
+<div class="input-hints">
+<span class="hint-tag" onclick="setTopic('Morning productivity hacks')">☀️ Morning routine</span>
+<span class="hint-tag" onclick="setTopic('Cricket tips for beginners')">🏏 Cricket tips</span>
+<span class="hint-tag" onclick="setTopic('Study motivation for students')">📚 Study motivation</span>
+<span class="hint-tag" onclick="setTopic('Money saving hacks India')">💰 Money hacks</span>
+</div>
+<p aria-live="polite" class="status" id="status"></p>
+</div>
+<div class="results-area hidden" id="resultsArea">
+<div class="results-actions-bar">
+<span class="results-topic-label" id="resultsTopic"></span>
+<button class="download-btn" id="downloadTxtBtn"><svg fill="none" height="14" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>Download TXT</button>
+</div>
+<div class="tab-panel active" id="panel-script">
+<div class="card output-card"><div class="output-header"><h2>📝 Generated Script</h2><div class="output-actions"><button class="icon-btn" id="saveScriptBtn" title="Save to account">♡</button><button class="copy-btn" id="copyScriptBtn"><svg fill="none" height="13" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" width="13"><rect height="13" rx="2" width="13" x="9" y="9"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy</button></div></div><div class="script-sections" id="scriptSections"><div class="placeholder-block"><p class="placeholder-text">Topic likho aur Generate dabao ⚡</p></div></div></div>
+</div>
+<div class="tab-panel" id="panel-titles"><div class="card output-card"><div class="output-header"><h2>🎯 Video Title Suggestions</h2><button class="copy-btn" id="copyTitlesBtn">Copy All</button></div><div class="list-content" id="titlesContent"><div class="placeholder-block"><p class="placeholder-text">Titles yahan aayenge 🎯</p></div></div></div></div>
+<div class="tab-panel" id="panel-description"><div class="card output-card"><div class="output-header"><h2>📄 YouTube Description</h2><button class="copy-btn" id="copyDescBtn">Copy All</button></div><p class="tab-hint">SEO-optimized, ready-to-paste YouTube description with emojis &amp; keywords 👇</p><div class="desc-content-wrap" id="descContent"><div class="placeholder-block"><p class="placeholder-text">Description yahan aayegi 📄</p></div></div></div></div>
+<div class="tab-panel" id="panel-hashtags"><div class="card output-card"><div class="output-header"><h2>#️⃣ Hashtags</h2><button class="copy-btn" id="copyHashtagsBtn">Copy All</button></div><div class="list-content" id="hashtagsContent"><div class="placeholder-block"><p class="placeholder-text">Hashtags yahan aayenge #️⃣</p></div></div></div></div>
+<div class="tab-panel" id="panel-ideas"><div class="card output-card"><div class="output-header"><h2>💡 Content Ideas</h2><button class="copy-btn" id="copyIdeasBtn">Copy All</button></div><div class="list-content" id="ideasContent"><div class="placeholder-block"><p class="placeholder-text">Content ideas yahan aayenge 💡</p></div></div></div></div>
+<div class="tab-panel" id="panel-thumbnail"><div class="card output-card"><div class="output-header"><h2>🖼 Thumbnail Prompt Generator</h2><button class="copy-btn" id="copyThumbnailBtn">Copy All</button></div><p class="tab-hint">Paste these English prompts in <strong>Midjourney, DALL-E or Stable Diffusion</strong> 👇</p><div class="list-content" id="thumbnailContent"><div class="placeholder-block"><p class="placeholder-text">AI thumbnail prompts yahan aayenge 🖼</p></div></div></div></div>
+</div>
+</section>
+</div>
+</section>
+<section class="studio-benefits-section" id="studio-benefits">
+<div class="section-heading center">
+<span class="section-kicker">Why this page feels better</span>
+<h2>Cleaner layout, stronger hierarchy, better flow</h2>
+<p>The new tools page is designed so the generator feels like the main product, not an afterthought.</p>
+</div>
+<div class="studio-benefits-grid">
+<article class="studio-benefit-card benefit-wide"><div class="studio-benefit-head"><span>🎯</span><strong>Focused tool experience</strong></div><p>No clutter above the fold. The page opens directly into a dedicated creation workspace.</p></article>
+<article class="studio-benefit-card"><div class="studio-benefit-head"><span>🧱</span><strong>Premium card system</strong></div><p>Improved spacing, stronger container depth, and a more polished SaaS look.</p></article>
+<article class="studio-benefit-card"><div class="studio-benefit-head"><span>📚</span><strong>Upgraded history sidebar</strong></div><p>History and saved scripts now visually match the rest of the premium interface.</p></article>
+<article class="studio-benefit-card"><div class="studio-benefit-head"><span>⚡</span><strong>Better interaction flow</strong></div><p>Generate, copy, save and review outputs from one central workspace panel.</p></article>
+</div>
+</section>
+<section class="pricing-section" id="pricing">
+<div class="section-heading center"><span class="section-kicker">Pricing</span><h2>Free to start. Pro when you need more.</h2></div>
+<div class="pricing-grid">
+<article class="pricing-card"><span class="plan-label">Creator</span><h3>Free</h3><p>For creators getting started.</p><ul><li>✓ 5 daily generations</li><li>✓ All core content tools</li><li>✓ No card required</li><li>✓ Premium workspace</li></ul><button class="pricing-btn secondary" onclick="document.getElementById('topic').focus()" type="button">Start now</button></article>
+<article class="pricing-card pro"><span class="popular-badge">Popular</span><span class="plan-label">Pro</span><h3>₹99<span>/month</span></h3><p>For serious Shorts creators.</p><ul><li>✓ More generations</li><li>✓ Save scripts</li><li>✓ Faster generation</li><li>✓ Priority updates</li></ul><button class="pricing-btn open-upgrade-btn magnetic-cta" type="button">Upgrade to Pro</button></article>
+</div>
+</section>
+<section class="faq-section" id="faq">
+<div class="section-heading center"><span class="section-kicker">FAQ</span><h2>Questions? Answered.</h2></div>
+<div class="faq-list">
+<details><summary>Why is the generator on a separate page?</summary><p>It creates a cleaner, more premium homepage while giving the tools a dedicated workspace of their own.</p></details>
+<details><summary>Can I save scripts?</summary><p>Yes. Sign in and you can save scripts to your account and revisit them later.</p></details>
+<details><summary>Should I review AI output?</summary><p>Absolutely. Always edit, review and fact-check before publishing.</p></details>
+<details><summary>Does ShortsCraft support only YouTube?</summary><p>The outputs are optimized for YouTube Shorts, but many ideas and scripts can also be adapted for Reels and other short-form platforms.</p></details>
+</div>
+</section>
+<section class="trust-disclaimer workspace-disclaimer">
+<h2>Use AI as a smart assistant, not autopilot</h2>
+<p>ShortsCraft creates fast, structured drafts to help creators move quicker. Final quality still depends on your review, packaging, edit style and audience understanding.</p>
+</section>
+</main>
+<footer class="site-footer premium-footer">
+<div class="site-footer-inner premium-footer-grid">
+<div>
+<div class="site-footer-brand"><span class="footer-brand-mark">⚡</span> ShortsCraft</div>
+<p class="site-footer-tagline">ShortsCraft helps creators generate YouTube Shorts scripts, titles, descriptions, hashtags, ideas and thumbnail prompts using AI — fast, bold and creator-friendly.</p>
+<div class="footer-socials"><span>𝕏</span><span>▶</span><span>◎</span><span>⌘</span></div>
+</div>
+<nav aria-label="Product navigation" class="site-footer-links column"><strong>Product</strong><a href="index.html">Home</a><a href="#generator">Studio</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></nav>
+<nav aria-label="Legal navigation" class="site-footer-links column"><strong>Legal</strong><a href="about.html">About</a><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms &amp; Conditions</a><a href="contact.html">Contact</a></nav>
+</div>
+<div class="footer-bottom">© 2026 ShortsCraft. All rights reserved.</div>
+</footer>
+<div class="modal-overlay hidden" id="feedbackModal">
+<div class="modal">
+<button class="modal-close" id="feedbackModalClose">✕</button>
+<h3>💬 Share Feedback</h3>
+<p class="auth-subtitle">Tell us what you think or what to improve</p>
+<input class="auth-input" id="feedbackName" placeholder="Your Name" type="text"/>
+<input class="auth-input" id="feedbackEmail" placeholder="Email (optional)" type="email"/>
+<textarea class="auth-input" id="feedbackMessage" placeholder="Your message (min 5 characters)..." rows="4" style="resize:vertical;min-height:100px;line-height:1.5"></textarea>
+<div style="display:flex;gap:10px;margin-top:4px;">
+<button class="auth-submit" id="feedbackSubmit" style="flex:1">Submit</button>
+<button class="auth-submit" id="feedbackCancelBtn" style="flex:0 0 auto;background:rgba(255,255,255,0.06);color:var(--muted)">Cancel</button>
+</div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
