@@ -52,6 +52,36 @@ function updateHeroHeading(tab) {
   }, 160);
 }
 
+
+// ── MOBILE NAVIGATION ─────────────────────────────────────────
+(function initMobileNavigation() {
+  const toggle = document.getElementById('mobileNavToggle');
+  const panel = document.getElementById('mobileNavPanel');
+  if (!toggle || !panel) return;
+
+  function closeMobileNav() {
+    panel.classList.add('hidden');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.textContent = '☰';
+  }
+
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = !panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', isOpen);
+    toggle.setAttribute('aria-expanded', String(!isOpen));
+    toggle.textContent = isOpen ? '☰' : '✕';
+  });
+
+  panel.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMobileNav));
+  document.addEventListener('click', (e) => {
+    if (!panel.classList.contains('hidden') && !panel.contains(e.target) && !toggle.contains(e.target)) closeMobileNav();
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1180) closeMobileNav();
+  });
+})();
+
 // ── TABS ──────────────────────────────────────────────────────
 document.querySelectorAll('.nav-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -117,8 +147,8 @@ function updateCreditsBadge() {
 
 // ── EARN TASKS ────────────────────────────────────────────────
 const TASKS = [
-  { id: 'share_twitter',  icon: '🐦', label: 'Share ShortsCraft on Twitter/X',       url: 'https://twitter.com/intent/tweet?text=Check%20out%20ShortsCraft%20-%20Free%20AI%20YouTube%20Shorts%20Generator!%20https://youtube-shorts-generator-yngg.onrender.com' },
-  { id: 'share_whatsapp', icon: '💬', label: 'Share on WhatsApp with a friend',       url: 'https://wa.me/?text=Free%20YouTube%20Shorts%20Script%20Generator!%20https://youtube-shorts-generator-yngg.onrender.com' },
+  { id: 'share_twitter',  icon: '🐦', label: 'Share ShortsCraft on Twitter/X',       url: 'https://twitter.com/intent/tweet?text=Check%20out%20ShortsCraft%20-%20Free%20AI%20YouTube%20Shorts%20Generator!%20https://shortscraft.online' },
+  { id: 'share_whatsapp', icon: '💬', label: 'Share on WhatsApp with a friend',       url: 'https://wa.me/?text=Free%20YouTube%20Shorts%20Script%20Generator!%20https://shortscraft.online' },
   { id: 'visit_youtube',  icon: '▶️', label: 'Visit YouTube and watch a Shorts video', url: 'https://youtube.com/shorts' },
   { id: 'star_github',    icon: '⭐', label: 'Star the project on GitHub',             url: 'https://github.com' },
   { id: 'copy_review',    icon: '📝', label: 'Copy & share a review anywhere',         url: null, action: 'review' },
@@ -314,6 +344,9 @@ document.getElementById('feedbackCancelBtn')?.addEventListener('click', () => cl
 });
 
 document.getElementById('upgradeBtn').addEventListener('click',        () => { closeDropdown(); openModal('upgradeModal'); });
+document.querySelectorAll('.open-upgrade-btn').forEach(btn => {
+  btn.addEventListener('click', () => openModal('upgradeModal'));
+});
 document.getElementById('upgradeSubmit').addEventListener('click',     () => {
   startRazorpayPayment();
 });
@@ -1085,6 +1118,108 @@ function toast(msg, type='') {
   t._timer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+
+
+// ── PREMIUM EXPERIENCE: SCROLL PROGRESS, REVEAL, MOCKUP TYPING ─
+function initPremiumExperience() {
+  const progress = document.getElementById('scrollProgress');
+  const topbar = document.querySelector('.topbar');
+
+  function updateScrollProgress() {
+    const doc = document.documentElement;
+    const total = Math.max(1, doc.scrollHeight - window.innerHeight);
+    const pct = Math.min(100, Math.max(0, (window.scrollY / total) * 100));
+    if (progress) progress.style.width = `${pct}%`;
+    if (topbar) topbar.classList.toggle('scrolled', window.scrollY > 12);
+  }
+  updateScrollProgress();
+  window.addEventListener('scroll', updateScrollProgress, { passive: true });
+
+  const revealTargets = document.querySelectorAll([
+    '.premium-proof-strip .proof-pill',
+    '.generator-shell .section-heading',
+    '.input-card',
+    '.creator-lab-section .section-heading',
+    '.lab-card',
+    '.features-section .section-heading',
+    '.feature-card',
+    '.how-section .section-heading',
+    '.step-row',
+    '.steps-preview-card',
+    '.pricing-section .section-heading',
+    '.pricing-card',
+    '.faq-section .section-heading',
+    '.faq-list details',
+    '.trust-disclaimer'
+  ].join(','));
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.13, rootMargin: '0px 0px -40px 0px' });
+
+    revealTargets.forEach(el => {
+      el.classList.add('reveal-ready');
+      observer.observe(el);
+    });
+  } else {
+    revealTargets.forEach(el => el.classList.add('is-visible'));
+  }
+
+  const typedTopic = document.getElementById('mockupTypedTopic');
+  const topics = [
+    'AI tools se paisa kaise kamaye?',
+    'Study motivation for class 11 students',
+    'YouTube Shorts algorithm secret',
+    '5 mistakes new creators make'
+  ];
+  let topicIndex = 0;
+  let charIndex = 0;
+  let deleting = false;
+
+  function typeMockTopic() {
+    if (!typedTopic) return;
+    const word = topics[topicIndex];
+    if (!deleting) {
+      charIndex += 1;
+      typedTopic.textContent = word.slice(0, charIndex);
+      if (charIndex >= word.length) {
+        deleting = true;
+        setTimeout(typeMockTopic, 1500);
+        return;
+      }
+    } else {
+      charIndex -= 1;
+      typedTopic.textContent = word.slice(0, Math.max(0, charIndex));
+      if (charIndex <= 0) {
+        deleting = false;
+        topicIndex = (topicIndex + 1) % topics.length;
+      }
+    }
+    setTimeout(typeMockTopic, deleting ? 28 : 55);
+  }
+  typeMockTopic();
+
+  document.getElementById('tryExampleTopicBtn')?.addEventListener('click', () => {
+    window.setTopic?.('YouTube Shorts algorithm secret');
+    document.getElementById('generator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    toast('Example topic added — ab Generate All dabao ⚡', 'success');
+  });
+
+  document.querySelectorAll('.magnetic-cta').forEach(btn => {
+    btn.addEventListener('mousemove', (e) => {
+      const r = btn.getBoundingClientRect();
+      btn.style.transform = `translate(${(e.clientX - r.left - r.width / 2) / 18}px, ${(e.clientY - r.top - r.height / 2) / 18}px)`;
+    });
+    btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+  });
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 document.querySelector('.upgrade-note')?.remove();
 initFeedbackUI();
@@ -1097,5 +1232,6 @@ window.addEventListener('resize', () => {
 document.querySelector('.nav-tab[data-tab="ideas"]')?.addEventListener('click', () => {
   if (!lastIdeas.length) loadTrendingIdeas();
 });
+initPremiumExperience();
 setProStatus(isPro, { silent: true });
 updateCreditsBadge();
