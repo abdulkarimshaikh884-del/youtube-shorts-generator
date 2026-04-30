@@ -15,8 +15,8 @@ app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
-// Serve favicon/manifest/assets from /public at root URL.
-// Example: public/favicon.ico => https://shortscraft.online/favicon.ico
+// Serve PNG favicon, manifest, and assets from /public at root URL.
+// Example: public/favicon-32.png => https://shortscraft.online/favicon-32.png
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: "7d",
@@ -84,6 +84,10 @@ app.get("/sitemap.xml", (req, res) => {
 // ── PAGE ROUTES ───────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/generator", (req, res) => {
+  res.sendFile(path.join(__dirname, "generator.html"));
 });
 
 app.get("/about", (req, res) => {
