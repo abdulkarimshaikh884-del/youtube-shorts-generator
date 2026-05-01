@@ -2,12 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Contact &amp; Support — ShortsCraft</title>
-  <meta name="description" content="Contact ShortsCraft support. We're here to help with any questions about our AI YouTube Shorts generator."/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>AI Thumbnail Prompt Generator – ShortsCraft</title>
+  <meta name="description" content="Generate professional AI thumbnail prompts for YouTube videos and Shorts using ShortsCraft&#x27;s free prompt generator."/>
   <meta name="robots" content="index, follow"/>
-  <link rel="canonical" href="https://shortscraft.online/contact"/>
+  <link rel="canonical" href="https://shortscraft.online/ai-thumbnail-prompt-generator"/>
+  <meta property="og:title" content="AI Thumbnail Prompt Generator – ShortsCraft"/>
+  <meta property="og:description" content="Generate professional AI thumbnail prompts for YouTube videos and Shorts using ShortsCraft&#x27;s free prompt generator."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://shortscraft.online/ai-thumbnail-prompt-generator"/>
+  <meta property="og:image" content="https://shortscraft.online/favicon-512.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:image" content="https://shortscraft.online/favicon-512.png"/>
   <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
@@ -15,505 +23,132 @@
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#07090f">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "ShortsCraft Thumbnail Prompt Generator", "applicationCategory": "CreativeWorkApplication", "operatingSystem": "Web", "url": "https://shortscraft.online/ai-thumbnail-prompt-generator", "description": "Generate professional AI thumbnail prompts for YouTube videos and Shorts using ShortsCraft's free prompt generator.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "INR"}}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does this generate the thumbnail image directly?", "acceptedAnswer": {"@type": "Answer", "text": "ShortsCraft generates prompts. You can paste them into an AI image tool or use them as direction for design."}}, {"@type": "Question", "name": "Are prompts in English?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The thumbnail prompts are written in English so they work better with most AI image tools."}}, {"@type": "Question", "name": "Should I add text on thumbnails?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, but keep it short, readable, and relevant to the video."}}, {"@type": "Question", "name": "Can I use it for long videos too?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The prompts can be adapted for Shorts, long-form videos, and social media posts."}}]}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg: #07090f;
-      --card: rgba(14,18,32,0.82);
-      --card-border: rgba(255,255,255,0.07);
-      --text: #eef0ff;
-      --muted: #6b7590;
-      --accent: #ff4560;
-      --accent-2: #ff8c3a;
-      --green: #22c55e;
-      --radius: 16px;
-      --radius-sm: 10px;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { max-width: 100%; overflow-x: hidden; }
-    body {
-      font-family: "Nunito", sans-serif;
-      color: var(--text);
-      background: var(--bg);
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
-    .topbar {
-      position: sticky; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
-      display: flex; align-items: center; padding: 0 24px;
-      background: rgba(7,9,15,0.95); border-bottom: 1px solid var(--card-border);
-      backdrop-filter: blur(20px);
-    }
-    .brand { display: flex; align-items: center; gap: 6px; text-decoration: none; }
-    .brand-icon { font-size: 1.1rem; }
-    .brand-name {
-      font-family: "Syne", sans-serif; font-weight: 800; font-size: 1rem;
-      background: linear-gradient(135deg, #ff4560, #ff8c3a);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .topbar-back {
-      margin-left: auto;
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text); font-family: "Nunito", sans-serif; font-size: 0.82rem; font-weight: 700;
-      padding: 6px 14px; border-radius: 999px; cursor: pointer; text-decoration: none;
-      transition: background 0.2s;
-    }
-    .topbar-back:hover { background: rgba(255,255,255,0.1); }
-
-    .page-wrap { max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
-
-    .page-badge {
-      display: inline-flex; align-items: center; gap: 7px;
-      background: rgba(255,69,96,0.1); border: 1px solid rgba(255,69,96,0.25);
-      color: var(--accent); font-size: 0.75rem; font-weight: 800;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 5px 14px; border-radius: 999px; margin-bottom: 20px;
-    }
-    .page-title {
-      font-family: "Syne", sans-serif; font-weight: 800; font-size: clamp(1.8rem, 5vw, 2.8rem);
-      line-height: 1.15; margin-bottom: 14px;
-      background: linear-gradient(135deg, #fff 30%, var(--accent-2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .page-sub { font-size: 1rem; color: rgba(238,240,255,0.6); line-height: 1.6; margin-bottom: 40px; }
-
-    /* INFO CARDS ROW */
-    .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 32px; }
-    .info-card {
-      background: var(--card); border: 1px solid var(--card-border);
-      border-radius: var(--radius); padding: 22px 22px;
-      backdrop-filter: blur(12px); transition: border-color 0.2s;
-    }
-    .info-card:hover { border-color: rgba(255,255,255,0.12); }
-    .info-icon { font-size: 1.6rem; margin-bottom: 10px; }
-    .info-label { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-    .info-value { font-size: 0.92rem; font-weight: 600; color: var(--text); }
-    .info-value a { color: var(--accent-2); text-decoration: none; }
-    .info-value a:hover { text-decoration: underline; }
-    .info-note { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
-
-    /* FORM CARD */
-    .form-card {
-      background: var(--card); border: 1px solid var(--card-border);
-      border-radius: var(--radius); padding: 32px;
-      backdrop-filter: blur(12px);
-    }
-    .form-title {
-      font-family: "Syne", sans-serif; font-weight: 700; font-size: 1.2rem;
-      margin-bottom: 6px; color: var(--text);
-    }
-    .form-subtitle { font-size: 0.87rem; color: var(--muted); margin-bottom: 24px; }
-
-    .field-group { margin-bottom: 18px; }
-    .field-label {
-      display: block; font-size: 0.8rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--muted); margin-bottom: 8px;
-    }
-    .field-input {
-      width: 100%;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: var(--radius-sm); color: var(--text);
-      font-family: "Nunito", sans-serif; font-size: 0.95rem;
-      padding: 12px 16px; transition: border-color 0.2s, background 0.2s;
-      outline: none;
-    }
-    .field-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.06); }
-    .field-input::placeholder { color: var(--muted); }
-    textarea.field-input { resize: vertical; min-height: 130px; line-height: 1.6; }
-
-    .submit-btn {
-      width: 100%; padding: 14px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      border: none; border-radius: var(--radius-sm);
-      color: #fff; font-family: "Syne", sans-serif; font-size: 1rem; font-weight: 700;
-      cursor: pointer; transition: opacity 0.2s, transform 0.15s;
-      margin-top: 6px;
-    }
-    .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .submit-btn:active { transform: translateY(0); }
-    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    /* SUCCESS / ERROR */
-    .form-status {
-      display: none; margin-top: 16px;
-      border-radius: var(--radius-sm); padding: 14px 18px;
-      font-size: 0.9rem; font-weight: 600; text-align: center;
-    }
-    .form-status.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: var(--green); display: block; }
-    .form-status.error { background: rgba(255,69,96,0.1); border: 1px solid rgba(255,69,96,0.25); color: var(--accent); display: block; }
-
-    /* FOOTER */
-    .page-footer { text-align: center; margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--card-border); }
-    .footer-brand {
-      font-family: "Syne", sans-serif; font-weight: 800;
-      background: linear-gradient(135deg, #ff4560, #ff8c3a);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      font-size: 1.1rem; margin-bottom: 10px;
-    }
-    .footer-links { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 14px; }
-    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
-    .footer-links a:hover { color: var(--text); }
-    .footer-copy { font-size: 0.78rem; color: var(--muted); }
-
-    @media (max-width: 520px) {
-      .info-row { grid-template-columns: 1fr; }
-      .form-card { padding: 22px 18px; }
-      .page-wrap { padding: 32px 16px 60px; }
-    }
-
-
-    /* Premium neon polish */
-    body {
-      background:
-        radial-gradient(circle at 12% 12%, rgba(255,140,58,.14), transparent 34%),
-        radial-gradient(circle at 85% 8%, rgba(109,40,217,.18), transparent 30%),
-        radial-gradient(circle at 70% 65%, rgba(255,69,96,.10), transparent 34%),
-        var(--bg);
-    }
-    .topbar { box-shadow: 0 12px 42px rgba(0,0,0,.28); }
-    .brand-icon {
-      width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
-      border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #110910;
-      box-shadow: 0 0 28px rgba(255,69,96,.30);
-    }
-    .page-wrap { position: relative; }
-    .page-wrap::before {
-      content: ""; position: absolute; inset: 18px 12px auto auto; width: 240px; height: 240px;
-      border-radius: 999px; background: radial-gradient(circle, rgba(255,69,96,.14), transparent 70%);
-      filter: blur(18px); pointer-events: none; z-index: -1;
-    }
-    .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card {
-      box-shadow: 0 18px 58px rgba(0,0,0,.25);
-    }
-    .topbar-back, .cta-btn, .submit-btn {
-      box-shadow: 0 12px 34px rgba(255,69,96,.16);
-    }
-
-  
-
-    /* Premium ambient polish */
-    body::before {
-      content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
-      background: radial-gradient(circle at 10% 12%, rgba(255,140,58,0.18), transparent 32%),
-                  radial-gradient(circle at 86% 18%, rgba(155,92,255,0.16), transparent 30%),
-                  radial-gradient(circle at 55% 92%, rgba(255,69,96,0.12), transparent 30%);
-    }
-    body::after {
-      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.08;
-      background-image: linear-gradient(rgba(255,255,255,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px);
-      background-size: 76px 76px;
-    }
-    .topbar { box-shadow: 0 10px 40px rgba(0,0,0,.28); }
-    .brand-icon { width: 34px; height: 34px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#07090f; box-shadow:0 0 28px rgba(255,69,96,.3); }
-    .page-title { letter-spacing: -0.055em; }
-    .policy-section, .mission-card, .about-section, .contact-card, .info-card, .feature-card, .stats-band, .cta-banner {
-      box-shadow: 0 20px 70px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.04);
-      transform: translateZ(0); transition: transform .22s ease, border-color .22s ease, background .22s ease;
-    }
-    .policy-section:hover, .mission-card:hover, .about-section:hover, .contact-card:hover, .info-card:hover, .feature-card:hover {
-      transform: translateY(-3px); border-color: rgba(255,140,58,.24);
-    }
-
-  
-    /* ── Premium Motion System (lightweight) ───────────────── */
-    @keyframes scFadeUp {
-      from { opacity: 0; transform: translate3d(0, 26px, 0); filter: blur(6px); }
-      to   { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
-    }
-    @keyframes scSoftFloat {
-      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-      50%      { transform: translate3d(0, -14px, 0) scale(1.03); }
-    }
-    @keyframes scGlowPulse {
-      0%, 100% { box-shadow: 0 0 24px rgba(255,69,96,.22), 0 14px 34px rgba(0,0,0,.22); }
-      50%      { box-shadow: 0 0 38px rgba(255,140,58,.34), 0 18px 46px rgba(0,0,0,.30); }
-    }
-    @keyframes scGradientShift {
-      0% { filter: hue-rotate(0deg); }
-      100% { filter: hue-rotate(18deg); }
-    }
-    @keyframes scGridDrift {
-      from { background-position: 0 0, 0 0; }
-      to   { background-position: 76px 76px, 76px 76px; }
-    }
-    body::before { animation: scSoftFloat 11s ease-in-out infinite; }
-    body::after { animation: scGridDrift 26s linear infinite; }
-    .brand-icon { animation: scGlowPulse 3.8s ease-in-out infinite; }
-    .page-badge, .page-title, .page-sub, .page-meta, .mission-card, .about-section, .policy-section, .info-card, .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
-      opacity: 0;
-      animation: scFadeUp .72s cubic-bezier(.2,.8,.2,1) forwards;
-      will-change: transform, opacity;
-    }
-    .page-badge { animation-delay: .04s; }
-    .page-title { animation-delay: .11s; }
-    .page-sub, .page-meta { animation-delay: .18s; }
-    .mission-card, .info-row, .stats-band { animation-delay: .25s; }
-    .policy-section:nth-of-type(1), .about-section:nth-of-type(1), .feature-card:nth-child(1), .info-card:nth-child(1) { animation-delay: .28s; }
-    .policy-section:nth-of-type(2), .about-section:nth-of-type(2), .feature-card:nth-child(2), .info-card:nth-child(2) { animation-delay: .36s; }
-    .policy-section:nth-of-type(3), .about-section:nth-of-type(3), .feature-card:nth-child(3) { animation-delay: .44s; }
-    .policy-section:nth-of-type(4), .about-section:nth-of-type(4), .feature-card:nth-child(4) { animation-delay: .52s; }
-    .policy-section:nth-of-type(n+5), .about-section:nth-of-type(n+5), .feature-card:nth-child(n+5) { animation-delay: .58s; }
-    .page-footer { animation-delay: .64s; }
-    .policy-section:hover, .about-section:hover, .mission-card:hover, .feature-card:hover, .info-card:hover, .form-card:hover {
-      transform: translateY(-6px);
-      border-color: rgba(255,140,58,.32) !important;
-      background: linear-gradient(145deg, rgba(17,22,40,.88), rgba(12,16,31,.78));
-    }
-    .topbar-back:hover, .cta-btn:hover, .submit-btn:hover {
-      transform: translateY(-2px) scale(1.015);
-      box-shadow: 0 16px 38px rgba(255,69,96,.22);
-    }
-    .field-input:focus {
-      transform: translateY(-1px);
-      box-shadow: 0 0 0 3px rgba(255,69,96,.20), 0 18px 38px rgba(0,0,0,.20);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
-      .page-badge, .page-title, .page-sub, .page-meta, .mission-card, .about-section, .policy-section, .info-card, .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
-        opacity: 1; transform: none; filter: none;
-      }
-    }
-
-  
-    /* Smooth animation performance fix — keeps same design, improves FPS */
-    @keyframes scFadeUpSmooth {
-      from { opacity: 0; transform: translate3d(0, 18px, 0); }
-      to   { opacity: 1; transform: translate3d(0, 0, 0); }
-    }
-    .page-badge, .page-title, .page-sub, .page-meta,
-    .mission-card, .about-section, .policy-section, .info-card,
-    .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
-      animation-name: scFadeUpSmooth !important;
-      animation-duration: .56s !important;
-      animation-timing-function: cubic-bezier(.22,1,.36,1) !important;
-      backface-visibility: hidden;
-      will-change: transform, opacity;
-    }
-    .brand-icon {
-      animation: scIconSmooth 4.8s ease-in-out infinite !important;
-      will-change: transform;
-    }
-    @keyframes scIconSmooth {
-      0%,100% { transform: translate3d(0,0,0) scale(1); }
-      50% { transform: translate3d(0,-1px,0) scale(1.02); }
-    }
-    @media (max-width: 760px) {
-      body::before, body::after { animation: none !important; }
-      .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card {
-        transition: transform .22s cubic-bezier(.22,1,.36,1), border-color .22s cubic-bezier(.22,1,.36,1) !important;
-      }
-    }
-
-  
-    /* Fast scroll performance mode */
-    body::before, body::after, .brand-icon {
-      animation: none !important;
-    }
-    .page-badge, .page-title, .page-sub, .page-meta,
-    .mission-card, .about-section, .policy-section, .info-card,
-    .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
-      filter: none !important;
-      animation-duration: .42s !important;
-      animation-timing-function: cubic-bezier(.22,1,.36,1) !important;
-      will-change: auto !important;
-    }
-    .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card {
-      transition-property: transform, border-color, background-color !important;
-      transition-duration: .16s !important;
-    }
-    @media (max-width: 900px) {
-      .topbar, .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card, .stats-band, .cta-banner {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-      }
-      .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card, .stats-band, .cta-banner {
-        box-shadow: 0 10px 28px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04) !important;
-      }
-    }
-
-  
-    /* REAL NO-LAG PERFORMANCE FIX */
-    *, *::before, *::after {
-      animation: none !important;
-      transition: none !important;
-      scroll-behavior: auto !important;
-    }
-    body {
-      background:
-        radial-gradient(circle at 12% 10%, rgba(255,140,58,.12), transparent 30%),
-        radial-gradient(circle at 86% 12%, rgba(109,40,217,.12), transparent 28%),
-        linear-gradient(180deg, #07090f 0%, #050711 100%) !important;
-    }
-    body::before,
-    body::after,
-    .page-wrap::before {
-      display: none !important;
-    }
-    .topbar,
-    .policy-section,
-    .about-section,
-    .mission-card,
-    .feature-card,
-    .info-card,
-    .form-card,
-    .stats-band,
-    .cta-banner,
-    .contact-card {
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      filter: none !important;
-      box-shadow: none !important;
-    }
-    .page-badge,
-    .page-title,
-    .page-sub,
-    .page-meta,
-    .mission-card,
-    .about-section,
-    .policy-section,
-    .info-card,
-    .form-card,
-    .feature-card,
-    .stats-band,
-    .cta-banner,
-    .page-footer {
-      opacity: 1 !important;
-      transform: none !important;
-      will-change: auto !important;
-    }
-
-  </style>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
-<body>
+<body class="seo-page">
+<div class="ambient-bg" aria-hidden="true">
+  <span class="ambient-orb ambient-orb-a"></span>
+  <span class="ambient-orb ambient-orb-b"></span>
+  <span class="ambient-orb ambient-orb-c"></span>
+  <span class="ambient-grid"></span>
+</div>
 
-<header class="topbar">
-  <a href="/" class="brand">
+<header class="topbar seo-topbar">
+  <a href="/" class="topbar-brand" aria-label="ShortsCraft home">
     <span class="brand-icon">⚡</span>
     <span class="brand-name">ShortsCraft</span>
   </a>
-  <a href="/" class="topbar-back">← Back to ShortsCraft</a>
+  <nav class="topbar-nav" aria-label="Primary navigation">
+    <a href="/">Home</a>
+    <a href="/generator">Tools</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/about">About</a>
+    <a href="/contact">Contact</a>
+  </nav>
+  <a class="login-btn" href="/generator">Open Generator</a>
 </header>
 
-<main class="page-wrap">
-
-  <span class="page-badge">💬 Support</span>
-  <h1 class="page-title">Contact &amp; Support</h1>
-  <p class="page-sub">Got a question, bug report, or feedback? We'd love to hear from you. We typically respond within 24–48 hours.</p>
-
-  <div class="info-row">
-    <div class="info-card">
-      <div class="info-icon">📧</div>
-      <div class="info-label">Email Support</div>
-      <div class="info-value"><a href="mailto:m.r.abdulshaikh90@gmail.com">m.r.abdulshaikh90@gmail.com</a></div>
-      <div class="info-note">For billing &amp; account issues</div>
+<main class="seo-main">
+  <section class="seo-hero">
+    <div class="hero-badge">AI THUMBNAIL TOOL</div>
+    <h1>AI Thumbnail Prompt Generator</h1>
+    <p>Create clear English thumbnail prompts for AI image tools and better video packaging.</p>
+    <div class="seo-cta-row">
+      <a href="/generator" class="seo-primary-btn">Start Free <span>→</span></a>
+      <a href="#how-to-use" class="seo-secondary-btn">How it Works</a>
     </div>
-    <div class="info-card">
-      <div class="info-icon">⏱️</div>
-      <div class="info-label">Response Time</div>
-      <div class="info-value">24–48 hours</div>
-      <div class="info-note">Mon–Sat, 10am–8pm IST</div>
+  </section>
+
+  
+
+  <section class="seo-content-grid">
+    <article class="seo-card large">
+      <span class="seo-card-icon">🖼</span>
+      <h2>What is the Thumbnail Prompt Generator?</h2>
+      <p>A thumbnail prompt helps you create a stronger visual direction before generating images in tools like AI image generators. ShortsCraft&#x27;s AI Thumbnail Prompt Generator writes English prompts that focus on subject, mood, lighting, composition, contrast, and YouTube-style readability. It is useful for creators who want professional-looking thumbnails without guessing how to describe the image. You still need to review the generated image, add text carefully, and make sure the final thumbnail matches your video topic.</p>
+      <p>ShortsCraft is not meant to replace your judgement. It gives you a useful draft, then you can improve the tone, remove anything inaccurate, and make the final output match your channel style. This combination of AI speed and human editing is the safest way to build a reliable content workflow.</p>
+    </article>
+
+    <article class="seo-card" id="how-to-use">
+      <h2>How to use it</h2>
+      <ol><li><strong>Step 1:</strong> Enter your video topic or title.</li><li><strong>Step 2:</strong> Generate prompts using the Thumbnail tab.</li><li><strong>Step 3:</strong> Paste the prompt into your image tool and refine the output.</li></ol>
+    </article>
+
+    <article class="seo-card">
+      <h2>Key benefits</h2>
+      <ul><li>Creates prompt-ready thumbnail ideas</li><li>Helps improve visual direction</li><li>Useful for AI image workflows</li><li>Saves time for YouTube packaging</li></ul>
+    </article>
+  </section>
+
+  <section class="seo-section">
+    <div class="section-heading center">
+      <span class="section-kicker">Creator workflow</span>
+      <h2>Who should use this page?</h2>
+      <p>This tool page is useful for new YouTubers, faceless creators, Instagram Reel creators, educational pages, fact channels, and anyone who wants a faster content planning process. It helps you stay consistent without making every upload feel like a fresh struggle.</p>
     </div>
-  </div>
-
-  <div class="form-card">
-    <h2 class="form-title">Send us a Message</h2>
-    <p class="form-subtitle">Fill out the form below and we'll get back to you as soon as possible.</p>
-
-    <div class="field-group">
-      <label class="field-label" for="contactName">Your Name</label>
-      <input type="text" id="contactName" class="field-input" placeholder="Rahul Sharma" autocomplete="name"/>
+    <div class="seo-mini-grid">
+      <div><strong>Faceless channels</strong><span>Write voiceover-ready drafts faster.</span></div>
+      <div><strong>Beginner creators</strong><span>Understand a simple content structure.</span></div>
+      <div><strong>Daily posting</strong><span>Reduce planning time before recording.</span></div>
+      <div><strong>Short-form teams</strong><span>Keep ideas, titles and prompts in one flow.</span></div>
     </div>
+  </section>
 
-    <div class="field-group">
-      <label class="field-label" for="contactEmail">Email Address</label>
-      <input type="email" id="contactEmail" class="field-input" placeholder="rahul@gmail.com" autocomplete="email"/>
+  <section class="seo-section">
+    <div class="section-heading center">
+      <span class="section-kicker">FAQ</span>
+      <h2>Questions? Answered.</h2>
     </div>
+    <div class="faq-list"><details><summary>Does this generate the thumbnail image directly?</summary><p>ShortsCraft generates prompts. You can paste them into an AI image tool or use them as direction for design.</p></details><details><summary>Are prompts in English?</summary><p>Yes. The thumbnail prompts are written in English so they work better with most AI image tools.</p></details><details><summary>Should I add text on thumbnails?</summary><p>Yes, but keep it short, readable, and relevant to the video.</p></details><details><summary>Can I use it for long videos too?</summary><p>Yes. The prompts can be adapted for Shorts, long-form videos, and social media posts.</p></details></div>
+  </section>
 
-    <div class="field-group">
-      <label class="field-label" for="contactSubject">Subject</label>
-      <input type="text" id="contactSubject" class="field-input" placeholder="Bug report / Feature request / Billing question..."/>
-    </div>
+  <section class="seo-related">
+    <h2>Explore more ShortsCraft tools</h2>
+    <div class="seo-related-links"><a href="/youtube-shorts-script-generator">Script Generator</a><a href="/youtube-shorts-title-generator">Title Generator</a><a href="/youtube-shorts-hashtag-generator">Hashtag Generator</a><a href="/youtube-shorts-description-generator">Description Generator</a><a href="/youtube-shorts-ideas-generator">Ideas Generator</a><a href="/pricing">Pricing</a></div>
+  </section>
 
-    <div class="field-group">
-      <label class="field-label" for="contactMessage">Message</label>
-      <textarea id="contactMessage" class="field-input" placeholder="Describe your issue or question in detail..."></textarea>
-    </div>
-
-    <button class="submit-btn" id="contactSubmitBtn" onclick="submitContactForm()">
-      Send Message ✉️
-    </button>
-
-    <div class="form-status" id="formStatus"></div>
-  </div>
-
+  <section class="seo-final-cta">
+    <h2>Create your next Shorts content pack</h2>
+    <p>Open the ShortsCraft generator, enter your topic, and create scripts, titles, descriptions, hashtags, ideas, and thumbnail prompts in one workflow.</p>
+    <a href="/generator" class="seo-primary-btn">Open ShortsCraft Generator</a>
+  </section>
 </main>
 
-<footer class="page-footer" style="max-width:680px;margin:0 auto;padding:0 24px 40px;">
-  <div class="footer-brand">⚡ ShortsCraft</div>
-  <div class="footer-links">
-    <a href="/">Home</a>
-    <a href="/privacy">Privacy Policy</a>
-    <a href="/terms">Terms &amp; Conditions</a>
-    <a href="/contact">Contact</a>
-    <a href="/youtube-shorts-script-generator">Script Generator</a><a href="/youtube-shorts-title-generator">Title Generator</a><a href="/ai-thumbnail-prompt-generator">Thumbnail Prompt</a><a href="/pricing">Pricing</a>
+<footer class="site-footer premium-footer">
+  <div class="site-footer-inner premium-footer-grid">
+    <div>
+      <div class="site-footer-brand">⚡ ShortsCraft</div>
+      <p class="site-footer-tagline">ShortsCraft helps creators generate YouTube Shorts scripts, titles, descriptions, hashtags, ideas and thumbnail prompts using AI — fast, bold and creator-friendly.</p>
+    </div>
+    <nav class="site-footer-links column" aria-label="AI tools navigation">
+      <strong>AI Tools</strong>
+      <a href="/youtube-shorts-script-generator">Script Generator</a>
+      <a href="/youtube-shorts-title-generator">Title Generator</a>
+      <a href="/youtube-shorts-hashtag-generator">Hashtag Generator</a>
+      <a href="/youtube-shorts-description-generator">Description Generator</a>
+      <a href="/youtube-shorts-ideas-generator">Ideas Generator</a>
+      <a href="/ai-thumbnail-prompt-generator">Thumbnail Prompt Generator</a>
+    </nav>
+    <nav class="site-footer-links column" aria-label="Product navigation">
+      <strong>Product</strong>
+      <a href="/">Home</a>
+      <a href="/generator">Tools</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+    </nav>
+    <nav class="site-footer-links column" aria-label="Legal navigation">
+      <strong>Legal</strong>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms &amp; Conditions</a>
+    </nav>
   </div>
-  <p class="footer-copy">© 2026 ShortsCraft. All rights reserved.</p>
+  <div class="footer-bottom">© 2026 ShortsCraft. All rights reserved.</div>
 </footer>
-
-<script>
-async function submitContactForm() {
-  const name    = document.getElementById("contactName").value.trim();
-  const email   = document.getElementById("contactEmail").value.trim();
-  const subject = document.getElementById("contactSubject").value.trim();
-  const message = document.getElementById("contactMessage").value.trim();
-  const btn     = document.getElementById("contactSubmitBtn");
-  const status  = document.getElementById("formStatus");
-
-  status.className = "form-status";
-  status.textContent = "";
-
-  if (!name)    { showError("Please enter your name."); return; }
-  if (!email || !email.includes("@")) { showError("Please enter a valid email address."); return; }
-  if (!message || message.length < 10) { showError("Message must be at least 10 characters."); return; }
-
-  btn.disabled = true;
-  btn.textContent = "Sending...";
-
-  try {
-    const res = await fetch("/api/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, subject, message })
-    });
-    const data = await res.json();
-    if (res.ok && data.success) {
-      status.className = "form-status success";
-      status.textContent = "✅ Message sent! We'll get back to you within 24–48 hours.";
-      document.getElementById("contactName").value = "";
-      document.getElementById("contactEmail").value = "";
-      document.getElementById("contactSubject").value = "";
-      document.getElementById("contactMessage").value = "";
-    } else {
-      showError(data.error || "Something went wrong. Please try again or email us directly.");
-    }
-  } catch (e) {
-    showError("Network error. Please email us at m.r.abdulshaikh90@gmail.com.");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Send Message ✉️";
-  }
-
-  function showError(msg) {
-    status.className = "form-status error";
-    status.textContent = "❌ " + msg;
-    btn.disabled = false;
-    btn.textContent = "Send Message ✉️";
-  }
-}
-</script>
-
 </body>
 </html>
