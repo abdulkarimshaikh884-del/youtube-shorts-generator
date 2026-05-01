@@ -307,6 +307,33 @@
       }
     }
 
+  
+    /* Fast scroll performance mode */
+    body::before, body::after, .brand-icon {
+      animation: none !important;
+    }
+    .page-badge, .page-title, .page-sub, .page-meta,
+    .mission-card, .about-section, .policy-section, .info-card,
+    .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
+      filter: none !important;
+      animation-duration: .42s !important;
+      animation-timing-function: cubic-bezier(.22,1,.36,1) !important;
+      will-change: auto !important;
+    }
+    .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card {
+      transition-property: transform, border-color, background-color !important;
+      transition-duration: .16s !important;
+    }
+    @media (max-width: 900px) {
+      .topbar, .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card, .stats-band, .cta-banner {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card, .stats-band, .cta-banner {
+        box-shadow: 0 10px 28px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04) !important;
+      }
+    }
+
   </style>
 </head>
 <body>
