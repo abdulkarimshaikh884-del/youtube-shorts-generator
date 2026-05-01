@@ -1850,3 +1850,150 @@ html, body {
     display: none !important;
   }
 }
+
+
+/* =========================================================
+   SMOOTH ANIMATION PERFORMANCE FIX
+   Only optimizes animation smoothness. No layout/design change.
+   ========================================================= */
+:root {
+  --sc-ease-smooth: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* GPU-friendly animation hints */
+.reveal-ready,
+.premium-hero-copy,
+.hero-product-mockup,
+.live-mockup,
+.mockup-window,
+.floating-chip,
+.ambient-orb,
+.ambient-bg::after,
+.brand-icon::after,
+.primary-cta::before,
+.pricing-btn:not(.secondary)::before,
+button#generateBtn::before,
+.auth-submit::before,
+.mock-line,
+.mock-meter span {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Reveal animation: opacity + transform only */
+.reveal-ready {
+  opacity: 0;
+  transform: translate3d(0, 20px, 0);
+  transition:
+    opacity .56s var(--sc-ease-smooth),
+    transform .56s var(--sc-ease-smooth) !important;
+  will-change: opacity, transform;
+}
+
+.reveal-ready.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Avoid expensive width animation by using transform scale instead */
+.mock-meter span {
+  transform-origin: left center;
+  will-change: transform;
+  animation: scMeterScale .9s var(--sc-ease-smooth) forwards !important;
+}
+
+@keyframes scMeterScale {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Smoother glow/line movement */
+.mock-line {
+  will-change: opacity, transform;
+}
+
+.brand-icon::after {
+  will-change: opacity, transform;
+}
+
+/* Heavy blur/glow animations can stutter on phones; keep visual, reduce work */
+@media (max-width: 760px) {
+  .ambient-orb {
+    animation-duration: 22s !important;
+    filter: blur(30px);
+    opacity: .48;
+  }
+
+  .ambient-bg::after {
+    animation: none !important;
+  }
+
+  .brand-icon::after {
+    animation-duration: 4.8s !important;
+  }
+
+  .floating-chip {
+    animation: none !important;
+  }
+
+  .mockup-window,
+  .live-mockup,
+  .hero-product-mockup {
+    transition:
+      transform .32s var(--sc-ease-smooth),
+      opacity .32s var(--sc-ease-smooth) !important;
+  }
+
+  .feature-card,
+  .pricing-card,
+  .faq-list details,
+  .input-card,
+  .output-card,
+  .lab-card,
+  .proof-pill,
+  .card {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+}
+
+/* Remove expensive transition: all where possible through later cascade */
+.nav-tab,
+.login-btn,
+.feedback-nav-btn,
+.topbar-btn,
+.profile-avatar,
+.sidebar,
+.sidebar-overlay,
+.modal,
+.primary-cta,
+.secondary-cta,
+.ghost-cta,
+.pricing-btn,
+button#generateBtn {
+  transition-timing-function: var(--sc-ease-smooth) !important;
+}
+
+/* Respect reduced-motion users and prevents jank on low-power browsers */
+@media (prefers-reduced-motion: reduce) {
+  .ambient-orb,
+  .ambient-bg::after,
+  .brand-icon::after,
+  .floating-chip,
+  .mockup-window::before,
+  .primary-cta::before,
+  .pricing-btn:not(.secondary)::before,
+  button#generateBtn::before,
+  .auth-submit::before,
+  .mock-line,
+  .mock-meter span {
+    animation: none !important;
+  }
+  .reveal-ready,
+  .reveal-ready.is-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
