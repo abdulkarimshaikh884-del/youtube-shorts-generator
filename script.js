@@ -1124,22 +1124,30 @@ function toast(msg, type='') {
 function initPremiumExperience() {
   const progress = document.getElementById('scrollProgress');
   const topbar = document.querySelector('.topbar');
+  const isMobileOrLowPower =
+    window.matchMedia('(max-width: 900px)').matches ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
 
   function updateScrollProgress() {
     const doc = document.documentElement;
     const total = Math.max(1, doc.scrollHeight - window.innerHeight);
-    const pct = Math.min(100, Math.max(0, (window.scrollY / total) * 100));
-    if (progress) progress.style.width = `${pct}%`;
+    const pct = Math.min(1, Math.max(0, window.scrollY / total));
+    if (progress && !isMobileOrLowPower) {
+      progress.style.transform = `scaleX(${pct})`;
+    }
     if (topbar) topbar.classList.toggle('scrolled', window.scrollY > 12);
   }
+
   updateScrollProgress();
-  let scScrollTicking = false;
+
+  let scrollTicking = false;
   window.addEventListener('scroll', () => {
-    if (scScrollTicking) return;
-    scScrollTicking = true;
+    if (scrollTicking) return;
+    scrollTicking = true;
     requestAnimationFrame(() => {
       updateScrollProgress();
-      scScrollTicking = false;
+      scrollTicking = false;
     });
   }, { passive: true });
 
@@ -1163,84 +1171,80 @@ function initPremiumExperience() {
     '.trust-disclaimer'
   ].join(','));
 
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          setTimeout(() => { entry.target.style.willChange = 'auto'; }, 700);
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.13, rootMargin: '0px 0px -40px 0px' });
-
-    revealTargets.forEach(el => {
-      el.classList.add('reveal-ready');
-      el.style.willChange = 'transform, opacity';
-      observer.observe(el);
-    });
-  } else {
-    revealTargets.forEach(el => el.classList.add('is-visible'));
-  }
+  // Fast mode: keep all sections visible. This removes scroll stutter on mobile and low-end devices.
+  revealTargets.forEach(el => {
+    el.classList.add('is-visible');
+    el.style.willChange = 'auto';
+  });
 
   const typedTopic = document.getElementById('mockupTypedTopic');
-  const topics = [
-    'AI tools se paisa kaise kamaye?',
-    'Study motivation for class 11 students',
-    'YouTube Shorts algorithm secret',
-    '5 mistakes new creators make'
-  ];
-  let topicIndex = 0;
-  let charIndex = 0;
-  let deleting = false;
+  if (typedTopic && !isMobileOrLowPower) {
+    const topics = [
+      'AI tools se paisa kaise kamaye?',
+      'Study motivation for class 11 students',
+      'YouTube Shorts algorithm secret',
+      '5 mistakes new creators make'
+    ];
+    let topicIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+    let typingTimer = null;
 
-  function typeMockTopic() {
-    if (!typedTopic) return;
-    const word = topics[topicIndex];
-    if (!deleting) {
-      charIndex += 1;
-      typedTopic.textContent = word.slice(0, charIndex);
-      if (charIndex >= word.length) {
-        deleting = true;
-        setTimeout(typeMockTopic, 1500);
-        return;
+    function typeMockTopic() {
+      const word = topics[topicIndex];
+      if (!deleting) {
+        charIndex += 1;
+        typedTopic.textContent = word.slice(0, charIndex);
+        if (charIndex >= word.length) {
+          deleting = true;
+          typingTimer = setTimeout(typeMockTopic, 1800);
+          return;
+        }
+      } else {
+        charIndex -= 1;
+        typedTopic.textContent = word.slice(0, Math.max(0, charIndex));
+        if (charIndex <= 0) {
+          deleting = false;
+          topicIndex = (topicIndex + 1) % topics.length;
+        }
       }
-    } else {
-      charIndex -= 1;
-      typedTopic.textContent = word.slice(0, Math.max(0, charIndex));
-      if (charIndex <= 0) {
-        deleting = false;
-        topicIndex = (topicIndex + 1) % topics.length;
-      }
+      typingTimer = setTimeout(typeMockTopic, deleting ? 42 : 72);
     }
-    setTimeout(typeMockTopic, deleting ? 28 : 55);
+
+    typeMockTopic();
+    window.addEventListener('pagehide', () => typingTimer && clearTimeout(typingTimer));
   }
-  typeMockTopic();
 
   document.getElementById('tryExampleTopicBtn')?.addEventListener('click', () => {
     window.setTopic?.('YouTube Shorts algorithm secret');
-    document.getElementById('generator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('generator')?.scrollIntoView({
+      behavior: isMobileOrLowPower ? 'auto' : 'smooth',
+      block: 'start'
+    });
     toast('Example topic added — ab Generate All dabao ⚡', 'success');
   });
 
-  document.querySelectorAll('.magnetic-cta').forEach(btn => {
-    let magneticFrame = null;
-    let nextTransform = '';
-    btn.addEventListener('mousemove', (e) => {
-      const r = btn.getBoundingClientRect();
-      nextTransform = `translate3d(${(e.clientX - r.left - r.width / 2) / 18}px, ${(e.clientY - r.top - r.height / 2) / 18}px, 0)`;
-      if (magneticFrame) return;
-      magneticFrame = requestAnimationFrame(() => {
-        btn.style.transform = nextTransform;
+  // Magnetic hover only on devices with mouse. Disabled on touch/mobile to avoid lag.
+  if (!isMobileOrLowPower && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.querySelectorAll('.magnetic-cta').forEach(btn => {
+      let magneticFrame = null;
+      let nextTransform = '';
+      btn.addEventListener('mousemove', (e) => {
+        const r = btn.getBoundingClientRect();
+        nextTransform = `translate3d(${(e.clientX - r.left - r.width / 2) / 18}px, ${(e.clientY - r.top - r.height / 2) / 18}px, 0)`;
+        if (magneticFrame) return;
+        magneticFrame = requestAnimationFrame(() => {
+          btn.style.transform = nextTransform;
+          magneticFrame = null;
+        });
+      });
+      btn.addEventListener('mouseleave', () => {
+        if (magneticFrame) cancelAnimationFrame(magneticFrame);
         magneticFrame = null;
+        btn.style.transform = '';
       });
     });
-    btn.addEventListener('mouseleave', () => {
-      if (magneticFrame) cancelAnimationFrame(magneticFrame);
-      magneticFrame = null;
-      btn.style.transform = '';
-    });
-  });
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────────
