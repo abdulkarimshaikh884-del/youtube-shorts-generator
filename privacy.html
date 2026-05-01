@@ -7,12 +7,13 @@
   <meta name="description" content="ShortsCraft Privacy Policy — Learn how we collect, use, and protect your data."/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="https://shortscraft.online/privacy"/>
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#07090f">
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -199,16 +200,76 @@
       transform: translateY(-3px); border-color: rgba(255,140,58,.24);
     }
 
+  
+    /* ── Premium Motion System (lightweight) ───────────────── */
+    @keyframes scFadeUp {
+      from { opacity: 0; transform: translate3d(0, 26px, 0); filter: blur(6px); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+    }
+    @keyframes scSoftFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50%      { transform: translate3d(0, -14px, 0) scale(1.03); }
+    }
+    @keyframes scGlowPulse {
+      0%, 100% { box-shadow: 0 0 24px rgba(255,69,96,.22), 0 14px 34px rgba(0,0,0,.22); }
+      50%      { box-shadow: 0 0 38px rgba(255,140,58,.34), 0 18px 46px rgba(0,0,0,.30); }
+    }
+    @keyframes scGradientShift {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(18deg); }
+    }
+    @keyframes scGridDrift {
+      from { background-position: 0 0, 0 0; }
+      to   { background-position: 76px 76px, 76px 76px; }
+    }
+    body::before { animation: scSoftFloat 11s ease-in-out infinite; }
+    body::after { animation: scGridDrift 26s linear infinite; }
+    .brand-icon { animation: scGlowPulse 3.8s ease-in-out infinite; }
+    .page-badge, .page-title, .page-sub, .page-meta, .mission-card, .about-section, .policy-section, .info-card, .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
+      opacity: 0;
+      animation: scFadeUp .72s cubic-bezier(.2,.8,.2,1) forwards;
+      will-change: transform, opacity;
+    }
+    .page-badge { animation-delay: .04s; }
+    .page-title { animation-delay: .11s; }
+    .page-sub, .page-meta { animation-delay: .18s; }
+    .mission-card, .info-row, .stats-band { animation-delay: .25s; }
+    .policy-section:nth-of-type(1), .about-section:nth-of-type(1), .feature-card:nth-child(1), .info-card:nth-child(1) { animation-delay: .28s; }
+    .policy-section:nth-of-type(2), .about-section:nth-of-type(2), .feature-card:nth-child(2), .info-card:nth-child(2) { animation-delay: .36s; }
+    .policy-section:nth-of-type(3), .about-section:nth-of-type(3), .feature-card:nth-child(3) { animation-delay: .44s; }
+    .policy-section:nth-of-type(4), .about-section:nth-of-type(4), .feature-card:nth-child(4) { animation-delay: .52s; }
+    .policy-section:nth-of-type(n+5), .about-section:nth-of-type(n+5), .feature-card:nth-child(n+5) { animation-delay: .58s; }
+    .page-footer { animation-delay: .64s; }
+    .policy-section:hover, .about-section:hover, .mission-card:hover, .feature-card:hover, .info-card:hover, .form-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,140,58,.32) !important;
+      background: linear-gradient(145deg, rgba(17,22,40,.88), rgba(12,16,31,.78));
+    }
+    .topbar-back:hover, .cta-btn:hover, .submit-btn:hover {
+      transform: translateY(-2px) scale(1.015);
+      box-shadow: 0 16px 38px rgba(255,69,96,.22);
+    }
+    .field-input:focus {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 3px rgba(255,69,96,.20), 0 18px 38px rgba(0,0,0,.20);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+      .page-badge, .page-title, .page-sub, .page-meta, .mission-card, .about-section, .policy-section, .info-card, .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
+        opacity: 1; transform: none; filter: none;
+      }
+    }
+
   </style>
 </head>
 <body>
 
 <header class="topbar">
-  <a href="index.html" class="brand">
+  <a href="/" class="brand">
     <span class="brand-icon">⚡</span>
     <span class="brand-name">ShortsCraft</span>
   </a>
-  <a href="index.html" class="topbar-back">← Back to ShortsCraft</a>
+  <a href="/" class="topbar-back">← Back to ShortsCraft</a>
 </header>
 
 <main class="page-wrap">
@@ -329,10 +390,10 @@
 <footer class="page-footer" style="max-width:780px;margin:0 auto;padding:0 24px 40px;">
   <div class="footer-brand">⚡ ShortsCraft</div>
   <div class="footer-links">
-    <a href="index.html">Home</a>
-    <a href="privacy.html">Privacy Policy</a>
-    <a href="terms.html">Terms &amp; Conditions</a>
-    <a href="contact.html">Contact</a>
+    <a href="/">Home</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms">Terms &amp; Conditions</a>
+    <a href="/contact">Contact</a>
   </div>
   <p class="footer-copy">© 2026 ShortsCraft. All rights reserved.</p>
 </footer>
