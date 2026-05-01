@@ -260,6 +260,36 @@
       }
     }
 
+  
+    /* Smooth animation performance fix — keeps same design, improves FPS */
+    @keyframes scFadeUpSmooth {
+      from { opacity: 0; transform: translate3d(0, 18px, 0); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    .page-badge, .page-title, .page-sub, .page-meta,
+    .mission-card, .about-section, .policy-section, .info-card,
+    .form-card, .feature-card, .stats-band, .cta-banner, .page-footer {
+      animation-name: scFadeUpSmooth !important;
+      animation-duration: .56s !important;
+      animation-timing-function: cubic-bezier(.22,1,.36,1) !important;
+      backface-visibility: hidden;
+      will-change: transform, opacity;
+    }
+    .brand-icon {
+      animation: scIconSmooth 4.8s ease-in-out infinite !important;
+      will-change: transform;
+    }
+    @keyframes scIconSmooth {
+      0%,100% { transform: translate3d(0,0,0) scale(1); }
+      50% { transform: translate3d(0,-1px,0) scale(1.02); }
+    }
+    @media (max-width: 760px) {
+      body::before, body::after { animation: none !important; }
+      .policy-section, .about-section, .mission-card, .feature-card, .info-card, .form-card {
+        transition: transform .22s cubic-bezier(.22,1,.36,1), border-color .22s cubic-bezier(.22,1,.36,1) !important;
+      }
+    }
+
   </style>
 </head>
 <body>
