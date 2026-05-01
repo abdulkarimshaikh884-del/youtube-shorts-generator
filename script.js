@@ -1150,6 +1150,8 @@ function initPremiumExperience() {
     '.pricing-card',
     '.faq-section .section-heading',
     '.faq-list details',
+    '.premium-hero-copy',
+    '.hero-product-mockup',
     '.trust-disclaimer'
   ].join(','));
 
