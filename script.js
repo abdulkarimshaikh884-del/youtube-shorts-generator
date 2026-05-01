@@ -746,8 +746,21 @@ function renderDesc(text) {
 }
 
 function renderHashtags(arr) {
-  hashtagsContent.innerHTML = `<div class="hashtags-grid">${arr.map((h,i)=>`<span class="hashtag-chip" style="animation-delay:${i*.04}s" data-copy-text="${encodeDataText(h)}">${escapeHtml(h)}</span>`).join('')}</div>`;
-  lastHashtags=arr;
+  const cleanTags = (Array.isArray(arr) ? arr : String(arr || '').split(/\s+/))
+    .map(h => String(h || '').trim())
+    .filter(Boolean)
+    .map(h => h.startsWith('#') ? h : `#${h.replace(/^#+/, '')}`);
+
+  hashtagsContent.innerHTML = `<div class="hashtags-grid">${cleanTags.map((h,i)=>`<span class="hashtag-chip" style="opacity:1;visibility:visible;transform:none;animation:none;" data-copy-text="${encodeDataText(h)}">${escapeHtml(h)}</span>`).join('')}</div>`;
+
+  hashtagsContent.querySelectorAll('.hashtag-chip, .hashtags-grid').forEach(el => {
+    el.style.opacity = '1';
+    el.style.visibility = 'visible';
+    el.style.transform = 'none';
+    el.style.animation = 'none';
+  });
+
+  lastHashtags=cleanTags;
 }
 
 function renderIdeas(arr) {
