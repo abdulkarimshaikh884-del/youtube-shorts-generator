@@ -725,16 +725,23 @@ function renderScript(data) {
   if(data.mainContent) s.push(`<div class="section-block main-content"><div class="section-label">📢 Main Content</div><div class="section-text">${escapeHtml(data.mainContent)}</div></div>`);
   if(data.cta)         s.push(`<div class="section-block cta"><div class="section-label">👆 Call to Action</div><div class="section-text">${escapeHtml(data.cta)}</div></div>`);
   scriptSections.innerHTML = s.length ? s.join('') : '<div class="placeholder-block"><p class="placeholder-text">Script error 😔</p></div>';
+  scriptSections.querySelectorAll('.section-block').forEach(el => {
+    el.style.opacity = '1';
+    el.style.visibility = 'visible';
+    el.style.transform = 'none';
+  });
   lastScript = [data.hook?`Hook:\n${data.hook}`:'', data.mainContent?`Main Content:\n${data.mainContent}`:'', data.cta?`CTA:\n${data.cta}`:''].filter(Boolean).join('\n\n');
 }
 
 function renderTitles(arr) {
   titlesContent.innerHTML = arr.map((t,i)=>`<div class="list-item" style="animation-delay:${i*.08}s"><span class="item-num">${i+1}</span><span class="item-text">${escapeHtml(t)}</span><button class="item-copy-btn" data-copy-text="${encodeDataText(t)}">Copy</button></div>`).join('');
+  titlesContent.querySelectorAll('.list-item').forEach(el => { el.style.opacity = '1'; el.style.visibility = 'visible'; el.style.transform = 'none'; });
   lastTitles=arr;
 }
 
 function renderDesc(text) {
   descContent.innerHTML = `<div class="desc-content"><div class="desc-text">${escapeHtml(text)}</div></div>`;
+  descContent.querySelectorAll('.desc-content').forEach(el => { el.style.opacity = '1'; el.style.visibility = 'visible'; el.style.transform = 'none'; });
   lastDesc = text;
 }
 
