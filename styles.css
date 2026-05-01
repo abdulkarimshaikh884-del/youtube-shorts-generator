@@ -2419,3 +2419,76 @@ button#generateBtn,
   }
 }
 
+
+/* =========================================================
+   OUTPUT VISIBILITY FIX
+   Real no-lag mode disabled CSS animations globally, but some
+   generated result blocks were originally visible only after
+   animation changed opacity from 0 to 1. This keeps performance
+   mode and makes generated results visible immediately.
+   ========================================================= */
+.section-block,
+.list-item,
+.desc-content,
+.desc-box,
+.hashtag-badge,
+.thumb-prompt-item,
+.placeholder-block,
+.placeholder-text,
+.script-sections,
+.list-content,
+.desc-content-wrap,
+#scriptSections,
+#titlesContent,
+#descContent,
+#hashtagsContent,
+#ideasContent,
+#thumbnailContent {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+.section-block,
+.list-item,
+.desc-content,
+.desc-box,
+.thumb-prompt-item {
+  animation: none !important;
+  will-change: auto !important;
+}
+
+.skeleton {
+  opacity: 1 !important;
+  visibility: visible !important;
+  animation: none !important;
+  background: rgba(255,255,255,0.065) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+  transform: translateX(-100%);
+}
+
+@media (min-width: 901px) {
+  .skeleton::after {
+    animation: scLightShimmer 1.4s ease-in-out infinite !important;
+  }
+}
+
+@keyframes scLightShimmer {
+  to { transform: translateX(100%); }
+}
+
+.tab-panel.active,
+.output-card {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
