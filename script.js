@@ -1122,34 +1122,15 @@ function toast(msg, type='') {
 
 // ── PREMIUM EXPERIENCE: SCROLL PROGRESS, REVEAL, MOCKUP TYPING ─
 function initPremiumExperience() {
-  const progress = document.getElementById('scrollProgress');
-  const topbar = document.querySelector('.topbar');
-  const isMobileOrLowPower =
-    window.matchMedia('(max-width: 900px)').matches ||
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+  // Real performance mode:
+  // No scroll listeners, no reveal observers, no typing timers, no magnetic hover.
+  // These effects looked good but caused lag on mobile browsers.
+  document.documentElement.classList.add('sc-fast-mode');
 
-  function updateScrollProgress() {
-    const doc = document.documentElement;
-    const total = Math.max(1, doc.scrollHeight - window.innerHeight);
-    const pct = Math.min(1, Math.max(0, window.scrollY / total));
-    if (progress && !isMobileOrLowPower) {
-      progress.style.transform = `scaleX(${pct})`;
-    }
-    if (topbar) topbar.classList.toggle('scrolled', window.scrollY > 12);
-  }
-
-  updateScrollProgress();
-
-  let scrollTicking = false;
-  window.addEventListener('scroll', () => {
-    if (scrollTicking) return;
-    scrollTicking = true;
-    requestAnimationFrame(() => {
-      updateScrollProgress();
-      scrollTicking = false;
-    });
-  }, { passive: true });
+  document.querySelectorAll('.reveal-ready').forEach(el => {
+    el.classList.add('is-visible');
+    el.style.willChange = 'auto';
+  });
 
   const revealTargets = document.querySelectorAll([
     '.premium-proof-strip .proof-pill',
@@ -1171,80 +1152,21 @@ function initPremiumExperience() {
     '.trust-disclaimer'
   ].join(','));
 
-  // Fast mode: keep all sections visible. This removes scroll stutter on mobile and low-end devices.
   revealTargets.forEach(el => {
     el.classList.add('is-visible');
     el.style.willChange = 'auto';
   });
 
   const typedTopic = document.getElementById('mockupTypedTopic');
-  if (typedTopic && !isMobileOrLowPower) {
-    const topics = [
-      'AI tools se paisa kaise kamaye?',
-      'Study motivation for class 11 students',
-      'YouTube Shorts algorithm secret',
-      '5 mistakes new creators make'
-    ];
-    let topicIndex = 0;
-    let charIndex = 0;
-    let deleting = false;
-    let typingTimer = null;
-
-    function typeMockTopic() {
-      const word = topics[topicIndex];
-      if (!deleting) {
-        charIndex += 1;
-        typedTopic.textContent = word.slice(0, charIndex);
-        if (charIndex >= word.length) {
-          deleting = true;
-          typingTimer = setTimeout(typeMockTopic, 1800);
-          return;
-        }
-      } else {
-        charIndex -= 1;
-        typedTopic.textContent = word.slice(0, Math.max(0, charIndex));
-        if (charIndex <= 0) {
-          deleting = false;
-          topicIndex = (topicIndex + 1) % topics.length;
-        }
-      }
-      typingTimer = setTimeout(typeMockTopic, deleting ? 42 : 72);
-    }
-
-    typeMockTopic();
-    window.addEventListener('pagehide', () => typingTimer && clearTimeout(typingTimer));
+  if (typedTopic && !typedTopic.textContent.trim()) {
+    typedTopic.textContent = 'YouTube Shorts algorithm secret';
   }
 
   document.getElementById('tryExampleTopicBtn')?.addEventListener('click', () => {
     window.setTopic?.('YouTube Shorts algorithm secret');
-    document.getElementById('generator')?.scrollIntoView({
-      behavior: isMobileOrLowPower ? 'auto' : 'smooth',
-      block: 'start'
-    });
+    document.getElementById('generator')?.scrollIntoView({ behavior: 'auto', block: 'start' });
     toast('Example topic added — ab Generate All dabao ⚡', 'success');
   });
-
-  // Magnetic hover only on devices with mouse. Disabled on touch/mobile to avoid lag.
-  if (!isMobileOrLowPower && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-    document.querySelectorAll('.magnetic-cta').forEach(btn => {
-      let magneticFrame = null;
-      let nextTransform = '';
-      btn.addEventListener('mousemove', (e) => {
-        const r = btn.getBoundingClientRect();
-        nextTransform = `translate3d(${(e.clientX - r.left - r.width / 2) / 18}px, ${(e.clientY - r.top - r.height / 2) / 18}px, 0)`;
-        if (magneticFrame) return;
-        magneticFrame = requestAnimationFrame(() => {
-          btn.style.transform = nextTransform;
-          magneticFrame = null;
-        });
-      });
-      btn.addEventListener('mouseleave', () => {
-        if (magneticFrame) cancelAnimationFrame(magneticFrame);
-        magneticFrame = null;
-        btn.style.transform = '';
-      });
-    });
-  }
 }
 
 // ── INIT ──────────────────────────────────────────────────────
