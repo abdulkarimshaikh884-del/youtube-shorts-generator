@@ -2492,3 +2492,34 @@ button#generateBtn,
   visibility: visible !important;
 }
 
+
+/* =========================================================
+   HASHTAGS VISIBILITY FIX
+   No-lag mode disables animations, so hashtag chips must be
+   visible without depending on the old sIn animation.
+   ========================================================= */
+.hashtags-grid,
+.hashtag-chip,
+#hashtagsContent .hashtag-chip,
+#hashtagsContent .hashtags-grid {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: none !important;
+  animation: none !important;
+  will-change: auto !important;
+}
+
+.hashtags-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  min-height: 40px;
+}
+
+.hashtag-chip {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
