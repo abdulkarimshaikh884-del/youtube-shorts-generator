@@ -1853,154 +1853,6 @@ html, body {
 
 
 /* =========================================================
-   SMOOTH ANIMATION PERFORMANCE FIX
-   Only optimizes animation smoothness. No layout/design change.
-   ========================================================= */
-:root {
-  --sc-ease-smooth: cubic-bezier(.22, 1, .36, 1);
-}
-
-/* GPU-friendly animation hints */
-.reveal-ready,
-.premium-hero-copy,
-.hero-product-mockup,
-.live-mockup,
-.mockup-window,
-.floating-chip,
-.ambient-orb,
-.ambient-bg::after,
-.brand-icon::after,
-.primary-cta::before,
-.pricing-btn:not(.secondary)::before,
-button#generateBtn::before,
-.auth-submit::before,
-.mock-line,
-.mock-meter span {
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
-
-/* Reveal animation: opacity + transform only */
-.reveal-ready {
-  opacity: 0;
-  transform: translate3d(0, 20px, 0);
-  transition:
-    opacity .56s var(--sc-ease-smooth),
-    transform .56s var(--sc-ease-smooth) !important;
-  will-change: opacity, transform;
-}
-
-.reveal-ready.is-visible {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-}
-
-/* Avoid expensive width animation by using transform scale instead */
-.mock-meter span {
-  transform-origin: left center;
-  will-change: transform;
-  animation: scMeterScale .9s var(--sc-ease-smooth) forwards !important;
-}
-
-@keyframes scMeterScale {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
-}
-
-/* Smoother glow/line movement */
-.mock-line {
-  will-change: opacity, transform;
-}
-
-.brand-icon::after {
-  will-change: opacity, transform;
-}
-
-/* Heavy blur/glow animations can stutter on phones; keep visual, reduce work */
-@media (max-width: 760px) {
-  .ambient-orb {
-    animation-duration: 22s !important;
-    filter: blur(30px);
-    opacity: .48;
-  }
-
-  .ambient-bg::after {
-    animation: none !important;
-  }
-
-  .brand-icon::after {
-    animation-duration: 4.8s !important;
-  }
-
-  .floating-chip {
-    animation: none !important;
-  }
-
-  .mockup-window,
-  .live-mockup,
-  .hero-product-mockup {
-    transition:
-      transform .32s var(--sc-ease-smooth),
-      opacity .32s var(--sc-ease-smooth) !important;
-  }
-
-  .feature-card,
-  .pricing-card,
-  .faq-list details,
-  .input-card,
-  .output-card,
-  .lab-card,
-  .proof-pill,
-  .card {
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
-}
-
-/* Remove expensive transition: all where possible through later cascade */
-.nav-tab,
-.login-btn,
-.feedback-nav-btn,
-.topbar-btn,
-.profile-avatar,
-.sidebar,
-.sidebar-overlay,
-.modal,
-.primary-cta,
-.secondary-cta,
-.ghost-cta,
-.pricing-btn,
-button#generateBtn {
-  transition-timing-function: var(--sc-ease-smooth) !important;
-}
-
-/* Respect reduced-motion users and prevents jank on low-power browsers */
-@media (prefers-reduced-motion: reduce) {
-  .ambient-orb,
-  .ambient-bg::after,
-  .brand-icon::after,
-  .floating-chip,
-  .mockup-window::before,
-  .primary-cta::before,
-  .pricing-btn:not(.secondary)::before,
-  button#generateBtn::before,
-  .auth-submit::before,
-  .mock-line,
-  .mock-meter span {
-    animation: none !important;
-  }
-  .reveal-ready,
-  .reveal-ready.is-visible {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-}
-
-
-
-
-/* =========================================================
    SEO TOOL LANDING PAGES
    Added for Google indexing and sitelinks. Existing design unchanged.
    ========================================================= */
@@ -2302,58 +2154,53 @@ body.seo-page {
 
 
 /* =========================================================
-   FAST SCROLL PERFORMANCE MODE
-   Fixes lag/jank while preserving the current visual layout.
+   REAL PERFORMANCE MODE — NO-LAG SCROLL FIX
+   This intentionally removes paint-heavy effects that cause
+   mobile scroll lag: moving blur orbs, backdrop-filter, huge
+   glow shadows, reveal animations, magnetic effects.
+   Layout, content, routes, SEO pages, auth and generator stay same.
    ========================================================= */
 
-/* Make scroll progress GPU-based instead of changing layout width */
-.scroll-progress {
-  width: 100% !important;
-  transform: scaleX(0);
-  transform-origin: left center;
-  will-change: transform;
-  contain: strict;
-}
-
-/* Stop infinite paint-heavy animations that cause scroll jank */
-.ambient-bg::after,
-.ambient-orb,
-.brand-icon::after,
-.floating-chip,
-.mockup-window::before,
-.primary-cta::before,
-.pricing-btn:not(.secondary)::before,
-button#generateBtn::before,
-.auth-submit::before,
-.mock-line,
-.mock-meter span,
-.credits-badge.low {
+/* 1) Kill all expensive motion and animated paints */
+*,
+*::before,
+*::after {
   animation: none !important;
+  scroll-behavior: auto !important;
 }
 
-/* Keep the same ambient look, but remove moving blur repaint */
-.ambient-orb {
-  transform: translate3d(0,0,0) !important;
-  will-change: auto !important;
-  filter: blur(26px);
-  opacity: .46;
+html,
+body {
+  overflow-x: hidden !important;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(255,140,58,.12), transparent 30%),
+    radial-gradient(circle at 86% 12%, rgba(109,40,217,.12), transparent 28%),
+    linear-gradient(180deg, #07090f 0%, #050711 100%) !important;
 }
 
-.ambient-bg::after {
-  opacity: .07;
+/* 2) Remove heavy fixed animated background layers */
+.ambient-bg,
+.ambient-orb,
+.ambient-grid,
+.ambient-bg::before,
+.ambient-bg::after,
+.hero-bg-orb,
+.hero-grid-overlay,
+.floating-chip {
+  display: none !important;
 }
 
-/* Remove scroll-reveal workload. Content remains visible and page scrolls fast. */
-.reveal-ready,
-.reveal-ready.is-visible {
-  opacity: 1 !important;
-  transform: none !important;
-  transition: none !important;
-  will-change: auto !important;
-}
-
-/* Do not animate expensive filter/box-shadow values during scroll */
+/* 3) Remove blur/backdrop filters globally — biggest mobile FPS win */
+.topbar,
+.tabbar,
+.mobile-nav-panel,
+.sidebar,
+.sidebar-overlay,
+.modal,
+.profile-dropdown,
 .card,
+.input-card,
+.output-card,
 .feature-card,
 .pricing-card,
 .faq-list details,
@@ -2361,56 +2208,195 @@ button#generateBtn::before,
 .steps-preview-card,
 .lab-card,
 .proof-pill,
-.input-card,
-.output-card,
-.modal,
-.profile-dropdown,
-.sidebar,
+.mockup-window,
+.live-mockup,
+.hero-product-mockup,
+.premium-generator-preview,
+.premium-output-card,
 .seo-card,
 .seo-plan-card,
 .seo-final-cta,
 .seo-related,
-.seo-mini-grid div {
+.seo-mini-grid div,
+.form-card,
+.info-card,
+.policy-section,
+.about-section,
+.mission-card,
+.cta-banner,
+.stats-band,
+.contact-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* 4) Replace huge glow shadows with lightweight shadows */
+.topbar,
+.tabbar {
+  background: rgba(7,9,15,.98) !important;
+  box-shadow: none !important;
+}
+
+.card,
+.input-card,
+.output-card,
+.feature-card,
+.pricing-card,
+.faq-list details,
+.trust-disclaimer,
+.steps-preview-card,
+.lab-card,
+.proof-pill,
+.mockup-window,
+.live-mockup,
+.hero-product-mockup,
+.premium-generator-preview,
+.premium-output-card,
+.seo-card,
+.seo-plan-card,
+.seo-final-cta,
+.seo-related,
+.seo-mini-grid div,
+.form-card,
+.info-card,
+.policy-section,
+.about-section,
+.mission-card,
+.cta-banner,
+.stats-band,
+.contact-card,
+.modal,
+.profile-dropdown,
+.sidebar {
+  box-shadow: 0 8px 22px rgba(0,0,0,.20) !important;
+}
+
+/* 5) Stop reveal/magnetic/3D work */
+.reveal-ready,
+.reveal-ready.is-visible,
+.premium-hero-copy,
+.hero-product-mockup,
+.live-mockup,
+.mockup-window,
+.lab-card,
+.proof-pill,
+.feature-card,
+.pricing-card,
+.seo-card,
+.seo-plan-card {
+  opacity: 1 !important;
+  transform: none !important;
   will-change: auto !important;
-  transition-property: transform, border-color, background-color, color, opacity !important;
-  transition-duration: .18s !important;
+  transform-style: flat !important;
 }
 
-/* GPU-friendly transform only for hover */
-.feature-card:hover,
-.pricing-card:hover,
-.proof-pill:hover,
-.lab-card:hover,
-.seo-card:hover,
-.seo-plan-card:hover {
-  transform: translate3d(0, -3px, 0) !important;
+.scroll-progress {
+  display: none !important;
 }
 
-/* Mobile: disable the heaviest visual effects. Layout/design stays same, FPS improves. */
+/* 6) Keep basic hover only on desktop, no transitions during scroll */
+.nav-tab,
+.login-btn,
+.feedback-nav-btn,
+.topbar-btn,
+.profile-avatar,
+.sidebar,
+.sidebar-overlay,
+.modal,
+.primary-cta,
+.secondary-cta,
+.ghost-cta,
+.pricing-btn,
+button,
+a,
+.card,
+.input-card,
+.output-card,
+.feature-card,
+.pricing-card,
+.faq-list details,
+.lab-card,
+.proof-pill,
+.seo-card,
+.seo-plan-card {
+  transition: none !important;
+}
+
+/* 7) Browser rendering containment for long pages */
+.premium-hero,
+.generator-shell,
+.creator-lab-section,
+.features-section,
+.how-section,
+.pricing-section,
+.faq-section,
+.trust-disclaimer,
+.seo-section,
+.seo-content-grid,
+.seo-related,
+.seo-final-cta,
+.site-footer,
+.page-wrap,
+.page-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 800px;
+}
+
+/* 8) Static premium look without expensive effects */
+.brand-icon::after,
+.primary-cta::before,
+.pricing-btn:not(.secondary)::before,
+button#generateBtn::before,
+.auth-submit::before,
+.mockup-window::before {
+  display: none !important;
+}
+
+.brand-icon {
+  box-shadow: 0 6px 18px rgba(255,69,96,.20) !important;
+}
+
+.primary-cta,
+.pricing-btn:not(.secondary),
+button#generateBtn,
+.auth-submit,
+.seo-primary-btn {
+  box-shadow: 0 8px 22px rgba(255,69,96,.18) !important;
+}
+
+/* 9) Mobile super-fast mode */
 @media (max-width: 900px) {
-  html {
-    scroll-behavior: auto !important;
-  }
-
-  .scroll-progress {
-    display: none !important;
-  }
-
-  .ambient-orb {
-    display: none !important;
-  }
-
-  .ambient-bg::after {
-    display: none !important;
-  }
-
   .topbar,
-  .tabbar,
-  .mobile-nav-panel,
-  .sidebar,
-  .modal,
-  .profile-dropdown,
+  .tabbar {
+    position: fixed;
+    transform: translateZ(0);
+  }
+
+  .premium-hero,
+  .generator-shell,
+  .creator-lab-section,
+  .features-section,
+  .how-section,
+  .pricing-section,
+  .faq-section,
+  .trust-disclaimer,
+  .seo-main,
+  .seo-section,
+  .page-wrap {
+    content-visibility: visible;
+  }
+
+  .mockup-window,
+  .live-mockup,
+  .hero-product-mockup,
+  .premium-generator-preview {
+    transform: none !important;
+  }
+
   .card,
+  .input-card,
+  .output-card,
   .feature-card,
   .pricing-card,
   .faq-list details,
@@ -2418,55 +2404,18 @@ button#generateBtn::before,
   .steps-preview-card,
   .lab-card,
   .proof-pill,
-  .input-card,
-  .output-card,
   .seo-card,
   .seo-plan-card,
   .seo-final-cta,
   .seo-related,
-  .seo-mini-grid div {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
-  .input-card,
-  .output-card,
-  .card,
-  .feature-card,
-  .pricing-card,
-  .faq-list details,
-  .trust-disclaimer,
-  .steps-preview-card,
-  .lab-card,
-  .proof-pill,
-  .seo-card,
-  .seo-plan-card,
-  .seo-final-cta,
-  .seo-related,
-  .seo-mini-grid div {
-    box-shadow: 0 10px 28px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.045) !important;
-  }
-
-  .brand-icon::after {
-    display: none !important;
-  }
-
-  .primary-cta,
-  .secondary-cta,
-  .ghost-cta,
-  .pricing-btn,
-  button,
-  a {
-    transition-duration: .14s !important;
-  }
-}
-
-/* Low-power preference: fully stable render */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation: none !important;
-    transition-duration: .001ms !important;
-    scroll-behavior: auto !important;
+  .form-card,
+  .info-card,
+  .policy-section,
+  .about-section,
+  .mission-card,
+  .cta-banner {
+    box-shadow: none !important;
+    background-color: rgba(14,18,32,.88) !important;
   }
 }
 
