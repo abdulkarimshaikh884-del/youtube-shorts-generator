@@ -1133,7 +1133,15 @@ function initPremiumExperience() {
     if (topbar) topbar.classList.toggle('scrolled', window.scrollY > 12);
   }
   updateScrollProgress();
-  window.addEventListener('scroll', updateScrollProgress, { passive: true });
+  let scScrollTicking = false;
+  window.addEventListener('scroll', () => {
+    if (scScrollTicking) return;
+    scScrollTicking = true;
+    requestAnimationFrame(() => {
+      updateScrollProgress();
+      scScrollTicking = false;
+    });
+  }, { passive: true });
 
   const revealTargets = document.querySelectorAll([
     '.premium-proof-strip .proof-pill',
@@ -1160,6 +1168,7 @@ function initPremiumExperience() {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
+          setTimeout(() => { entry.target.style.willChange = 'auto'; }, 700);
           observer.unobserve(entry.target);
         }
       });
@@ -1167,6 +1176,7 @@ function initPremiumExperience() {
 
     revealTargets.forEach(el => {
       el.classList.add('reveal-ready');
+      el.style.willChange = 'transform, opacity';
       observer.observe(el);
     });
   } else {
@@ -1214,11 +1224,22 @@ function initPremiumExperience() {
   });
 
   document.querySelectorAll('.magnetic-cta').forEach(btn => {
+    let magneticFrame = null;
+    let nextTransform = '';
     btn.addEventListener('mousemove', (e) => {
       const r = btn.getBoundingClientRect();
-      btn.style.transform = `translate(${(e.clientX - r.left - r.width / 2) / 18}px, ${(e.clientY - r.top - r.height / 2) / 18}px)`;
+      nextTransform = `translate3d(${(e.clientX - r.left - r.width / 2) / 18}px, ${(e.clientY - r.top - r.height / 2) / 18}px, 0)`;
+      if (magneticFrame) return;
+      magneticFrame = requestAnimationFrame(() => {
+        btn.style.transform = nextTransform;
+        magneticFrame = null;
+      });
     });
-    btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+    btn.addEventListener('mouseleave', () => {
+      if (magneticFrame) cancelAnimationFrame(magneticFrame);
+      magneticFrame = null;
+      btn.style.transform = '';
+    });
   });
 }
 
