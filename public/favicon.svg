@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="g" x1="16" y1="8" x2="112" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFB067"/>
+      <stop offset=".48" stop-color="#FF4F72"/>
+      <stop offset="1" stop-color="#FF4FB8"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="36" cy="28" r="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".34"/>
+      <stop offset=".42" stop-color="#FFFFFF" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#FF4F72" flood-opacity=".38"/>
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect x="10" y="10" width="108" height="108" rx="30" fill="url(#g)" filter="url(#shadow)"/>
+  <rect x="12" y="12" width="104" height="104" rx="28" fill="url(#shine)"/>
+  <path d="M73.8 18 41 69.2h22.4L55 110l35.6-53.4H68.2L73.8 18Z" fill="#FFF7EF"/>
+  <path d="M73.8 18 41 69.2h22.4L55 110l35.6-53.4H68.2L73.8 18Z" fill="#fff" opacity=".58"/>
+</svg>
