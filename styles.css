@@ -2299,3 +2299,174 @@ body.seo-page {
     border-radius: 22px;
   }
 }
+
+
+/* =========================================================
+   FAST SCROLL PERFORMANCE MODE
+   Fixes lag/jank while preserving the current visual layout.
+   ========================================================= */
+
+/* Make scroll progress GPU-based instead of changing layout width */
+.scroll-progress {
+  width: 100% !important;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+  contain: strict;
+}
+
+/* Stop infinite paint-heavy animations that cause scroll jank */
+.ambient-bg::after,
+.ambient-orb,
+.brand-icon::after,
+.floating-chip,
+.mockup-window::before,
+.primary-cta::before,
+.pricing-btn:not(.secondary)::before,
+button#generateBtn::before,
+.auth-submit::before,
+.mock-line,
+.mock-meter span,
+.credits-badge.low {
+  animation: none !important;
+}
+
+/* Keep the same ambient look, but remove moving blur repaint */
+.ambient-orb {
+  transform: translate3d(0,0,0) !important;
+  will-change: auto !important;
+  filter: blur(26px);
+  opacity: .46;
+}
+
+.ambient-bg::after {
+  opacity: .07;
+}
+
+/* Remove scroll-reveal workload. Content remains visible and page scrolls fast. */
+.reveal-ready,
+.reveal-ready.is-visible {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  will-change: auto !important;
+}
+
+/* Do not animate expensive filter/box-shadow values during scroll */
+.card,
+.feature-card,
+.pricing-card,
+.faq-list details,
+.trust-disclaimer,
+.steps-preview-card,
+.lab-card,
+.proof-pill,
+.input-card,
+.output-card,
+.modal,
+.profile-dropdown,
+.sidebar,
+.seo-card,
+.seo-plan-card,
+.seo-final-cta,
+.seo-related,
+.seo-mini-grid div {
+  will-change: auto !important;
+  transition-property: transform, border-color, background-color, color, opacity !important;
+  transition-duration: .18s !important;
+}
+
+/* GPU-friendly transform only for hover */
+.feature-card:hover,
+.pricing-card:hover,
+.proof-pill:hover,
+.lab-card:hover,
+.seo-card:hover,
+.seo-plan-card:hover {
+  transform: translate3d(0, -3px, 0) !important;
+}
+
+/* Mobile: disable the heaviest visual effects. Layout/design stays same, FPS improves. */
+@media (max-width: 900px) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  .scroll-progress {
+    display: none !important;
+  }
+
+  .ambient-orb {
+    display: none !important;
+  }
+
+  .ambient-bg::after {
+    display: none !important;
+  }
+
+  .topbar,
+  .tabbar,
+  .mobile-nav-panel,
+  .sidebar,
+  .modal,
+  .profile-dropdown,
+  .card,
+  .feature-card,
+  .pricing-card,
+  .faq-list details,
+  .trust-disclaimer,
+  .steps-preview-card,
+  .lab-card,
+  .proof-pill,
+  .input-card,
+  .output-card,
+  .seo-card,
+  .seo-plan-card,
+  .seo-final-cta,
+  .seo-related,
+  .seo-mini-grid div {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .input-card,
+  .output-card,
+  .card,
+  .feature-card,
+  .pricing-card,
+  .faq-list details,
+  .trust-disclaimer,
+  .steps-preview-card,
+  .lab-card,
+  .proof-pill,
+  .seo-card,
+  .seo-plan-card,
+  .seo-final-cta,
+  .seo-related,
+  .seo-mini-grid div {
+    box-shadow: 0 10px 28px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.045) !important;
+  }
+
+  .brand-icon::after {
+    display: none !important;
+  }
+
+  .primary-cta,
+  .secondary-cta,
+  .ghost-cta,
+  .pricing-btn,
+  button,
+  a {
+    transition-duration: .14s !important;
+  }
+}
+
+/* Low-power preference: fully stable render */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
