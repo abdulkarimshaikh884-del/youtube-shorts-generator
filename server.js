@@ -54,6 +54,55 @@ app.get("/sitemap.xml", (req, res) => {
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <url>
+    <loc>${SITE_URL}/generator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/youtube-shorts-script-generator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/youtube-shorts-title-generator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/youtube-shorts-hashtag-generator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/youtube-shorts-description-generator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/youtube-shorts-ideas-generator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/ai-thumbnail-prompt-generator</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>${SITE_URL}/pricing</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>${SITE_URL}/about</loc>
     <lastmod>${today}</lastmod>
@@ -88,6 +137,35 @@ app.get("/", (req, res) => {
 
 app.get("/generator", (req, res) => {
   res.sendFile(path.join(__dirname, "generator.html"));
+});
+
+
+app.get("/youtube-shorts-script-generator", (req, res) => {
+  res.sendFile(path.join(__dirname, "youtube-shorts-script-generator.html"));
+});
+
+app.get("/youtube-shorts-title-generator", (req, res) => {
+  res.sendFile(path.join(__dirname, "youtube-shorts-title-generator.html"));
+});
+
+app.get("/youtube-shorts-hashtag-generator", (req, res) => {
+  res.sendFile(path.join(__dirname, "youtube-shorts-hashtag-generator.html"));
+});
+
+app.get("/youtube-shorts-description-generator", (req, res) => {
+  res.sendFile(path.join(__dirname, "youtube-shorts-description-generator.html"));
+});
+
+app.get("/youtube-shorts-ideas-generator", (req, res) => {
+  res.sendFile(path.join(__dirname, "youtube-shorts-ideas-generator.html"));
+});
+
+app.get("/ai-thumbnail-prompt-generator", (req, res) => {
+  res.sendFile(path.join(__dirname, "ai-thumbnail-prompt-generator.html"));
+});
+
+app.get("/pricing", (req, res) => {
+  res.sendFile(path.join(__dirname, "pricing.html"));
 });
 
 app.get("/about", (req, res) => {
