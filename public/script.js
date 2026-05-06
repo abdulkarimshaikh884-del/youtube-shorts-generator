@@ -1053,68 +1053,140 @@ document.addEventListener("DOMContentLoaded", init);
     }
   };
 
-  function splitScript(script) {
-    const clean = String(script || "")
-      .replace(/\[(HOOK|MAIN|CTA)\]/gi, "")
-      .replace(/\s+/g, " ")
+  function splitScript(script, aspect = "9:16") {
+    const raw = String(script || "")
+      .replace(/\[(HOOK|MAIN|CTA)\]/gi, "\n")
+      .replace(/\r/g, "\n")
+      .replace(/[•▪▫➜►]/g, "\n")
+      .replace(/\n{2,}/g, "\n")
       .trim();
-    if (!clean) return [];
-    const parts = clean
-      .split(/(?<=[.!?।])\s+|\n+/)
-      .map(s => s.trim())
+
+    if (!raw) return [];
+
+    const tall = ["9:16", "4:5", "3:4", "2:3"].includes(aspect);
+    const square = aspect === "1:1";
+    const wide = ["16:9", "21:9"].includes(aspect);
+    const maxWords = tall ? 4 : square ? 6 : wide ? 8 : 6;
+    const maxChars = tall ? 24 : square ? 34 : wide ? 48 : 38;
+    const hardLimit = tall ? 18 : wide ? 14 : 16;
+
+    const sentences = raw
+      .split(/\n+|(?<=[.!?।])\s+/)
+      .map((s) => s.trim())
       .filter(Boolean);
 
     const lines = [];
-    parts.forEach(part => {
-      const words = part.split(/\s+/);
-      if (words.length <= 9) lines.push(part);
-      else {
-        for (let i = 0; i < words.length; i += 8) lines.push(words.slice(i, i + 8).join(" "));
+    sentences.forEach((sentence) => {
+      const words = sentence.split(/\s+/).filter(Boolean);
+      if (!words.length) return;
+      if (sentence.length <= maxChars && words.length <= maxWords + 1) {
+        lines.push(sentence);
+        return;
       }
+
+      let chunk = [];
+      words.forEach((w) => {
+        const next = [...chunk, w].join(" ");
+        if (chunk.length >= maxWords || next.length > maxChars) {
+          if (chunk.length) lines.push(chunk.join(" "));
+          chunk = [w];
+        } else {
+          chunk.push(w);
+        }
+      });
+      if (chunk.length) lines.push(chunk.join(" "));
     });
-    return lines.slice(0, 16);
+
+    return lines
+      .map((s) => s.replace(/^[-–—]+/, "").trim())
+      .filter(Boolean)
+      .slice(0, hardLimit);
   }
 
   function parseEdits(prompt) {
     const p = String(prompt || "").toLowerCase();
-    if (/bigger|large|text bada|font bada|big/.test(p)) VIDEO_STATE.edit.fontScale = 1.18;
-    if (/small|text chhota|font chhota/.test(p)) VIDEO_STATE.edit.fontScale = 0.9;
-    if (/slow|slower|animation slow/.test(p)) VIDEO_STATE.edit.speed = 1.35;
-    if (/fast|faster|animation fast/.test(p)) VIDEO_STATE.edit.speed = 0.75;
-    if (/yellow/.test(p)) VIDEO_STATE.edit.highlight = "#facc15";
-    if (/\bred\b/.test(p)) VIDEO_STATE.edit.highlight = "#ef4444";
-    if (/\bblue\b/.test(p)) VIDEO_STATE.edit.highlight = "#38bdf8";
-    if (/\bgreen\b/.test(p)) VIDEO_STATE.edit.highlight = "#22c55e";
-    if (/dark|darker|background dark/.test(p)) VIDEO_STATE.edit.darker = true;
-    if (/minimal|simple|clean/.test(p)) VIDEO_STATE.edit.minimal = true;
-    if (/premium|luxury|smooth/.test(p)) VIDEO_STATE.edit.premium = true;
-    if (/glitch kam|reduce glitch|less glitch/.test(p)) VIDEO_STATE.edit.reduceGlitch = true;
+    const e = VIDEO_STATE.edit;
+    e.raw = p;
+
+    if (/bigger|large|text bada|font bada|big/.test(p)) e.fontScale = 1.18;
+    if (/small|text chhota|font chhota|smaller/.test(p)) e.fontScale = 0.9;
+    if (/slow|slower|animation slow/.test(p)) e.speed = 1.35;
+    if (/fast|faster|animation fast/.test(p)) e.speed = 0.75;
+
+    if (/yellow|gold/.test(p)) e.highlight = "#facc15";
+    else if (/\bred\b|pink/.test(p)) e.highlight = "#fb7185";
+    else if (/\bblue\b|cyan/.test(p)) e.highlight = "#38bdf8";
+    else if (/\bgreen\b/.test(p)) e.highlight = "#22c55e";
+    else if (/purple|violet/.test(p)) e.highlight = "#a78bfa";
+
+    if (/dark|darker|background dark|black background|night/.test(p)) e.bgMode = "dark";
+    if (/light|lighter|white background|light background|bright/.test(p)) e.bgMode = "light";
+
+    if (/minimal|simple|clean/.test(p)) e.minimal = true;
+    if (/premium|luxury|smooth|professional|modern|stylish/.test(p)) e.premium = true;
+    if (/glitch kam|reduce glitch|less glitch/.test(p)) e.reduceGlitch = true;
+    if (/more elements|less empty|not empty|fuller|fill space|add shapes|add elements/.test(p)) e.dense = true;
+    if (/left align|left side|left text/.test(p)) e.align = "left";
+    if (/center|centre/.test(p)) e.align = "center";
+    if (/remove top text|hide top text|no top text|remove useless text/.test(p)) e.hideTag = true;
+    if (/show top text|show style/.test(p)) e.hideTag = false;
+    if (/remove footer|hide footer|remove generated|no footer/.test(p)) e.hideFooter = true;
+    if (/show footer/.test(p)) e.hideFooter = false;
+    if (/remove number|hide number|no number/.test(p)) e.hideCounter = true;
+    if (/show number/.test(p)) e.hideCounter = false;
+    if (/remove brand|hide brand|no brand|remove shortscraft/.test(p)) e.hideBrand = true;
+    if (/show brand/.test(p)) e.hideBrand = false;
   }
 
   function resetEdits() {
-    VIDEO_STATE.edit = { fontScale: 1, speed: 1, highlight: "", darker: false, minimal: false, premium: false, reduceGlitch: false };
+    VIDEO_STATE.edit = {
+      fontScale: 1,
+      speed: 1,
+      highlight: "",
+      darker: false,
+      minimal: false,
+      premium: false,
+      reduceGlitch: false,
+      bgMode: "auto",
+      hideTag: true,
+      hideFooter: true,
+      hideCounter: false,
+      hideBrand: false,
+      dense: true,
+      align: "center",
+      raw: ""
+    };
   }
 
   function generateVideoHtml(script, styleKey, aspect) {
     const style = STYLE_MAP[styleKey] || STYLE_MAP["viral-hook"];
-    const rawLines = splitScript(script);
-    const lines = (rawLines.length ? rawLines : ["Paste a script first"]).slice(0, 22);
-    const isWide = aspect === "16:9" || aspect === "21:9";
+    const lines = splitScript(script, aspect);
+    const safeLines = JSON.stringify(lines.length ? lines : ["Paste a script first"]);
     const edit = VIDEO_STATE.edit;
+    const tall = ["9:16", "4:5", "3:4", "2:3"].includes(aspect);
+    const square = aspect === "1:1";
+    const wide = ["16:9", "21:9"].includes(aspect);
     const highlight = edit.highlight || style.accent;
     const speed = edit.speed || 1;
-    const fontScale = edit.fontScale || 1;
-    const duration = Math.max(2600, Math.round(3400 * speed));
-    const total = Math.max(9000, lines.length * duration);
-    const safeLines = JSON.stringify(lines, null, 0);
-    const safeName = escHtml(style.name);
-    const safeFont = style.font;
+    const duration = Math.max(2800, Math.round(3000 * speed));
+    const total = Math.max(9000, (lines.length || 1) * duration);
     const aspectMap = {"9:16":"9/16","16:9":"16/9","1:1":"1/1","4:5":"4/5","3:4":"3/4","2:3":"2/3","21:9":"21/9"};
     const stageAspect = aspectMap[aspect] || "9/16";
-    const stageWidth = isWide ? "min(100vw, 1920px)" : "min(100vw, 1080px)";
-    const premiumBg = edit.darker
-      ? "radial-gradient(circle at 50% 20%,rgba(255,61,110,.12),transparent 34%),linear-gradient(135deg,#02030a,#000)"
-      : style.bg;
+    const stageWidth = wide ? "min(100vw, 1920px)" : square ? "min(100vw, 1180px)" : "min(100vw, 1080px)";
+
+    let bg = style.bg;
+    let textColor = style.text;
+    if (edit.bgMode === "light") {
+      bg = styleKey === "social-pop"
+        ? "linear-gradient(135deg,#fff7ed,#ffe4e6 42%,#ede9fe 78%,#e0f2fe)"
+        : styleKey === "neon-cyber"
+        ? "linear-gradient(135deg,#ecfeff,#eef2ff 50%,#fdf2f8)"
+        : "linear-gradient(135deg,#ffffff,#f8fafc 46%,#eef2ff 100%)";
+      textColor = "#0f172a";
+    } else if (edit.bgMode === "dark") {
+      bg = "radial-gradient(circle at 20% 15%,rgba(255,255,255,.06),transparent 22%), radial-gradient(circle at 85% 80%,rgba(255,255,255,.05),transparent 20%), linear-gradient(135deg,#050816,#03040c 62%,#0b1021)";
+      textColor = "#f8fafc";
+    }
 
     return `<!doctype html>
 <html lang="en">
@@ -1124,62 +1196,152 @@ document.addEventListener("DOMContentLoaded", init);
 <title>ShortsCraft Premium Animated Video</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden}
-body{display:grid;place-items:center;font-family:${safeFont};}
-.stage{
-  --font-scale:${fontScale};
-  --highlight:${highlight};
-  --accent:${style.accent};
-  --accent2:${style.accent2};
-  position:relative;width:${stageWidth};aspect-ratio:${stageAspect};max-height:100vh;overflow:hidden;
-  color:${style.text};background:${premiumBg};display:grid;place-items:center;text-align:center;
-}
-.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:54px 54px;mask-image:radial-gradient(circle at 50% 45%,#000,transparent 80%);opacity:${edit.minimal?".16":".34"}}
-.bg-orb{position:absolute;width:70%;height:70%;border-radius:50%;filter:blur(54px);opacity:.38;transform:translate3d(0,0,0);animation:orb ${Math.round(total/1000)}s ease-in-out infinite alternate}
-.bg-orb.one{left:-20%;top:-10%;background:var(--accent)}
-.bg-orb.two{right:-18%;bottom:-16%;background:var(--accent2);animation-delay:-3s}
-.safe-frame{position:absolute;inset:${isWide?"7%":"6% 9%"};border:2px solid rgba(255,255,255,.16);border-radius:40px;box-shadow:inset 0 0 60px rgba(255,255,255,.055)}
-.brand{position:absolute;top:${isWide?"5%":"5.5%"};left:${isWide?"5%":"7%"};font:900 clamp(14px,2.1vw,26px) Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.84)}
-.tag{position:absolute;top:${isWide?"5%":"5.5%"};right:${isWide?"5%":"7%"};font:800 clamp(12px,1.6vw,20px) Inter,Arial,sans-serif;color:rgba(255,255,255,.58)}
-.scene{position:absolute;inset:0;display:grid;place-items:center;padding:${isWide?"9% 10%":"14% 9%"};opacity:0;transform:translateY(24px) scale(.98);animation:scene ${duration}ms cubic-bezier(.18,.8,.2,1) both}
-.text{max-width:${isWide?"82%":"92%"};font-size:calc(clamp(${isWide?"46px,7.4vw,128px":"42px,10vw,132px"}) * var(--font-scale));line-height:.98;font-weight:950;letter-spacing:-.065em;text-wrap:balance;text-shadow:0 20px 70px rgba(0,0,0,.55)}
-.kicker{display:inline-flex;margin-bottom:24px;padding:12px 18px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);font:900 clamp(11px,1.6vw,16px) Inter,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--highlight)}
-.hl{color:var(--highlight);text-shadow:0 0 36px color-mix(in srgb,var(--highlight),transparent 30%)}
-.progress{position:absolute;left:0;bottom:0;height:8px;width:100%;transform-origin:left;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:progress ${total}ms linear forwards}
-.generated{position:absolute;bottom:${isWide?"5%":"6%"};left:50%;transform:translateX(-50%);font:800 clamp(12px,1.8vw,19px) Inter,Arial,sans-serif;color:rgba(255,255,255,.62)}
-@keyframes scene{0%{opacity:0;transform:translateY(34px) scale(.96);filter:blur(8px)}14%,78%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}100%{opacity:0;transform:translateY(-24px) scale(1.015);filter:blur(8px)}}
-@keyframes progress{to{transform:scaleX(1)}from{transform:scaleX(0)}}
-@keyframes orb{to{transform:translate3d(9%,6%,0) scale(1.12)}}
+body{display:grid;place-items:center;font-family:${style.font};}
+.stage{--accent:${style.accent};--accent2:${style.accent2};--highlight:${highlight};--text:${textColor};--font-scale:${edit.fontScale};position:relative;width:${stageWidth};aspect-ratio:${stageAspect};max-height:100vh;overflow:hidden;background:${bg};color:var(--text)}
+.stage::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 15%,rgba(255,255,255,.${edit.minimal ? '08':'14'}),transparent 22%),radial-gradient(circle at 85% 20%,rgba(255,255,255,.08),transparent 20%),radial-gradient(circle at 70% 84%,rgba(255,255,255,.10),transparent 18%)}
+.stage::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:${wide ? '68px 68px':'50px 50px'};mask-image:radial-gradient(circle at 50% 45%,#000,transparent 82%);opacity:${edit.minimal ? '.10' : '.26'}}
+.bg-orb,.bg-orb2,.bg-orb3{position:absolute;border-radius:50%;filter:blur(${wide ? '60px':'48px'});opacity:${edit.minimal ? '.22' : '.38'};pointer-events:none}
+.bg-orb{width:38%;height:38%;left:-8%;top:-7%;background:var(--accent)}
+.bg-orb2{width:44%;height:44%;right:-12%;bottom:-12%;background:var(--accent2)}
+.bg-orb3{width:26%;height:26%;right:20%;top:14%;background:var(--highlight);opacity:.16}
+.frame{position:absolute;inset:${wide ? '6%':'6.2%'};border-radius:${wide ? '34px':'40px'};border:1.5px solid rgba(255,255,255,.15);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), inset 0 0 80px rgba(255,255,255,.035)}
+.brand{position:absolute;top:${wide ? '5.1%':'5.3%'};left:${wide ? '5.1%':'7%'};font:900 clamp(14px,2vw,25px) Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.86)' : 'rgba(255,255,255,.88)'}}
+.top-meta{position:absolute;top:${wide ? '5.1%':'5.3%'};right:${wide ? '5.1%':'7%'};display:flex;align-items:center;gap:10px;font:800 clamp(11px,1.45vw,17px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.68)' : 'rgba(255,255,255,.7)'}}
+.top-pill{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);backdrop-filter:blur(10px)}
+.content{position:absolute;inset:${wide ? '14% 9% 16%':'16% 8% 15%'};display:grid;place-items:center;z-index:2}
+.card{position:relative;width:min(${wide ? '74%':'86%'},${wide ? '1150px':'790px'});min-height:${wide ? '46%' : tall ? '42%' : '50%'};padding:${wide ? '38px 46px':'34px 28px'};border-radius:${wide ? '34px':'38px'};background:linear-gradient(180deg,rgba(255,255,255,.${edit.minimal ? '06':'08'}),rgba(255,255,255,.${edit.minimal ? '02':'04'}));border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);display:grid;align-content:center;justify-items:${edit.align === 'left' ? 'start' : 'center'};text-align:${edit.align};overflow:hidden}
+.card::before{content:'';position:absolute;inset:auto -8% -22% auto;width:38%;height:38%;background:radial-gradient(circle,var(--highlight),transparent 68%);opacity:${edit.premium ? '.22':'.10'};filter:blur(18px)}
+.scene-top{display:flex;gap:12px;align-items:center;justify-content:${edit.align === 'left' ? 'flex-start' : 'center'};width:100%;margin-bottom:18px;flex-wrap:wrap}
+.count{display:inline-flex;align-items:center;justify-content:center;min-width:60px;height:48px;padding:0 16px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);font:900 clamp(12px,1.4vw,18px) Inter,Arial,sans-serif;color:var(--highlight)}
+.eyebrow{font:800 clamp(12px,1.3vw,16px) Inter,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.56)' : 'rgba(255,255,255,.64)'}}
+.headline{max-width:100%;font-weight:950;letter-spacing:-.06em;line-height:.95;text-wrap:balance;text-shadow:${edit.bgMode === 'light' ? 'none' : '0 16px 48px rgba(0,0,0,.25)'}}
+.subline{margin-top:16px;max-width:${wide ? '80%':'92%'};font:700 clamp(13px,1.6vw,22px) Inter,Arial,sans-serif;line-height:1.35;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.72)' : 'rgba(255,255,255,.74)'}}
+.align-left .subline,.align-left .headline{text-align:left}
+.align-center .subline,.align-center .headline{text-align:center}
+.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:${edit.align === 'left' ? 'flex-start' : 'center'};margin-top:${edit.dense ? '18px':'8px'};width:100%}
+.chip{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);font:800 clamp(11px,1.2vw,15px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.86)' : 'rgba(255,255,255,.84)'}}
+.side-stack{position:absolute;${wide ? 'right:7%;top:22%;width:180px' : 'right:7%;bottom:18%;width:120px'};display:${edit.dense ? 'grid':'none'};gap:10px;z-index:1}
+.mini-card{padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);font:800 clamp(11px,1.15vw,14px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.82)' : 'rgba(255,255,255,.86)'}}
+.progress{position:absolute;left:0;bottom:0;height:6px;width:100%;background:rgba(255,255,255,.08)}
+.progress>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--highlight));box-shadow:0 0 24px var(--highlight)}
+.corner{position:absolute;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);backdrop-filter:blur(12px);font:900 clamp(12px,1.2vw,14px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.8)' : 'rgba(255,255,255,.8)'};padding:10px 14px}
+.corner.one{left:${wide ? '7%':'8%'};bottom:${wide ? '8.5%':'8%'}}
+.corner.two{right:${wide ? '7%':'8%'};bottom:${wide ? '8.5%':'8%'}}
+.hl{color:var(--highlight)}
+@keyframes pop{0%{opacity:0;transform:translateY(22px) scale(.96);filter:blur(12px)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+.card.animate{animation:pop .55s cubic-bezier(.18,.8,.2,1) both}
 ${style.extra}
 </style>
 </head>
 <body>
-<div class="stage">
-  <div class="bg-orb one"></div><div class="bg-orb two"></div><div class="bg-grid"></div><div class="safe-frame"></div>
-  <div class="brand">SHORTSCRAFT</div><div class="tag">${safeName} · ${aspect}</div>
-  <div id="scenes"></div>
-  <div class="progress"></div>
-  <div class="generated">Generated by ShortsCraft</div>
+<div class="stage ${edit.align === 'left' ? 'align-left':'align-center'}">
+  <div class="bg-orb"></div><div class="bg-orb2"></div><div class="bg-orb3"></div><div class="frame"></div>
+  ${edit.hideBrand ? '' : '<div class="brand">SHORTSCRAFT</div>'}
+  ${edit.hideTag ? '' : `<div class="top-meta"><span class="top-pill">${style.name}</span><span class="top-pill">${aspect}</span></div>`}
+  <div class="content">
+    <div class="card" id="card">
+      <div class="scene-top">
+        ${edit.hideCounter ? '' : '<span class="count" id="counter">01</span>'}
+        <span class="eyebrow" id="eyebrow">Premium video layout</span>
+      </div>
+      <div class="headline" id="headline"></div>
+      <div class="subline" id="subline"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+  <div class="side-stack">
+    <div class="mini-card">Smooth motion</div>
+    <div class="mini-card">Kinetic typography</div>
+    <div class="mini-card">${aspect} frame</div>
+  </div>
+  <div class="corner one">${wide ? 'Studio grade' : 'Pro style'}</div>
+  <div class="corner two">${edit.bgMode === 'light' ? 'Light theme' : 'Premium theme'}</div>
+  <div class="progress"><span id="bar"></span></div>
 </div>
 <script>
-const LINES=${safeLines};
-const words=["AI","viral","secret","paisa","money","views","creator","script","video","shorts","growth","free","tools","YouTube","Instagram"];
-const dur=${duration};
-const scenes=document.getElementById("scenes");
-function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
-function hi(t){let out=esc(t);words.forEach(w=>{out=out.replace(new RegExp("\\\\b("+w+")\\\\b","gi"),'<span class="hl">$1</span>')});return out}
-LINES.forEach((line,i)=>{
-  const div=document.createElement("section");
-  div.className="scene";
-  div.style.animationDelay=(i*dur)+"ms";
-  div.innerHTML='<div><div class="kicker">'+String(i+1).padStart(2,"0")+'</div><div class="text">'+hi(line)+'</div></div>';
-  scenes.appendChild(div);
-});
-setTimeout(()=>{try{window.dispatchEvent(new Event("shortscraft-video-ended"))}catch(e){}}, ${total});
+const LINES = ${safeLines};
+const DURATION = ${duration};
+const TOTAL = ${total};
+const ASPECT = ${JSON.stringify(aspect)};
+const isTall = ["9:16","4:5","3:4","2:3"].includes(ASPECT);
+const isWide = ["16:9","21:9"].includes(ASPECT);
+const headline = document.getElementById('headline');
+const subline = document.getElementById('subline');
+const chips = document.getElementById('chips');
+const card = document.getElementById('card');
+const bar = document.getElementById('bar');
+const counter = document.getElementById('counter');
+const eyebrow = document.getElementById('eyebrow');
+const keywords = ["ai","paisa","creator","growth","viral","youtube","instagram","tools","business","online","content","editing","marketing","freelance"];
+function esc(s){return String(s).replace(/[&<>\"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c] || c; });}
+function hiWord(w){
+  const clean = esc(w);
+  const plain = String(w).replace(/[^\w]/g,'').toLowerCase();
+  return keywords.includes(plain) ? '<span class="hl">' + clean + '</span>' : clean;
+}
+function calcRows(text){
+  const words = String(text).split(/\s+/).filter(Boolean);
+  let perLine = isTall ? 3 : isWide ? 6 : 4;
+  if (text.length > (isTall ? 28 : isWide ? 56 : 40)) perLine = Math.max(2, perLine - 1);
+  const rows = [];
+  for (let i=0; i<words.length; i+=perLine) rows.push(words.slice(i, i+perLine));
+  if (rows.length > 4) {
+    const merged = rows.slice(0,3);
+    merged.push(rows.slice(3).flat());
+    return merged;
+  }
+  return rows;
+}
+function renderHeadline(text){
+  const rows = calcRows(text);
+  const len = text.length;
+  let size = '';
+  if (isTall) size = len < 18 ? 'clamp(68px,11vw,126px)' : len < 30 ? 'clamp(56px,9vw,94px)' : len < 46 ? 'clamp(42px,7.5vw,70px)' : 'clamp(32px,6.2vw,54px)';
+  else if (isWide) size = len < 26 ? 'clamp(64px,8vw,120px)' : len < 46 ? 'clamp(48px,6vw,82px)' : 'clamp(34px,4.4vw,62px)';
+  else size = len < 24 ? 'clamp(58px,8vw,108px)' : len < 40 ? 'clamp(44px,6.2vw,76px)' : 'clamp(34px,5.1vw,58px)';
+  headline.style.fontSize = 'calc(' + size + ' * var(--font-scale))';
+  headline.innerHTML = rows.map(function(r){ return '<div>' + r.map(hiWord).join(' ') + '</div>'; }).join('');
+}
+function pickSubline(i){
+  const next = LINES[i+1] || '';
+  if (!next) return isWide ? 'Designed for scroll-stopping short-form videos.' : 'Premium short-form video style.';
+  return next.length > (isTall ? 54 : 70) ? next.slice(0, isTall ? 54 : 70).trim() + '…' : next;
+}
+function makeChips(text){
+  const unique = [];
+  String(text).split(/\s+/).forEach(function(w){
+    const clean = w.replace(/[^\w]/g,'');
+    if (clean.length > 3 && !unique.includes(clean.toLowerCase())) unique.push(clean.toLowerCase());
+  });
+  return unique.slice(0,3).map(function(w){ return w.charAt(0).toUpperCase()+w.slice(1); });
+}
+let idx = 0;
+function draw(i){
+  const line = LINES[i] || '';
+  renderHeadline(line);
+  subline.textContent = pickSubline(i);
+  chips.innerHTML = makeChips(line).map(function(t){ return '<span class="chip">' + esc(t) + '</span>'; }).join('');
+  if (counter) counter.textContent = String(i+1).padStart(2,'0');
+  if (eyebrow) eyebrow.textContent = isWide ? 'Premium animated scene' : 'Premium short scene';
+  card.classList.remove('animate'); void card.offsetWidth; card.classList.add('animate');
+  if (bar) {
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        bar.style.transition = 'width ' + DURATION + 'ms linear';
+        bar.style.width = '100%';
+      });
+    });
+  }
+}
+draw(0);
+if (LINES.length > 1) setInterval(function(){ idx = (idx + 1) % LINES.length; draw(idx); }, DURATION);
+setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-ended')); } catch(e) {} }, TOTAL);
 <\/script>
 </body>
 </html>`;
   }
-
   function setPreview(html) {
     const frame = qs("#videoPreviewFrame");
     const empty = qs("#videoEmptyState");
@@ -1326,6 +1488,7 @@ setTimeout(()=>{try{window.dispatchEvent(new Event("shortscraft-video-ended"))}c
     });
 
     qs("#applyVideoEditBtn")?.addEventListener("click", () => {
+      resetEdits();
       parseEdits(qs("#videoEditPrompt")?.value || "");
       buildPreview();
     });
@@ -1339,10 +1502,12 @@ setTimeout(()=>{try{window.dispatchEvent(new Event("shortscraft-video-ended"))}c
 
     qsa(".quick-edit-chips button").forEach(chip => {
       chip.addEventListener("click", () => {
-        const val = chip.dataset.edit || chip.textContent;
+        const val = (chip.dataset.edit || chip.textContent || "").trim();
         const p = qs("#videoEditPrompt");
-        if (p) p.value = val;
-        parseEdits(val);
+        const merged = p && p.value.trim() ? (p.value.trim() + ", " + val) : val;
+        if (p) p.value = merged;
+        resetEdits();
+        parseEdits(merged);
         buildPreview();
       });
     });
