@@ -1,5 +1,7 @@
+// ============================================================
+// ShortsCraft Server v2.0 — Production-Ready Express API
+// ============================================================
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -7,662 +9,409 @@ const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SITE_URL = "https://shortscraft.online";
+const NODE_ENV = process.env.NODE_ENV || "development";
 
+// ── Trust proxy (Render uses reverse proxy) ─────────────────
 app.set("trust proxy", 1);
 
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+// ── Security headers ────────────────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  if (NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  // CSP — adjust as needed
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://checkout.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com data:",
+      "img-src 'self' data: https: blob:",
+      "connect-src 'self' https://*.supabase.co https://api.groq.com https://api.razorpay.com https://www.google-analytics.com",
+      "frame-src https://checkout.razorpay.com https://api.razorpay.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+    ].join("; ")
+  );
+  next();
+});
 
-// Serve PNG favicon, manifest, and assets from /public at root URL.
-// Example: public/favicon-32.png => https://shortscraft.online/favicon-32.png
+// ── CORS ────────────────────────────────────────────────────
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "https://shortscraft.online,http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim());
+
 app.use(
-  express.static(path.join(__dirname, "public"), {
-    maxAge: "7d",
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      cb(new Error("CORS blocked"));
+    },
+    credentials: true,
   })
 );
 
-// Keep existing root static serving for index.html, styles.css, script.js, etc.
-app.use(express.static(path.join(__dirname)));
+// ── Body parsing ────────────────────────────────────────────
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 
-// Backward compatibility: old /public/... links still work.
-app.use(
-  "/public",
-  express.static(path.join(__dirname, "public"), {
-    maxAge: "7d",
-  })
-);
-
-// ── SEO ROUTES ────────────────────────────────────────────────
-app.get("/robots.txt", (req, res) => {
-  res.type("text/plain");
-  res.send(`User-agent: *
-Allow: /
-Sitemap: ${SITE_URL}/sitemap.xml`);
-});
-
-app.get("/sitemap.xml", (req, res) => {
-  const today = new Date().toISOString().split("T")[0];
-
-  res.header("Content-Type", "application/xml");
-  res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${SITE_URL}/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-
-  <url>
-    <loc>${SITE_URL}/generator</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/youtube-shorts-script-generator</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/youtube-shorts-title-generator</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/youtube-shorts-hashtag-generator</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/youtube-shorts-description-generator</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/youtube-shorts-ideas-generator</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/ai-thumbnail-prompt-generator</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/pricing</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/about</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/privacy</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/terms</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>${SITE_URL}/contact</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-</urlset>`);
-});
-
-// ── PAGE ROUTES ───────────────────────────────────────────────
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-app.get("/generator", (req, res) => {
-  res.sendFile(path.join(__dirname, "generator.html"));
-});
-
-
-app.get("/youtube-shorts-script-generator", (req, res) => {
-  res.sendFile(path.join(__dirname, "youtube-shorts-script-generator.html"));
-});
-
-app.get("/youtube-shorts-title-generator", (req, res) => {
-  res.sendFile(path.join(__dirname, "youtube-shorts-title-generator.html"));
-});
-
-app.get("/youtube-shorts-hashtag-generator", (req, res) => {
-  res.sendFile(path.join(__dirname, "youtube-shorts-hashtag-generator.html"));
-});
-
-app.get("/youtube-shorts-description-generator", (req, res) => {
-  res.sendFile(path.join(__dirname, "youtube-shorts-description-generator.html"));
-});
-
-app.get("/youtube-shorts-ideas-generator", (req, res) => {
-  res.sendFile(path.join(__dirname, "youtube-shorts-ideas-generator.html"));
-});
-
-app.get("/ai-thumbnail-prompt-generator", (req, res) => {
-  res.sendFile(path.join(__dirname, "ai-thumbnail-prompt-generator.html"));
-});
-
-app.get("/pricing", (req, res) => {
-  res.sendFile(path.join(__dirname, "pricing.html"));
-});
-
-app.get("/about", (req, res) => {
-  res.sendFile(path.join(__dirname, "about.html"));
-});
-
-app.get("/privacy", (req, res) => {
-  res.sendFile(path.join(__dirname, "privacy.html"));
-});
-
-app.get("/terms", (req, res) => {
-  res.sendFile(path.join(__dirname, "terms.html"));
-});
-
-app.get("/contact", (req, res) => {
-  res.sendFile(path.join(__dirname, "contact.html"));
-});
-
-// ── HELPERS ───────────────────────────────────────────────────
-function parseSections(text) {
-  const hookMatch = text.match(/Hook:\s*([\s\S]*?)(?=Main Content:|CTA:|$)/i);
-  const mainMatch = text.match(/Main Content:\s*([\s\S]*?)(?=CTA:|$)/i);
-  const ctaMatch = text.match(/CTA:\s*([\s\S]*)/i);
-
-  return {
-    hook: hookMatch ? hookMatch[1].trim() : "",
-    mainContent: mainMatch ? mainMatch[1].trim() : "",
-    cta: ctaMatch ? ctaMatch[1].trim() : "",
+// ── Simple in-memory rate limiter (per IP) ──────────────────
+const rateLimitStore = new Map();
+function rateLimit({ windowMs = 60_000, max = 20 } = {}) {
+  return (req, res, next) => {
+    const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+    const key = `${ip}:${req.path}`;
+    const now = Date.now();
+    const entry = rateLimitStore.get(key) || { count: 0, reset: now + windowMs };
+    if (now > entry.reset) {
+      entry.count = 0;
+      entry.reset = now + windowMs;
+    }
+    entry.count++;
+    rateLimitStore.set(key, entry);
+    if (entry.count > max) {
+      return res.status(429).json({
+        success: false,
+        error: "Too many requests. Please slow down.",
+        retryAfter: Math.ceil((entry.reset - now) / 1000),
+      });
+    }
+    next();
   };
 }
 
-function extractJsonArray(text, fallbackLimit = 5) {
-  try {
-    const match = text.match(/\[[\s\S]*\]/);
-    const parsed = JSON.parse(match ? match[0] : text);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return String(text || "")
-      .split("\n")
-      .map((line) => line.replace(/^[-*\d.)\s]+/, "").trim())
-      .filter(Boolean)
-      .slice(0, fallbackLimit);
+// Cleanup rate limit map every 10 min
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of rateLimitStore.entries()) {
+    if (now > v.reset + 60_000) rateLimitStore.delete(k);
   }
-}
+}, 600_000);
 
-async function callGroq(messages, temperature = 0.9, max_tokens = 900) {
-  if (!process.env.GROQ_API_KEY) {
-    throw new Error("Groq API key missing!");
-  }
+// ── Static files (with cache control) ───────────────────────
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    maxAge: NODE_ENV === "production" ? "7d" : 0,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    },
+  })
+);
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25000);
+// ============================================================
+// API ROUTES
+// ============================================================
+
+// ── Health check ────────────────────────────────────────────
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, version: "2.0.0", time: new Date().toISOString() });
+});
+
+// ── Public config (frontend reads this) ─────────────────────
+app.get("/api/config", (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL || "",
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
+    razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
+    proPriceInr: Number(process.env.PRO_PRICE_INR || 99),
+    freeCreditsPerDay: Number(process.env.FREE_CREDITS_PER_DAY || 5),
+    gaId: process.env.GA_ID || "",
+  });
+});
+
+// ── Groq AI generation ──────────────────────────────────────
+async function callGroq(prompt, { temperature = 0.85, maxTokens = 1500 } = {}) {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) throw new Error("AI service not configured");
+
+  const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+  const ctrl = new AbortController();
+  const timeout = setTimeout(() => ctrl.abort(), 30_000);
 
   try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+        Authorization: `Bearer ${key}`,
       },
       body: JSON.stringify({
-        model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
-        messages,
+        model,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are ShortsCraft, an expert YouTube Shorts content creator who writes punchy Hinglish (Hindi-English mix) content. You produce viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and creator-focused.",
+          },
+          { role: "user", content: prompt },
+        ],
         temperature,
-        max_tokens,
+        max_tokens: maxTokens,
       }),
+      signal: ctrl.signal,
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Groq error: ${errText}`);
+    if (!r.ok) {
+      const errText = await r.text().catch(() => "");
+      throw new Error(`AI provider error (${r.status}): ${errText.slice(0, 200)}`);
     }
-
-    const data = await response.json();
-    return (data.choices?.[0]?.message?.content || "").trim();
+    const data = await r.json();
+    return data?.choices?.[0]?.message?.content?.trim() || "";
   } finally {
     clearTimeout(timeout);
   }
 }
 
-// ── SCRIPT ────────────────────────────────────────────────────
-app.post("/api/generate", async (req, res) => {
-  const { topic } = req.body;
+function sanitizeTopic(s) {
+  return String(s || "")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, 200);
+}
 
-  if (!topic?.trim()) {
-    return res.status(400).json({ error: "Topic is required." });
-  }
+const generationLimiter = rateLimit({ windowMs: 60_000, max: 12 });
 
+app.post("/api/generate", generationLimiter, async (req, res) => {
   try {
-    const outputText = await callGroq([
-      {
-        role: "system",
-        content:
-          `Tu ek viral YouTube Shorts script writer hai jo Hinglish mein likhta hai. ` +
-          `Hinglish matlab Hindi aur English ka natural mix. Ekdum conversational, energetic, emotional aur relatable tone rakho. ` +
-          `Sirf spoken lines likho. Script 150-200 words ki honi chahiye. Hook mein curiosity ya shock. ` +
-          `Main Content mein 3-4 solid points with examples. CTA strong aur personal. IMPORTANT: Sirf neeche diya format use karo.`,
-      },
-      {
-        role: "user",
-        content:
-          `"${topic}" topic par ek viral Hinglish YouTube Shorts script likho.\n\n` +
-          `Hook: [2-3 lines catchy opening]\n` +
-          `Main Content: [6-8 lines detailed Hinglish explanation]\n` +
-          `CTA: [2-3 lines strong call to action]`,
-      },
-    ]);
-
-    let sections = parseSections(outputText);
-
-    if (!sections.hook && !sections.mainContent && !sections.cta) {
-      sections = { hook: "", mainContent: outputText, cta: "" };
+    const topic = sanitizeTopic(req.body?.topic);
+    const type = String(req.body?.type || "all").toLowerCase();
+    if (!topic || topic.length < 2) {
+      return res.status(400).json({ success: false, error: "Topic is required (min 2 characters)." });
     }
 
-    return res.json(sections);
-  } catch (e) {
-    console.error("Generate error:", e);
-    return res.status(500).json({ error: e.message || "Failed to generate script." });
+    const prompts = {
+      all: `Topic: "${topic}"
+
+Generate a complete YouTube Shorts content pack in Hinglish. Use this EXACT format with these section headers:
+
+=== SCRIPT ===
+[HOOK]
+(One punchy 1-2 line hook in Hinglish that grabs attention in 3 seconds)
+
+[MAIN]
+(15-25 seconds of main content in Hinglish with 3-4 short punchy lines)
+
+[CTA]
+(One strong call-to-action line in Hinglish)
+
+=== TITLES ===
+1. (clickable Hinglish title with emoji, under 60 chars)
+2. (...)
+3. (...)
+4. (...)
+5. (...)
+
+=== DESCRIPTION ===
+(Full YouTube description: 3-4 lines hook + bullet points + CTA + relevant keywords. Mix Hinglish and English.)
+
+=== HASHTAGS ===
+#tag1 #tag2 #tag3 ... (15 hashtags total: mix broad + niche + Hindi creator tags)
+
+=== IDEAS ===
+1. (related video idea)
+2. (...)
+3. (...)
+4. (...)
+5. (...)
+6. (...)
+7. (...)
+
+=== THUMBNAIL ===
+1. (Detailed English AI image prompt for Midjourney/DALL-E with subject, mood, lighting, composition, style — for YouTube thumbnail)
+2. (...)
+3. (...)
+`,
+      script: `Write a viral YouTube Shorts script in Hinglish for the topic: "${topic}".
+Format strictly as:
+[HOOK]
+(...)
+[MAIN]
+(...)
+[CTA]
+(...)`,
+      titles: `Generate 5 click-worthy Hinglish YouTube Shorts titles for: "${topic}". Number them 1-5. Each under 60 characters with emojis.`,
+      description: `Write a full SEO-optimized YouTube description in Hinglish for: "${topic}". Include hook lines, bullet points, CTA, and relevant keywords. No hashtags.`,
+      hashtags: `Generate 15 relevant YouTube Shorts hashtags for: "${topic}". Mix broad (#shorts #viral), niche, and Indian creator tags. Output only hashtags space-separated.`,
+      ideas: `Generate 7 related YouTube Shorts video ideas for: "${topic}". Number them 1-7. Each one a single line in Hinglish.`,
+      thumbnail: `Generate 3 detailed English AI image prompts for YouTube thumbnails on the topic: "${topic}". Each prompt should describe subject, mood, lighting, composition, style, and text overlay suggestion. Number them 1-3.`,
+    };
+
+    const prompt = prompts[type] || prompts.all;
+    const content = await callGroq(prompt, { temperature: 0.85, maxTokens: type === "all" ? 2000 : 800 });
+
+    if (!content) {
+      return res.status(502).json({ success: false, error: "AI returned empty response. Please retry." });
+    }
+
+    res.json({ success: true, type, topic, content, generatedAt: new Date().toISOString() });
+  } catch (err) {
+    console.error("[/api/generate]", err.message);
+    const userMsg =
+      err.name === "AbortError"
+        ? "AI is taking too long. Please retry."
+        : err.message?.includes("not configured")
+        ? "Service temporarily unavailable."
+        : "Generation failed. Please retry in a few seconds.";
+    res.status(500).json({ success: false, error: userMsg });
   }
 });
 
-// ── TITLES ────────────────────────────────────────────────────
-app.post("/api/titles", async (req, res) => {
-  const { topic } = req.body;
-
-  if (!topic?.trim()) {
-    return res.status(400).json({ error: "Topic is required." });
-  }
-
+// ── Razorpay: create order ──────────────────────────────────
+app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
   try {
-    const out = await callGroq(
-      [
-        {
-          role: "system",
-          content:
-            `Tu ek YouTube SEO expert hai. Viral Hinglish titles likho. Numbers aur emojis use karo. Sirf JSON array return karo.`,
-        },
-        {
-          role: "user",
-          content:
-            `"${topic}" ke liye exactly 5 viral YouTube Shorts titles do.\n\n` +
-            `Sirf JSON array:\n["Title 1", "Title 2", "Title 3", "Title 4", "Title 5"]`,
-        },
-      ],
-      0.9,
-      400
-    );
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      return res.status(503).json({ success: false, error: "Payment service not configured." });
+    }
 
-    return res.json({ titles: extractJsonArray(out, 5) });
-  } catch (e) {
-    console.error("Titles error:", e);
-    return res.status(500).json({ error: e.message || "Failed to generate titles." });
-  }
-});
+    const amountInr = Number(process.env.PRO_PRICE_INR || 99);
+    const amountPaise = amountInr * 100;
+    const userId = String(req.body?.userId || "guest").slice(0, 80);
 
-// ── DESCRIPTION ───────────────────────────────────────────────
-app.post("/api/description", async (req, res) => {
-  const { topic } = req.body;
-
-  if (!topic?.trim()) {
-    return res.status(400).json({ error: "Topic is required." });
-  }
-
-  try {
-    const out = await callGroq(
-      [
-        {
-          role: "system",
-          content: `You are a YouTube SEO expert who writes engaging video descriptions. Write in a Hinglish + English natural mix (Indian creator style). The description must be SEO-optimized, emoji-rich, and ready-to-paste into YouTube. Structure:
-1) Catchy opening line (1-2 sentences with emojis)
-2) 3-4 line detailed explanation of the video value
-3) "In this video you'll learn:" followed by 4-5 bullet points (use ✅ or 🔥)
-4) Call-to-action (Subscribe, Like, Comment) with emojis
-5) 8-10 relevant hashtags at the end on a single line
-Keep total length between 120-180 words. Return ONLY the description text, no preamble, no markdown fences, no "Here is..." prefix.`,
-        },
-        {
-          role: "user",
-          content: `Write a complete YouTube description for a Shorts video on the topic: "${topic}"`,
-        },
-      ],
-      0.85,
-      700
-    );
-
-    const description = out
-      .replace(/^```[a-z]*\s*/i, "")
-      .replace(/```\s*$/i, "")
-      .replace(/^["']|["']$/g, "")
-      .trim();
-
-    return res.json({ description });
-  } catch (e) {
-    console.error("Description error:", e);
-    return res.status(500).json({ error: e.message || "Failed to generate description." });
-  }
-});
-
-// ── HOOKS ─────────────────────────────────────────────────────
-app.post("/api/hooks", async (req, res) => {
-  const { topic } = req.body;
-
-  if (!topic?.trim()) {
-    return res.status(400).json({ error: "Topic is required." });
-  }
-
-  try {
-    const out = await callGroq(
-      [
-        {
-          role: "system",
-          content:
-            `Tu ek viral content creator hai. 5 alag style hooks likho: 1.Shock 2.Question 3.Bold 4.Pain Point 5.Story. Hinglish mein. Sirf JSON array return karo.`,
-        },
-        {
-          role: "user",
-          content:
-            `"${topic}" ke liye 5 alag viral hooks do (2-3 lines each).\n\n` +
-            `Sirf JSON array:\n["Hook 1", "Hook 2", "Hook 3", "Hook 4", "Hook 5"]`,
-        },
-      ],
-      0.95,
-      600
-    );
-
-    return res.json({ hooks: extractJsonArray(out, 5) });
-  } catch (e) {
-    console.error("Hooks error:", e);
-    return res.status(500).json({ error: e.message || "Failed to generate hooks." });
-  }
-});
-
-// ── HASHTAGS ──────────────────────────────────────────────────
-app.post("/api/hashtags", async (req, res) => {
-  const { topic } = req.body;
-
-  if (!topic?.trim()) {
-    return res.status(400).json({ error: "Topic is required." });
-  }
-
-  try {
-    const out = await callGroq(
-      [
-        {
-          role: "system",
-          content:
-            `Tu YouTube SEO hashtag expert hai. Broad + niche + Hindi hashtags mix karo. Sirf JSON array return karo.`,
-        },
-        {
-          role: "user",
-          content:
-            `"${topic}" ke liye exactly 15 best YouTube hashtags do.\n\n` +
-            `Sirf JSON array:\n["#hashtag1", "#hashtag2"]`,
-        },
-      ],
-      0.7,
-      300
-    );
-
-    return res.json({ hashtags: extractJsonArray(out, 15) });
-  } catch (e) {
-    console.error("Hashtags error:", e);
-    return res.status(500).json({ error: e.message || "Failed to generate hashtags." });
-  }
-});
-
-// ── IDEAS ─────────────────────────────────────────────────────
-app.post("/api/ideas", async (req, res) => {
-  const { topic } = req.body;
-
-  if (!topic?.trim()) {
-    return res.status(400).json({ error: "Topic required." });
-  }
-
-  try {
-    const out = await callGroq(
-      [
-        {
-          role: "system",
-          content:
-            `Tu YouTube content strategist hai. Related video ideas do jo creator bana sake. Hinglish mein catchy aur actionable. Sirf JSON array return karo.`,
-        },
-        {
-          role: "user",
-          content:
-            `"${topic}" se related 7 YouTube Shorts video ideas do.\n\n` +
-            `Sirf JSON array:\n["Idea 1", "Idea 2", "Idea 3", "Idea 4", "Idea 5", "Idea 6", "Idea 7"]`,
-        },
-      ],
-      0.9,
-      500
-    );
-
-    return res.json({ ideas: extractJsonArray(out, 7) });
-  } catch (e) {
-    console.error("Ideas error:", e);
-    return res.status(500).json({ error: e.message || "Failed to generate ideas." });
-  }
-});
-
-// ── THUMBNAIL PROMPTS ─────────────────────────────────────────
-app.post("/api/thumbnail", async (req, res) => {
-  const { topic } = req.body;
-
-  if (!topic?.trim()) {
-    return res.status(400).json({ error: "Topic required." });
-  }
-
-  try {
-    const out = await callGroq(
-      [
-        {
-          role: "system",
-          content: `You are a professional YouTube thumbnail designer and an expert AI image prompt engineer for Midjourney, DALL-E 3, and Stable Diffusion.
-
-STRICT RULES:
-- Write prompts in 100% ENGLISH ONLY.
-- NEVER use Hindi, Hinglish, Urdu, or any non-English words.
-- NO romanized Hindi (no "yaar", "bhai", "zindagi", "life badal", etc.).
-- Every prompt must be a single long descriptive sentence (60-90 words) in cinematic English.
-
-Each prompt MUST include ALL of these elements:
-1. Subject (clear main focus — person, object, or scene)
-2. Facial expression or action (e.g., shocked, pointing, laughing)
-3. Cinematic lighting (e.g., dramatic rim light, golden hour, neon glow)
-4. Background (detailed, relevant to topic)
-5. Color palette (high contrast, vibrant, bold saturated colors)
-6. Bold English text overlay — include the exact text in quotes (e.g., big bold text "STOP DOING THIS!")
-7. Composition: 16:9 aspect ratio, close-up framing, YouTube thumbnail style
-8. Style keywords: ultra-realistic, 8k, cinematic, viral YouTube thumbnail, eye-catching, high contrast
-
-Return ONLY a valid JSON array of 3 strings. No markdown, no extra text.`,
-        },
-        {
-          role: "user",
-          content:
-            `Topic: "${topic}"\n\n` +
-            `Generate exactly 3 different professional AI thumbnail image prompts in English only.\n\n` +
-            `Return strictly as JSON:\n["prompt 1 in english...", "prompt 2 in english...", "prompt 3 in english..."]`,
-        },
-      ],
-      0.8,
-      1000
-    );
-
-    return res.json({ thumbnail: extractJsonArray(out, 3) });
-  } catch (e) {
-    console.error("Thumbnail error:", e);
-    return res.status(500).json({ error: e.message || "Failed to generate thumbnail prompts." });
-  }
-});
-
-// ── FEEDBACK / CONTACT ────────────────────────────────────────
-app.post("/api/feedback", (req, res) => {
-  const { name, email, subject, message } = req.body;
-
-  if (!name?.trim()) {
-    return res.status(400).json({ success: false, error: "Name is required." });
-  }
-
-  if (!email?.trim()) {
-    return res.status(400).json({ success: false, error: "Email is required." });
-  }
-
-  if (!message?.trim() || message.trim().length < 10) {
-    return res.status(400).json({
-      success: false,
-      error: "Message must be at least 10 characters.",
-    });
-  }
-
-  console.log(`📬 New feedback from ${name} <${email}>`);
-  console.log(`   Subject: ${subject || "(none)"}`);
-  console.log(`   Message: ${message}`);
-
-  return res.json({
-    success: true,
-    message: "Thank you! We'll get back to you soon.",
-  });
-});
-
-// ── RAZORPAY ──────────────────────────────────────────────────
-app.post("/api/create-order", async (req, res) => {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
-  if (!keyId || !keySecret) {
-    return res.status(503).json({
-      error: "Payment setup incomplete. Please contact admin.",
-    });
-  }
-
-  try {
-    const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
-
-    const response = await fetch("https://api.razorpay.com/v1/orders", {
+    const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+    const r = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Basic ${authHeader}`,
+        Authorization: `Basic ${auth}`,
       },
       body: JSON.stringify({
-        amount: 9900,
+        amount: amountPaise,
         currency: "INR",
-        receipt: `sc_${Date.now()}`,
-        notes: {
-          product: "ShortsCraft Pro",
-          plan: "monthly",
-        },
+        receipt: `sc_${Date.now()}_${userId.slice(0, 12)}`,
+        notes: { product: "ShortsCraft Pro", userId },
       }),
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Razorpay create-order error:", errText);
-      return res.status(500).json({
-        error: "Could not create payment order. Try again.",
-      });
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      console.error("[razorpay/order]", t);
+      return res.status(502).json({ success: false, error: "Could not create payment order." });
     }
-
-    const order = await response.json();
-
-    return res.json({
-      order_id: order.id,
-      key_id: keyId,
-      amount: order.amount,
-      currency: order.currency,
-    });
-  } catch (e) {
-    console.error("create-order error:", e);
-    return res.status(500).json({ error: e.message });
+    const order = await r.json();
+    res.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency, keyId });
+  } catch (err) {
+    console.error("[razorpay/order]", err.message);
+    res.status(500).json({ success: false, error: "Payment order failed." });
   }
 });
 
-app.post("/api/verify-payment", (req, res) => {
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
-  if (!keySecret) {
-    return res.status(503).json({
-      success: false,
-      error: "Payment setup incomplete.",
-    });
-  }
-
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-
-  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-    return res.status(400).json({
-      success: false,
-      error: "Missing payment fields.",
-    });
-  }
-
+// ── Razorpay: verify signature ──────────────────────────────
+app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
   try {
-    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, error: "Missing payment details." });
+    }
+    if (!secret) return res.status(503).json({ success: false, error: "Payment service not configured." });
 
-    const expectedSignature = crypto
-      .createHmac("sha256", keySecret)
-      .update(body)
+    const expected = crypto
+      .createHmac("sha256", secret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    const isValid = expectedSignature === razorpay_signature;
+    const valid = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(razorpay_signature));
+    if (!valid) return res.status(400).json({ success: false, error: "Invalid payment signature." });
 
-    return res.json({ success: isValid });
-  } catch (e) {
-    console.error("verify-payment error:", e);
-    return res.status(500).json({
-      success: false,
-      error: e.message,
-    });
+    res.json({ success: true, paymentId: razorpay_payment_id, orderId: razorpay_order_id });
+  } catch (err) {
+    console.error("[razorpay/verify]", err.message);
+    res.status(500).json({ success: false, error: "Verification failed." });
   }
 });
 
-// Health check for Render / debugging
-app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    groq: Boolean(process.env.GROQ_API_KEY),
-    razorpay: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
-  });
+// ── Feedback / contact form ─────────────────────────────────
+app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 4 }), async (req, res) => {
+  try {
+    const name = String(req.body?.name || "").trim().slice(0, 80);
+    const email = String(req.body?.email || "").trim().slice(0, 120);
+    const subject = String(req.body?.subject || "").trim().slice(0, 140);
+    const message = String(req.body?.message || "").trim().slice(0, 2000);
+
+    if (!name || !message || message.length < 5) {
+      return res.status(400).json({ success: false, error: "Name and message (min 5 chars) required." });
+    }
+
+    // Store in Supabase if configured
+    const supaUrl = process.env.SUPABASE_URL;
+    const supaSrv = process.env.SUPABASE_SERVICE_KEY;
+    if (supaUrl && supaSrv) {
+      try {
+        await fetch(`${supaUrl}/rest/v1/feedback`, {
+          method: "POST",
+          headers: {
+            apikey: supaSrv,
+            Authorization: `Bearer ${supaSrv}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({ name, email, subject, message, ip: req.ip, ua: req.headers["user-agent"] || "" }),
+        });
+      } catch (e) {
+        console.warn("[feedback supabase]", e.message);
+      }
+    } else {
+      console.log("[feedback]", { name, email, subject, message: message.slice(0, 100) });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[feedback]", err.message);
+    res.status(500).json({ success: false, error: "Could not submit feedback." });
+  }
 });
 
-// Fallback: serve index.html for unknown GET routes
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+// ============================================================
+// SEO + STATIC ROUTING
+// ============================================================
+const PAGES = {
+  "/": "index.html",
+  "/generator": "generator.html",
+  "/seo-tools": "seo-tools.html",
+  "/pricing": "pricing.html",
+  "/about": "about.html",
+  "/contact": "contact.html",
+  "/privacy": "privacy.html",
+  "/terms": "terms.html",
+  "/youtube-shorts-script-generator": "youtube-shorts-script-generator.html",
+  "/youtube-shorts-title-generator": "youtube-shorts-title-generator.html",
+  "/youtube-shorts-hashtag-generator": "youtube-shorts-hashtag-generator.html",
+  "/youtube-shorts-description-generator": "youtube-shorts-description-generator.html",
+  "/youtube-shorts-ideas-generator": "youtube-shorts-ideas-generator.html",
+  "/ai-thumbnail-prompt-generator": "ai-thumbnail-prompt-generator.html",
+};
+
+for (const [route, file] of Object.entries(PAGES)) {
+  app.get(route, (req, res, next) => {
+    const filePath = path.join(__dirname, "public", file);
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        console.error("[static page missing]", route, file, err.message);
+        res.status(err.statusCode || 404).sendFile(path.join(__dirname, "public", "404.html"));
+      }
+    });
+  });
+}
+
+// ── 404 fallback ────────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, "public", "404.html"));
+});
+
+// ── Global error handler ────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error("[server error]", err);
+  res.status(500).json({ success: false, error: "Internal server error." });
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server: http://localhost:${PORT}`);
-  console.log(`🌐 Site: ${SITE_URL}`);
-  console.log(`🔑 Groq: ${process.env.GROQ_API_KEY ? "Loaded ✓" : "MISSING ✗"}`);
-  console.log(
-    `💳 Razorpay: ${
-      process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET
-        ? "Loaded ✓"
-        : "Not configured"
-    }`
-  );
+  console.log(`⚡ ShortsCraft v2.0 running on :${PORT} (${NODE_ENV})`);
 });

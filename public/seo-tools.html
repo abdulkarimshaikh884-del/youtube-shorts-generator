@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>SEO Tools — ShortsCraft</title>
+<meta name="description" content="ShortsCraft SEO tools for YouTube Shorts scripts, titles, descriptions, hashtags, ideas and thumbnail prompts."/>
+<meta name="robots" content="noindex, follow"/>
+<link rel="canonical" href="https://shortscraft.online/seo-tools"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0b0613">
+</head>
+<body class="page-studio page-seo-tools">
+<div class="aurora" aria-hidden="true">
+  <span class="aurora-blob aurora-1"></span>
+  <span class="aurora-blob aurora-2"></span>
+  <span class="aurora-grid"></span>
+</div>
+
+<header class="studio-bar">
+  <button class="icon-btn" id="seoSidebarToggle" aria-label="History">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a href="/" class="logo sm">
+    <span class="logo-mark"><span class="logo-bolt">⚡</span></span>
+    <span class="logo-text">Shorts<span>Craft</span></span>
+  </a>
+  <span class="studio-tag">Studio</span>
+
+  <div class="studio-bar-spacer"></div>
+
+  <div class="studio-search-wrap">
+    <span class="studio-search-icon">⌕</span>
+    <input id="seoStudioSearchInput" class="studio-search-input" type="search" placeholder="Search tools, commands, scripts..." autocomplete="off" />
+    <span class="studio-search-key">⌘K</span>
+  </div>
+  <div class="credits-pill hidden" id="creditsPill" title="Daily credits">
+    <span>⚡</span><b id="creditsCount">5</b><i>/day</i>
+  </div>
+  <button class="btn-ghost sm" id="seoFeedbackBtn">💬 Feedback</button>
+  <button class="btn-primary sm" id="seoLoginBtn">Sign in</button>
+  <div class="profile-wrap hidden" id="profileWrap">
+    <button class="avatar" id="avatarBtn" aria-label="Account">
+      <img id="avatarImg" alt="" hidden>
+      <span id="avatarInitial">U</span>
+    </button>
+    <div class="profile-pop hidden" id="profilePop" role="menu">
+      <div class="pp-head">
+        <div class="avatar lg"><img id="avatarImgLg" alt="" hidden><span id="avatarInitialLg">U</span></div>
+        <div>
+          <b id="profileName">Creator</b>
+          <span id="profileEmail">user@email.com</span>
+        </div>
+      </div>
+      <div class="pp-credits">
+        <span>⚡ Credits</span><b id="creditsInfoCount">5</b>
+        <button id="earnCreditsLink">Earn more</button>
+      </div>
+      <button class="pp-item upgrade" id="upgradeBtn">⭐ Upgrade to Pro — ₹99/mo</button>
+      <button class="pp-item" id="viewSavedBtn">🔖 Saved scripts</button>
+      <button class="pp-item" id="viewHistoryBtn">📚 History</button>
+      <button class="pp-item" id="profileFeedbackBtn">💬 Feedback</button>
+      <hr>
+      <button class="pp-item danger" id="logoutBtn">🚪 Sign out</button>
+    </div>
+  </div>
+</header>
+
+<!-- SEO page header support elements -->
+<aside class="sidebar" id="sidebar" aria-hidden="true">
+  <div class="sb-head">
+    <b>📚 History</b>
+    <button class="icon-btn" id="sidebarClose" type="button" aria-label="Close history">✕</button>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">RECENT</div>
+    <div class="sb-empty">
+      <p>Use Video Studio to create and save scripts.</p>
+    </div>
+  </div>
+  <div class="sb-foot">
+    <a class="btn-ghost full" href="/generator">🎬 Open Video Studio</a>
+  </div>
+</aside>
+<div class="sidebar-veil" id="sidebarVeil"></div>
+
+<div class="cmd-palette hidden" id="cmdPalette" role="dialog" aria-modal="true">
+  <div class="cmd-box" id="cmdBox">
+    <button class="cmd-close" id="cmdCloseBtn" type="button" aria-label="Close search">✕</button>
+    <input type="text" id="cmdInput" placeholder="Search SEO tools, commands, shortcuts..." />
+    <ul class="cmd-list" id="cmdList">
+      <li data-action="video">🎬 Open Video Studio</li>
+      <li data-action="generate">⚡ Generate script pack</li>
+      <li data-action="copy">📋 Copy current output</li>
+      <li data-action="download">⬇ Download .txt</li>
+      <li data-action="upgrade">⭐ Upgrade to Pro</li>
+    </ul>
+    <div class="cmd-foot">esc to close</div>
+  </div>
+</div>
+
+<div class="modal hidden" id="feedbackModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <button class="icon-btn modal-close" id="feedbackModalClose" type="button">✕</button>
+    <h3>Send feedback</h3>
+    <p class="muted">Tell us what to improve in ShortsCraft.</p>
+    <textarea class="modal-textarea" rows="4" placeholder="Write your feedback..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="feedbackCancelBtn" type="button">Cancel</button>
+      <button class="btn-primary" type="button">Submit</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="authModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <button class="icon-btn modal-close" id="authModalClose" type="button">✕</button>
+    <h3>Sign in</h3>
+    <p class="muted">Sign in to save scripts, history and preferences.</p>
+    <button class="btn-primary full" type="button">Continue with Google</button>
+  </div>
+</div>
+
+<div class="modal hidden" id="upgradeModal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <button class="icon-btn modal-close" id="upgradeModalClose" type="button">✕</button>
+    <h3>Upgrade to Pro</h3>
+    <p class="muted">Unlock downloads and premium creator tools.</p>
+    <a class="btn-primary full" href="/pricing">Upgrade Pro</a>
+  </div>
+</div>
+
+
+<main class="seo-tools-page-wrap">
+  <section class="seo-tools-hero">
+    <span class="video-badge">🚀 Optional Creator Toolkit</span>
+    <h1>Scripts, titles, hashtags & more</h1>
+    <p>Use these tools after creating your video, or generate a complete Shorts content pack from one topic.</p>
+  </section>
+
+  <section class="text-tools-shell seo-tools-page-shell">
+    
+    <div class="text-tools-head">
+      <div>
+        <span class="video-badge">🧰 Optional tools</span>
+        <h2>Scripts, titles, hashtags & more</h2>
+        <p>Use these tools after creating your video or whenever you need a complete Shorts content pack.</p>
+      </div>
+      <a class="btn-ghost sm seo-back-btn" href="/generator">← Back to Studio</a>
+    </div>
+
+  <!-- Topic input -->
+  <section class="topic-card secondary-tools-card">
+    <label for="topic" class="topic-label">Generate scripts, titles, hashtags & more</label>
+    <div class="topic-row">
+      <span class="topic-prefix">›</span>
+      <input id="topic" type="text" autocomplete="off"
+        placeholder="e.g. Morning productivity hacks for Indian students"/>
+      <button id="generateBtn" class="btn-primary lg" type="button">
+        <span class="btn-label">Generate ✦</span>
+      </button>
+    </div>
+    <div class="topic-suggest">
+      <span>Try:</span>
+      <button class="chip" data-topic="Morning productivity hacks">☀️ Morning hacks</button>
+      <button class="chip" data-topic="Cricket tips for beginners">🏏 Cricket tips</button>
+      <button class="chip" data-topic="Study motivation for Indian students">📚 Study motivation</button>
+      <button class="chip" data-topic="Money saving hacks India">💰 Money hacks</button>
+      <button class="chip" data-topic="AI tools for content creators">🤖 AI tools</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist" aria-label="Output tabs">
+    <button class="tab active" data-tab="script" role="tab">📝 Script</button>
+    <button class="tab" data-tab="titles" role="tab">🎯 Titles</button>
+    <button class="tab" data-tab="description" role="tab">📄 Description</button>
+    <button class="tab" data-tab="hashtags" role="tab">#️⃣ Hashtags</button>
+    <button class="tab" data-tab="ideas" role="tab">💡 Ideas</button>
+    <button class="tab" data-tab="thumbnail" role="tab">🖼 Thumbnail</button>
+  </nav>
+
+  <!-- Output area -->
+  <section id="resultsArea" class="results">
+    <div class="results-bar">
+      <span class="results-topic" id="resultsTopic">Your output will appear here</span>
+      <div class="results-actions">
+        <button class="btn-ghost sm" id="downloadTxtBtn">⬇ Download .txt</button>
+        <button class="btn-ghost sm" id="regenerateBtn" hidden>↻ Regenerate</button>
+      </div>
+    </div>
+
+    <div class="panel active" id="panel-script">
+      <div class="out-card">
+        <header><h2>📝 Generated Script</h2>
+          <div class="out-actions">
+            <button class="icon-btn" id="saveScriptBtn" title="Save">♡</button>
+            <button class="btn-ghost sm" id="copyScriptBtn">Copy</button>
+          </div>
+        </header>
+        <div id="scriptSections" class="script-body">
+          <div class="placeholder">Type a topic and hit <b>Generate</b> ⚡</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="panel-titles">
+      <div class="out-card">
+        <header><h2>🎯 Title Suggestions</h2><button class="btn-ghost sm" id="copyTitlesBtn">Copy all</button></header>
+        <div id="titlesContent" class="list-body"><div class="placeholder">Titles will appear here 🎯</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-description">
+      <div class="out-card">
+        <header><h2>📄 YouTube Description</h2><button class="btn-ghost sm" id="copyDescBtn">Copy</button></header>
+        <p class="hint">Paste-ready, SEO-tuned. Add your channel CTA at the end.</p>
+        <div id="descContent" class="desc-body"><div class="placeholder">Description will appear here 📄</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-hashtags">
+      <div class="out-card">
+        <header><h2>#️⃣ Hashtags</h2><button class="btn-ghost sm" id="copyHashtagsBtn">Copy all</button></header>
+        <div id="hashtagsContent" class="list-body"><div class="placeholder">Hashtags will appear here #️⃣</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-ideas">
+      <div class="out-card">
+        <header><h2>💡 Content Ideas</h2><button class="btn-ghost sm" id="copyIdeasBtn">Copy all</button></header>
+        <div id="ideasContent" class="list-body"><div class="placeholder">Ideas will appear here 💡</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-thumbnail">
+      <div class="out-card">
+        <header><h2>🖼 Thumbnail Prompts</h2><button class="btn-ghost sm" id="copyThumbnailBtn">Copy all</button></header>
+        <p class="hint">Paste these English prompts into Midjourney, DALL·E or Stable Diffusion.</p>
+        <div id="thumbnailContent" class="list-body"><div class="placeholder">Prompts will appear here 🖼</div></div>
+      </div>
+    </div>
+  </section>
+
+  
+  </section>
+</main>
+
+<script src="/script.js"></script>
+</body>
+</html>
