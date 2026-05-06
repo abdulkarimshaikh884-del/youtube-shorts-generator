@@ -381,12 +381,14 @@ const PAGES = {
   "/contact": "contact.html",
   "/privacy": "privacy.html",
   "/terms": "terms.html",
-  "/youtube-shorts-script-generator": "youtube-shorts-script-generator.html",
-  "/youtube-shorts-title-generator": "youtube-shorts-title-generator.html",
-  "/youtube-shorts-hashtag-generator": "youtube-shorts-hashtag-generator.html",
-  "/youtube-shorts-description-generator": "youtube-shorts-description-generator.html",
-  "/youtube-shorts-ideas-generator": "youtube-shorts-ideas-generator.html",
-  "/ai-thumbnail-prompt-generator": "ai-thumbnail-prompt-generator.html",
+
+  // Legacy SEO tool URLs now open the new SEO Tools workspace.
+  "/youtube-shorts-script-generator": "seo-tools.html",
+  "/youtube-shorts-title-generator": "seo-tools.html",
+  "/youtube-shorts-hashtag-generator": "seo-tools.html",
+  "/youtube-shorts-description-generator": "seo-tools.html",
+  "/youtube-shorts-ideas-generator": "seo-tools.html",
+  "/ai-thumbnail-prompt-generator": "seo-tools.html",
 };
 
 for (const [route, file] of Object.entries(PAGES)) {

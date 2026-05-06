@@ -82,6 +82,9 @@ async function loadConfig() {
         if (sess?.user) handleSignedIn(sess.user);
         else handleSignedOut();
       });
+    } else {
+      const localUser = loadLocalUser();
+      if (localUser) handleSignedIn(localUser);
     }
   } catch (e) {
     console.warn("[config]", e.message);
@@ -165,29 +168,81 @@ function pushHistory(entry) {
   saveLocalLists();
   renderLists();
 }
+window.scPushHistory = pushHistory;
+window.scSaveLocalLists = saveLocalLists;
 function renderLists() {
   const hList = $("#historyList");
   const sList = $("#savedList");
+
+  const actionButtons = (kind, i) => `
+    <div class="sb-actions">
+      ${kind === "history" ? `<button class="sb-mini save" data-action="save" data-kind="${kind}" data-idx="${i}" title="Save this script" aria-label="Save this script">♡</button>` : ""}
+      <button class="sb-mini del" data-action="delete" data-kind="${kind}" data-idx="${i}" title="Delete this item" aria-label="Delete this item">×</button>
+    </div>`;
+
   if (hList) {
     hList.innerHTML = STATE.history.length
       ? STATE.history.map((h, i) => `
           <div class="sb-item" data-idx="${i}" data-kind="history">
-            <b>${escapeHtml(h.topic)}</b>
-            <span>${new Date(h.at).toLocaleString()}</span>
+            <div class="sb-item-main">
+              <b>${escapeHtml(h.topic || "Untitled script")}</b>
+              <span>${new Date(h.at || Date.now()).toLocaleString()}</span>
+            </div>
+            ${actionButtons("history", i)}
           </div>`).join("")
       : `<div class="sb-empty">🎬<p>No scripts yet.<br>Generate one!</p></div>`;
   }
+
   if (sList) {
     sList.innerHTML = STATE.saved.length
       ? STATE.saved.map((h, i) => `
           <div class="sb-item" data-idx="${i}" data-kind="saved">
-            <b>${escapeHtml(h.topic)}</b>
-            <span>Saved ${new Date(h.at).toLocaleDateString()}</span>
+            <div class="sb-item-main">
+              <b>${escapeHtml(h.topic || "Saved script")}</b>
+              <span>Saved ${new Date(h.at || Date.now()).toLocaleDateString()}</span>
+            </div>
+            ${actionButtons("saved", i)}
           </div>`).join("")
       : `<div class="sb-empty">🔖<p>No saved scripts.<br>Click ♡ to save.</p></div>`;
   }
+
+  $$(".sb-mini").forEach((btn) =>
+    on(btn, "click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const kind = btn.dataset.kind;
+      const idx = parseInt(btn.dataset.idx, 10);
+      const list = kind === "saved" ? STATE.saved : STATE.history;
+      const item = list[idx];
+      if (!item) return;
+
+      if (btn.dataset.action === "delete") {
+        list.splice(idx, 1);
+        saveLocalLists();
+        renderLists();
+        toast(kind === "saved" ? "Saved script deleted." : "History item deleted.", "info");
+        return;
+      }
+
+      if (btn.dataset.action === "save") {
+        const exists = STATE.saved.some((s) => (s.content || s.raw || "") === (item.content || item.raw || ""));
+        if (!exists) {
+          STATE.saved.unshift({ ...item, at: Date.now() });
+          STATE.saved = STATE.saved.slice(0, 50);
+          saveLocalLists();
+          renderLists();
+          toast("Script saved.", "success");
+        } else {
+          toast("Already saved.", "info");
+        }
+      }
+    })
+  );
+
   $$(".sb-item").forEach((el) =>
-    on(el, "click", () => {
+    on(el, "click", (e) => {
+      if (e.target.closest(".sb-mini")) return;
       const kind = el.dataset.kind;
       const idx = parseInt(el.dataset.idx, 10);
       const item = (kind === "saved" ? STATE.saved : STATE.history)[idx];
@@ -460,7 +515,13 @@ function bindAuth() {
     const pw = $("#loginPassword").value;
     const err = $("#loginError");
     err.classList.add("hidden");
-    if (!STATE.supabase) { err.textContent = "Auth unavailable."; err.classList.remove("hidden"); return; }
+    if (!email || !pw) { err.textContent = "Enter email and password."; err.classList.remove("hidden"); return; }
+    if (!STATE.supabase) {
+      const user = makeLocalUser(email, email.split("@")[0] || "Creator");
+      saveLocalUser(user);
+      handleSignedIn(user);
+      return;
+    }
     try {
       const { error } = await STATE.supabase.auth.signInWithPassword({ email, password: pw });
       if (error) throw error;
@@ -473,8 +534,15 @@ function bindAuth() {
     const pw = $("#signupPassword").value;
     const err = $("#signupError");
     err.classList.add("hidden");
+    if (!email) { err.textContent = "Enter your email."; err.classList.remove("hidden"); return; }
     if (pw.length < 6) { err.textContent = "Password must be 6+ chars."; err.classList.remove("hidden"); return; }
-    if (!STATE.supabase) { err.textContent = "Auth unavailable."; err.classList.remove("hidden"); return; }
+    if (!STATE.supabase) {
+      const user = makeLocalUser(email, name || email.split("@")[0] || "Creator");
+      saveLocalUser(user);
+      handleSignedIn(user);
+      toast("Account created locally.", "success");
+      return;
+    }
     try {
       const { error } = await STATE.supabase.auth.signUp({ email, password: pw, options: { data: { full_name: name } } });
       if (error) throw error;
@@ -485,6 +553,7 @@ function bindAuth() {
 
   on($("#logoutBtn"), "click", async () => {
     if (STATE.supabase) await STATE.supabase.auth.signOut();
+    clearLocalUser();
     handleSignedOut();
     toast("Signed out.", "info");
   });
@@ -498,8 +567,34 @@ function bindAuth() {
     if (!e.target.closest("#profileWrap")) $("#profilePop")?.classList.add("hidden");
   });
 }
+function makeLocalUser(email = "creator@shortscraft.local", name = "Creator") {
+  return {
+    id: "local_" + btoa(email).replace(/=+$/,""),
+    email,
+    user_metadata: { full_name: name, name },
+    app_metadata: { provider: "local" }
+  };
+}
+function saveLocalUser(user) {
+  try { localStorage.setItem("sc:local-user:v2", JSON.stringify(user)); } catch {}
+}
+function clearLocalUser() {
+  try { localStorage.removeItem("sc:local-user:v2"); } catch {}
+}
+function loadLocalUser() {
+  try {
+    const raw = localStorage.getItem("sc:local-user:v2");
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
 async function googleAuth() {
-  if (!STATE.supabase) { toast("Auth unavailable.", "error"); return; }
+  if (!STATE.supabase) {
+    const user = makeLocalUser("google-user@shortscraft.local", "Google User");
+    saveLocalUser(user);
+    handleSignedIn(user);
+    toast("Demo Google sign-in enabled locally.", "success");
+    return;
+  }
   try {
     await STATE.supabase.auth.signInWithOAuth({
       provider: "google",
@@ -562,8 +657,13 @@ function bindFeedback() {
     if (!name) { toast("Enter your name.", "error"); return; }
     if (message.length < 5) { toast("Message too short.", "error"); return; }
     try {
-      await api("/api/feedback", { method: "POST", body: { name, email, message } });
-      toast("Thanks for your feedback!", "success");
+      await api("/api/feedback", { method: "POST", body: { name, email, subject: "Studio feedback", message } });
+      try {
+        const fb = JSON.parse(localStorage.getItem("sc:feedback:v2") || "[]");
+        fb.unshift({ name, email, message, at: Date.now() });
+        localStorage.setItem("sc:feedback:v2", JSON.stringify(fb.slice(0, 50)));
+      } catch {}
+      toast("Thanks! Feedback submitted.", "success");
       closeModal("#feedbackModal");
       $("#feedbackMessage").value = "";
     } catch (e) { toast(e.message, "error"); }
@@ -590,7 +690,20 @@ function bindCmdPalette() {
 }
 function runAction(a) {
   switch (a) {
-    case "generate": doGenerate(); break;
+    case "video":
+      $("#videoGenerator")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      break;
+    case "tools":
+      window.location.href = "/seo-tools";
+      break;
+    case "generate":
+      if ($("#generateBtn")) doGenerate();
+      else {
+        const tab = $("#videoGenerateTab");
+        tab?.click();
+        $("#videoTopicInput")?.focus();
+      }
+      break;
     case "copy": $(`#copy${capitalize(STATE.currentTab)}Btn`)?.click(); break;
     case "download": downloadTxt(); break;
     case "save": saveCurrent(); break;
@@ -723,7 +836,7 @@ async function init() {
   // Removed heavy landing animations/mouse glow for better performance.
   // bindMockType();
   // bindBentoGlow();
-  if ($("#generateBtn")) bindStudio();
+  if ($("#generateBtn") || $("#videoGenerator")) bindStudio();
   loadLocalLists();
   await loadConfig();
   if (!STATE.user) handleSignedOut();
@@ -741,6 +854,8 @@ document.addEventListener("DOMContentLoaded", init);
 
   const qs = (s, root = document) => root.querySelector(s);
   const qsa = (s, root = document) => [...root.querySelectorAll(s)];
+  const escHtml = (s) =>
+    String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   const VIDEO_STATE = {
     mode: "paste",
@@ -955,7 +1070,7 @@ document.addEventListener("DOMContentLoaded", init);
     const allDuration = Math.max(6000, lines.length * duration);
 
     const safeLines = JSON.stringify(lines.length ? lines : ["Paste a script first"], null, 0);
-    const safeName = escapeHtml(style.name);
+    const safeName = escHtml(style.name);
     const safeFont = style.font;
     const stageWidth = isWide ? "min(100vw, 1920px)" : "min(100vw, 1080px)";
     const aspectMap = {"9:16":"9/16","16:9":"16/9","1:1":"1/1","4:5":"4/5","3:4":"3/4","2:3":"2/3","21:9":"21/9"};
@@ -1080,6 +1195,17 @@ setInterval(render, ${duration});
     VIDEO_STATE.aspect = aspectSelect?.value || "9:16";
     VIDEO_STATE.html = generateVideoHtml(script, VIDEO_STATE.style, VIDEO_STATE.aspect);
     setPreview(VIDEO_STATE.html);
+    try {
+      if (window.scPushHistory) {
+        window.scPushHistory({
+          topic: (script.split(/\n|\.|!|\?/).find(Boolean) || "Animated Shorts video").trim().slice(0, 80),
+          at: Date.now(),
+          content: script,
+          videoHtml: VIDEO_STATE.html,
+          type: "video"
+        });
+      }
+    } catch {}
   }
 
   async function generateScriptForVideo() {
@@ -1269,6 +1395,7 @@ setInterval(render, ${duration});
   }
   function initPremiumRefinements(){
     const search = $("#studioSearchInput");
+    document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeCmd(); });
     $("#cmdCloseBtn")?.addEventListener("click", closeCmd);
     search?.addEventListener("focus", openCmd);
     search?.addEventListener("click", openCmd);

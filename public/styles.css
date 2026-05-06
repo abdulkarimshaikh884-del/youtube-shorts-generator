@@ -2571,3 +2571,100 @@ body,
     flex-wrap:wrap;
   }
 }
+
+
+/* ============================================================
+   FUNCTION FIX POLISH — history actions, auth, sidebar controls
+   ============================================================ */
+
+.sb-item{
+  position:relative;
+  display:flex!important;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:18px 16px!important;
+}
+
+.sb-item-main{
+  min-width:0;
+  display:grid;
+  gap:8px;
+}
+
+.sb-item-main b{
+  max-width:230px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.sb-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  opacity:.75;
+  transition:opacity .18s ease;
+}
+
+.sb-item:hover .sb-actions{
+  opacity:1;
+}
+
+.sb-mini{
+  width:34px;
+  height:34px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.055);
+  color:#f8f5ff;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  font-weight:950;
+  line-height:1;
+  transition:transform .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.sb-mini:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.22);
+}
+
+.sb-mini.save{
+  color:#ffd166;
+}
+
+.sb-mini.del{
+  color:#ff6b8a;
+  font-size:20px;
+}
+
+.sb-foot .btn-ghost{
+  min-height:48px;
+  border-radius:18px;
+  border-color:rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));
+}
+
+.m-tab,
+#googleSignInBtn,
+#googleSignUpBtn,
+#feedbackSubmit,
+#feedbackCancelBtn,
+#loginSubmit,
+#signupSubmit{
+  cursor:pointer;
+}
+
+#authModal .modal-card,
+#feedbackModal .modal-card,
+#earnModal .modal-card{
+  box-shadow:0 30px 100px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+@media(max-width:640px){
+  .sb-item-main b{max-width:190px}
+  .sb-mini{width:32px;height:32px}
+}
