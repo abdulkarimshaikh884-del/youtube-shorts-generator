@@ -692,25 +692,98 @@ function bindEarn() {
 function renderTasks() {
   const list = $("#tasksList");
   if (!list) return;
-  let done;
+  let done, opened;
   try { done = JSON.parse(localStorage.getItem(LS_KEYS.TASKS) || "{}"); } catch { done = {}; }
+  try { opened = JSON.parse(localStorage.getItem("sc:tasks-opened:v2") || "{}"); } catch { opened = {}; }
+
   const tasks = [
-    { id: "share", label: "Share ShortsCraft on social", credits: 1 },
-    { id: "feedback", label: "Submit feedback", credits: 1 },
-    { id: "save", label: "Save your first script", credits: 1 },
+    {
+      id: "subscribe",
+      label: "Subscribe our Tech Vault channel",
+      hint: "Open the channel, subscribe, then come back to claim.",
+      credits: 1,
+      url: "https://www.youtube.com/@TechVault-90"
+    },
+    {
+      id: "watch",
+      label: "Watch one Tech Vault video",
+      hint: "Open the channel and watch any useful creator/AI video.",
+      credits: 1,
+      url: "https://www.youtube.com/@TechVault-90/videos"
+    },
+    {
+      id: "share",
+      label: "Share ShortsCraft with a creator friend",
+      hint: "Open/share the website link, then claim your credit.",
+      credits: 1,
+      url: "https://shortscraft.online/"
+    },
+    {
+      id: "feedback",
+      label: "Submit useful product feedback",
+      hint: "Open feedback, write what should improve, then claim.",
+      credits: 1,
+      action: "feedback"
+    },
+    {
+      id: "save",
+      label: "Save your first generated script",
+      hint: "Generate any script and click the small ♡ save button.",
+      credits: 1,
+      action: "saveCheck"
+    },
   ];
-  list.innerHTML = tasks.map((t) => `
-    <div class="task">
-      <div class="task-info"><b>${t.label}</b><span>+${t.credits} credit</span></div>
-      <button data-id="${t.id}" ${done[t.id] ? "disabled" : ""}>${done[t.id] ? "Done ✓" : "Claim"}</button>
-    </div>`).join("");
+
+  list.innerHTML = tasks.map((t) => {
+    const isDone = !!done[t.id];
+    const isOpened = !!opened[t.id];
+    const btnText = isDone ? "Done ✓" : isOpened ? "Claim +1" : (t.action === "feedback" ? "Open feedback" : t.action === "saveCheck" ? "Check task" : "Open task");
+    return `
+      <div class="task premium-task ${isDone ? "task-done" : ""}">
+        <div class="task-info">
+          <b>${t.label}</b>
+          <span>${t.hint}</span>
+          <small>+${t.credits} credit</small>
+        </div>
+        <button data-id="${t.id}" data-action="${t.action || "open"}" ${isDone ? "disabled" : ""}>${btnText}</button>
+      </div>`;
+  }).join("");
+
   $$("#tasksList button").forEach((btn) => on(btn, "click", () => {
     const id = btn.dataset.id;
-    if (done[id]) return;
+    const task = tasks.find(t => t.id === id);
+    if (!task || done[id]) return;
+
+    if (task.action === "feedback" && !opened[id]) {
+      opened[id] = true;
+      localStorage.setItem("sc:tasks-opened:v2", JSON.stringify(opened));
+      closeModal("#earnModal");
+      openModal("#feedbackModal");
+      renderTasks();
+      return;
+    }
+
+    if (task.action === "saveCheck") {
+      if (!STATE.saved || STATE.saved.length === 0) {
+        toast("Save any generated script first, then claim.", "info", 4500);
+        opened[id] = true;
+        localStorage.setItem("sc:tasks-opened:v2", JSON.stringify(opened));
+        renderTasks();
+        return;
+      }
+    } else if (!opened[id]) {
+      opened[id] = true;
+      localStorage.setItem("sc:tasks-opened:v2", JSON.stringify(opened));
+      if (task.url) window.open(task.url, "_blank", "noopener,noreferrer");
+      toast("Task opened. Complete it, then come back and claim.", "info", 5000);
+      renderTasks();
+      return;
+    }
+
     done[id] = true;
     localStorage.setItem(LS_KEYS.TASKS, JSON.stringify(done));
-    setCredits(STATE.credits + 1);
-    toast("+1 credit added!", "success");
+    setCredits(STATE.credits + (task.credits || 1));
+    toast(`+${task.credits || 1} credit added!`, "success");
     renderTasks();
   }));
 }
@@ -1024,105 +1097,85 @@ document.addEventListener("DOMContentLoaded", init);
 
   function generateVideoHtml(script, styleKey, aspect) {
     const style = STYLE_MAP[styleKey] || STYLE_MAP["viral-hook"];
-    const lines = splitScript(script);
+    const rawLines = splitScript(script);
+    const lines = (rawLines.length ? rawLines : ["Paste a script first"]).slice(0, 22);
     const isWide = aspect === "16:9" || aspect === "21:9";
     const edit = VIDEO_STATE.edit;
-    const bg = edit.darker
-      ? "linear-gradient(135deg,#020617,#000000)"
-      : style.bg;
-    const effect = edit.minimal ? 0.15 : edit.reduceGlitch ? 0.35 : edit.premium ? 0.65 : 1;
     const highlight = edit.highlight || style.accent;
     const speed = edit.speed || 1;
     const fontScale = edit.fontScale || 1;
-    const duration = Math.max(2300, Math.round(2800 * speed));
-    const allDuration = Math.max(6000, lines.length * duration);
-
-    const safeLines = JSON.stringify(lines.length ? lines : ["Paste a script first"], null, 0);
+    const duration = Math.max(2600, Math.round(3400 * speed));
+    const total = Math.max(9000, lines.length * duration);
+    const safeLines = JSON.stringify(lines, null, 0);
     const safeName = escHtml(style.name);
     const safeFont = style.font;
-    const stageWidth = isWide ? "min(100vw, 1920px)" : "min(100vw, 1080px)";
     const aspectMap = {"9:16":"9/16","16:9":"16/9","1:1":"1/1","4:5":"4/5","3:4":"3/4","2:3":"2/3","21:9":"21/9"};
     const stageAspect = aspectMap[aspect] || "9/16";
-    const wordsToHighlight = ["AI","video","ShortsCraft","script","secret","viral","free","money","paisa","grow","views","creator","shorts"];
+    const stageWidth = isWide ? "min(100vw, 1920px)" : "min(100vw, 1080px)";
+    const premiumBg = edit.darker
+      ? "radial-gradient(circle at 50% 20%,rgba(255,61,110,.12),transparent 34%),linear-gradient(135deg,#02030a,#000)"
+      : style.bg;
 
     return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ShortsCraft Animated Video</title>
+<title>ShortsCraft Premium Animated Video</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden}
 body{display:grid;place-items:center;font-family:${safeFont};}
 .stage{
   --font-scale:${fontScale};
-  --speed:${speed};
-  --effect:${effect};
   --highlight:${highlight};
   --accent:${style.accent};
   --accent2:${style.accent2};
-  position:relative;
-  width:${stageWidth};
-  aspect-ratio:${stageAspect};
-  max-height:100vh;
-  background:${bg};
-  color:${style.text};
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
+  position:relative;width:${stageWidth};aspect-ratio:${stageAspect};max-height:100vh;overflow:hidden;
+  color:${style.text};background:${premiumBg};display:grid;place-items:center;text-align:center;
 }
-.stage::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.09),transparent 38%);opacity:${edit.minimal ? ".12" : ".35"};pointer-events:none}
-.scene{position:relative;z-index:2;width:86%;min-height:42%;display:flex;align-items:center;justify-content:center;flex-direction:column}
-.word{position:relative;font-size:calc(clamp(${isWide ? "42px,7vw,112px" : "48px,10vw,134px"}) * var(--font-scale));line-height:.96;font-weight:950;letter-spacing:${edit.premium ? "-.045em" : "-.065em"};text-wrap:balance;animation:mainIn calc(1.05s * var(--speed)) cubic-bezier(.2,.9,.15,1) both}
-.highlight{color:var(--highlight);text-shadow:0 0 calc(42px * var(--effect)) var(--highlight)}
-.sub{margin-top:28px;font:700 clamp(15px,2vw,24px) Inter,Arial,sans-serif;color:rgba(255,255,255,.62);animation:subIn calc(1.05s * var(--speed)) .2s both}
-.progress{position:absolute;left:0;bottom:0;height:7px;background:linear-gradient(90deg,var(--highlight),var(--accent2));animation:bar ${allDuration}ms linear infinite;z-index:5}
-.orb{position:absolute;width:45%;height:45%;border-radius:50%;background:radial-gradient(circle,var(--accent),transparent 62%);filter:blur(calc(70px * var(--effect)));opacity:${edit.minimal ? ".04" : ".20"};right:-12%;top:-12%;animation:float calc(7s * var(--speed)) ease-in-out infinite}
-.orb.two{background:radial-gradient(circle,var(--accent2),transparent 62%);left:-15%;bottom:-12%;top:auto;animation-delay:-3s}
-.meta{position:absolute;top:${isWide ? "28px" : "42px"};left:${isWide ? "34px" : "42px"};right:${isWide ? "34px" : "42px"};display:flex;justify-content:space-between;gap:12px;color:rgba(255,255,255,.58);font:800 14px Inter,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;z-index:4}
-.brand{color:var(--highlight)}
-.scene.out .word{animation:mainOut calc(.55s * var(--speed)) both}
-.scene.out .sub{animation:subOut calc(.45s * var(--speed)) both}
-@keyframes mainIn{0%{opacity:0;transform:translateY(50px) scale(.86);filter:blur(9px)}55%{opacity:1;transform:translateY(0) scale(1.035)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
-@keyframes subIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-@keyframes mainOut{to{opacity:0;transform:translateY(-40px) scale(1.06);filter:blur(8px)}}
-@keyframes subOut{to{opacity:0;transform:translateY(-14px)}}
-@keyframes bar{from{width:0}to{width:100%}}
-@keyframes float{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-35px,28px) scale(1.12)}}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:54px 54px;mask-image:radial-gradient(circle at 50% 45%,#000,transparent 80%);opacity:${edit.minimal?".16":".34"}}
+.bg-orb{position:absolute;width:70%;height:70%;border-radius:50%;filter:blur(54px);opacity:.38;transform:translate3d(0,0,0);animation:orb ${Math.round(total/1000)}s ease-in-out infinite alternate}
+.bg-orb.one{left:-20%;top:-10%;background:var(--accent)}
+.bg-orb.two{right:-18%;bottom:-16%;background:var(--accent2);animation-delay:-3s}
+.safe-frame{position:absolute;inset:${isWide?"7%":"6% 9%"};border:2px solid rgba(255,255,255,.16);border-radius:40px;box-shadow:inset 0 0 60px rgba(255,255,255,.055)}
+.brand{position:absolute;top:${isWide?"5%":"5.5%"};left:${isWide?"5%":"7%"};font:900 clamp(14px,2.1vw,26px) Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.84)}
+.tag{position:absolute;top:${isWide?"5%":"5.5%"};right:${isWide?"5%":"7%"};font:800 clamp(12px,1.6vw,20px) Inter,Arial,sans-serif;color:rgba(255,255,255,.58)}
+.scene{position:absolute;inset:0;display:grid;place-items:center;padding:${isWide?"9% 10%":"14% 9%"};opacity:0;transform:translateY(24px) scale(.98);animation:scene ${duration}ms cubic-bezier(.18,.8,.2,1) both}
+.text{max-width:${isWide?"82%":"92%"};font-size:calc(clamp(${isWide?"46px,7.4vw,128px":"42px,10vw,132px"}) * var(--font-scale));line-height:.98;font-weight:950;letter-spacing:-.065em;text-wrap:balance;text-shadow:0 20px 70px rgba(0,0,0,.55)}
+.kicker{display:inline-flex;margin-bottom:24px;padding:12px 18px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);font:900 clamp(11px,1.6vw,16px) Inter,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--highlight)}
+.hl{color:var(--highlight);text-shadow:0 0 36px color-mix(in srgb,var(--highlight),transparent 30%)}
+.progress{position:absolute;left:0;bottom:0;height:8px;width:100%;transform-origin:left;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:progress ${total}ms linear forwards}
+.generated{position:absolute;bottom:${isWide?"5%":"6%"};left:50%;transform:translateX(-50%);font:800 clamp(12px,1.8vw,19px) Inter,Arial,sans-serif;color:rgba(255,255,255,.62)}
+@keyframes scene{0%{opacity:0;transform:translateY(34px) scale(.96);filter:blur(8px)}14%,78%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}100%{opacity:0;transform:translateY(-24px) scale(1.015);filter:blur(8px)}}
+@keyframes progress{to{transform:scaleX(1)}from{transform:scaleX(0)}}
+@keyframes orb{to{transform:translate3d(9%,6%,0) scale(1.12)}}
 ${style.extra}
-${edit.minimal ? ".orb,.meta{display:none}.word{text-shadow:none!important}.highlight{text-shadow:none!important}" : ""}
-${edit.premium ? ".word{filter:drop-shadow(0 18px 34px rgba(0,0,0,.28))}.stage{background-blend-mode:soft-light}" : ""}
 </style>
 </head>
 <body>
 <div class="stage">
-  <div class="orb"></div><div class="orb two"></div>
-  <div class="meta"><div class="brand">ShortsCraft</div><div>${safeName}</div><div>${aspect}</div></div>
-  <div class="scene" id="scene"><div class="word" id="word"></div><div class="sub" id="sub">Generated by ShortsCraft</div></div>
+  <div class="bg-orb one"></div><div class="bg-orb two"></div><div class="bg-grid"></div><div class="safe-frame"></div>
+  <div class="brand">SHORTSCRAFT</div><div class="tag">${safeName} · ${aspect}</div>
+  <div id="scenes"></div>
   <div class="progress"></div>
+  <div class="generated">Generated by ShortsCraft</div>
 </div>
 <script>
-const lines=${safeLines};
-const highlightWords=${JSON.stringify(wordsToHighlight)};
-let i=0;
-const scene=document.getElementById("scene");
-const word=document.getElementById("word");
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\\"":"&quot;","'":"&#39;"}[m]));}
-function render(){
-  const line=lines[i%lines.length]||"ShortsCraft";
-  word.innerHTML=line.split(/\\s+/).map(w=>{
-    const plain=w.replace(/[^\\p{L}\\p{N}]/gu,"");
-    return highlightWords.some(x=>plain.toLowerCase().includes(x.toLowerCase())) ? '<span class="highlight">'+esc(w)+'</span>' : esc(w);
-  }).join(" ");
-  scene.classList.remove("out");
-  setTimeout(()=>scene.classList.add("out"), ${Math.max(1600, duration - 600)});
-  i++;
-}
-render();
-setInterval(render, ${duration});
-</script>
+const LINES=${safeLines};
+const words=["AI","viral","secret","paisa","money","views","creator","script","video","shorts","growth","free","tools","YouTube","Instagram"];
+const dur=${duration};
+const scenes=document.getElementById("scenes");
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function hi(t){let out=esc(t);words.forEach(w=>{out=out.replace(new RegExp("\\\\b("+w+")\\\\b","gi"),'<span class="hl">$1</span>')});return out}
+LINES.forEach((line,i)=>{
+  const div=document.createElement("section");
+  div.className="scene";
+  div.style.animationDelay=(i*dur)+"ms";
+  div.innerHTML='<div><div class="kicker">'+String(i+1).padStart(2,"0")+'</div><div class="text">'+hi(line)+'</div></div>';
+  scenes.appendChild(div);
+});
+setTimeout(()=>{try{window.dispatchEvent(new Event("shortscraft-video-ended"))}catch(e){}}, ${total});
+<\/script>
 </body>
 </html>`;
   }
@@ -1156,7 +1209,7 @@ setInterval(render, ${duration});
       return;
     }
     const wc = script.split(/\s+/).filter(Boolean).length;
-    if (wc > 180 && window.scToast) window.scToast("For best results, use 80–180 words.", "info");
+    if (wc > 180 && window.scToast) window.scToast("For best results, use a clear 180–260 word script for a 1–2 minute video.", "info");
 
     VIDEO_STATE.script = script;
     VIDEO_STATE.style = styleSelect?.value || "viral-hook";

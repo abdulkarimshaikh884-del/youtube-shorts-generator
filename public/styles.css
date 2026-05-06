@@ -2668,3 +2668,138 @@ body,
   .sb-item-main b{max-width:190px}
   .sb-mini{width:32px;height:32px}
 }
+
+
+/* ============================================================
+   v2 polish: SEO modals + earn tasks + premium video card
+   ============================================================ */
+
+.seo-tools-page-wrap .modal-veil,
+.modal-veil{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(0,0,0,.62);
+  backdrop-filter:blur(18px);
+}
+
+.seo-tools-page-wrap .modal-veil.hidden,
+.modal-veil.hidden{display:none!important;}
+
+.seo-tools-page-wrap .modal,
+.modal-veil .modal{
+  width:min(520px,calc(100vw - 32px));
+  position:relative;
+  border-radius:30px;
+  border:1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at 20% 0%,rgba(255,75,120,.18),transparent 32%),
+    linear-gradient(145deg,rgba(28,18,51,.98),rgba(10,7,22,.98));
+  box-shadow:0 35px 120px rgba(0,0,0,.68), inset 0 1px 0 rgba(255,255,255,.08);
+  padding:32px;
+}
+
+.modal-x,
+.modal-close{
+  position:absolute;
+  top:18px;
+  right:18px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  cursor:pointer;
+}
+
+.m-input,
+.modal textarea,
+.modal input{
+  width:100%;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:18px;
+  background:rgba(2,0,10,.68);
+  color:#fff;
+  padding:16px 18px;
+  margin-top:12px;
+  outline:none;
+  font:600 15px/1.4 Inter,system-ui,sans-serif;
+}
+
+.modal textarea{min-height:130px;resize:vertical}
+
+.btn-google{
+  width:100%;
+  min-height:54px;
+  border:0;
+  border-radius:17px;
+  margin-top:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  background:#fff;
+  color:#111;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.premium-task{
+  align-items:center;
+  gap:16px;
+  background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+}
+
+.premium-task .task-info{
+  display:grid;
+  gap:6px;
+}
+
+.premium-task .task-info span{
+  color:rgba(238,230,255,.68);
+  font-size:13px;
+  line-height:1.35;
+}
+
+.premium-task .task-info small{
+  color:#ffd166;
+  font-weight:900;
+}
+
+.premium-task button{
+  min-width:116px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(135deg,#ff4d6d,#ffbe2e);
+  color:white;
+  font-weight:900;
+  cursor:pointer;
+  padding:12px 14px;
+}
+
+.premium-task button:disabled{
+  opacity:.65;
+  cursor:not-allowed;
+  background:rgba(255,255,255,.08);
+}
+
+.video-preview-card iframe,
+#videoPreviewFrame{
+  background:#050505;
+}
+
+.video-preview-empty h3{
+  text-wrap:balance;
+}
+
+@media(max-width:640px){
+  .modal-veil .modal{padding:24px 18px;border-radius:24px}
+  .premium-task{grid-template-columns:1fr!important}
+  .premium-task button{width:100%}
+}

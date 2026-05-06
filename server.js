@@ -188,17 +188,17 @@ app.post("/api/generate", generationLimiter, async (req, res) => {
     const prompts = {
       all: `Topic: "${topic}"
 
-Generate a complete YouTube Shorts content pack in Hinglish. Use this EXACT format with these section headers:
+Generate a complete YouTube Shorts / Instagram Reels content pack in natural Hinglish. Use this EXACT format with these section headers:
 
 === SCRIPT ===
 [HOOK]
-(One punchy 1-2 line hook in Hinglish that grabs attention in 3 seconds)
+(3-4 punchy lines that grab attention in the first 3 seconds. Make it human, not robotic.)
 
 [MAIN]
-(15-25 seconds of main content in Hinglish with 3-4 short punchy lines)
+(Professional 1-2 minute voiceover script: 180-260 words, 10-16 short spoken lines, simple examples, curiosity, retention, and smooth flow. Use Hinglish that Indian creators can record directly.)
 
 [CTA]
-(One strong call-to-action line in Hinglish)
+(2 strong but natural CTA lines, not spammy.)
 
 === TITLES ===
 1. (clickable Hinglish title with emoji, under 60 chars)
@@ -227,8 +227,16 @@ Generate a complete YouTube Shorts content pack in Hinglish. Use this EXACT form
 2. (...)
 3. (...)
 `,
-      script: `Write a viral YouTube Shorts script in Hinglish for the topic: "${topic}".
-Format strictly as:
+      script: `Write a professional 1-2 minute YouTube Shorts / Instagram Reels voiceover script in natural Hinglish for the topic: "${topic}".
+
+Strict requirements:
+- Total length: 180-260 words
+- Hook: first 3 seconds must be powerful
+- Main section: 10-16 short spoken lines with simple examples, curiosity, and retention
+- CTA: 2 natural closing lines
+- Tone: human, confident, premium, Indian creator style
+- No robotic intro like "hello guys"
+- Format strictly as:
 [HOOK]
 (...)
 [MAIN]
@@ -243,7 +251,7 @@ Format strictly as:
     };
 
     const prompt = prompts[type] || prompts.all;
-    const content = await callGroq(prompt, { temperature: 0.85, maxTokens: type === "all" ? 2000 : 800 });
+    const content = await callGroq(prompt, { temperature: 0.85, maxTokens: type === "all" ? 3400 : type === "script" ? 1800 : 900 });
 
     if (!content) {
       return res.status(502).json({ success: false, error: "AI returned empty response. Please retry." });
