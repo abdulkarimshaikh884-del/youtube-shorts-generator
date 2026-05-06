@@ -73,6 +73,7 @@ async function api(path, { method = "GET", body, signal } = {}) {
 // ── Load config + Supabase ───────────────────────────────────
 async function loadConfig() {
   try {
+    try { localStorage.removeItem("sc:local-user:v2"); } catch {}
     STATE.config = await api("/api/config");
     if (window.supabase && STATE.config.supabaseUrl && STATE.config.supabaseAnonKey) {
       STATE.supabase = window.supabase.createClient(STATE.config.supabaseUrl, STATE.config.supabaseAnonKey);
@@ -82,9 +83,6 @@ async function loadConfig() {
         if (sess?.user) handleSignedIn(sess.user);
         else handleSignedOut();
       });
-    } else {
-      const localUser = loadLocalUser();
-      if (localUser) handleSignedIn(localUser);
     }
   } catch (e) {
     console.warn("[config]", e.message);
@@ -517,9 +515,8 @@ function bindAuth() {
     err.classList.add("hidden");
     if (!email || !pw) { err.textContent = "Enter email and password."; err.classList.remove("hidden"); return; }
     if (!STATE.supabase) {
-      const user = makeLocalUser(email, email.split("@")[0] || "Creator");
-      saveLocalUser(user);
-      handleSignedIn(user);
+      err.textContent = "Real sign-in is not configured. Add Supabase environment variables on Render.";
+      err.classList.remove("hidden");
       return;
     }
     try {
@@ -537,10 +534,8 @@ function bindAuth() {
     if (!email) { err.textContent = "Enter your email."; err.classList.remove("hidden"); return; }
     if (pw.length < 6) { err.textContent = "Password must be 6+ chars."; err.classList.remove("hidden"); return; }
     if (!STATE.supabase) {
-      const user = makeLocalUser(email, name || email.split("@")[0] || "Creator");
-      saveLocalUser(user);
-      handleSignedIn(user);
-      toast("Account created locally.", "success");
+      err.textContent = "Real sign-up is not configured. Add Supabase environment variables on Render.";
+      err.classList.remove("hidden");
       return;
     }
     try {
@@ -553,7 +548,6 @@ function bindAuth() {
 
   on($("#logoutBtn"), "click", async () => {
     if (STATE.supabase) await STATE.supabase.auth.signOut();
-    clearLocalUser();
     handleSignedOut();
     toast("Signed out.", "info");
   });
@@ -567,34 +561,8 @@ function bindAuth() {
     if (!e.target.closest("#profileWrap")) $("#profilePop")?.classList.add("hidden");
   });
 }
-function makeLocalUser(email = "creator@shortscraft.local", name = "Creator") {
-  return {
-    id: "local_" + btoa(email).replace(/=+$/,""),
-    email,
-    user_metadata: { full_name: name, name },
-    app_metadata: { provider: "local" }
-  };
-}
-function saveLocalUser(user) {
-  try { localStorage.setItem("sc:local-user:v2", JSON.stringify(user)); } catch {}
-}
-function clearLocalUser() {
-  try { localStorage.removeItem("sc:local-user:v2"); } catch {}
-}
-function loadLocalUser() {
-  try {
-    const raw = localStorage.getItem("sc:local-user:v2");
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
 async function googleAuth() {
-  if (!STATE.supabase) {
-    const user = makeLocalUser("google-user@shortscraft.local", "Google User");
-    saveLocalUser(user);
-    handleSignedIn(user);
-    toast("Demo Google sign-in enabled locally.", "success");
-    return;
-  }
+  if (!STATE.supabase) { toast("Real sign-in is not configured. Add Supabase environment variables on Render.", "error", 6500); return; }
   try {
     await STATE.supabase.auth.signInWithOAuth({
       provider: "google",
