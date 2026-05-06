@@ -888,15 +888,42 @@ document.addEventListener("DOMContentLoaded", init);
 })();
 
 /* ============================================================
-   Script-to-Video Generator — Video-first upgrade
+   Script-to-Video Generator — Professional fixed engine
+   Fixes: unique styles, ratio scaling, prompt edits, dynamic scenes
    ============================================================ */
 (() => {
   "use strict";
 
   const qs = (s, root = document) => root.querySelector(s);
   const qsa = (s, root = document) => [...root.querySelectorAll(s)];
-  const escHtml = (s) =>
-    String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const escHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+
+  const ASPECTS = {
+    "9:16": { w: 1080, h: 1920, cls: "ratio-916" },
+    "16:9": { w: 1920, h: 1080, cls: "ratio-169" },
+    "1:1":  { w: 1080, h: 1080, cls: "ratio-11" },
+    "4:5":  { w: 1080, h: 1350, cls: "ratio-45" },
+    "3:4":  { w: 1080, h: 1440, cls: "ratio-34" },
+    "2:3":  { w: 1080, h: 1620, cls: "ratio-23" },
+    "21:9": { w: 1920, h: 823,  cls: "ratio-219" }
+  };
+
+  const DEFAULT_EDIT = Object.freeze({
+    fontScale: 1,
+    speed: 1,
+    highlight: "",
+    bgMode: "auto",
+    minimal: false,
+    premium: false,
+    wordMode: "normal",
+    align: "center",
+    density: 1,
+    hideBrand: false,
+    hideMeta: true,
+    raw: ""
+  });
 
   const VIDEO_STATE = {
     mode: "paste",
@@ -904,154 +931,270 @@ document.addEventListener("DOMContentLoaded", init);
     script: "",
     style: "viral-hook",
     aspect: "9:16",
-    edit: {
-      fontScale: 1,
-      speed: 1,
-      highlight: "",
-      darker: false,
-      minimal: false,
-      premium: false,
-      reduceGlitch: false
-    }
+    edit: { ...DEFAULT_EDIT }
   };
 
   const STYLE_MAP = {
     "viral-hook": {
       name: "YouTube Viral Hook",
-      bg: "linear-gradient(135deg,#111827,#000)",
-      text: "#ffffff",
-      accent: "#ff3d6e",
-      accent2: "#ffb02e",
-      font: "'Arial Black', Impact, sans-serif",
-      extra: ".word{text-transform:uppercase}.highlight{color:var(--highlight)}"
+      vibe: "Aggressive kinetic hook",
+      bg: "#050505",
+      fg: "#ffffff",
+      muted: "rgba(255,255,255,.72)",
+      accent: "#ffffff",
+      accent2: "#ff2d55",
+      font: "'Arial Black', Impact, 'Noto Sans Devanagari', system-ui, sans-serif",
+      scene: "viral",
+      bodyClass: "style-viral",
+      css: `
+        .stage{background:#050505;color:#fff}
+        .stage::before{background:linear-gradient(120deg,rgba(255,255,255,.06),transparent 45%),radial-gradient(circle at 75% 25%,rgba(255,45,85,.22),transparent 32%)}
+        .word{font-weight:1000;text-transform:uppercase;letter-spacing:-.085em;text-shadow:9px 9px 0 rgba(255,45,85,.45)}
+        .word.key{color:#050505;background:#fff;padding:.02em .12em;border-radius:.12em;text-shadow:none;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+        .scene-enter .word{animation:flyUp .42s cubic-bezier(.15,.85,.12,1.25) both}
+        @keyframes flyUp{from{opacity:0;transform:translateY(150px) rotate(-4deg) scale(.78)}to{opacity:1;transform:translateY(0) rotate(0) scale(1)}}`
     },
     "clean-minimal": {
       name: "Clean Minimal White",
-      bg: "linear-gradient(135deg,#ffffff,#f3f4f6)",
-      text: "#111827",
+      vibe: "Elegant whitespace",
+      bg: "#ffffff",
+      fg: "#111827",
+      muted: "rgba(15,23,42,.55)",
       accent: "#111827",
-      accent2: "#6b7280",
-      font: "Inter, Arial, sans-serif",
-      extra: ".highlight{background:#111827;color:#fff;border-radius:18px;padding:0 .16em;text-shadow:none}"
+      accent2: "#64748b",
+      font: "Inter, 'Noto Sans Devanagari', Arial, sans-serif",
+      scene: "minimal",
+      bodyClass: "style-clean",
+      css: `
+        .stage{background:#fff;color:#111827}
+        .stage::before{background:radial-gradient(circle at 18% 82%,rgba(15,23,42,.035),transparent 32%)}
+        .frame{border-color:rgba(15,23,42,.08);box-shadow:none}
+        .brand,.watermark,.dots,.scene-index{color:rgba(15,23,42,.38)}
+        .word{font-weight:650;letter-spacing:-.055em;text-shadow:none}
+        .word.key{font-weight:900;color:#000}
+        .scene-enter .word{animation:cleanSlide .72s cubic-bezier(.18,.8,.2,1) both}
+        @keyframes cleanSlide{from{opacity:0;transform:translateY(34px);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}`
     },
     "neon-cyber": {
       name: "Neon Cyber Kinetic",
-      bg: "radial-gradient(circle at 20% 20%,#123,transparent 32%),radial-gradient(circle at 80% 70%,#3b0764,transparent 36%),#030712",
-      text: "#ffffff",
-      accent: "#22d3ee",
-      accent2: "#a855f7",
-      font: "'Arial Black', Impact, sans-serif",
-      extra: ".word{text-transform:uppercase;text-shadow:0 0 calc(32px * var(--effect)) var(--accent),0 0 calc(80px * var(--effect)) var(--accent2)}"
+      vibe: "Cyan purple glow",
+      bg: "#000000",
+      fg: "#eaffff",
+      muted: "rgba(234,255,255,.68)",
+      accent: "#00f5ff",
+      accent2: "#b44fff",
+      font: "'Arial Black', Impact, 'Noto Sans Devanagari', system-ui, sans-serif",
+      scene: "neon",
+      bodyClass: "style-neon",
+      css: `
+        .stage{background:#000;color:#eaffff}
+        .stage::before{background:radial-gradient(circle at 20% 25%,rgba(0,245,255,.27),transparent 30%),radial-gradient(circle at 80% 70%,rgba(180,79,255,.30),transparent 35%)}
+        .stage::after{opacity:.38;background-size:48px 48px;background-image:linear-gradient(rgba(0,245,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(180,79,255,.1) 1px,transparent 1px)}
+        .word{font-weight:1000;text-transform:uppercase;text-shadow:0 0 18px #00f5ff,0 0 48px #b44fff,0 0 88px rgba(0,245,255,.7)}
+        .word.key{color:#00f5ff;filter:drop-shadow(0 0 18px #00f5ff)}
+        .scene-enter .word{animation:neonZoom .34s cubic-bezier(.12,.9,.16,1.3) both}
+        @keyframes neonZoom{from{opacity:0;transform:scale(2.1);filter:blur(12px)}to{opacity:1;transform:scale(1);filter:blur(0)}}`
     },
     "motivation": {
       name: "Motivation Reel Style",
-      bg: "radial-gradient(circle at 50% 20%,#334155,#020617 70%)",
-      text: "#ffffff",
-      accent: "#facc15",
-      accent2: "#ffffff",
-      font: "'Arial Black', Impact, sans-serif",
-      extra: ".word{text-transform:uppercase;text-shadow:0 calc(12px * var(--effect)) 0 rgba(0,0,0,.38)}"
+      vibe: "Energetic bounce",
+      bg: "linear-gradient(135deg,#ff3d2e 0%,#fb7a1f 48%,#ffb703 100%)",
+      fg: "#ffffff",
+      muted: "rgba(255,255,255,.8)",
+      accent: "#ffffff",
+      accent2: "#2b1300",
+      font: "'Arial Black', Impact, 'Noto Sans Devanagari', system-ui, sans-serif",
+      scene: "bounce",
+      bodyClass: "style-motivation",
+      css: `
+        .stage{background:linear-gradient(135deg,#ff3d2e 0%,#fb7a1f 48%,#ffb703 100%);color:#fff}
+        .stage::before{background:radial-gradient(circle at 15% 20%,rgba(255,255,255,.28),transparent 26%),radial-gradient(circle at 80% 88%,rgba(43,19,0,.22),transparent 34%)}
+        .word{font-weight:1000;text-transform:uppercase;text-shadow:0 12px 0 rgba(0,0,0,.17),0 25px 70px rgba(0,0,0,.23)}
+        .word.key{color:#2b1300;background:#fff;padding:.01em .12em;border-radius:.16em;text-shadow:none}
+        .scene-enter .word{animation:bounceWord .48s cubic-bezier(.16,1.24,.24,1) both}
+        @keyframes bounceWord{0%{opacity:0;transform:translateY(80px) scale(.55)}60%{transform:translateY(-14px) scale(1.09)}100%{opacity:1;transform:none}}`
     },
     "podcast": {
       name: "Modern Podcast Subtitle",
-      bg: "linear-gradient(180deg,#111827,#030712)",
-      text: "#ffffff",
-      accent: "#22c55e",
+      vibe: "Bottom subtitle highlight",
+      bg: "#171717",
+      fg: "#ffffff",
+      muted: "rgba(255,255,255,.72)",
+      accent: "#FFD60A",
       accent2: "#ffffff",
-      font: "Inter, Arial, sans-serif",
-      extra: ".scene{justify-content:flex-end;padding-bottom:12vh}.word{font-size:calc(clamp(34px,6vw,78px) * var(--font-scale));background:rgba(0,0,0,.55);padding:28px 38px;border-radius:28px;line-height:1.1}"
+      font: "Inter, 'Noto Sans Devanagari', Arial, sans-serif",
+      scene: "subtitle",
+      bodyClass: "style-podcast",
+      css: `
+        .stage{background:#171717;color:#fff}
+        .stage::before{background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.58) 72%,rgba(0,0,0,.92) 100%)}
+        .scene{align-items:center;justify-content:flex-end;padding-bottom:14.2%}
+        .headline{max-width:88%;font-size:calc(var(--font-size) * .62)!important;line-height:1.16;letter-spacing:-.035em}
+        .word{font-weight:850;background:rgba(0,0,0,.46);padding:.08em .14em;margin:.04em;border-radius:.18em}
+        .word.key{background:#FFD60A;color:#171717;text-shadow:none}
+        .scene-enter .word{animation:subUp .55s cubic-bezier(.18,.8,.2,1) both}
+        @keyframes subUp{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:none}}`
     },
     "news": {
       name: "Bold News Style",
-      bg: "linear-gradient(135deg,#0a0a0a,#111827)",
-      text: "#ffffff",
-      accent: "#ef233c",
+      vibe: "Breaking news flash",
+      bg: "linear-gradient(135deg,#ffffff 0%,#f5f5f5 58%,#d90429 58%,#b00020 100%)",
+      fg: "#111111",
+      muted: "rgba(17,17,17,.65)",
+      accent: "#d90429",
       accent2: "#ffffff",
-      font: "'Arial Black', Impact, sans-serif",
-      extra: ".meta{background:#ef233c;color:#fff;top:0;left:0;right:0;padding:16px 28px}.word{text-transform:uppercase}.highlight{background:#ef233c;color:#fff;padding:0 .14em;text-shadow:none}"
+      font: "'Arial Black', Impact, 'Noto Sans Devanagari', system-ui, sans-serif",
+      scene: "news",
+      bodyClass: "style-news",
+      css: `
+        .stage{background:linear-gradient(135deg,#fff 0%,#f5f5f5 58%,#d90429 58%,#b00020 100%);color:#111}
+        .breaking{display:block!important;position:absolute;left:0;top:0;right:0;background:#d90429;color:#fff;padding:34px 70px;font:1000 42px/1 'Arial Black',Impact,sans-serif;letter-spacing:.08em;text-transform:uppercase;z-index:5}
+        .word{font-weight:1000;text-transform:uppercase;text-shadow:none;color:#111}
+        .word.key{background:#d90429;color:#fff;padding:.02em .12em;text-shadow:none}
+        .scene-enter .word{animation:flashIn .24s steps(2,end) both}
+        @keyframes flashIn{from{opacity:0;filter:brightness(4);transform:scale(1.22)}to{opacity:1;filter:none;transform:scale(1)}}`
     },
     "horror": {
       name: "Horror / Mystery Style",
-      bg: "radial-gradient(circle at 50% 30%,#3f0a0a,#020202 60%)",
-      text: "#e5e7eb",
-      accent: "#ef4444",
-      accent2: "#ffffff",
-      font: "Georgia, 'Times New Roman', serif",
-      extra: ".word{text-shadow:0 0 calc(24px * var(--effect)) #ef4444}.stage{animation:flicker calc(4s * var(--speed)) infinite}@keyframes flicker{0%,95%,100%{filter:brightness(1)}96%{filter:brightness(.45)}97%{filter:brightness(1.25)}}"
+      vibe: "Blood red glitch",
+      bg: "#000000",
+      fg: "#8B0000",
+      muted: "rgba(139,0,0,.7)",
+      accent: "#8B0000",
+      accent2: "#2b0000",
+      font: "Georgia, 'Noto Serif Devanagari', 'Times New Roman', serif",
+      scene: "horror",
+      bodyClass: "style-horror",
+      css: `
+        .stage{background:#000;color:#8B0000;animation:horrorFlicker 4.4s infinite}
+        .stage::before{background:radial-gradient(circle at 50% 48%,rgba(139,0,0,.22),transparent 34%),linear-gradient(180deg,transparent,rgba(139,0,0,.08))}
+        .word{font-weight:900;letter-spacing:-.04em;text-shadow:0 0 14px #8B0000,3px 0 0 rgba(255,0,0,.22)}
+        .word.key{color:#ff1b1b;text-shadow:0 0 26px #8B0000}
+        .scene-enter .word{animation:slowReveal 1.05s ease both}
+        @keyframes slowReveal{0%{opacity:0;filter:blur(18px);transform:translateX(-18px)}65%{opacity:.55;transform:translateX(8px)}100%{opacity:1;filter:blur(0);transform:none}}
+        @keyframes horrorFlicker{0%,92%,100%{filter:brightness(1)}93%{filter:brightness(.35)}94%{filter:brightness(1.5)}95%{filter:brightness(.7)}}`
     },
     "luxury": {
       name: "Luxury Gold Premium",
-      bg: "radial-gradient(circle at 50% 20%,#3b2f11,#050505 55%)",
-      text: "#fff7d6",
-      accent: "#f5c542",
+      vibe: "Serif shimmer",
+      bg: "radial-gradient(circle at 50% 12%,#201804 0%,#070707 54%,#000 100%)",
+      fg: "#D4AF37",
+      muted: "rgba(212,175,55,.72)",
+      accent: "#D4AF37",
       accent2: "#fff1a8",
-      font: "Georgia, 'Times New Roman', serif",
-      extra: ".word{font-weight:700;letter-spacing:-.035em}.highlight{font-style:italic}"
+      font: "Georgia, 'Noto Serif Devanagari', 'Times New Roman', serif",
+      scene: "luxury",
+      bodyClass: "style-luxury",
+      css: `
+        .stage{background:radial-gradient(circle at 50% 12%,#201804 0%,#070707 54%,#000 100%);color:#D4AF37}
+        .stage::before{background:linear-gradient(110deg,transparent 0%,rgba(212,175,55,.16) 48%,transparent 58%);animation:shimmer 3.8s infinite}
+        .frame{border-color:rgba(212,175,55,.22)}
+        .word{font-weight:800;letter-spacing:-.055em;background:linear-gradient(90deg,#8d6b18,#D4AF37,#fff1a8,#D4AF37);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 18px 70px rgba(212,175,55,.18)}
+        .word.key{filter:drop-shadow(0 0 12px rgba(212,175,55,.52))}
+        .scene-enter .word{animation:goldFade 1.1s ease both}
+        @keyframes goldFade{from{opacity:0;transform:translateY(24px);filter:blur(10px)}to{opacity:1;transform:none;filter:blur(0)}}
+        @keyframes shimmer{from{transform:translateX(-80%)}to{transform:translateX(80%)}}`
     },
     "social-pop": {
       name: "Social Gradient Pop",
-      bg: "linear-gradient(135deg,#ff416c,#ff4b2b 35%,#7c3aed 75%,#06b6d4)",
-      text: "#ffffff",
+      vibe: "Playful gradient",
+      bg: "linear-gradient(135deg,#7c3aed,#ec4899 48%,#fb7185 100%)",
+      fg: "#ffffff",
+      muted: "rgba(255,255,255,.78)",
       accent: "#fde047",
-      accent2: "#ffffff",
-      font: "'Arial Black', Impact, sans-serif",
-      extra: ".word{text-transform:uppercase;-webkit-text-stroke:calc(2px * var(--effect)) rgba(0,0,0,.14);text-shadow:calc(8px * var(--effect)) calc(8px * var(--effect)) 0 rgba(0,0,0,.14)}"
+      accent2: "#38bdf8",
+      font: "'Arial Black', Impact, 'Noto Sans Devanagari', system-ui, sans-serif",
+      scene: "pop",
+      bodyClass: "style-social",
+      css: `
+        .stage{background:linear-gradient(135deg,#7c3aed,#ec4899 48%,#fb7185 100%);color:#fff}
+        .stage::before{background:radial-gradient(circle at 15% 25%,rgba(255,255,255,.28),transparent 25%),radial-gradient(circle at 85% 70%,rgba(56,189,248,.35),transparent 30%)}
+        .word{font-weight:1000;text-transform:uppercase;text-shadow:0 9px 0 rgba(0,0,0,.16)}
+        .word.key{color:#fde047;-webkit-text-stroke:3px rgba(0,0,0,.16)}
+        .scene-enter .word{animation:popWord .45s cubic-bezier(.2,1.4,.25,1) both}
+        @keyframes popWord{0%{opacity:0;transform:scale(.35) rotate(-8deg)}70%{transform:scale(1.16) rotate(2deg)}100%{opacity:1;transform:none}}`
     },
     "documentary": {
       name: "Faceless Documentary",
-      bg: "linear-gradient(rgba(0,0,0,.68),rgba(0,0,0,.76)),radial-gradient(circle at 50% 40%,#475569,#020617 70%)",
-      text: "#f8fafc",
+      vibe: "Cinematic evidence board",
+      bg: "linear-gradient(rgba(0,0,0,.7),rgba(0,0,0,.86)),radial-gradient(circle at 50% 30%,#475569,#020617 68%)",
+      fg: "#f8fafc",
+      muted: "rgba(248,250,252,.7)",
       accent: "#f59e0b",
-      accent2: "#ffffff",
-      font: "Inter, Arial, sans-serif",
-      extra: ".word{font-size:calc(clamp(38px,7vw,98px) * var(--font-scale));letter-spacing:-.045em;text-transform:none}"
+      accent2: "#e2e8f0",
+      font: "Inter, 'Noto Sans Devanagari', Arial, sans-serif",
+      scene: "doc",
+      bodyClass: "style-doc",
+      css: `.word{font-weight:900;letter-spacing:-.055em}.word.key{color:#f59e0b}.scene-enter .word{animation:docIn .68s ease both}@keyframes docIn{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:none}}`
     },
     "tech-blueprint": {
       name: "Tech Explainer Blueprint",
+      vibe: "Grid blueprint",
       bg: "linear-gradient(135deg,#082f49,#020617)",
-      text: "#e0f2fe",
+      fg: "#e0f2fe",
+      muted: "rgba(224,242,254,.68)",
       accent: "#7dd3fc",
-      accent2: "#ffffff",
-      font: "Inter, Arial, sans-serif",
-      extra: ".stage::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(125,211,252,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(125,211,252,.12) 1px,transparent 1px);background-size:54px 54px;opacity:.8}.word{text-shadow:0 0 calc(28px * var(--effect)) rgba(125,211,252,.35)}"
+      accent2: "#22d3ee",
+      font: "Inter, 'Noto Sans Devanagari', Arial, sans-serif",
+      scene: "tech",
+      bodyClass: "style-tech",
+      css: `.stage::after{opacity:.55;background-size:54px 54px;background-image:linear-gradient(rgba(125,211,252,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(125,211,252,.12) 1px,transparent 1px)}.word{font-weight:900}.word.key{color:#7dd3fc;text-shadow:0 0 20px rgba(125,211,252,.65)}.scene-enter .word{animation:techIn .55s ease both}@keyframes techIn{from{opacity:0;transform:translateY(-18px) scale(.94)}to{opacity:1;transform:none}}`
     },
     "gaming": {
       name: "Gaming Esports Style",
+      vibe: "Esports impact",
       bg: "linear-gradient(135deg,#020617,#111827 45%,#3b0764)",
-      text: "#ffffff",
+      fg: "#ffffff",
+      muted: "rgba(255,255,255,.72)",
       accent: "#39ff14",
       accent2: "#f97316",
-      font: "'Arial Black', Impact, sans-serif",
-      extra: ".word{text-transform:uppercase;transform:skew(-7deg);text-shadow:calc(5px * var(--effect)) calc(5px * var(--effect)) 0 var(--accent2),0 0 calc(34px * var(--effect)) var(--accent)}"
+      font: "'Arial Black', Impact, 'Noto Sans Devanagari', system-ui, sans-serif",
+      scene: "gaming",
+      bodyClass: "style-gaming",
+      css: `.word{font-weight:1000;text-transform:uppercase;transform:skew(-7deg);text-shadow:6px 6px 0 #f97316,0 0 28px #39ff14}.word.key{color:#39ff14}.scene-enter .word{animation:gameIn .36s cubic-bezier(.2,1.25,.25,1) both}@keyframes gameIn{from{opacity:0;transform:translateX(-120px) skew(-7deg) scale(.8)}to{opacity:1;transform:skew(-7deg) scale(1)}}`
     },
     "classroom": {
       name: "Classroom Educational",
+      vibe: "Smart learning board",
       bg: "linear-gradient(135deg,#064e3b,#022c22)",
-      text: "#ffffff",
+      fg: "#ffffff",
+      muted: "rgba(255,255,255,.72)",
       accent: "#bbf7d0",
-      accent2: "#ffffff",
-      font: "Inter, Arial, sans-serif",
-      extra: ".stage::before{content:'';position:absolute;inset:46px;border:3px solid rgba(255,255,255,.18);border-radius:28px}.word{font-weight:850}"
+      accent2: "#34d399",
+      font: "Inter, 'Noto Sans Devanagari', Arial, sans-serif",
+      scene: "classroom",
+      bodyClass: "style-classroom",
+      css: `.frame{border:4px solid rgba(187,247,208,.24)}.word{font-weight:950}.word.key{color:#bbf7d0;text-decoration:underline;text-decoration-thickness:.07em;text-underline-offset:.12em}.scene-enter .word{animation:boardIn .62s ease both}@keyframes boardIn{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}`
     },
     "vhs": {
       name: "Retro VHS Style",
+      vibe: "Analog retro scanlines",
       bg: "linear-gradient(135deg,#1e1b4b,#111827)",
-      text: "#ffffff",
+      fg: "#ffffff",
+      muted: "rgba(255,255,255,.72)",
       accent: "#f472b6",
       accent2: "#22d3ee",
-      font: "'Courier New', monospace",
-      extra: ".word{text-transform:uppercase;text-shadow:calc(3px * var(--effect)) 0 var(--accent2),calc(-3px * var(--effect)) 0 var(--accent)}.stage::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 4px);mix-blend-mode:overlay;pointer-events:none}"
+      font: "'Courier New', 'Noto Sans Devanagari', monospace",
+      scene: "vhs",
+      bodyClass: "style-vhs",
+      css: `.stage::after{opacity:.75;background:repeating-linear-gradient(0deg,rgba(255,255,255,.065) 0 2px,transparent 2px 6px)}.word{font-weight:1000;text-transform:uppercase;text-shadow:4px 0 #22d3ee,-4px 0 #f472b6}.word.key{color:#f472b6}.scene-enter .word{animation:vhsIn .52s steps(3,end) both}@keyframes vhsIn{from{opacity:0;transform:translateX(36px);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}`
     },
     "startup": {
       name: "Startup SaaS Clean",
+      vibe: "Premium SaaS pitch",
       bg: "linear-gradient(135deg,#f8fafc,#eef2ff)",
-      text: "#111827",
+      fg: "#111827",
+      muted: "rgba(15,23,42,.56)",
       accent: "#2563eb",
-      accent2: "#111827",
-      font: "Inter, Arial, sans-serif",
-      extra: ".word{font-size:calc(clamp(44px,7vw,100px) * var(--font-scale));font-weight:850}.highlight{color:#2563eb;text-shadow:none}"
+      accent2: "#0f172a",
+      font: "Inter, 'Noto Sans Devanagari', Arial, sans-serif",
+      scene: "startup",
+      bodyClass: "style-startup",
+      css: `.stage{color:#111827}.frame{border-color:rgba(37,99,235,.15)}.word{font-weight:900;letter-spacing:-.07em}.word.key{color:#2563eb}.scene-enter .word{animation:startupIn .65s cubic-bezier(.18,.8,.2,1) both}@keyframes startupIn{from{opacity:0;transform:translateY(26px) scale(.97)}to{opacity:1;transform:none}}`
     }
   };
+
+  function resetEdits() { VIDEO_STATE.edit = { ...DEFAULT_EDIT }; }
 
   function splitScript(script, aspect = "9:16") {
     const raw = String(script || "")
@@ -1060,288 +1203,187 @@ document.addEventListener("DOMContentLoaded", init);
       .replace(/[•▪▫➜►]/g, "\n")
       .replace(/\n{2,}/g, "\n")
       .trim();
-
     if (!raw) return [];
 
     const tall = ["9:16", "4:5", "3:4", "2:3"].includes(aspect);
-    const square = aspect === "1:1";
     const wide = ["16:9", "21:9"].includes(aspect);
-    const maxWords = tall ? 4 : square ? 6 : wide ? 8 : 6;
-    const maxChars = tall ? 24 : square ? 34 : wide ? 48 : 38;
-    const hardLimit = tall ? 18 : wide ? 14 : 16;
+    const maxWords = tall ? 5 : wide ? 9 : 7;
+    const maxChars = tall ? 32 : wide ? 62 : 44;
+    const hardLimit = tall ? 28 : wide ? 22 : 24;
 
     const sentences = raw
       .split(/\n+|(?<=[.!?।])\s+/)
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const lines = [];
-    sentences.forEach((sentence) => {
+    const out = [];
+    for (const sentence of sentences) {
       const words = sentence.split(/\s+/).filter(Boolean);
-      if (!words.length) return;
-      if (sentence.length <= maxChars && words.length <= maxWords + 1) {
-        lines.push(sentence);
-        return;
-      }
-
+      if (!words.length) continue;
       let chunk = [];
-      words.forEach((w) => {
-        const next = [...chunk, w].join(" ");
+      for (const word of words) {
+        const next = [...chunk, word].join(" ");
         if (chunk.length >= maxWords || next.length > maxChars) {
-          if (chunk.length) lines.push(chunk.join(" "));
-          chunk = [w];
+          if (chunk.length) out.push(chunk.join(" "));
+          chunk = [word];
         } else {
-          chunk.push(w);
+          chunk.push(word);
         }
-      });
-      if (chunk.length) lines.push(chunk.join(" "));
-    });
-
-    return lines
-      .map((s) => s.replace(/^[-–—]+/, "").trim())
-      .filter(Boolean)
-      .slice(0, hardLimit);
+      }
+      if (chunk.length) out.push(chunk.join(" "));
+    }
+    return out.map(s => s.replace(/^[-–—:]+/, "").trim()).filter(Boolean).slice(0, hardLimit);
   }
 
-  function parseEdits(prompt) {
+  function parseEdits(prompt, reset = false) {
+    if (reset) resetEdits();
     const p = String(prompt || "").toLowerCase();
     const e = VIDEO_STATE.edit;
     e.raw = p;
 
-    if (/bigger|large|text bada|font bada|big/.test(p)) e.fontScale = 1.18;
-    if (/small|text chhota|font chhota|smaller/.test(p)) e.fontScale = 0.9;
-    if (/slow|slower|animation slow/.test(p)) e.speed = 1.35;
-    if (/fast|faster|animation fast/.test(p)) e.speed = 0.75;
+    if (/bigger|large|huge|text bada|font bada|big/.test(p)) e.fontScale = Math.max(e.fontScale, 1.22);
+    if (/small|smaller|text chhota|font chhota/.test(p)) e.fontScale = Math.min(e.fontScale, 0.86);
+    if (/slow|slower|animation slow/.test(p)) e.speed = Math.max(e.speed, 1.45);
+    if (/fast|faster|animation fast/.test(p)) e.speed = Math.min(e.speed, 0.72);
 
-    if (/yellow|gold/.test(p)) e.highlight = "#facc15";
-    else if (/\bred\b|pink/.test(p)) e.highlight = "#fb7185";
-    else if (/\bblue\b|cyan/.test(p)) e.highlight = "#38bdf8";
-    else if (/\bgreen\b/.test(p)) e.highlight = "#22c55e";
-    else if (/purple|violet/.test(p)) e.highlight = "#a78bfa";
+    if (/yellow|highlight/.test(p)) e.highlight = "#FFD60A";
+    if (/gold|luxury/.test(p)) e.highlight = "#D4AF37";
+    if (/cyan|blue|neon/.test(p)) e.highlight = "#00f5ff";
+    if (/purple|violet/.test(p)) e.highlight = "#b44fff";
+    if (/red|blood/.test(p)) e.highlight = "#ff2d55";
+    if (/green/.test(p)) e.highlight = "#22c55e";
 
-    if (/dark|darker|background dark|black background|night/.test(p)) e.bgMode = "dark";
-    if (/light|lighter|white background|light background|bright/.test(p)) e.bgMode = "light";
-
-    if (/minimal|simple|clean/.test(p)) e.minimal = true;
-    if (/premium|luxury|smooth|professional|modern|stylish/.test(p)) e.premium = true;
-    if (/glitch kam|reduce glitch|less glitch/.test(p)) e.reduceGlitch = true;
-    if (/more elements|less empty|not empty|fuller|fill space|add shapes|add elements/.test(p)) e.dense = true;
-    if (/left align|left side|left text/.test(p)) e.align = "left";
+    if (/dark|darker|black|night/.test(p)) e.bgMode = "dark";
+    if (/light|white|bright/.test(p)) e.bgMode = "light";
+    if (/minimal|simple|clean|less elements/.test(p)) { e.minimal = true; e.density = 0; e.wordMode = "minimal"; }
+    if (/premium|luxury|gold|professional|modern|shimmer/.test(p)) { e.premium = true; e.density = Math.max(e.density, 2); }
+    if (/more elements|less empty|fill|fuller|add shape|add elements/.test(p)) e.density = 2;
+    if (/left/.test(p)) e.align = "left";
     if (/center|centre/.test(p)) e.align = "center";
-    if (/remove top text|hide top text|no top text|remove useless text/.test(p)) e.hideTag = true;
-    if (/show top text|show style/.test(p)) e.hideTag = false;
-    if (/remove footer|hide footer|remove generated|no footer/.test(p)) e.hideFooter = true;
-    if (/show footer/.test(p)) e.hideFooter = false;
-    if (/remove number|hide number|no number/.test(p)) e.hideCounter = true;
-    if (/show number/.test(p)) e.hideCounter = false;
-    if (/remove brand|hide brand|no brand|remove shortscraft/.test(p)) e.hideBrand = true;
+    if (/hide brand|remove brand|no brand/.test(p)) e.hideBrand = true;
     if (/show brand/.test(p)) e.hideBrand = false;
+    if (/show top|style name|meta/.test(p)) e.hideMeta = false;
+    if (/hide top|remove top|no top/.test(p)) e.hideMeta = true;
   }
 
-  function resetEdits() {
-    VIDEO_STATE.edit = {
-      fontScale: 1,
-      speed: 1,
-      highlight: "",
-      darker: false,
-      minimal: false,
-      premium: false,
-      reduceGlitch: false,
-      bgMode: "auto",
-      hideTag: true,
-      hideFooter: true,
-      hideCounter: false,
-      hideBrand: false,
-      dense: true,
-      align: "center",
-      raw: ""
-    };
+  function getEditedStyle(style) {
+    const e = VIDEO_STATE.edit;
+    const s = { ...style };
+    if (e.bgMode === "dark") {
+      s.bg = "#050505"; s.fg = "#f8fafc"; s.muted = "rgba(248,250,252,.72)";
+    }
+    if (e.bgMode === "light") {
+      s.bg = "linear-gradient(135deg,#ffffff,#f8fafc)"; s.fg = "#0f172a"; s.muted = "rgba(15,23,42,.58)";
+    }
+    if (e.minimal) {
+      s.bg = e.bgMode === "dark" ? "#050505" : "#ffffff";
+      s.fg = e.bgMode === "dark" ? "#f8fafc" : "#0f172a";
+      s.font = "Inter, 'Noto Sans Devanagari', Arial, sans-serif";
+    }
+    if (e.premium) {
+      s.accent = e.highlight || "#D4AF37";
+      s.accent2 = "#fff1a8";
+    }
+    if (e.highlight) s.accent = e.highlight;
+    return s;
   }
 
   function generateVideoHtml(script, styleKey, aspect) {
-    const style = STYLE_MAP[styleKey] || STYLE_MAP["viral-hook"];
+    const baseStyle = STYLE_MAP[styleKey] || STYLE_MAP["viral-hook"];
+    const style = getEditedStyle(baseStyle);
+    const size = ASPECTS[aspect] || ASPECTS["9:16"];
     const lines = splitScript(script, aspect);
     const safeLines = JSON.stringify(lines.length ? lines : ["Paste a script first"]);
-    const edit = VIDEO_STATE.edit;
-    const tall = ["9:16", "4:5", "3:4", "2:3"].includes(aspect);
-    const square = aspect === "1:1";
-    const wide = ["16:9", "21:9"].includes(aspect);
-    const highlight = edit.highlight || style.accent;
-    const speed = edit.speed || 1;
-    const duration = Math.max(2800, Math.round(3000 * speed));
-    const total = Math.max(9000, (lines.length || 1) * duration);
-    const aspectMap = {"9:16":"9/16","16:9":"16/9","1:1":"1/1","4:5":"4/5","3:4":"3/4","2:3":"2/3","21:9":"21/9"};
-    const stageAspect = aspectMap[aspect] || "9/16";
-    const stageWidth = wide ? "min(100vw, 1920px)" : square ? "min(100vw, 1180px)" : "min(100vw, 1080px)";
-
-    let bg = style.bg;
-    let textColor = style.text;
-    if (edit.bgMode === "light") {
-      bg = styleKey === "social-pop"
-        ? "linear-gradient(135deg,#fff7ed,#ffe4e6 42%,#ede9fe 78%,#e0f2fe)"
-        : styleKey === "neon-cyber"
-        ? "linear-gradient(135deg,#ecfeff,#eef2ff 50%,#fdf2f8)"
-        : "linear-gradient(135deg,#ffffff,#f8fafc 46%,#eef2ff 100%)";
-      textColor = "#0f172a";
-    } else if (edit.bgMode === "dark") {
-      bg = "radial-gradient(circle at 20% 15%,rgba(255,255,255,.06),transparent 22%), radial-gradient(circle at 85% 80%,rgba(255,255,255,.05),transparent 20%), linear-gradient(135deg,#050816,#03040c 62%,#0b1021)";
-      textColor = "#f8fafc";
-    }
+    const e = VIDEO_STATE.edit;
+    const tall = size.h > size.w;
+    const wide = size.w > size.h;
+    const baseFont = tall ? 94 : wide ? 86 : 74;
+    const duration = Math.round((tall ? 2600 : 2400) * e.speed);
+    const effectDensity = e.minimal ? 0 : e.density;
 
     return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ShortsCraft Premium Animated Video</title>
+<title>ShortsCraft Generated Video</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#000;overflow:hidden}
-body{display:grid;place-items:center;font-family:${style.font};}
-.stage{--accent:${style.accent};--accent2:${style.accent2};--highlight:${highlight};--text:${textColor};--font-scale:${edit.fontScale};position:relative;width:${stageWidth};aspect-ratio:${stageAspect};max-height:100vh;overflow:hidden;background:${bg};color:var(--text)}
-.stage::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 15%,rgba(255,255,255,.${edit.minimal ? '08':'14'}),transparent 22%),radial-gradient(circle at 85% 20%,rgba(255,255,255,.08),transparent 20%),radial-gradient(circle at 70% 84%,rgba(255,255,255,.10),transparent 18%)}
-.stage::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:${wide ? '68px 68px':'50px 50px'};mask-image:radial-gradient(circle at 50% 45%,#000,transparent 82%);opacity:${edit.minimal ? '.10' : '.26'}}
-.bg-orb,.bg-orb2,.bg-orb3{position:absolute;border-radius:50%;filter:blur(${wide ? '60px':'48px'});opacity:${edit.minimal ? '.22' : '.38'};pointer-events:none}
-.bg-orb{width:38%;height:38%;left:-8%;top:-7%;background:var(--accent)}
-.bg-orb2{width:44%;height:44%;right:-12%;bottom:-12%;background:var(--accent2)}
-.bg-orb3{width:26%;height:26%;right:20%;top:14%;background:var(--highlight);opacity:.16}
-.frame{position:absolute;inset:${wide ? '6%':'6.2%'};border-radius:${wide ? '34px':'40px'};border:1.5px solid rgba(255,255,255,.15);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03), inset 0 0 80px rgba(255,255,255,.035)}
-.brand{position:absolute;top:${wide ? '5.1%':'5.3%'};left:${wide ? '5.1%':'7%'};font:900 clamp(14px,2vw,25px) Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.86)' : 'rgba(255,255,255,.88)'}}
-.top-meta{position:absolute;top:${wide ? '5.1%':'5.3%'};right:${wide ? '5.1%':'7%'};display:flex;align-items:center;gap:10px;font:800 clamp(11px,1.45vw,17px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.68)' : 'rgba(255,255,255,.7)'}}
-.top-pill{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);backdrop-filter:blur(10px)}
-.content{position:absolute;inset:${wide ? '14% 9% 16%':'16% 8% 15%'};display:grid;place-items:center;z-index:2}
-.card{position:relative;width:min(${wide ? '74%':'86%'},${wide ? '1150px':'790px'});min-height:${wide ? '46%' : tall ? '42%' : '50%'};padding:${wide ? '38px 46px':'34px 28px'};border-radius:${wide ? '34px':'38px'};background:linear-gradient(180deg,rgba(255,255,255,.${edit.minimal ? '06':'08'}),rgba(255,255,255,.${edit.minimal ? '02':'04'}));border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);display:grid;align-content:center;justify-items:${edit.align === 'left' ? 'start' : 'center'};text-align:${edit.align};overflow:hidden}
-.card::before{content:'';position:absolute;inset:auto -8% -22% auto;width:38%;height:38%;background:radial-gradient(circle,var(--highlight),transparent 68%);opacity:${edit.premium ? '.22':'.10'};filter:blur(18px)}
-.scene-top{display:flex;gap:12px;align-items:center;justify-content:${edit.align === 'left' ? 'flex-start' : 'center'};width:100%;margin-bottom:18px;flex-wrap:wrap}
-.count{display:inline-flex;align-items:center;justify-content:center;min-width:60px;height:48px;padding:0 16px;border-radius:999px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);font:900 clamp(12px,1.4vw,18px) Inter,Arial,sans-serif;color:var(--highlight)}
-.eyebrow{font:800 clamp(12px,1.3vw,16px) Inter,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.56)' : 'rgba(255,255,255,.64)'}}
-.headline{max-width:100%;font-weight:950;letter-spacing:-.06em;line-height:.95;text-wrap:balance;text-shadow:${edit.bgMode === 'light' ? 'none' : '0 16px 48px rgba(0,0,0,.25)'}}
-.subline{margin-top:16px;max-width:${wide ? '80%':'92%'};font:700 clamp(13px,1.6vw,22px) Inter,Arial,sans-serif;line-height:1.35;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.72)' : 'rgba(255,255,255,.74)'}}
-.align-left .subline,.align-left .headline{text-align:left}
-.align-center .subline,.align-center .headline{text-align:center}
-.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:${edit.align === 'left' ? 'flex-start' : 'center'};margin-top:${edit.dense ? '18px':'8px'};width:100%}
-.chip{padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);font:800 clamp(11px,1.2vw,15px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.86)' : 'rgba(255,255,255,.84)'}}
-.side-stack{position:absolute;${wide ? 'right:7%;top:22%;width:180px' : 'right:7%;bottom:18%;width:120px'};display:${edit.dense ? 'grid':'none'};gap:10px;z-index:1}
-.mini-card{padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(12px);font:800 clamp(11px,1.15vw,14px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.82)' : 'rgba(255,255,255,.86)'}}
-.progress{position:absolute;left:0;bottom:0;height:6px;width:100%;background:rgba(255,255,255,.08)}
-.progress>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--highlight));box-shadow:0 0 24px var(--highlight)}
-.corner{position:absolute;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);backdrop-filter:blur(12px);font:900 clamp(12px,1.2vw,14px) Inter,Arial,sans-serif;color:${edit.bgMode === 'light' ? 'rgba(15,23,42,.8)' : 'rgba(255,255,255,.8)'};padding:10px 14px}
-.corner.one{left:${wide ? '7%':'8%'};bottom:${wide ? '8.5%':'8%'}}
-.corner.two{right:${wide ? '7%':'8%'};bottom:${wide ? '8.5%':'8%'}}
-.hl{color:var(--highlight)}
-@keyframes pop{0%{opacity:0;transform:translateY(22px) scale(.96);filter:blur(12px)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
-.card.animate{animation:pop .55s cubic-bezier(.18,.8,.2,1) both}
-${style.extra}
+*{box-sizing:border-box}html,body{margin:0;width:${size.w}px;height:${size.h}px;overflow:hidden;background:#000}
+body{font-family:${style.font};-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+.stage{--w:${size.w};--h:${size.h};--font-size:${baseFont}px;--font-scale:${e.fontScale};--accent:${style.accent};--accent2:${style.accent2};--fg:${style.fg};--muted:${style.muted};position:relative;width:${size.w}px;height:${size.h}px;overflow:hidden;background:${style.bg};color:var(--fg);isolation:isolate}
+.stage::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none}
+.stage::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:${wide ? 76 : 54}px ${wide ? 76 : 54}px;opacity:${effectDensity ? .22 : .06};mask-image:radial-gradient(circle at 50% 45%,#000,transparent 82%)}
+.frame{position:absolute;inset:${Math.round(size.w*.055)}px ${Math.round(size.w*.06)}px;border:2px solid rgba(255,255,255,.16);border-radius:${tall ? 70 : 46}px;z-index:1;pointer-events:none}
+.fx-orb{display:${effectDensity ? "block" : "none"};position:absolute;border-radius:999px;filter:blur(70px);opacity:.28;z-index:0}.fx1{width:42%;height:35%;left:-12%;top:-8%;background:var(--accent)}.fx2{width:42%;height:42%;right:-12%;bottom:-12%;background:var(--accent2)}.fx3{width:25%;height:22%;left:58%;top:18%;background:var(--accent)}
+.breaking{display:none}.brand{position:absolute;left:${Math.round(size.w*.06)}px;top:${Math.round(size.h*.045)}px;z-index:6;font:900 ${wide ? 30 : 27}px/1 Inter,Arial,sans-serif;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}.meta{position:absolute;right:${Math.round(size.w*.06)}px;top:${Math.round(size.h*.043)}px;z-index:6;font:800 ${wide ? 24 : 22}px/1 Inter,Arial,sans-serif;color:var(--muted);padding:12px 18px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+.scene{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;text-align:${e.align};padding:${tall ? "260px 96px 230px" : "170px 160px 150px"}}
+.scene-inner{width:100%;max-width:${wide ? 1460 : 900}px;display:flex;flex-direction:column;align-items:${e.align === "left" ? "flex-start" : "center"};gap:${tall ? 28 : 22}px}
+.eyebrow{font:900 ${wide ? 28 : 24}px/1 Inter,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);opacity:.92}.headline{font-size:calc(var(--font-size) * var(--font-scale));line-height:.94;letter-spacing:-.07em;max-width:100%;text-wrap:balance}.line{display:block;margin:.02em 0}.word{display:inline-block;margin:.015em .06em;will-change:transform,opacity,filter}.word.key{color:var(--accent)}.word.super{font-size:1.18em}.word.punch{color:var(--accent2)}
+.subline{max-width:${wide ? 1080 : 760}px;font:700 ${wide ? 35 : 30}px/1.24 Inter,'Noto Sans Devanagari',Arial,sans-serif;color:var(--muted)}
+.dot-row{position:absolute;left:50%;bottom:${Math.round(size.h*.045)}px;transform:translateX(-50%);display:flex;gap:10px;z-index:6}.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.22)}.dot.active{width:32px;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2))}.scene-index{position:absolute;left:${Math.round(size.w*.06)}px;bottom:${Math.round(size.h*.045)}px;z-index:6;color:var(--muted);font:900 ${wide ? 28 : 24}px/1 Inter,Arial,sans-serif}.watermark{position:absolute;right:${Math.round(size.w*.06)}px;bottom:${Math.round(size.h*.043)}px;z-index:6;color:var(--muted);font:800 ${wide ? 23 : 20}px/1 Inter,Arial,sans-serif;letter-spacing:.02em}.progress{position:absolute;left:0;bottom:0;width:100%;height:${wide ? 8 : 10}px;background:rgba(255,255,255,.1);z-index:8}.progress span{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 30px var(--accent)}
+.scene-enter.scene-alt-1 .word{animation-name:wordLeft}.scene-enter.scene-alt-2 .word{animation-name:wordZoom}.scene-enter.scene-alt-3 .word{animation-name:wordFade}.scene-enter .word{animation-duration:.55s;animation-timing-function:cubic-bezier(.18,.8,.2,1);animation-fill-mode:both;animation-delay:calc(var(--i) * 70ms)}
+@keyframes wordLeft{from{opacity:0;transform:translateX(-90px);filter:blur(9px)}to{opacity:1;transform:none;filter:blur(0)}}@keyframes wordZoom{from{opacity:0;transform:scale(.4) rotate(-2deg);filter:blur(10px)}to{opacity:1;transform:scale(1) rotate(0);filter:blur(0)}}@keyframes wordFade{from{opacity:0;transform:translateY(38px);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}
+${style.css}
 </style>
 </head>
 <body>
-<div class="stage ${edit.align === 'left' ? 'align-left':'align-center'}">
-  <div class="bg-orb"></div><div class="bg-orb2"></div><div class="bg-orb3"></div><div class="frame"></div>
-  ${edit.hideBrand ? '' : '<div class="brand">SHORTSCRAFT</div>'}
-  ${edit.hideTag ? '' : `<div class="top-meta"><span class="top-pill">${style.name}</span><span class="top-pill">${aspect}</span></div>`}
-  <div class="content">
-    <div class="card" id="card">
-      <div class="scene-top">
-        ${edit.hideCounter ? '' : '<span class="count" id="counter">01</span>'}
-        <span class="eyebrow" id="eyebrow">Premium video layout</span>
-      </div>
-      <div class="headline" id="headline"></div>
-      <div class="subline" id="subline"></div>
-      <div class="chips" id="chips"></div>
-    </div>
-  </div>
-  <div class="side-stack">
-    <div class="mini-card">Smooth motion</div>
-    <div class="mini-card">Kinetic typography</div>
-    <div class="mini-card">${aspect} frame</div>
-  </div>
-  <div class="corner one">${wide ? 'Studio grade' : 'Pro style'}</div>
-  <div class="corner two">${edit.bgMode === 'light' ? 'Light theme' : 'Premium theme'}</div>
-  <div class="progress"><span id="bar"></span></div>
+<div class="stage ${style.bodyClass}">
+  <div class="fx-orb fx1"></div><div class="fx-orb fx2"></div><div class="fx-orb fx3"></div><div class="frame"></div><div class="breaking">BREAKING NEWS</div>
+  ${e.hideBrand ? "" : `<div class="brand">SHORTSCRAFT</div>`}
+  ${e.hideMeta ? "" : `<div class="meta">${escHtml(style.name)} · ${aspect}</div>`}
+  <main class="scene" id="scene"><div class="scene-inner"><div class="eyebrow" id="eyebrow">${escHtml(style.vibe)}</div><div class="headline" id="headline"></div><div class="subline" id="subline"></div></div></main>
+  <div class="scene-index" id="sceneIndex">01/${String(lines.length || 1).padStart(2,"0")}</div>
+  <div class="dot-row" id="dotRow"></div>
+  <div class="watermark">shortscraft.online</div>
+  <div class="progress"><span id="progressBar"></span></div>
 </div>
 <script>
-const LINES = ${safeLines};
-const DURATION = ${duration};
-const TOTAL = ${total};
-const ASPECT = ${JSON.stringify(aspect)};
-const isTall = ["9:16","4:5","3:4","2:3"].includes(ASPECT);
-const isWide = ["16:9","21:9"].includes(ASPECT);
-const headline = document.getElementById('headline');
-const subline = document.getElementById('subline');
-const chips = document.getElementById('chips');
-const card = document.getElementById('card');
-const bar = document.getElementById('bar');
-const counter = document.getElementById('counter');
-const eyebrow = document.getElementById('eyebrow');
-const keywords = ["ai","paisa","creator","growth","viral","youtube","instagram","tools","business","online","content","editing","marketing","freelance"];
-function esc(s){return String(s).replace(/[&<>\"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c] || c; });}
-function hiWord(w){
-  const clean = esc(w);
-  const plain = String(w).replace(/[^\w]/g,'').toLowerCase();
-  return keywords.includes(plain) ? '<span class="hl">' + clean + '</span>' : clean;
+const LINES=${safeLines};
+const DURATION=${duration};
+const headline=document.getElementById('headline');
+const subline=document.getElementById('subline');
+const scene=document.getElementById('scene');
+const sceneIndex=document.getElementById('sceneIndex');
+const dotRow=document.getElementById('dotRow');
+const progressBar=document.getElementById('progressBar');
+const strongWords=['ai','paisa','viral','youtube','shorts','creator','growth','secret','online','money','tools','video','content','editing','business','freelance','algorithm','views','income'];
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function isKey(w,i){const clean=String(w).replace(/[^\\p{L}\\p{N}]/gu,'').toLowerCase();return strongWords.includes(clean)||clean.length>=8||/^[A-Z]/.test(w)||i===0||/[!?।]$/.test(w)}
+function rows(words){const per=(${wide ? 7 : tall ? 3 : 5});const out=[];for(let i=0;i<words.length;i+=per)out.push(words.slice(i,i+per));return out;}
+function render(i){
+  const text=LINES[i]||''; const words=text.split(/\\s+/).filter(Boolean);
+  const html=rows(words).map((r,ri)=>'<span class="line">'+r.map((w,wi)=>{const index=ri*10+wi;const cls=['word'];if(isKey(w,index))cls.push('key');if(w.length>9)cls.push('super');if(/[!?]$/.test(w))cls.push('punch');return '<span class="'+cls.join(' ')+'" style="--i:'+index+'">'+esc(w)+'</span>';}).join(' ')+'</span>').join('');
+  headline.innerHTML=html;
+  subline.textContent=LINES[i+1]&&LINES[i+1].length<90?LINES[i+1]:'';
+  scene.classList.remove('scene-enter','scene-alt-1','scene-alt-2','scene-alt-3'); void scene.offsetWidth;
+  scene.classList.add('scene-enter','scene-alt-'+(i%4));
+  sceneIndex.textContent=String(i+1).padStart(2,'0')+'/'+String(LINES.length).padStart(2,'0');
+  dotRow.innerHTML=LINES.map((_,d)=>'<span class="dot '+(d===i?'active':'')+'"></span>').join('');
+  progressBar.style.transition='none';progressBar.style.width='0%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{progressBar.style.transition='width '+DURATION+'ms linear';progressBar.style.width='100%';}));
 }
-function calcRows(text){
-  const words = String(text).split(/\s+/).filter(Boolean);
-  let perLine = isTall ? 3 : isWide ? 6 : 4;
-  if (text.length > (isTall ? 28 : isWide ? 56 : 40)) perLine = Math.max(2, perLine - 1);
-  const rows = [];
-  for (let i=0; i<words.length; i+=perLine) rows.push(words.slice(i, i+perLine));
-  if (rows.length > 4) {
-    const merged = rows.slice(0,3);
-    merged.push(rows.slice(3).flat());
-    return merged;
-  }
-  return rows;
-}
-function renderHeadline(text){
-  const rows = calcRows(text);
-  const len = text.length;
-  let size = '';
-  if (isTall) size = len < 18 ? 'clamp(68px,11vw,126px)' : len < 30 ? 'clamp(56px,9vw,94px)' : len < 46 ? 'clamp(42px,7.5vw,70px)' : 'clamp(32px,6.2vw,54px)';
-  else if (isWide) size = len < 26 ? 'clamp(64px,8vw,120px)' : len < 46 ? 'clamp(48px,6vw,82px)' : 'clamp(34px,4.4vw,62px)';
-  else size = len < 24 ? 'clamp(58px,8vw,108px)' : len < 40 ? 'clamp(44px,6.2vw,76px)' : 'clamp(34px,5.1vw,58px)';
-  headline.style.fontSize = 'calc(' + size + ' * var(--font-scale))';
-  headline.innerHTML = rows.map(function(r){ return '<div>' + r.map(hiWord).join(' ') + '</div>'; }).join('');
-}
-function pickSubline(i){
-  const next = LINES[i+1] || '';
-  if (!next) return isWide ? 'Designed for scroll-stopping short-form videos.' : 'Premium short-form video style.';
-  return next.length > (isTall ? 54 : 70) ? next.slice(0, isTall ? 54 : 70).trim() + '…' : next;
-}
-function makeChips(text){
-  const unique = [];
-  String(text).split(/\s+/).forEach(function(w){
-    const clean = w.replace(/[^\w]/g,'');
-    if (clean.length > 3 && !unique.includes(clean.toLowerCase())) unique.push(clean.toLowerCase());
-  });
-  return unique.slice(0,3).map(function(w){ return w.charAt(0).toUpperCase()+w.slice(1); });
-}
-let idx = 0;
-function draw(i){
-  const line = LINES[i] || '';
-  renderHeadline(line);
-  subline.textContent = pickSubline(i);
-  chips.innerHTML = makeChips(line).map(function(t){ return '<span class="chip">' + esc(t) + '</span>'; }).join('');
-  if (counter) counter.textContent = String(i+1).padStart(2,'0');
-  if (eyebrow) eyebrow.textContent = isWide ? 'Premium animated scene' : 'Premium short scene';
-  card.classList.remove('animate'); void card.offsetWidth; card.classList.add('animate');
-  if (bar) {
-    bar.style.transition = 'none';
-    bar.style.width = '0%';
-    requestAnimationFrame(function(){
-      requestAnimationFrame(function(){
-        bar.style.transition = 'width ' + DURATION + 'ms linear';
-        bar.style.width = '100%';
-      });
-    });
-  }
-}
-draw(0);
-if (LINES.length > 1) setInterval(function(){ idx = (idx + 1) % LINES.length; draw(idx); }, DURATION);
-setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-ended')); } catch(e) {} }, TOTAL);
+let idx=0;render(0);if(LINES.length>1)setInterval(()=>{idx=(idx+1)%LINES.length;render(idx);},DURATION);
 <\/script>
 </body>
 </html>`;
   }
+
+  function resizePreviewFrame() {
+    const frame = qs("#videoPreviewFrame");
+    const wrap = qs("#videoFrameWrap");
+    if (!frame || !wrap) return;
+    const size = ASPECTS[VIDEO_STATE.aspect] || ASPECTS["9:16"];
+    const box = wrap.getBoundingClientRect();
+    if (!box.width || !box.height) return;
+    const scale = Math.min(box.width / size.w, box.height / size.h);
+    frame.style.width = `${size.w}px`;
+    frame.style.height = `${size.h}px`;
+    frame.style.transformOrigin = "top left";
+    frame.style.transform = `scale(${scale})`;
+    frame.style.left = `${(box.width - size.w * scale) / 2}px`;
+    frame.style.top = `${(box.height - size.h * scale) / 2}px`;
+  }
+
   function setPreview(html) {
     const frame = qs("#videoPreviewFrame");
     const empty = qs("#videoEmptyState");
@@ -1352,85 +1394,55 @@ setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-e
     if (empty) empty.classList.add("hidden");
     if (status) status.textContent = "Preview ready";
     if (wrap) {
-      wrap.classList.remove("ratio-916","ratio-169","ratio-11","ratio-45","ratio-34","ratio-23","ratio-219");
-      const cls = {"9:16":"ratio-916","16:9":"ratio-169","1:1":"ratio-11","4:5":"ratio-45","3:4":"ratio-34","2:3":"ratio-23","21:9":"ratio-219"}[VIDEO_STATE.aspect] || "ratio-916";
-      wrap.classList.add(cls);
+      wrap.classList.remove(...Object.values(ASPECTS).map(a => a.cls));
+      wrap.classList.add((ASPECTS[VIDEO_STATE.aspect] || ASPECTS["9:16"]).cls);
     }
+    requestAnimationFrame(resizePreviewFrame);
   }
 
   function buildPreview() {
     const scriptInput = qs("#videoScriptInput");
-    const styleSelect = qs("#videoStyleSelect");
-    const aspectSelect = qs("#videoAspectSelect");
     if (!scriptInput) return;
-
     const script = scriptInput.value.trim();
     if (!script) {
-      if (window.scToast) window.scToast("Please paste or generate a script first.", "error");
-      else alert("Please paste or generate a script first.");
+      window.scToast ? window.scToast("Please paste or generate a script first.", "error") : alert("Please paste or generate a script first.");
       return;
     }
-    const wc = script.split(/\s+/).filter(Boolean).length;
-    if (wc > 180 && window.scToast) window.scToast("For best results, use a clear 180–260 word script for a 1–2 minute video.", "info");
-
     VIDEO_STATE.script = script;
-    VIDEO_STATE.style = styleSelect?.value || "viral-hook";
-    VIDEO_STATE.aspect = aspectSelect?.value || "9:16";
-    VIDEO_STATE.html = generateVideoHtml(script, VIDEO_STATE.style, VIDEO_STATE.aspect);
+    VIDEO_STATE.style = qs("#videoStyleSelect")?.value || "viral-hook";
+    VIDEO_STATE.aspect = qs("#videoAspectSelect")?.value || "9:16";
+    VIDEO_STATE.html = generateVideoHtml(VIDEO_STATE.script, VIDEO_STATE.style, VIDEO_STATE.aspect);
     setPreview(VIDEO_STATE.html);
     try {
-      if (window.scPushHistory) {
-        window.scPushHistory({
-          topic: (script.split(/\n|\.|!|\?/).find(Boolean) || "Animated Shorts video").trim().slice(0, 80),
-          at: Date.now(),
-          content: script,
-          videoHtml: VIDEO_STATE.html,
-          type: "video"
-        });
-      }
+      window.scPushHistory?.({
+        topic: (script.split(/\n|\.|!|\?/).find(Boolean) || "Animated Shorts video").trim().slice(0, 80),
+        at: Date.now(), content: script, videoHtml: VIDEO_STATE.html, type: "video"
+      });
     } catch {}
   }
 
   async function generateScriptForVideo() {
-    const topicInput = qs("#videoTopicInput");
+    const topic = qs("#videoTopicInput")?.value.trim();
     const scriptInput = qs("#videoScriptInput");
-    const topic = topicInput?.value.trim();
-    if (!topic) {
-      window.scToast ? window.scToast("Enter a topic first.", "error") : alert("Enter a topic first.");
-      return;
-    }
+    if (!topic) return window.scToast ? window.scToast("Enter a topic first.", "error") : alert("Enter a topic first.");
     const btn = qs("#videoGenerateScriptBtn");
     const old = btn?.textContent;
     if (btn) { btn.textContent = "Generating..."; btn.disabled = true; }
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, type: "script" })
-      });
+      const res = await fetch("/api/generate", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ topic, type:"script" }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || data.success === false) throw new Error(data.error || "Script generation failed.");
-      let script = "";
       const raw = data.result || data.output || data.text || data.content || "";
-      if (typeof raw === "string") script = raw;
-      else if (raw.script) script = raw.script;
-      else if (raw.sections) script = Object.values(raw.sections).join("\n");
-      else script = JSON.stringify(raw, null, 2);
-
-      script = script
-        .replace(/=== SCRIPT ===/gi, "")
-        .replace(/=== TITLES ===[\s\S]*/gi, "")
-        .trim();
-
+      let script = typeof raw === "string" ? raw : raw.script || (raw.sections ? Object.values(raw.sections).join("\n") : JSON.stringify(raw, null, 2));
+      script = script.replace(/=== SCRIPT ===/gi, "").replace(/=== TITLES ===[\s\S]*/gi, "").trim();
       if (scriptInput) scriptInput.value = script;
       qsa(".video-mode").forEach(b => b.classList.toggle("active", b.dataset.mode === "paste"));
       qs("#videoPastePanel")?.classList.add("active");
       qs("#videoGeneratePanel")?.classList.remove("active");
       VIDEO_STATE.mode = "paste";
-      if (window.scToast) window.scToast("Script generated. Now create video preview.", "success");
+      window.scToast?.("Script generated. Now click Generate Video.", "success");
     } catch (e) {
-      if (window.scToast) window.scToast(e.message, "error");
-      else alert(e.message);
+      window.scToast ? window.scToast(e.message, "error") : alert(e.message);
     } finally {
       if (btn) { btn.textContent = old || "Generate Script"; btn.disabled = false; }
     }
@@ -1440,111 +1452,79 @@ setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-e
     const modal = qs("#upgradeModal");
     const note = qs("#upgradeNote");
     if (note) note.textContent = "Download Video is a Pro feature. Upgrade to export and use your animated video.";
-    if (modal) {
-      modal.classList.remove("hidden");
-      modal.classList.add("pro-download-modal");
-      return;
-    }
-    alert("Download Video is a Pro feature. Please subscribe to export your video.");
+    if (modal) modal.classList.remove("hidden");
+    else alert("Download Video is a Pro feature. Please subscribe to export your video.");
   }
 
   function initVideoFirst() {
     if (!qs("#videoGenerator")) return;
 
-    // Make video generator first focus on page load
     if (location.pathname.includes("/generator")) {
-      setTimeout(() => {
-        const vg = qs("#videoGenerator");
-        if (vg) vg.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 250);
+      setTimeout(() => qs("#videoGenerator")?.scrollIntoView({ behavior:"smooth", block:"start" }), 250);
     }
 
-    qsa(".video-mode").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const mode = btn.dataset.mode || "paste";
-        VIDEO_STATE.mode = mode;
-        qsa(".video-mode").forEach(b => b.classList.toggle("active", b === btn));
-        qs("#videoPastePanel")?.classList.toggle("active", mode === "paste");
-        qs("#videoGeneratePanel")?.classList.toggle("active", mode === "generate");
-      });
-    });
+    qsa(".video-mode").forEach(btn => btn.addEventListener("click", () => {
+      VIDEO_STATE.mode = btn.dataset.mode || "paste";
+      qsa(".video-mode").forEach(b => b.classList.toggle("active", b === btn));
+      qs("#videoPastePanel")?.classList.toggle("active", VIDEO_STATE.mode === "paste");
+      qs("#videoGeneratePanel")?.classList.toggle("active", VIDEO_STATE.mode === "generate");
+    }));
 
     qs("#videoGenerateScriptBtn")?.addEventListener("click", generateScriptForVideo);
-    qs("#generateVideoBtn")?.addEventListener("click", buildPreview);
+    qs("#generateVideoBtn")?.addEventListener("click", () => { resetEdits(); parseEdits(qs("#videoEditPrompt")?.value || ""); buildPreview(); });
+
+    qs("#videoAspectSelect")?.addEventListener("change", () => {
+      VIDEO_STATE.aspect = qs("#videoAspectSelect")?.value || "9:16";
+      if (VIDEO_STATE.script || qs("#videoScriptInput")?.value.trim()) buildPreview();
+      else resizePreviewFrame();
+    });
+    qs("#videoStyleSelect")?.addEventListener("change", () => {
+      VIDEO_STATE.style = qs("#videoStyleSelect")?.value || "viral-hook";
+      if (VIDEO_STATE.script || qs("#videoScriptInput")?.value.trim()) buildPreview();
+    });
+    window.addEventListener("resize", resizePreviewFrame);
 
     qs("#resetVideoBtn")?.addEventListener("click", () => {
-      const scriptInput = qs("#videoScriptInput");
-      const topicInput = qs("#videoTopicInput");
-      if (scriptInput) scriptInput.value = "";
-      if (topicInput) topicInput.value = "";
-      resetEdits();
-      VIDEO_STATE.html = "";
-      const frame = qs("#videoPreviewFrame");
-      const empty = qs("#videoEmptyState");
-      const status = qs("#videoPreviewStatus");
-      if (frame) frame.srcdoc = "";
-      if (empty) empty.classList.remove("hidden");
-      if (status) status.textContent = "No video generated yet";
+      if (qs("#videoScriptInput")) qs("#videoScriptInput").value = "";
+      if (qs("#videoTopicInput")) qs("#videoTopicInput").value = "";
+      resetEdits(); VIDEO_STATE.html = ""; VIDEO_STATE.script = "";
+      const frame = qs("#videoPreviewFrame"); if (frame) frame.srcdoc = "";
+      qs("#videoEmptyState")?.classList.remove("hidden");
+      if (qs("#videoPreviewStatus")) qs("#videoPreviewStatus").textContent = "No video generated yet";
+      resizePreviewFrame();
     });
 
-    qs("#applyVideoEditBtn")?.addEventListener("click", () => {
-      resetEdits();
-      parseEdits(qs("#videoEditPrompt")?.value || "");
-      buildPreview();
-    });
+    qs("#applyVideoEditBtn")?.addEventListener("click", () => { parseEdits(qs("#videoEditPrompt")?.value || "", true); buildPreview(); });
+    qs("#resetVideoEditBtn")?.addEventListener("click", () => { resetEdits(); if (qs("#videoEditPrompt")) qs("#videoEditPrompt").value = ""; buildPreview(); });
 
-    qs("#resetVideoEditBtn")?.addEventListener("click", () => {
-      resetEdits();
+    qsa(".quick-edit-chips button").forEach(chip => chip.addEventListener("click", () => {
+      const val = (chip.dataset.edit || chip.textContent || "").trim();
       const p = qs("#videoEditPrompt");
-      if (p) p.value = "";
+      if (p) p.value = val;
+      parseEdits(val, true);
       buildPreview();
-    });
-
-    qsa(".quick-edit-chips button").forEach(chip => {
-      chip.addEventListener("click", () => {
-        const val = (chip.dataset.edit || chip.textContent || "").trim();
-        const p = qs("#videoEditPrompt");
-        const merged = p && p.value.trim() ? (p.value.trim() + ", " + val) : val;
-        if (p) p.value = merged;
-        resetEdits();
-        parseEdits(merged);
-        buildPreview();
-      });
-    });
+    }));
 
     qs("#copyVideoHtmlBtn")?.addEventListener("click", async () => {
-      if (!VIDEO_STATE.html) return buildPreview();
-      try {
-        await navigator.clipboard.writeText(VIDEO_STATE.html);
-        if (window.scToast) window.scToast("HTML copied.", "success");
-      } catch {
-        if (window.scToast) window.scToast("Could not copy HTML.", "error");
-      }
+      if (!VIDEO_STATE.html) buildPreview();
+      if (!VIDEO_STATE.html) return;
+      try { await navigator.clipboard.writeText(VIDEO_STATE.html); window.scToast?.("HTML copied.", "success"); }
+      catch { window.scToast ? window.scToast("Could not copy HTML.", "error") : alert("Could not copy HTML."); }
     });
 
     qs("#openVideoPreviewBtn")?.addEventListener("click", () => {
       if (!VIDEO_STATE.html) buildPreview();
       if (!VIDEO_STATE.html) return;
       const w = window.open("", "_blank");
-      if (w) {
-        w.document.open();
-        w.document.write(VIDEO_STATE.html);
-        w.document.close();
-      }
+      if (w) { w.document.open(); w.document.write(VIDEO_STATE.html); w.document.close(); }
     });
 
-    qs("#downloadVideoBtn")?.addEventListener("click", () => {
-      if (!VIDEO_STATE.html) buildPreview();
-      if (!VIDEO_STATE.html) return;
-      showProDownloadModal();
-    });
+    qs("#downloadVideoBtn")?.addEventListener("click", () => { if (!VIDEO_STATE.html) buildPreview(); if (VIDEO_STATE.html) showProDownloadModal(); });
+    setTimeout(resizePreviewFrame, 200);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initVideoFirst);
-  } else {
-    initVideoFirst();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initVideoFirst);
+  else initVideoFirst();
 })();
 
 
