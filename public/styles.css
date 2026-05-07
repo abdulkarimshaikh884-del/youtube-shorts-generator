@@ -5431,3 +5431,27 @@ body.page-landing .hero-stats{
     gap:10px !important;
   }
 }
+
+/* ============================================================
+   FINAL NAV TOGGLE FIX — ShortsCraft
+   Fixes mobile hamburger: open on first tap, close on second tap.
+   Desktop layout untouched.
+   ============================================================ */
+@media (max-width: 768px){
+  body.menu-open{
+    overflow:hidden !important;
+  }
+
+  .nav-mobile[hidden]{
+    display:none !important;
+  }
+
+  .nav-mobile.open{
+    display:flex !important;
+  }
+
+  .nav-burger{
+    cursor:pointer !important;
+    touch-action:manipulation !important;
+  }
+}
