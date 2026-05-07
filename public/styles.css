@@ -4481,3 +4481,402 @@ body,
   min-width: 0;
 }
 
+
+/* ============================================================
+   MOBILE START + HEADER FIX PATCH — ShortsCraft
+   Added by ChatGPT
+   Purpose:
+   1) Mobile par landing page preview/mockup se start na ho.
+   2) Mobile par hero text sabse pehle dikhe.
+   3) Mobile header clean single row rahe.
+   4) Desktop layout bilkul untouched rahe.
+   ============================================================ */
+
+@media (max-width: 768px) {
+  html,
+  body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* ---------- MAIN LANDING NAV: clean mobile header ---------- */
+  .nav {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    width: 100% !important;
+    background: rgba(9, 4, 18, 0.96) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    overflow: visible !important;
+  }
+
+  .nav-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 68px !important;
+    min-height: 68px !important;
+    padding: 0 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+  }
+
+  .nav-inner .logo {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .nav-inner .logo-mark {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 11px !important;
+    flex: 0 0 38px !important;
+  }
+
+  .nav-inner .logo-text,
+  .nav-inner .brand-name {
+    display: inline-block !important;
+    font-size: 1.05rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: calc(100vw - 140px) !important;
+  }
+
+  .nav-links,
+  .nav-cta,
+  .nav-inner > .btn-primary,
+  .nav-inner > .btn-ghost {
+    display: none !important;
+  }
+
+  .nav-burger {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 46px !important;
+    width: 46px !important;
+    height: 46px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.10) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+  }
+
+  .nav-burger span {
+    width: 24px !important;
+    height: 2px !important;
+    background: #f5f3ff !important;
+    border-radius: 99px !important;
+  }
+
+  /* ---------- LANDING HERO: text first, preview not first ---------- */
+  .hero {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 42px 20px 34px !important;
+    margin: 0 auto !important;
+  }
+
+  .hero-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 28px !important;
+    width: 100% !important;
+  }
+
+  .hero-copy,
+  .hero-content,
+  .hero-text {
+    order: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: left !important;
+  }
+
+  /* This is the exact fix for the issue shown in screenshot:
+     mobile par website preview/mockup se start nahi hogi. */
+  .hero-mock,
+  .hero-visual,
+  .mock-glow,
+  .mock-window,
+  .video-mock-window {
+    order: 2 !important;
+  }
+
+  /* Index/homepage par top preview card ko mobile me hide rakho,
+     taaki starting directly headline se ho jaise screenshot 3 me hai. */
+  body:not(.page-studio) .hero-mock,
+  body:not(.page-studio) .hero-visual,
+  body:not(.page-studio) .video-mock-window {
+    display: none !important;
+  }
+
+  .display,
+  .hero h1,
+  .hero-title {
+    font-size: clamp(2.45rem, 12vw, 4rem) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -0.05em !important;
+    margin: 0 0 22px !important;
+    max-width: 100% !important;
+  }
+
+  .lead,
+  .hero p,
+  .hero-subtitle {
+    font-size: clamp(1.05rem, 4.8vw, 1.35rem) !important;
+    line-height: 1.55 !important;
+    color: rgba(245, 243, 255, 0.72) !important;
+    max-width: 100% !important;
+  }
+
+  .hero-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    width: 100% !important;
+    margin-top: 30px !important;
+  }
+
+  .hero-actions .btn-primary,
+  .hero-actions .btn-ghost,
+  .hero-actions a,
+  .hero-actions button {
+    width: 100% !important;
+    min-height: 58px !important;
+    justify-content: center !important;
+    text-align: center !important;
+    border-radius: 999px !important;
+    font-size: 1rem !important;
+  }
+
+  .hero-trust {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 14px 18px !important;
+    margin-top: 28px !important;
+    padding: 0 !important;
+    font-size: 0.95rem !important;
+  }
+
+  .hero-stats {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 32px !important;
+    padding: 16px 12px !important;
+    border-radius: 22px !important;
+  }
+
+  .hero-stats b {
+    font-size: 1.1rem !important;
+  }
+
+  .hero-stats span {
+    font-size: 0.72rem !important;
+    line-height: 1.25 !important;
+  }
+
+  /* ---------- STUDIO/GENERATOR MOBILE TOPBAR ---------- */
+  .studio-bar {
+    height: 60px !important;
+    min-height: 60px !important;
+    padding: 0 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+
+  .studio-search-wrap,
+  .cmd-search,
+  #feedbackBtn,
+  .studio-tag {
+    display: none !important;
+  }
+
+  .studio-bar .logo {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .studio-bar .logo-mark {
+    width: 34px !important;
+    height: 34px !important;
+    flex: 0 0 34px !important;
+  }
+
+  .studio-bar .logo-text {
+    font-size: 1rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .studio-bar-spacer {
+    flex: 1 1 auto !important;
+  }
+
+  .credits-pill {
+    flex: 0 0 auto !important;
+    height: 36px !important;
+    padding: 0 10px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
+
+  #loginBtn,
+  .login-btn {
+    flex: 0 0 auto !important;
+    height: 38px !important;
+    min-width: 76px !important;
+    padding: 0 14px !important;
+    border-radius: 999px !important;
+    font-size: 0.86rem !important;
+    white-space: nowrap !important;
+  }
+
+  /* ---------- Mobile studio content safety ---------- */
+  .studio,
+  .main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .ws-head,
+  .video-grid,
+  .mock-video-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 18px !important;
+  }
+
+  .video-first-card,
+  .topic-card,
+  .video-controls,
+  .video-preview-card {
+    width: 100% !important;
+    max-width: calc(100vw - 32px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-inner {
+    height: 64px !important;
+    min-height: 64px !important;
+    padding: 0 18px !important;
+  }
+
+  .nav-inner .logo-mark {
+    width: 34px !important;
+    height: 34px !important;
+    flex-basis: 34px !important;
+  }
+
+  .nav-inner .logo-text,
+  .nav-inner .brand-name {
+    font-size: 1rem !important;
+    max-width: calc(100vw - 120px) !important;
+  }
+
+  .nav-burger {
+    width: 42px !important;
+    height: 42px !important;
+    flex-basis: 42px !important;
+    border-radius: 14px !important;
+  }
+
+  .hero {
+    padding: 36px 20px 30px !important;
+  }
+
+  .display,
+  .hero h1,
+  .hero-title {
+    font-size: clamp(2.25rem, 11.5vw, 3.35rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  .lead,
+  .hero p,
+  .hero-subtitle {
+    font-size: 1.05rem !important;
+    line-height: 1.58 !important;
+  }
+
+  .hero-actions .btn-primary,
+  .hero-actions .btn-ghost,
+  .hero-actions a,
+  .hero-actions button {
+    min-height: 56px !important;
+    font-size: 0.98rem !important;
+  }
+
+  .hero-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    padding: 14px 10px !important;
+  }
+
+  .hero-stats b {
+    font-size: 1rem !important;
+  }
+
+  .hero-stats span {
+    font-size: 0.68rem !important;
+  }
+
+  .studio-bar {
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+
+  #sidebarToggle {
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px !important;
+  }
+
+  .studio-bar .logo-mark {
+    width: 32px !important;
+    height: 32px !important;
+    flex-basis: 32px !important;
+  }
+
+  .studio-bar .logo-text {
+    font-size: 0.95rem !important;
+  }
+
+  .credits-pill {
+    height: 34px !important;
+    padding: 0 9px !important;
+    font-size: 0.75rem !important;
+  }
+
+  #loginBtn,
+  .login-btn {
+    height: 36px !important;
+    min-width: 68px !important;
+    padding: 0 12px !important;
+    font-size: 0.8rem !important;
+  }
+}
