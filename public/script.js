@@ -1336,7 +1336,22 @@ function draw(i){
   }
 }
 draw(0);
-if (LINES.length > 1) setInterval(function(){ idx = (idx + 1) % LINES.length; draw(idx); }, DURATION);
+let timer = null;
+let paused = false;
+let muted = false;
+function startTimer(){
+  if (timer) clearInterval(timer);
+  timer = setInterval(function(){ if(!paused && LINES.length > 1){ idx = (idx + 1) % LINES.length; draw(idx); } }, DURATION);
+}
+if (LINES.length > 1) startTimer();
+window.addEventListener('message', function(event){
+  const data = event.data || {};
+  if (data.type !== 'shortscraft-video-control') return;
+  if (data.command === 'next') { idx = (idx + 1) % LINES.length; draw(idx); }
+  if (data.command === 'prev') { idx = (idx - 1 + LINES.length) % LINES.length; draw(idx); }
+  if (data.command === 'toggle') { paused = !paused; }
+  if (data.command === 'sound') { muted = !muted; document.body.setAttribute('data-sound', muted ? 'off' : 'on'); }
+});
 setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-ended')); } catch(e) {} }, TOTAL);
 <\/script>
 </body>
@@ -1355,6 +1370,13 @@ setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-e
       wrap.classList.remove("ratio-916","ratio-169","ratio-11","ratio-45","ratio-34","ratio-23","ratio-219");
       const cls = {"9:16":"ratio-916","16:9":"ratio-169","1:1":"ratio-11","4:5":"ratio-45","3:4":"ratio-34","2:3":"ratio-23","21:9":"ratio-219"}[VIDEO_STATE.aspect] || "ratio-916";
       wrap.classList.add(cls);
+    }
+    qs("#videoMobileControls")?.classList.remove("hidden");
+    const previewCard = qs(".video-preview-card") || wrap;
+    if (previewCard) {
+      requestAnimationFrame(() => {
+        setTimeout(() => previewCard.scrollIntoView({ behavior: "smooth", block: "center" }), 180);
+      });
     }
   }
 
@@ -1448,11 +1470,36 @@ setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-e
     alert("Download Video is a Pro feature. Please subscribe to export your video.");
   }
 
+
+  function sendVideoCommand(command) {
+    const frame = qs("#videoPreviewFrame");
+    const wrap = qs("#videoFrameWrap");
+    if (!frame || !VIDEO_STATE.html) {
+      if (window.scToast) window.scToast("Generate a video first.", "info");
+      return;
+    }
+    if (command === "fullscreen") {
+      const target = wrap || frame;
+      if (target?.requestFullscreen) target.requestFullscreen().catch(() => {});
+      else if (frame?.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+      return;
+    }
+    try {
+      frame.contentWindow?.postMessage({ source: "shortscraft-parent", type: "shortscraft-video-control", command }, "*");
+    } catch {}
+  }
+
+  function initVideoMobileControls() {
+    qsa("[data-video-command]").forEach((btn) => {
+      btn.addEventListener("click", () => sendVideoCommand(btn.dataset.videoCommand));
+    });
+  }
+
   function initVideoFirst() {
     if (!qs("#videoGenerator")) return;
 
-    // Make video generator first focus on page load
-    if (location.pathname.includes("/generator")) {
+    // Keep desktop behavior, but do not auto-jump past the mobile landing hero.
+    if (location.pathname.includes("/generator") && window.matchMedia("(min-width: 769px)").matches) {
       setTimeout(() => {
         const vg = qs("#videoGenerator");
         if (vg) vg.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1485,6 +1532,7 @@ setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-e
       if (frame) frame.srcdoc = "";
       if (empty) empty.classList.remove("hidden");
       if (status) status.textContent = "No video generated yet";
+      qs("#videoMobileControls")?.classList.add("hidden");
     });
 
     qs("#applyVideoEditBtn")?.addEventListener("click", () => {
@@ -1543,7 +1591,8 @@ setTimeout(function(){ try { window.dispatchEvent(new Event('shortscraft-video-e
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initVideoFirst);
   } else {
-    initVideoFirst();
+    initVideoMobileControls();
+  initVideoFirst();
   }
 })();
 

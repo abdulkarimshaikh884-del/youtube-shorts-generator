@@ -18,6 +18,511 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#0b0613">
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   STUDIO TOPBAR — Fixed clean single-row header
+   ═══════════════════════════════════════════════════════════ */
+.studio-bar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  background: rgba(10,6,19,.92);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+/* Sidebar toggle */
+.studio-bar #sidebarToggle {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  border-radius: 10px;
+}
+
+/* Logo */
+.studio-bar .logo {
+  flex-shrink: 0;
+}
+
+/* Studio tag */
+.studio-tag {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255,61,110,.12);
+  color: #ff3d6e;
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  border: 1px solid rgba(255,61,110,.2);
+}
+
+/* Spacer — pushes right items to the end */
+.studio-bar-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Search bar — desktop only, hidden on mobile */
+.studio-search-wrap {
+  flex: 0 1 360px;
+  min-width: 0;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px;
+  background: rgba(255,255,255,.05);
+}
+.studio-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f5f3ff;
+  font-size: .88rem;
+}
+.studio-search-input::placeholder { color: rgba(245,243,255,.4); }
+.studio-search-icon { color: #ff8a3d; font-weight: 900; flex-shrink: 0; }
+.studio-search-key {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.07);
+  color: #7a7497;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+/* Credits pill */
+.credits-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255,138,61,.1);
+  border: 1px solid rgba(255,138,61,.25);
+  color: #ff8a3d;
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.credits-pill b { color: #f5f3ff; }
+.credits-pill i { font-style: normal; color: #7a7497; font-size: .72rem; }
+
+/* Feedback button */
+.studio-bar #feedbackBtn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: .85rem;
+  padding: 8px 14px;
+  height: 36px;
+}
+
+/* Sign in button */
+.studio-bar #loginBtn {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: .85rem;
+  padding: 8px 16px;
+  height: 36px;
+  border-radius: 999px;
+}
+
+/* Avatar */
+.profile-wrap { flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE HERO BANNER — shown only on mobile
+   ═══════════════════════════════════════════════════════════ */
+.mobile-hero-banner {
+  display: none; /* hidden on desktop */
+}
+
+@media (max-width: 768px) {
+
+  /* ── Header fix: single clean row ── */
+  .studio-bar {
+    height: 56px !important;
+    padding: 0 12px !important;
+    gap: 8px !important;
+  }
+
+  /* Hide search bar */
+  .studio-search-wrap { display: none !important; }
+
+  /* Hide feedback button */
+  .studio-bar #feedbackBtn { display: none !important; }
+
+  /* Hide studio tag */
+  .studio-tag { display: none !important; }
+
+  /* Sign in button — compact */
+  .studio-bar #loginBtn {
+    padding: 7px 13px !important;
+    font-size: .8rem !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  /* Credits pill — compact */
+  .credits-pill {
+    padding: 4px 8px !important;
+    font-size: .75rem !important;
+  }
+  .credits-pill i { display: none !important; }
+
+  /* ── Mobile hero: show the landing-style banner ── */
+  .mobile-hero-banner {
+    display: block;
+    padding: 28px 16px 22px;
+    background: linear-gradient(180deg,
+      rgba(255,61,110,.09) 0%,
+      rgba(168,85,247,.06) 50%,
+      transparent 100%
+    );
+    border-bottom: 1px solid rgba(255,255,255,.07);
+  }
+
+  .mobile-hero-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    font-size: .75rem;
+    color: #b6b1d6;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .mobile-hero-pill-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: dotPulse 2s ease-in-out infinite;
+  }
+  @keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .mobile-hero-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.7rem, 7.5vw, 2.2rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: #f5f3ff;
+    margin-bottom: 12px;
+  }
+  .mobile-hero-title .grad {
+    background: linear-gradient(135deg,#ff3d6e 0%,#ff8a3d 50%,#fbbf24 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .mobile-hero-sub {
+    font-size: .9rem;
+    color: #b6b1d6;
+    line-height: 1.65;
+    margin-bottom: 20px;
+    max-width: 420px;
+  }
+
+  .mobile-hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .mobile-hero-actions .btn-primary,
+  .mobile-hero-actions .btn-ghost {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    font-size: .95rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mobile-hero-actions .btn-primary {
+    background: linear-gradient(135deg,#ff3d6e 0%,#ff8a3d 50%,#fbbf24 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 8px 24px rgba(255,61,110,.32);
+  }
+  .mobile-hero-actions .btn-ghost {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    color: #f5f3ff;
+  }
+
+  .mobile-hero-trust {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    list-style: none;
+    font-size: .82rem;
+    color: #7a7497;
+    margin-bottom: 20px;
+  }
+
+  .mobile-hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .mobile-hero-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+  }
+  .mobile-hero-stats b {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg,#ff3d6e 0%,#ff8a3d 50%,#fbbf24 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .mobile-hero-stats span {
+    font-size: .7rem;
+    color: #7a7497;
+  }
+
+  /* ── Scroll arrow ── */
+  .mobile-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 18px;
+    font-size: .8rem;
+    color: #7a7497;
+    cursor: pointer;
+    animation: bounceDown 2s ease-in-out infinite;
+  }
+  .mobile-scroll-hint svg {
+    color: #ff8a3d;
+  }
+  @keyframes bounceDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+
+  /* ── Studio section spacing ── */
+  .studio {
+    padding: 20px 14px 60px !important;
+  }
+  .ws-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  .ws-title h1 {
+    font-size: clamp(1.2rem, 5vw, 1.6rem) !important;
+  }
+  .ws-title p {
+    font-size: .86rem !important;
+  }
+  .ws-meta {
+    flex-wrap: wrap !important;
+  }
+
+  /* ── Video card fixes ── */
+  .video-first-card {
+    padding: 16px 14px !important;
+    border-radius: 18px !important;
+  }
+  .video-first-head {
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+  .video-first-head h2 {
+    font-size: clamp(1.2rem, 5vw, 1.7rem) !important;
+    margin: 6px 0 4px !important;
+  }
+  .video-first-head p { font-size: .86rem !important; }
+  .video-head-actions {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .video-plan-pill { font-size: .76rem !important; padding: 5px 10px !important; }
+
+  .video-input-switch {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .video-mode {
+    text-align: center !important;
+    font-size: .86rem !important;
+    padding: 10px 6px !important;
+  }
+
+  .video-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .video-controls,
+  .video-preview-card {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+  .video-script-box { min-height: 150px !important; }
+  .video-options-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .video-topic-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .video-topic-row .btn-primary {
+    width: 100% !important;
+    min-height: 46px !important;
+    justify-content: center !important;
+  }
+  .video-actions-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  .video-actions-row .btn-primary,
+  .video-actions-row .btn-ghost {
+    width: 100% !important;
+    min-height: 50px !important;
+    justify-content: center !important;
+    font-size: .98rem !important;
+  }
+  .quick-edit-chips {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 7px !important;
+  }
+  .quick-edit-chips button {
+    width: 100% !important;
+    text-align: center !important;
+    font-size: .82rem !important;
+    padding: 8px 6px !important;
+  }
+  .edit-action-strip {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+  .edit-action-strip .btn-primary,
+  .edit-action-strip .btn-ghost {
+    width: 100% !important;
+    min-height: 46px !important;
+    min-width: unset !important;
+    justify-content: center !important;
+  }
+  .video-output-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .video-output-actions .btn-primary,
+  .video-output-actions .btn-ghost {
+    width: 100% !important;
+    min-height: 44px !important;
+    justify-content: center !important;
+  }
+  .video-frame-wrap.ratio-916 { max-height: 500px !important; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 88vw !important;
+    max-width: 320px !important;
+  }
+
+  /* Profile pop — slide up from bottom */
+  .profile-pop {
+    position: fixed !important;
+    top: unset !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    z-index: 200 !important;
+    padding: 18px !important;
+  }
+
+  /* Modals */
+  .modal-veil {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 22px 18px !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92dvh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Toasts */
+  .toasts {
+    bottom: 12px !important;
+    right: 10px !important;
+    left: 10px !important;
+    align-items: stretch !important;
+  }
+  .toast { max-width: none !important; }
+}
+
+@media (max-width: 480px) {
+  .studio-bar {
+    height: 52px !important;
+    padding: 0 10px !important;
+    gap: 6px !important;
+  }
+  .logo-mark {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+  }
+  .logo-text { font-size: .88rem !important; }
+  .studio-bar #loginBtn {
+    padding: 6px 10px !important;
+    font-size: .76rem !important;
+    height: 32px !important;
+  }
+  .mobile-hero-banner { padding: 22px 12px 18px !important; }
+  .mobile-hero-title { font-size: 1.6rem !important; }
+  .mobile-hero-stats b { font-size: .95rem !important; }
+  .video-first-card { padding: 14px 12px !important; }
+}
+</style>
 </head>
 <body class="page-studio">
 
@@ -27,29 +532,50 @@
   <span class="aurora-grid"></span>
 </div>
 
-<!-- ── STUDIO TOPBAR ───────────────────────────────────────── -->
+<!-- ── STUDIO TOPBAR — Clean single row ──────────────────── -->
 <header class="studio-bar">
+
+  <!-- Left: Hamburger -->
   <button class="icon-btn" id="sidebarToggle" aria-label="History">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
   </button>
+
+  <!-- Logo -->
   <a href="/" class="logo sm">
     <span class="logo-mark"><span class="logo-bolt">⚡</span></span>
     <span class="logo-text">Shorts<span>Craft</span></span>
   </a>
+
+  <!-- Studio badge -->
   <span class="studio-tag">Studio</span>
 
+  <!-- Spacer -->
   <div class="studio-bar-spacer"></div>
 
+  <!-- Search (desktop only) -->
   <div class="studio-search-wrap">
     <span class="studio-search-icon">⌕</span>
-    <input id="studioSearchInput" class="studio-search-input" type="search" placeholder="Search tools, commands, scripts..." autocomplete="off" />
+    <input id="studioSearchInput" class="studio-search-input" type="search"
+      placeholder="Search tools, commands..." autocomplete="off" />
     <span class="studio-search-key">⌘K</span>
   </div>
+
+  <!-- Credits -->
   <div class="credits-pill hidden" id="creditsPill" title="Daily credits">
     <span>⚡</span><b id="creditsCount">5</b><i>/day</i>
   </div>
+
+  <!-- Feedback (desktop only) -->
   <button class="btn-ghost sm" id="feedbackBtn">💬 Feedback</button>
+
+  <!-- Sign in -->
   <button class="btn-primary sm" id="loginBtn">Sign in</button>
+
+  <!-- Profile -->
   <div class="profile-wrap hidden" id="profileWrap">
     <button class="avatar" id="avatarBtn" aria-label="Account">
       <img id="avatarImg" alt="" hidden>
@@ -75,7 +601,45 @@
       <button class="pp-item danger" id="logoutBtn">🚪 Sign out</button>
     </div>
   </div>
+
 </header>
+
+<!-- ── MOBILE HERO BANNER — Only visible on mobile ───────── -->
+<div class="mobile-hero-banner" id="mobileHeroBanner">
+  <div class="mobile-hero-pill">
+    <span class="mobile-hero-pill-dot"></span>
+    Free · No credit card · Hinglish ready
+  </div>
+  <h1 class="mobile-hero-title">
+    Create <span class="grad">animated</span><br>
+    Shorts from one <span class="grad">script.</span>
+  </h1>
+  <p class="mobile-hero-sub">
+    Paste your script or enter a topic — ShortsCraft generates an animated video preview plus SEO titles, hashtags, and thumbnail prompts instantly.
+  </p>
+  <div class="mobile-hero-actions">
+    <button class="btn-primary" onclick="document.getElementById('videoGenerator').scrollIntoView({behavior:'smooth'})">
+      Generate Video Free ✦
+    </button>
+    <a class="btn-ghost" href="/seo-tools">🚀 SEO Tools</a>
+  </div>
+  <ul class="mobile-hero-trust">
+    <li>✓ No credit card</li>
+    <li>✓ Hinglish ready</li>
+    <li>✓ AdSense-safe drafts</li>
+  </ul>
+  <div class="mobile-hero-stats">
+    <div><b>6-in-1</b><span>Content suite</span></div>
+    <div><b>~5s</b><span>Draft speed</span></div>
+    <div><b>100%</b><span>Free to start</span></div>
+  </div>
+  <div class="mobile-scroll-hint" onclick="document.getElementById('videoGenerator').scrollIntoView({behavior:'smooth'})">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M6 9l6 6 6-6"/>
+    </svg>
+    Scroll down to start creating
+  </div>
+</div>
 
 <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
 <aside class="sidebar" id="sidebar" aria-hidden="true">
@@ -103,6 +667,7 @@
 
 <!-- ── STUDIO MAIN ─────────────────────────────────────────── -->
 <main class="studio">
+
   <!-- Workspace header -->
   <section class="ws-head">
     <div class="ws-title">
@@ -114,7 +679,6 @@
       <span class="meta-pill alt">v2.0</span>
     </div>
   </section>
-
 
   <!-- ── PRIMARY VIDEO GENERATOR ─────────────────────────────── -->
   <section class="video-first-card" id="videoGenerator">
@@ -220,20 +784,24 @@
             <p>Add a script and click Generate Video.</p>
           </div>
         </div>
+        <div class="video-mobile-controls hidden" id="videoMobileControls" aria-label="Video preview controls">
+          <button type="button" data-video-command="prev" aria-label="Previous slide">⏮ <span>Previous</span></button>
+          <button type="button" data-video-command="toggle" aria-label="Play or pause">▶ <span>Play/Pause</span></button>
+          <button type="button" data-video-command="next" aria-label="Next slide">⏭ <span>Next</span></button>
+          <button type="button" data-video-command="sound" aria-label="Toggle sound">🔊 <span>Sound</span></button>
+          <button type="button" data-video-command="fullscreen" aria-label="Fullscreen">⛶ <span>Full</span></button>
+        </div>
         <div class="video-output-actions">
           <button id="openVideoPreviewBtn" class="btn-ghost sm" type="button">Open Preview</button>
           <button id="copyVideoHtmlBtn" class="btn-ghost sm" type="button">Copy HTML</button>
           <button id="downloadVideoBtn" class="btn-primary sm" type="button">Download Video</button>
         </div>
-        <p class="video-note">Preview is free. Download Video is a Pro feature. Current version exports animated HTML preview after upgrade flow.</p>
+        <p class="video-note">Preview is free. Download Video is a Pro feature.</p>
       </div>
     </div>
   </section>
 
 </main>
-
-
-<!-- Text tools moved to /seo-tools -->
 
 <!-- ── COMMAND PALETTE ─────────────────────────────────────── -->
 <div class="cmd-palette hidden" id="cmdPalette" role="dialog" aria-modal="true">
