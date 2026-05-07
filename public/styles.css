@@ -5025,3 +5025,194 @@ body,
     font-size:clamp(2.18rem, 11vw, 3.25rem) !important;
   }
 }
+
+/* ============================================================
+   EMERGENCY MOBILE FIX — hide landing preview/mockup first screen
+   Paste at very bottom. Desktop unchanged.
+   ============================================================ */
+@media (max-width: 768px){
+  html, body{
+    overflow-x:hidden!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+
+  /* MAIN FIX: this preview/mockup must NOT appear on mobile homepage */
+  .hero-mock,
+  .hero-visual,
+  .landing-visual,
+  .landing-preview,
+  .video-mock-window,
+  .mock-window,
+  .mock-video-layout,
+  .mock-video-controls,
+  .mock-video-preview,
+  .mock-phone,
+  .mock-glow,
+  .mock-chip,
+  .chip-1,
+  .chip-2,
+  .chip-3,
+  .preview-mockup,
+  .hero-preview,
+  .hero-device,
+  .browser-mockup,
+  .studio-mockup,
+  .video-studio-mock{
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+    height:0!important;
+    min-height:0!important;
+    max-height:0!important;
+    width:0!important;
+    min-width:0!important;
+    max-width:0!important;
+    padding:0!important;
+    margin:0!important;
+    border:0!important;
+    transform:none!important;
+    overflow:hidden!important;
+    pointer-events:none!important;
+  }
+
+  /* Make landing start from text/CTA cleanly */
+  .hero,
+  section.hero,
+  div.hero{
+    display:block!important;
+    padding:42px 22px 36px!important;
+    margin:0 auto!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-height:auto!important;
+    overflow:hidden!important;
+  }
+
+  .hero-grid,
+  section.hero .hero-grid,
+  div.hero .hero-grid{
+    display:block!important;
+    grid-template-columns:1fr!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+
+  .hero-copy,
+  .hero-content,
+  .hero-text,
+  .hero-left{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:left!important;
+    transform:none!important;
+  }
+
+  .hero .pill,
+  .hero .badge,
+  .hero .hero-badge{
+    max-width:100%!important;
+    white-space:normal!important;
+    line-height:1.35!important;
+  }
+
+  .hero h1,
+  .hero-title,
+  .display{
+    width:100%!important;
+    max-width:100%!important;
+    margin:18px 0 20px!important;
+    padding:0!important;
+    font-size:clamp(2.15rem, 10.6vw, 3.25rem)!important;
+    line-height:1.08!important;
+    letter-spacing:-0.055em!important;
+    text-align:left!important;
+    overflow:visible!important;
+  }
+
+  .hero p,
+  .hero .lead,
+  .hero-subtitle{
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 0 26px!important;
+    font-size:clamp(1rem, 4.3vw, 1.18rem)!important;
+    line-height:1.58!important;
+    text-align:left!important;
+  }
+
+  .hero-actions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+    width:100%!important;
+    margin:26px 0 20px!important;
+  }
+
+  .hero-actions a,
+  .hero-actions button,
+  .hero-actions .btn,
+  .hero-actions .btn-primary,
+  .hero-actions .btn-ghost{
+    width:100%!important;
+    max-width:none!important;
+    min-height:56px!important;
+    margin:0!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+
+  .hero-trust{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:12px 16px!important;
+    margin-top:20px!important;
+    font-size:.92rem!important;
+  }
+
+  .hero-stats{
+    width:100%!important;
+    max-width:100%!important;
+    margin-top:28px!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  /* Clean index mobile nav */
+  .nav,
+  .navbar,
+  .site-header{
+    min-height:74px!important;
+    padding:0 22px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    flex-wrap:nowrap!important;
+  }
+
+  .nav-links,
+  .desktop-nav,
+  .nav .btn:not(.mobile-keep),
+  .navbar .btn:not(.mobile-keep){
+    display:none!important;
+  }
+}
+
+@media (max-width: 480px){
+  .hero,
+  section.hero,
+  div.hero{
+    padding:36px 20px 32px!important;
+  }
+
+  .hero h1,
+  .hero-title,
+  .display{
+    font-size:clamp(2.05rem, 10.4vw, 3rem)!important;
+  }
+}
