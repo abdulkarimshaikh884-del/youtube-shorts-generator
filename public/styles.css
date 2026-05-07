@@ -5216,3 +5216,218 @@ body,
     font-size:clamp(2.05rem, 10.4vw, 3rem)!important;
   }
 }
+
+/* ============================================================
+   FINAL HOMEPAGE CLEAN HERO PATCH — remove preview/mockup
+   This keeps desktop + mobile professional without the right-side preview.
+   ============================================================ */
+body.page-landing{
+  overflow-x:hidden !important;
+}
+
+body.page-landing .hero-mock,
+body.page-landing .hero-visual,
+body.page-landing .landing-visual,
+body.page-landing .landing-preview,
+body.page-landing .hero-preview,
+body.page-landing .preview-mockup,
+body.page-landing .browser-mockup,
+body.page-landing .studio-mockup,
+body.page-landing .mock-window,
+body.page-landing .video-mock-window,
+body.page-landing .mock-video-layout,
+body.page-landing .mock-video-preview,
+body.page-landing .mock-glow,
+body.page-landing .mock-chip{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+
+body.page-landing .hero{
+  padding:96px 24px 76px !important;
+  width:100% !important;
+  max-width:var(--maxw) !important;
+  box-sizing:border-box !important;
+}
+
+body.page-landing .hero-grid,
+body.page-landing .hero-grid.hero-no-preview{
+  display:grid !important;
+  grid-template-columns:minmax(0, 980px) !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:0 !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+
+body.page-landing .hero-copy{
+  width:100% !important;
+  max-width:980px !important;
+  margin:0 auto !important;
+  text-align:center !important;
+  min-width:0 !important;
+}
+
+body.page-landing .hero .pill,
+body.page-landing .pill-glow{
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+body.page-landing .display,
+body.page-landing .hero h1{
+  max-width:1000px !important;
+  margin:28px auto 0 !important;
+  text-align:center !important;
+  line-height:.98 !important;
+  letter-spacing:-.055em !important;
+  text-wrap:balance;
+}
+
+body.page-landing .lead,
+body.page-landing .hero p{
+  max-width:760px !important;
+  margin:24px auto 0 !important;
+  text-align:center !important;
+  text-wrap:pretty;
+}
+
+body.page-landing .hero-actions{
+  justify-content:center !important;
+  align-items:center !important;
+  margin-top:34px !important;
+}
+
+body.page-landing .hero-trust{
+  justify-content:center !important;
+  align-items:center !important;
+}
+
+body.page-landing .hero-stats{
+  max-width:680px !important;
+  margin:36px auto 0 !important;
+}
+
+@media (max-width: 768px){
+  html,body{
+    width:100% !important;
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  body.page-landing .hero{
+    padding:44px 20px 44px !important;
+    max-width:100% !important;
+    margin:0 auto !important;
+  }
+
+  body.page-landing .hero-grid,
+  body.page-landing .hero-grid.hero-no-preview{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  body.page-landing .hero-copy{
+    width:100% !important;
+    max-width:100% !important;
+    text-align:left !important;
+  }
+
+  body.page-landing .hero .pill,
+  body.page-landing .pill-glow{
+    display:inline-flex !important;
+    max-width:100% !important;
+    margin:0 0 22px !important;
+    white-space:normal !important;
+    line-height:1.35 !important;
+  }
+
+  body.page-landing .display,
+  body.page-landing .hero h1{
+    max-width:100% !important;
+    margin:0 !important;
+    text-align:left !important;
+    font-size:clamp(2.55rem, 10.5vw, 4rem) !important;
+    line-height:1.06 !important;
+    letter-spacing:-.05em !important;
+  }
+
+  body.page-landing .lead,
+  body.page-landing .hero p{
+    max-width:100% !important;
+    margin:22px 0 0 !important;
+    text-align:left !important;
+    font-size:clamp(1rem, 4.2vw, 1.18rem) !important;
+    line-height:1.58 !important;
+  }
+
+  body.page-landing .hero-actions{
+    display:flex !important;
+    flex-direction:column !important;
+    width:100% !important;
+    gap:12px !important;
+    margin-top:28px !important;
+  }
+
+  body.page-landing .hero-actions a,
+  body.page-landing .hero-actions button,
+  body.page-landing .hero-actions .btn-primary,
+  body.page-landing .hero-actions .btn-ghost{
+    width:100% !important;
+    max-width:100% !important;
+    min-height:58px !important;
+    justify-content:center !important;
+    text-align:center !important;
+    padding-left:18px !important;
+    padding-right:18px !important;
+  }
+
+  body.page-landing .hero-trust{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:12px 14px !important;
+    justify-content:start !important;
+    margin-top:24px !important;
+    text-align:left !important;
+  }
+
+  body.page-landing .hero-stats{
+    width:100% !important;
+    max-width:100% !important;
+    margin-top:30px !important;
+    grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+    gap:8px !important;
+    padding:14px !important;
+  }
+}
+
+@media (max-width: 480px){
+  body.page-landing .hero{
+    padding:36px 18px 38px !important;
+  }
+
+  body.page-landing .display,
+  body.page-landing .hero h1{
+    font-size:clamp(2.35rem, 11vw, 3.35rem) !important;
+    line-height:1.08 !important;
+  }
+
+  body.page-landing .lead,
+  body.page-landing .hero p{
+    font-size:1rem !important;
+    line-height:1.6 !important;
+  }
+
+  body.page-landing .hero-trust{
+    grid-template-columns:1fr !important;
+  }
+
+  body.page-landing .hero-stats{
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+}
