@@ -146,6 +146,47 @@
 /* Avatar */
 .profile-wrap { flex-shrink: 0; }
 
+/* ── Mobile Video Player Controls ── */
+.mobile-video-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mobile-video-controls.hidden { display: none !important; }
+.mvc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  color: #f5f3ff;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  flex-shrink: 0;
+}
+.mvc-btn:hover { background: rgba(255,255,255,.14); transform: scale(1.05); }
+.mvc-btn:active { transform: scale(.95); }
+.mvc-btn.mvc-play {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg,#ff3d6e,#ff8a3d);
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(255,61,110,.35);
+}
+.mvc-btn.mvc-play:hover { opacity: .9; }
+
 /* ═══════════════════════════════════════════════════════════
    MOBILE HERO BANNER — shown only on mobile
    ═══════════════════════════════════════════════════════════ */
@@ -498,6 +539,38 @@
     align-items: stretch !important;
   }
   .toast { max-width: none !important; }
+
+  /* ── SIGN IN BUTTON: Force single row, no overflow ── */
+  .studio-bar {
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
+  }
+  /* Absolutely hide everything except: toggle, logo, spacer, credits, loginBtn/profileWrap */
+  .studio-bar .studio-search-wrap,
+  .studio-bar #feedbackBtn,
+  .studio-bar .studio-tag {
+    display: none !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+  /* Login button must stay in flow */
+  .studio-bar #loginBtn {
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    width: auto !important;
+    height: 34px !important;
+    padding: 0 12px !important;
+    font-size: .8rem !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    transform: none !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -924,5 +997,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="/script.js" defer></script>
+<script src="/mobile_patch.js" defer></script>
 </body>
 </html>
