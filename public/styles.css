@@ -4880,3 +4880,148 @@ body,
     font-size: 0.8rem !important;
   }
 }
+
+/* ============================================================
+   FINAL MOBILE START FIX — DO NOT REMOVE
+   Goal: On mobile homepage, do NOT show the preview/mockup first.
+   The page must start from the landing headline/CTA area.
+   Desktop remains unchanged.
+   ============================================================ */
+@media (max-width: 768px){
+  /* Hide the top decorative preview/mockup on homepage mobile */
+  body:not(.page-studio) section.hero .hero-mock,
+  body:not(.page-studio) section.hero .mock-window,
+  body:not(.page-studio) section.hero .mock-glow,
+  body:not(.page-studio) section.hero .mock-chip,
+  body:not(.page-studio) section.hero .chip-1,
+  body:not(.page-studio) section.hero .chip-2,
+  body:not(.page-studio) section.hero .chip-3,
+  body:not(.page-studio) section.hero .hero-visual,
+  body:not(.page-studio) section.hero .video-mock-window,
+  body:not(.page-studio) section.hero .video-studio-mock,
+  body:not(.page-studio) section.hero .studio-preview,
+  body:not(.page-studio) section.hero .preview-card,
+  body:not(.page-studio) section.hero [class*="mock"]{
+    display:none !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+    height:0 !important;
+    min-height:0 !important;
+    max-height:0 !important;
+    width:0 !important;
+    min-width:0 !important;
+    max-width:0 !important;
+    padding:0 !important;
+    margin:0 !important;
+    border:0 !important;
+    overflow:hidden !important;
+    pointer-events:none !important;
+  }
+
+  /* Force homepage hero to start with text only */
+  body:not(.page-studio) section.hero{
+    padding:38px 20px 34px !important;
+    margin:0 auto !important;
+    width:100% !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+  }
+
+  body:not(.page-studio) section.hero .hero-grid{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow:visible !important;
+  }
+
+  body:not(.page-studio) section.hero .hero-copy,
+  body:not(.page-studio) section.hero .hero-content,
+  body:not(.page-studio) section.hero .hero-text{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    padding:0 !important;
+    margin:0 !important;
+    text-align:left !important;
+    transform:none !important;
+  }
+
+  body:not(.page-studio) section.hero .pill,
+  body:not(.page-studio) section.hero .pill-glow{
+    max-width:100% !important;
+    white-space:normal !important;
+    line-height:1.35 !important;
+  }
+
+  body:not(.page-studio) section.hero .display,
+  body:not(.page-studio) section.hero h1,
+  body:not(.page-studio) section.hero .hero-title{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    font-size:clamp(2.35rem, 11.4vw, 3.95rem) !important;
+    line-height:1.08 !important;
+    letter-spacing:-0.055em !important;
+    margin:20px 0 20px !important;
+    overflow:visible !important;
+    text-wrap:balance !important;
+  }
+
+  body:not(.page-studio) section.hero .lead,
+  body:not(.page-studio) section.hero p,
+  body:not(.page-studio) section.hero .hero-subtitle{
+    width:100% !important;
+    max-width:100% !important;
+    font-size:clamp(1.02rem, 4.6vw, 1.28rem) !important;
+    line-height:1.55 !important;
+    margin:0 0 26px !important;
+  }
+
+  body:not(.page-studio) section.hero .hero-actions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    width:100% !important;
+    margin:28px 0 20px !important;
+  }
+
+  body:not(.page-studio) section.hero .hero-actions a,
+  body:not(.page-studio) section.hero .hero-actions button,
+  body:not(.page-studio) section.hero .hero-actions .btn-primary,
+  body:not(.page-studio) section.hero .hero-actions .btn-ghost{
+    width:100% !important;
+    max-width:none !important;
+    min-height:56px !important;
+    margin:0 !important;
+    justify-content:center !important;
+  }
+
+  body:not(.page-studio) section.hero .hero-trust{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    gap:12px 16px !important;
+    margin-top:20px !important;
+    font-size:.92rem !important;
+  }
+
+  body:not(.page-studio) section.hero .hero-stats{
+    width:100% !important;
+    max-width:100% !important;
+    margin-top:30px !important;
+  }
+}
+
+@media (max-width: 480px){
+  body:not(.page-studio) section.hero{
+    padding-left:22px !important;
+    padding-right:22px !important;
+  }
+
+  body:not(.page-studio) section.hero .display,
+  body:not(.page-studio) section.hero h1,
+  body:not(.page-studio) section.hero .hero-title{
+    font-size:clamp(2.18rem, 11vw, 3.25rem) !important;
+  }
+}
