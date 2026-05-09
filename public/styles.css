@@ -5455,3 +5455,168 @@ body.page-landing .hero-stats{
     touch-action:manipulation !important;
   }
 }
+
+/* ============================================================
+   ULTIMATE MOBILE HEADER FIX — Sign in button inside header
+   Paste at the very bottom of styles.css
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Reset all previous messy grid/flex overrides for studio bar */
+  .studio-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 12px !important;
+    gap: 8px !important;
+    background: rgba(9, 4, 18, 0.96) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Hide search bar on mobile */
+  .studio-bar .studio-search-wrap,
+  .studio-search-wrap {
+    display: none !important;
+  }
+
+  /* Hide feedback button on mobile */
+  .studio-bar #feedbackBtn,
+  #feedbackBtn {
+    display: none !important;
+  }
+
+  /* Hide studio tag badge on mobile */
+  .studio-bar .studio-tag,
+  .studio-tag {
+    display: none !important;
+  }
+
+  /* Hide credits pill on mobile (optional, comment out if you want it) */
+  .studio-bar .credits-pill,
+  .credits-pill {
+    display: none !important;
+  }
+
+  /* Remove spacer completely */
+  .studio-bar .studio-bar-spacer,
+  .studio-bar-spacer {
+    display: none !important;
+  }
+
+  /* Hamburger toggle — compact and left-aligned */
+  .studio-bar #sidebarToggle,
+  #sidebarToggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 10px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Logo — take available space */
+  .studio-bar .logo.sm,
+  .studio-bar .logo,
+  .studio-bar a.logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    text-decoration: none !important;
+  }
+
+  .studio-bar .logo-mark {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    flex: 0 0 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .studio-bar .logo-text,
+  .studio-bar .logo .logo-text,
+  .studio-bar a.logo .logo-text {
+    font-size: 0.94rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: #f5f3ff !important;
+  }
+
+  /* SIGN IN BUTTON — THIS IS THE FIX 🎯 */
+  .studio-bar #loginBtn,
+  .studio-bar > .btn-primary.sm,
+  #loginBtn,
+  .studio-bar button.btn-primary {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    border-radius: 999px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    background: linear-gradient(135deg, #ff3d6e, #ff8a3d) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(255, 61, 110, 0.2) !important;
+    margin: 0 !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+  }
+
+  /* Profile avatar when signed in */
+  .studio-bar .profile-wrap {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+
+  .studio-bar .profile-wrap.hidden {
+    display: none !important;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 400px) {
+  .studio-bar {
+    padding: 0 8px !important;
+    gap: 6px !important;
+  }
+
+  .studio-bar .logo-text {
+    font-size: 0.85rem !important;
+    max-width: 120px !important;
+  }
+
+  .studio-bar #loginBtn,
+  #loginBtn {
+    height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 0.73rem !important;
+  }
+}
