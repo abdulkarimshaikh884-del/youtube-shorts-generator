@@ -790,58 +790,18 @@ function renderTasks() {
 
 // ── Mobile nav + scroll bar ──────────────────────────────────
 function bindNav() {
-  const burger = $("#navBurger");
-  const menu = $("#navMobile");
-
-  function closeMobileMenu() {
-    if (!menu) return;
-    menu.classList.remove("open");
-    menu.setAttribute("hidden", "");
-    document.body.classList.remove("menu-open");
-    burger?.setAttribute("aria-expanded", "false");
-  }
-
-  function openMobileMenu() {
-    if (!menu) return;
-    menu.removeAttribute("hidden");
-    // requestAnimationFrame keeps the transition/class state stable on mobile browsers
-    requestAnimationFrame(() => menu.classList.add("open"));
-    document.body.classList.add("menu-open");
-    burger?.setAttribute("aria-expanded", "true");
-  }
-
-  on(burger, "click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!menu) return;
-
-    const isOpen = menu.classList.contains("open") && !menu.hasAttribute("hidden");
-    if (isOpen) closeMobileMenu();
-    else openMobileMenu();
+  on($("#navBurger"), "click", () => {
+    const m = $("#navMobile");
+    const open = m.hasAttribute("hidden") ? false : !m.classList.contains("open");
+    if (m.hasAttribute("hidden")) m.removeAttribute("hidden");
+    m.classList.toggle("open", !open);
+    if (!m.classList.contains("open")) m.setAttribute("hidden", "");
   });
-
-  // Close menu after clicking any menu link
-  menu?.querySelectorAll("a, button").forEach((item) => {
-    on(item, "click", () => setTimeout(closeMobileMenu, 80));
-  });
-
-  // Close menu when user taps outside it
-  on(document, "click", (e) => {
-    if (!menu || menu.hasAttribute("hidden")) return;
-    if (!menu.contains(e.target) && !burger?.contains(e.target)) closeMobileMenu();
-  });
-
-  // Close menu on ESC
-  on(document, "keydown", (e) => {
-    if (e.key === "Escape") closeMobileMenu();
-  });
-
   on(window, "scroll", () => {
     const bar = $("#scrollBar");
     if (!bar) return;
     const h = document.documentElement;
-    const total = Math.max(1, h.scrollHeight - h.clientHeight);
-    const pct = (h.scrollTop / total) * 100;
+    const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
     bar.style.width = `${pct}%`;
   }, { passive: true });
 }

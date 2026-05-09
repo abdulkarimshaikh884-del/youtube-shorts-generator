@@ -5,6 +5,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 const crypto = require("crypto");
 
 const app = express();
@@ -13,6 +14,16 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 
 // ── Trust proxy (Render uses reverse proxy) ─────────────────
 app.set("trust proxy", 1);
+
+
+// www → non-www redirect
+app.use((req, res, next) => {
+  const host = req.headers.host || "";
+  if (host.startsWith("www.")) {
+    return res.redirect(301, "https://shortscraft.online" + req.originalUrl);
+  }
+  next();
+});
 
 // ── Security headers ────────────────────────────────────────
 app.use((req, res, next) => {
@@ -377,6 +388,77 @@ app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 4 }), async (req, r
   }
 });
 
+
+const SEO_ROUTE_META = {
+  "/seo-tools": {
+    title: "SEO Tools — ShortsCraft",
+    description: "ShortsCraft SEO tools for YouTube Shorts scripts, titles, descriptions, hashtags, ideas and thumbnail prompts.",
+    h1: "Scripts, titles, hashtags & more",
+    intro: "Use these tools after creating your video, or generate a complete Shorts content pack from one topic.",
+    h2: "Scripts, titles, hashtags & more"
+  },
+  "/youtube-shorts-script-generator": {
+    title: "YouTube Shorts Script Generator — ShortsCraft",
+    description: "Generate hook-first YouTube Shorts scripts with a clear structure, retention flow, and creator-friendly wording.",
+    h1: "YouTube Shorts Script Generator",
+    intro: "Create short-form video scripts with strong hooks, clean flow, and ready-to-edit sections.",
+    h2: "Generate YouTube Shorts scripts"
+  },
+  "/youtube-shorts-title-generator": {
+    title: "YouTube Shorts Title Generator — ShortsCraft",
+    description: "Generate catchy, SEO-friendly YouTube Shorts titles for creators, faceless channels, reels, and short videos.",
+    h1: "YouTube Shorts Title Generator",
+    intro: "Turn one topic into clickable YouTube Shorts title ideas designed for curiosity and clarity.",
+    h2: "Generate Shorts titles"
+  },
+  "/youtube-shorts-hashtag-generator": {
+    title: "YouTube Shorts Hashtag Generator — ShortsCraft",
+    description: "Generate relevant YouTube Shorts hashtags for better topic clarity and short-form video discovery.",
+    h1: "YouTube Shorts Hashtag Generator",
+    intro: "Create clean hashtag sets for Shorts, Reels, and short-form videos without keyword stuffing.",
+    h2: "Generate Shorts hashtags"
+  },
+  "/youtube-shorts-description-generator": {
+    title: "YouTube Shorts Description Generator — ShortsCraft",
+    description: "Generate SEO-friendly YouTube Shorts descriptions with natural keywords and creator-ready formatting.",
+    h1: "YouTube Shorts Description Generator",
+    intro: "Write paste-ready descriptions that explain your video clearly and support YouTube discovery.",
+    h2: "Generate Shorts descriptions"
+  },
+  "/youtube-shorts-ideas-generator": {
+    title: "YouTube Shorts Ideas Generator — ShortsCraft",
+    description: "Generate fresh YouTube Shorts ideas for creators, faceless channels, educational videos, and viral content planning.",
+    h1: "YouTube Shorts Ideas Generator",
+    intro: "Find fresh video ideas from a single niche or topic and plan your next Shorts faster.",
+    h2: "Generate Shorts ideas"
+  },
+  "/ai-thumbnail-prompt-generator": {
+    title: "AI Thumbnail Prompt Generator — ShortsCraft",
+    description: "Generate AI thumbnail prompts for YouTube thumbnails with cinematic composition, readable text space, and strong visual hooks.",
+    h1: "AI Thumbnail Prompt Generator",
+    intro: "Create thumbnail prompts for AI image tools with clear subject, lighting, mood, and composition guidance.",
+    h2: "Generate thumbnail prompts"
+  }
+};
+
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch]));
+}
+
+function renderSeoToolsPage(route) {
+  const meta = SEO_ROUTE_META[route] || SEO_ROUTE_META["/seo-tools"];
+  const canonical = `https://shortscraft.online${route}`;
+  const filePath = path.join(__dirname, "public", "seo-tools.html");
+  let html = fs.readFileSync(filePath, "utf8");
+  html = html
+    .replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(meta.title)}</title>`)
+    .replace(/<meta name="description" content=".*?"\/>/s, `<meta name="description" content="${escapeHtml(meta.description)}"/>`)
+    .replace(/<link rel="canonical" href=".*?"\/>/s, `<link rel="canonical" href="${canonical}"/>`)
+    .replace(/<section class="seo-tools-hero">([\s\S]*?)<h1>.*?<\/h1>\s*<p>.*?<\/p>/, `<section class="seo-tools-hero">$1<h1>${escapeHtml(meta.h1)}</h1>\n    <p>${escapeHtml(meta.intro)}</p>`)
+    .replace(/<h2>Scripts, titles, hashtags & more<\/h2>\s*<p>Use these tools after creating your video or whenever you need a complete Shorts content pack\.<\/p>/, `<h2>${escapeHtml(meta.h2)}</h2>\n        <p>${escapeHtml(meta.intro)}</p>`);
+  return html;
+}
+
 // ============================================================
 // SEO + STATIC ROUTING
 // ============================================================
@@ -400,7 +482,18 @@ const PAGES = {
 };
 
 for (const [route, file] of Object.entries(PAGES)) {
-  app.get(route, (req, res, next) => {
+  app.get(route, (req, res) => {
+    if (file === "seo-tools.html") {
+      try {
+        res.type("html").send(renderSeoToolsPage(route));
+        return;
+      } catch (err) {
+        console.error("[seo page render]", route, err.message);
+        res.status(500).send("Could not render page");
+        return;
+      }
+    }
+
     const filePath = path.join(__dirname, "public", file);
     res.sendFile(filePath, (err) => {
       if (err) {

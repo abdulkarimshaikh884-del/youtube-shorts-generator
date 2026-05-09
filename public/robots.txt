@@ -1,6 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /generator
 
 Sitemap: https://shortscraft.online/sitemap.xml
