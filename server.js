@@ -425,3 +425,12 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`⚡ ShortsCraft v2.0 running on :${PORT} (${NODE_ENV})`);
 });
+
+// www → non-www redirect
+app.use((req, res, next) => {
+  if (req.headers.host.startsWith('www.')) {
+    return res.redirect(301, 
+      'https://shortscraft.online' + req.url);
+  }
+  next();
+});
