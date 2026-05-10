@@ -131,7 +131,7 @@ app.get("/api/config", (req, res) => {
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
     razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
     proPriceInr: Number(process.env.PRO_PRICE_INR || 99),
-    freeCreditsPerDay: Number(process.env.FREE_CREDITS_PER_DAY || 5),
+    freeCreditsPerDay: Number(process.env.FREE_CREDITS_PER_DAY || 10),
     gaId: process.env.GA_ID || "",
   });
 });
