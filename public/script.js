@@ -1243,7 +1243,7 @@ document.addEventListener("click", (e) => {
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const AUTH_KEY = "sc:stable-auth-user:v1";
+  const AUTH_KEY = "sc:auth:v2";
   const CREDITS_KEY = "sc:credits:v2";
   const CREDITS_DAY = "sc:credits:day";
   const CREDITS_RULE = "sc:credits:rule:v10";
@@ -1301,7 +1301,8 @@ document.addEventListener("click", (e) => {
     });
 
     if (signed) {
-      const name = user.name || user.full_name || (user.email ? user.email.split("@")[0] : "Creator");
+      const meta = user.user_metadata || {};
+      const name = user.name || user.full_name || meta.full_name || meta.name || (user.email ? user.email.split("@")[0] : "Creator");
       const email = user.email || "";
       const initial = (name.trim()[0] || "C").toUpperCase();
 

@@ -1,6 +1,6 @@
-Replace these files:
-public/styles.css
-public/script.js
-server.js (recommended to fix /api/feedback Internal server error)
-
-Then redeploy and hard refresh Ctrl+F5.
+ShortsCraft sign-in/profile visibility fix.
+Replace:
+- public/script.js
+- public/styles.css
+- server.js (optional if already replaced from feedback fix)
+Then hard refresh Ctrl+F5.
