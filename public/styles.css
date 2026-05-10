@@ -1370,289 +1370,39 @@ html {
   }
 }
 
-/* ============================================================
-   ULTIMATE MOBILE HEADER FIX — Sign in button inside header
-   Paste at the very bottom of styles.css
-   ============================================================ */
-
-@media (max-width: 768px) {
-  /* Reset all previous messy grid/flex overrides for studio bar */
-  .studio-bar {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    flex-wrap: nowrap !important;
-    height: 56px !important;
-    min-height: 56px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 12px !important;
-    gap: 8px !important;
-    background: rgba(9, 4, 18, 0.96) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 100 !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Hide search bar on mobile */
-  .studio-bar .studio-search-wrap,
-  .studio-search-wrap {
-    display: none !important;
-  }
-
-  /* Hide feedback button on mobile */
-  .studio-bar #feedbackBtn,
-  #feedbackBtn {
-    display: none !important;
-  }
-
-  /* Hide studio tag badge on mobile */
-  .studio-bar .studio-tag,
-  .studio-tag {
-    display: none !important;
-  }
-
-  /* Hide credits pill on mobile (optional, comment out if you want it) */
-  .studio-bar .credits-pill,
-  .credits-pill {
-    display: none !important;
-  }
-
-  /* Remove spacer completely */
-  .studio-bar .studio-bar-spacer,
-  .studio-bar-spacer {
-    display: none !important;
-  }
-
-  /* Hamburger toggle — compact and left-aligned */
-  .studio-bar #sidebarToggle,
-  #sidebarToggle {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex: 0 0 38px !important;
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.06) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Logo — take available space */
-  .studio-bar .logo.sm,
-  .studio-bar .logo,
-  .studio-bar a.logo {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    text-decoration: none !important;
-  }
-
-  .studio-bar .logo-mark {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    flex: 0 0 32px !important;
-    border-radius: 8px !important;
-  }
-
-  .studio-bar .logo-text,
-  .studio-bar .logo .logo-text,
-  .studio-bar a.logo .logo-text {
-    font-size: 0.94rem !important;
-    font-weight: 700 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    color: #f5f3ff !important;
-  }
-
-  /* SIGN IN BUTTON — THIS IS THE FIX 🎯 */
-  .studio-bar #loginBtn,
-  .studio-bar > .btn-primary.sm,
-  #loginBtn,
-  .studio-bar button.btn-primary {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex: 0 0 auto !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 0 12px !important;
-    border-radius: 999px !important;
-    font-size: 0.78rem !important;
-    font-weight: 700 !important;
-    white-space: nowrap !important;
-    background: linear-gradient(135deg, #ff3d6e, #ff8a3d) !important;
-    color: #fff !important;
-    border: none !important;
-    box-shadow: 0 4px 14px rgba(255, 61, 110, 0.2) !important;
-    margin: 0 !important;
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    left: auto !important;
-    bottom: auto !important;
-  }
-
-  /* Profile avatar when signed in */
-  .studio-bar .profile-wrap {
-    display: flex !important;
-    flex: 0 0 auto !important;
-    margin: 0 !important;
-  }
-
-  .studio-bar .profile-wrap.hidden {
-    display: none !important;
-  }
-}
-
-/* Extra small phones */
-@media (max-width: 400px) {
-  .studio-bar {
-    padding: 0 8px !important;
-    gap: 6px !important;
-  }
-
-  .studio-bar .logo-text {
-    font-size: 0.85rem !important;
-    max-width: 120px !important;
-  }
-
-  .studio-bar #loginBtn,
-  #loginBtn {
-    height: 32px !important;
-    padding: 0 10px !important;
-    font-size: 0.73rem !important;
-  }
-}
 
 /* ============================================================
-   MOBILE NAV HOTFIX — paste at END of public/styles.css
-   Fixes broken mobile menu layout
+   FINAL FEEDBACK/TOAST VISIBILITY FIX
+   Keeps toast messages above modal blur and prevents hidden side alerts.
    ============================================================ */
-
-@media (max-width: 768px) {
-  .nav {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 9999 !important;
-  }
-
-  .nav-inner {
-    height: 64px !important;
-    min-height: 64px !important;
-    padding: 0 16px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 12px !important;
-  }
-
-  .nav .logo {
-    flex: 0 0 auto !important;
-    margin: 0 !important;
-  }
-
-  .nav-burger {
-    display: flex !important;
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin-left: auto !important;
-    padding: 0 !important;
-    position: relative !important;
-    z-index: 10001 !important;
-  }
-
-  .nav-mobile {
-    position: absolute !important;
-    top: 64px !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    max-height: calc(100vh - 64px) !important;
-    overflow-y: auto !important;
-
-    display: none !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
-
-    padding: 14px 16px 18px !important;
-    margin: 0 !important;
-
-    background: rgba(10, 6, 19, 0.98) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-top: 1px solid rgba(255,255,255,.08) !important;
-    border-bottom: 1px solid rgba(255,255,255,.08) !important;
-    box-shadow: 0 22px 55px rgba(0,0,0,.55) !important;
-  }
-
-  .nav-mobile.open {
-    display: flex !important;
-  }
-
-  .nav-mobile a {
-    width: 100% !important;
-    min-height: 46px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    padding: 12px 14px !important;
-    margin: 0 !important;
-    border-radius: 14px !important;
-
-    text-align: center !important;
-    font-size: 0.95rem !important;
-    font-weight: 700 !important;
-  }
-
-  .nav-mobile a.btn-primary,
-  .nav-mobile .btn-primary {
-    margin-top: 6px !important;
-    min-height: 48px !important;
-    border-radius: 16px !important;
+.toasts,
+#toasts{
+  z-index:2147483647!important;
+  filter:none!important;
+  -webkit-filter:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.toast{
+  filter:none!important;
+  -webkit-filter:none!important;
+  opacity:1!important;
+}
+@media (min-width:769px){
+  body.modal-open #toasts,
+  body.modal-open .toasts{
+    right:24px!important;
+    bottom:24px!important;
+    left:auto!important;
+    max-width:360px!important;
   }
 }
-
-@media (max-width: 480px) {
-  .nav-inner {
-    height: 60px !important;
-    min-height: 60px !important;
-    padding: 0 14px !important;
-  }
-
-  .nav-mobile {
-    top: 60px !important;
-    max-height: calc(100vh - 60px) !important;
-  }
-
-  .logo-mark {
-    width: 30px !important;
-    height: 30px !important;
-  }
-
-  .logo {
-    font-size: 0.98rem !important;
-  }
-
-  .nav-burger {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
+@media (max-width:768px){
+  body.modal-open #toasts,
+  body.modal-open .toasts{
+    left:12px!important;
+    right:12px!important;
+    bottom:12px!important;
+    max-width:none!important;
   }
 }

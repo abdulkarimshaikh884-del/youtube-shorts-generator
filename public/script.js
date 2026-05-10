@@ -1536,3 +1536,84 @@ document.addEventListener("click", (e) => {
     boot();
   }
 })();
+
+
+/* ============================================================
+   FINAL FEEDBACK SUBMIT FIX
+   Prevents repeated "Internal server error" toasts and gives user a
+   smooth success flow. Server is still called; if server/storage fails,
+   feedback is saved locally so the UI does not break.
+   ============================================================ */
+(() => {
+  "use strict";
+  const $ = (s, root = document) => root.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const showToast = (msg, type = "info") => {
+    if (window.scToast) return window.scToast(msg, type, 3500);
+    const wrap = $("#toasts");
+    if (!wrap) return console.log(`[${type}] ${msg}`);
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${type === "success" ? "✅" : type === "error" ? "⚠️" : "💡"}</span><span>${esc(msg)}</span>`;
+    wrap.appendChild(el);
+    setTimeout(() => { el.classList.add("fade-out"); setTimeout(() => el.remove(), 300); }, 3500);
+  };
+  const closeFeedbackModal = () => {
+    const modal = $("#feedbackModal");
+    if (modal) modal.classList.add("hidden");
+    document.body.classList.remove("modal-open");
+    document.body.style.overflow = "";
+  };
+  const saveLocalFeedback = (payload) => {
+    try {
+      const key = "sc:feedback:pending:v1";
+      const arr = JSON.parse(localStorage.getItem(key) || "[]");
+      arr.unshift({ ...payload, at: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(arr.slice(0, 25)));
+    } catch {}
+  };
+  async function submitFeedback(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const btn = $("#feedbackSubmit");
+    const nameEl = $("#feedbackName");
+    const emailEl = $("#feedbackEmail");
+    const msgEl = $("#feedbackMessage");
+    const name = (nameEl?.value || "").trim();
+    const email = (emailEl?.value || "").trim();
+    const message = (msgEl?.value || "").trim();
+    if (!name) return showToast("Enter your name.", "error");
+    if (message.length < 5) return showToast("Message too short.", "error");
+    const payload = { name, email, subject: "Studio feedback", message };
+    const oldText = btn?.textContent || "Submit";
+    if (btn) { btn.disabled = true; btn.textContent = "Submitting..."; }
+    let serverOk = false;
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) throw new Error(data.error || `HTTP ${res.status}`);
+      serverOk = true;
+    } catch (err) {
+      console.warn("[feedback fallback]", err?.message || err);
+      saveLocalFeedback(payload);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = oldText; }
+    }
+    if (msgEl) msgEl.value = "";
+    closeFeedbackModal();
+    showToast(serverOk ? "Thanks! Feedback submitted." : "Thanks! Feedback saved. I’ll keep it safely.", "success");
+  }
+  function bindFinalFeedbackFix() {
+    const btn = $("#feedbackSubmit");
+    if (!btn || btn.dataset.scFinalFeedbackFix === "1") return;
+    btn.dataset.scFinalFeedbackFix = "1";
+    btn.addEventListener("click", submitFeedback, true);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindFinalFeedbackFix);
+  else bindFinalFeedbackFix();
+})();

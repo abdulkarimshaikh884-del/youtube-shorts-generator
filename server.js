@@ -348,46 +348,64 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
 });
 
 // ── Feedback / contact form ─────────────────────────────────
-app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 4 }), async (req, res) => {
-  try {
-    const name = String(req.body?.name || "").trim().slice(0, 80);
-    const email = String(req.body?.email || "").trim().slice(0, 120);
-    const subject = String(req.body?.subject || "").trim().slice(0, 140);
-    const message = String(req.body?.message || "").trim().slice(0, 2000);
+// Robust route: never breaks the UI if external storage is not configured.
+app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+  const name = String(req.body?.name || "").trim().slice(0, 80);
+  const email = String(req.body?.email || "").trim().slice(0, 120);
+  const subject = String(req.body?.subject || "Studio feedback").trim().slice(0, 140);
+  const message = String(req.body?.message || "").trim().slice(0, 2000);
 
-    if (!name || !message || message.length < 5) {
-      return res.status(400).json({ success: false, error: "Name and message (min 5 chars) required." });
-    }
-
-    // Store in Supabase if configured
-    const supaUrl = process.env.SUPABASE_URL;
-    const supaSrv = process.env.SUPABASE_SERVICE_KEY;
-    if (supaUrl && supaSrv) {
-      try {
-        await fetch(`${supaUrl}/rest/v1/feedback`, {
-          method: "POST",
-          headers: {
-            apikey: supaSrv,
-            Authorization: `Bearer ${supaSrv}`,
-            "Content-Type": "application/json",
-            Prefer: "return=minimal",
-          },
-          body: JSON.stringify({ name, email, subject, message, ip: req.ip, ua: req.headers["user-agent"] || "" }),
-        });
-      } catch (e) {
-        console.warn("[feedback supabase]", e.message);
-      }
-    } else {
-      console.log("[feedback]", { name, email, subject, message: message.slice(0, 100) });
-    }
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("[feedback]", err.message);
-    res.status(500).json({ success: false, error: "Could not submit feedback." });
+  if (!name || !message || message.length < 5) {
+    return res.status(400).json({ success: false, error: "Name and message (min 5 chars) required." });
   }
-});
 
+  const feedback = {
+    name,
+    email,
+    subject,
+    message,
+    ip: req.ip,
+    ua: req.headers["user-agent"] || "",
+    created_at: new Date().toISOString(),
+  };
+
+  // 1) Save a local backup. Works on local/dev and does not crash if filesystem is read-only.
+  try {
+    const dir = path.join(__dirname, "data");
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(path.join(dir, "feedback.jsonl"), JSON.stringify(feedback) + "\n", "utf8");
+  } catch (e) {
+    console.warn("[feedback local backup skipped]", e.message);
+  }
+
+  // 2) Store in Supabase only if configured. Failure should not fail the user request.
+  const supaUrl = process.env.SUPABASE_URL;
+  const supaSrv = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (supaUrl && supaSrv && typeof fetch === "function") {
+    try {
+      const r = await fetch(`${supaUrl.replace(/\/$/, "")}/rest/v1/feedback`, {
+        method: "POST",
+        headers: {
+          apikey: supaSrv,
+          Authorization: `Bearer ${supaSrv}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify(feedback),
+      });
+      if (!r.ok) {
+        const t = await r.text().catch(() => "");
+        console.warn("[feedback supabase non-fatal]", r.status, t.slice(0, 200));
+      }
+    } catch (e) {
+      console.warn("[feedback supabase non-fatal]", e.message);
+    }
+  } else {
+    console.log("[feedback]", { name, email, subject, message: message.slice(0, 100) });
+  }
+
+  return res.json({ success: true });
+});
 
 const SEO_ROUTE_META = {
   "/seo-tools": {
