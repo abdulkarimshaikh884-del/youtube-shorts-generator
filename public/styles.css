@@ -7224,3 +7224,10 @@ html {
   #videoFrameWrap.ratio-219,.video-frame-wrap.ratio-219{max-width:92vw !important;}
   .video-preview-card{scroll-margin-top:70px !important;}
 }
+
+
+/* ===== FINAL STYLE-TEMPLATE VIDEO ENGINE SUPPORT ===== */
+#videoStyleSelect option{background:#120b20;color:#fff;font-weight:700}
+#videoPreviewFrame{width:100%!important;height:100%!important;border:0!important;background:#000!important;display:block!important}
+.video-frame-wrap{display:block!important;overflow:hidden!important}
+.video-preview-card{scroll-margin-top:88px!important}
