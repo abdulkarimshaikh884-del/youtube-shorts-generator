@@ -855,395 +855,1499 @@ async function init() {
 }
 document.addEventListener("DOMContentLoaded", init);
 
+/* ============================================================
+   VIDEO GENERATOR — Premium Animated HTML preview  (v3 — FIXED)
+   ------------------------------------------------------------
+   ✦ Properly strips [HOOK]/[MAIN]/[CTA]/Scene labels
+   ✦ Splits script into clean readable scenes (1–2 lines, ≤9 words)
+   ✦ NEVER breaks words mid-letter (word-break:keep-all)
+   ✦ Font sizes auto-scale to iframe container (cqw + clamp)
+   ✦ Premium animated gradients, particles, progress bar, watermark
+   ✦ Supports all dropdown styles, 9:16 + others
+   ============================================================ */
+const VIDEO_STATE = {
+  mode: "paste",
+  html: "",
+  script: "",
+  style: "viral-hook",
+  aspect: "9:16",
+  edit: { fontScale: 1, speed: 1, highlight: "", bgMode: "auto", align: "center", dense: true, minimal: false, premium: false }
+};
+
+/* ---------- Helper: escape HTML for iframe content ---------- */
+function escapeHtmlV(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ---------- Helper: clean script — remove labels & markdown ---------- */
+function cleanScriptForVideo(raw) {
+  if (!raw) return "";
+  let s = String(raw);
+
+  // Strip code fences / markdown bold/italic / headings
+  s = s.replace(/```[\s\S]*?```/g, " ");
+  s = s.replace(/^#{1,6}\s+/gm, "");
+  s = s.replace(/\*\*(.+?)\*\*/g, "$1");
+  s = s.replace(/\*(.+?)\*/g, "$1");
+  s = s.replace(/__(.+?)__/g, "$1");
+  s = s.replace(/_(.+?)_/g, "$1");
+
+  // Strip section markers like === SCRIPT ===
+  s = s.replace(/={2,}\s*[A-Z][A-Z\s]+={2,}/g, "\n");
+
+  // Strip bracket labels: [HOOK] [MAIN] [CTA] [Intro] [Outro] [Scene 1] ...
+  s = s.replace(/\[\s*(HOOK|MAIN|CTA|INTRO|OUTRO|BODY|END|START|TITLE|VOICEOVER|VO|NARRATOR|SCENE\s*\d*|PART\s*\d*|STEP\s*\d*|SHOT\s*\d*|CAPTION)\s*\]\s*:?/gi, "\n");
+
+  // Strip "HOOK:", "MAIN:", "CTA:", "Scene 1:", "Scene 1 -", "Part 2 -" line prefixes
+  s = s.replace(/^\s*(HOOK|MAIN|CTA|INTRO|OUTRO|BODY|TITLE|VOICEOVER|VO|NARRATOR|CAPTION)\s*[:\-–—]\s*/gim, "");
+  s = s.replace(/^\s*(SCENE|PART|STEP|SHOT|CHAPTER)\s*\d+\s*[:\-–—]?\s*/gim, "");
+  s = s.replace(/^\s*\d+\s*[).:\-–—]\s+/gm, ""); // "1. ", "1) "
+
+  // Strip parenthetical stage directions (smile), (pause), (camera zoom)
+  s = s.replace(/\(([^)]{1,40})\)/g, (m, inner) => {
+    // keep if it looks like real content, drop if it looks like a direction
+    if (/^(pause|smile|laugh|camera|zoom|cut|music|sfx|beat|silence|fade|transition|narrator|voice)/i.test(inner)) return " ";
+    return m;
+  });
+
+  // Bullets and arrows → newline
+  s = s.replace(/[•▪▫➜►▶►→·]/g, "\n");
+
+  // Normalize whitespace
+  s = s.replace(/\r/g, "\n");
+  s = s.replace(/[ \t]+/g, " ");
+  s = s.replace(/\n{2,}/g, "\n");
+  s = s.split("\n").map(l => l.trim()).filter(Boolean).join("\n");
+
+  return s.trim();
+}
+
+/* ---------- Helper: split clean script into scenes ---------- */
+function splitScriptIntoScenes(rawScript, aspect = "9:16") {
+  const cleaned = cleanScriptForVideo(rawScript);
+  if (!cleaned) return [];
+
+  // Limits per aspect
+  const tall = ["9:16", "4:5", "3:4", "2:3"].includes(aspect);
+  const wide = ["16:9", "21:9"].includes(aspect);
+  const MAX_WORDS = tall ? 7 : wide ? 9 : 8;
+  const MIN_WORDS = 2;
+  const MAX_CHARS = tall ? 42 : wide ? 64 : 52;
+  const HARD_LIMIT = 20;
+
+  // 1. Pre-split by line break, then by sentence end (.,!,?,।) — keep punctuation
+  const pieces = [];
+  cleaned.split(/\n+/).forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    // Split on sentence boundaries but keep them
+    const parts = line.split(/(?<=[.!?।])\s+/);
+    parts.forEach(p => { p = p.trim(); if (p) pieces.push(p); });
+  });
+
+  // 2. For each piece — if too long, split by commas / semicolons; if still long, by word-budget without breaking words
+  const scenes = [];
+  pieces.forEach(piece => {
+    const words = piece.split(/\s+/).filter(Boolean);
+    if (!words.length) return;
+
+    if (words.length <= MAX_WORDS && piece.length <= MAX_CHARS) {
+      scenes.push(piece);
+      return;
+    }
+
+    // Try splitting on comma / semicolon / dash boundaries
+    const subParts = piece.split(/(?<=[,;—–-])\s+/).map(s => s.trim()).filter(Boolean);
+    const queue = (subParts.length > 1) ? subParts : [piece];
+
+    queue.forEach(sub => {
+      const subWords = sub.split(/\s+/).filter(Boolean);
+      if (subWords.length <= MAX_WORDS && sub.length <= MAX_CHARS) {
+        scenes.push(sub);
+        return;
+      }
+      // Word-budget split — NEVER cut a word in half
+      let chunk = [];
+      let chunkLen = 0;
+      subWords.forEach(w => {
+        const projected = chunkLen + (chunk.length ? 1 : 0) + w.length;
+        if (chunk.length >= MAX_WORDS || projected > MAX_CHARS) {
+          if (chunk.length) scenes.push(chunk.join(" "));
+          chunk = [w];
+          chunkLen = w.length;
+        } else {
+          chunk.push(w);
+          chunkLen = projected;
+        }
+      });
+      if (chunk.length) scenes.push(chunk.join(" "));
+    });
+  });
+
+  // 3. Combine very-short fragments (≤ MIN_WORDS) with next/prev if possible
+  const merged = [];
+  for (let i = 0; i < scenes.length; i++) {
+    const cur = scenes[i];
+    const curWords = cur.split(/\s+/).length;
+    if (curWords < MIN_WORDS && merged.length) {
+      const prev = merged[merged.length - 1];
+      const candidate = prev + " " + cur;
+      if (candidate.split(/\s+/).length <= MAX_WORDS + 1 && candidate.length <= MAX_CHARS + 4) {
+        merged[merged.length - 1] = candidate;
+        continue;
+      }
+    }
+    if (curWords < MIN_WORDS && i < scenes.length - 1) {
+      const nxt = scenes[i + 1];
+      const candidate = cur + " " + nxt;
+      if (candidate.split(/\s+/).length <= MAX_WORDS + 1 && candidate.length <= MAX_CHARS + 4) {
+        merged.push(candidate);
+        i++;
+        continue;
+      }
+    }
+    merged.push(cur);
+  }
+
+  // 4. Tidy + cap
+  return merged
+    .map(s => s.replace(/^[-–—,;:.\s]+/, "").replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, HARD_LIMIT);
+}
+
+/* ---------- Helper: highlight keywords inside a scene line ---------- */
+function highlightKeywords(line, accentClass = "hl", accent2Class = "hl2") {
+  const HIGH = new Set([
+    "ai","viral","secret","money","paise","best","top","now","stop","free","pro","hack","trick","boom","win",
+    "no","why","how","never","always","must","today","new","biggest","fastest","easy","powerful","truth","warning"
+  ]);
+  const HIGH2 = new Set([
+    "youtube","creator","content","shorts","reels","india","billion","million","lakh","crore",
+    "instagram","tiktok","facebook","google","amazon","apple"
+  ]);
+  return line.split(/(\s+)/).map(tok => {
+    if (/^\s+$/.test(tok)) return tok;
+    const clean = tok.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+    if (HIGH.has(clean))  return `<span class="${accentClass}">${escapeHtmlV(tok)}</span>`;
+    if (HIGH2.has(clean)) return `<span class="${accent2Class}">${escapeHtmlV(tok)}</span>`;
+    return escapeHtmlV(tok);
+  }).join("");
+}
+
+/* ---------- Parse text edits like "yellow highlight, slower" ---------- */
+function parseEdits(prompt) {
+  const p = String(prompt || "").toLowerCase();
+  const e = VIDEO_STATE.edit;
+  if (/bigger|large|big|bada/.test(p)) e.fontScale = 1.18;
+  if (/smaller|small|chhota/.test(p)) e.fontScale = 0.9;
+  if (/slow/.test(p)) e.speed = 1.4;
+  if (/fast/.test(p)) e.speed = 0.75;
+  if (/yellow|gold/.test(p)) e.highlight = "#facc15";
+  else if (/\bred\b|pink/.test(p)) e.highlight = "#fb7185";
+  else if (/\bblue\b|cyan/.test(p)) e.highlight = "#38bdf8";
+  else if (/\bgreen\b/.test(p)) e.highlight = "#22c55e";
+  else if (/purple|violet/.test(p)) e.highlight = "#a78bfa";
+  if (/dark|darker|black/.test(p)) e.bgMode = "dark";
+  if (/light|white|bright/.test(p)) e.bgMode = "light";
+  if (/minimal|simple|clean/.test(p)) e.minimal = true;
+  if (/premium|luxury|professional/.test(p)) e.premium = true;
+}
+function resetEdits() {
+  VIDEO_STATE.edit = { fontScale: 1, speed: 1, highlight: "", bgMode: "auto", align: "center", dense: true, minimal: false, premium: false };
+}
 
 /* ============================================================
-   SCRIPT TO VIDEO — RELIABLE PROFESSIONAL STYLE ENGINE (v5.1)
-   ------------------------------------------------------------
-   Fixes: visible dynamic text, distinct style layouts, clean scene
-   splitting, aspect ratio classes, edit prompt actions, credits.
+   STYLE THEMES — each returns { bg, text, accent, accent2, font, decoHTML, extraCss, enterAnim }
+   ============================================================ */
+function getStyleTheme(styleKey) {
+  const themes = {
+    "viral-hook": {
+      bg: "radial-gradient(circle at 30% 20%, #2a0010 0%, transparent 55%), radial-gradient(circle at 70% 80%, #1a0015 0%, transparent 55%), linear-gradient(160deg, #0a0008 0%, #15000a 50%, #08000d 100%)",
+      text: "#ffffff", accent: "#ff3d6e", accent2: "#ffb02e",
+      font: "'Inter','Arial Black',Impact,sans-serif", weight: 900,
+      decoHTML: `
+        <div class="orb orb1"></div><div class="orb orb2"></div>
+        <div class="particles" id="parts"></div>`,
+      extraCss: `
+        .orb{position:absolute;border-radius:50%;filter:blur(40px);opacity:.35;animation:orbF 6s ease-in-out infinite}
+        .orb1{width:55%;aspect-ratio:1;left:-15%;top:-10%;background:radial-gradient(circle,#ff0055,transparent 70%)}
+        .orb2{width:50%;aspect-ratio:1;right:-15%;bottom:-15%;background:radial-gradient(circle,#ff8a00,transparent 70%);animation-delay:-3s}
+        @keyframes orbF{0%,100%{transform:scale(1) translate(0,0);opacity:.3}50%{transform:scale(1.15) translate(3%,-3%);opacity:.55}}
+        .scene-text .hl{color:#ff3d6e;text-shadow:0 0 18px rgba(255,61,110,.55)}
+        .scene-text .hl2{color:#ffb02e;text-shadow:0 0 16px rgba(255,176,46,.45)}
+      `,
+      enter: "vh"
+    },
+    "neon-cyber": {
+      bg: "#03060f",
+      text: "#e8faff", accent: "#00f5ff", accent2: "#b44fff",
+      font: "'Inter','Arial Black',sans-serif", weight: 900,
+      decoHTML: `
+        <div class="grid"></div><div class="scan"></div>
+        <div class="orb orb1"></div><div class="orb orb2"></div>
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>`,
+      extraCss: `
+        .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,.05) 1px,transparent 1px);background-size:8% 8%}
+        .scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,245,255,.025) 2px,rgba(0,245,255,.025) 4px);animation:scan 8s linear infinite}
+        @keyframes scan{from{background-position:0 0}to{background-position:0 60px}}
+        .orb{position:absolute;width:55%;aspect-ratio:1;border-radius:50%;filter:blur(50px);opacity:.35}
+        .orb1{left:-15%;top:-10%;background:radial-gradient(circle,#00f5ff,transparent 70%)}
+        .orb2{right:-15%;bottom:-10%;background:radial-gradient(circle,#b44fff,transparent 70%)}
+        .corner{position:absolute;width:8%;aspect-ratio:1;border-color:#00f5ff;border-style:solid;opacity:.65}
+        .corner.tl{top:4%;left:4%;border-width:3px 0 0 3px}
+        .corner.tr{top:4%;right:4%;border-width:3px 3px 0 0}
+        .corner.bl{bottom:4%;left:4%;border-width:0 0 3px 3px}
+        .corner.br{bottom:4%;right:4%;border-width:0 3px 3px 0}
+        .scene-text{text-shadow:0 0 24px rgba(0,245,255,.55),0 0 60px rgba(0,245,255,.2)}
+        .scene-text .hl{color:#00f5ff}
+        .scene-text .hl2{color:#b44fff;text-shadow:0 0 24px rgba(180,79,255,.55)}
+      `,
+      enter: "neon"
+    },
+    "motivation": {
+      bg: "linear-gradient(165deg,#100800 0%,#1a0e00 45%,#0a0500 100%)",
+      text: "#ffffff", accent: "#ffcc00", accent2: "#ff8c00",
+      font: "'Inter','Arial Black',sans-serif", weight: 900,
+      decoHTML: `<div class="sun"></div><div class="stripe"></div>`,
+      extraCss: `
+        .sun{position:absolute;width:90%;aspect-ratio:1;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#ff8c0066 0%,#ff450033 25%,transparent 65%);filter:blur(30px);animation:sunP 3s ease-in-out infinite}
+        @keyframes sunP{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:.85;transform:translate(-50%,-50%) scale(1.07)}}
+        .stripe{position:absolute;bottom:0;left:0;right:0;height:8%;background:linear-gradient(90deg,#ff8c00,#ffcc00,#ff8c00);clip-path:polygon(0 35%,100% 0,100% 100%,0 100%);opacity:.85}
+        .scene-text .hl{color:#ffcc00;text-shadow:0 4px 18px rgba(255,200,0,.45)}
+        .scene-text .hl2{color:#ff8c00}
+      `,
+      enter: "mot"
+    },
+    "clean-minimal": {
+      bg: "#fafafa",
+      text: "#111111", accent: "#111111", accent2: "#666666",
+      font: "'Inter','Helvetica Neue',Helvetica,Arial,sans-serif", weight: 800,
+      decoHTML: `
+        <div class="dot tl"></div><div class="dot tr"></div><div class="dot bl"></div><div class="dot br"></div>
+        <div class="accent-bar"></div>`,
+      extraCss: `
+        .accent-bar{position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#111,#888)}
+        .dot{position:absolute;width:8px;height:8px;border-radius:50%;background:#111;opacity:.85}
+        .dot.tl{top:6%;left:6%}.dot.tr{top:6%;right:6%}.dot.bl{bottom:6%;left:6%}.dot.br{bottom:6%;right:6%}
+        .scene-text .hl{color:#111;text-decoration:underline;text-decoration-thickness:.08em;text-underline-offset:.12em}
+        .scene-text .hl2{color:#444;font-style:italic}
+        .wm{color:rgba(0,0,0,.35) !important}
+        .progress{background:#111 !important}
+      `,
+      enter: "fade"
+    },
+    "luxury": {
+      bg: "linear-gradient(160deg,#0a0800 0%,#120e00 45%,#080600 100%)",
+      text: "#f5e070", accent: "#c9a522", accent2: "#e8e8e0",
+      font: "'Playfair Display',Georgia,serif", weight: 900,
+      decoHTML: `
+        <div class="gold-glow"></div>
+        <div class="frame"><span class="gem tl"></span><span class="gem tr"></span><span class="gem bl"></span><span class="gem br"></span></div>`,
+      extraCss: `
+        .gold-glow{position:absolute;width:80%;aspect-ratio:1;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(ellipse,rgba(201,165,34,.45) 0%,transparent 60%);filter:blur(40px);animation:gp 4s ease-in-out infinite}
+        @keyframes gp{0%,100%{opacity:.45}50%{opacity:.75}}
+        .frame{position:absolute;inset:4%;border:1px solid rgba(201,165,34,.35)}
+        .frame::before{content:'';position:absolute;inset:5px;border:1px solid rgba(201,165,34,.12)}
+        .gem{position:absolute;width:8px;height:8px;background:#c9a522;transform:rotate(45deg)}
+        .gem.tl{top:-4px;left:-4px}.gem.tr{top:-4px;right:-4px}.gem.bl{bottom:-4px;left:-4px}.gem.br{bottom:-4px;right:-4px}
+        .scene-text{font-style:italic;text-shadow:0 0 30px rgba(201,165,34,.4),0 3px 6px rgba(0,0,0,.5)}
+        .scene-text .hl{color:#f5e070;text-shadow:0 0 30px rgba(245,224,112,.6)}
+        .scene-text .hl2{color:#e8e8e0;text-shadow:none}
+      `,
+      enter: "lux"
+    },
+    "social-pop": {
+      bg: "linear-gradient(145deg,#ff0080,#ff4d00 28%,#ff8800 50%,#7c3aed 75%,#0088ff 100%)",
+      text: "#ffffff", accent: "#ffffff", accent2: "#ffe066",
+      font: "'Inter','Arial Black',sans-serif", weight: 900,
+      decoHTML: `<div class="blob b1"></div><div class="blob b2"></div>
+        <span class="emo e1">🔥</span><span class="emo e2">⚡</span><span class="emo e3">✨</span>`,
+      extraCss: `
+        .blob{position:absolute;width:55%;aspect-ratio:1;border-radius:50%;filter:blur(35px);background:rgba(255,255,255,.18);animation:bf 5s ease-in-out infinite}
+        .b1{top:-15%;left:-15%}.b2{bottom:-15%;right:-12%;background:rgba(255,255,255,.12);animation-delay:-2.5s}
+        @keyframes bf{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+        .emo{position:absolute;font-size:clamp(18px,4cqw,40px);opacity:.75;animation:emf 3s ease-in-out infinite}
+        .e1{top:8%;left:8%}.e2{top:9%;right:8%;animation-delay:1s}.e3{bottom:14%;left:9%;animation-delay:.5s}
+        @keyframes emf{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-8px) rotate(6deg)}}
+        .scene-text{text-shadow:0 4px 18px rgba(0,0,0,.3)}
+        .scene-text .hl{-webkit-text-stroke:2px #fff;color:transparent}
+        .scene-text .hl2{color:#fff;text-shadow:3px 3px 0 rgba(0,0,0,.35)}
+      `,
+      enter: "pop"
+    },
+    "horror": {
+      bg: "#030003",
+      text: "#cc0000", accent: "#ff2222", accent2: "#dddddd",
+      font: "Georgia,'Times New Roman',serif", weight: 700,
+      decoHTML: `<div class="vignette"></div><div class="blood"></div><div class="crack"></div>`,
+      extraCss: `
+        .vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 25%,rgba(0,0,0,.9) 100%)}
+        .blood{position:absolute;width:75%;aspect-ratio:1;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(139,0,0,.4) 0%,transparent 70%);filter:blur(25px);animation:bp 3s ease-in-out infinite}
+        .crack{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(139,0,0,.06) 3px,rgba(139,0,0,.06) 4px);mix-blend-mode:overlay}
+        @keyframes bp{0%,100%{opacity:.5}50%{opacity:.95}}
+        .scene-text{font-style:italic;text-shadow:0 0 22px rgba(139,0,0,.7),2px 0 rgba(0,0,255,.2),-2px 0 rgba(255,0,0,.18)}
+        .scene-text .hl{color:#ff2222}
+        .scene-text .hl2{color:#ddd;text-shadow:0 0 8px rgba(255,255,255,.25)}
+        .stage{animation:flick 8s ease infinite}
+        @keyframes flick{0%,95%,97%,100%{opacity:1}96%,98%{opacity:.65}}
+      `,
+      enter: "glitch"
+    },
+    "gaming": {
+      bg: "linear-gradient(160deg,#000510 0%,#050a1a 50%,#0a0520 100%)",
+      text: "#ffffff", accent: "#39ff14", accent2: "#f97316",
+      font: "'Inter','Arial Black',sans-serif", weight: 900,
+      decoHTML: `
+        <div class="hex"></div>
+        <div class="energy e1"></div><div class="energy e2"></div>
+        <div class="orb og"></div><div class="orb oo"></div>
+        <div class="hud"><span class="hudDot"></span><span class="hudT">SHORTSCRAFT // LIVE</span><span class="hudDot o"></span></div>`,
+      extraCss: `
+        .hex{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpolygon points='30,2 58,18 58,34 30,50 2,34 2,18' fill='none' stroke='rgba(57,255,20,0.08)' stroke-width='1'/%3E%3C/svg%3E");background-size:7% auto}
+        .energy{position:absolute;width:100%;height:3px;opacity:.6}
+        .e1{top:28%;background:linear-gradient(90deg,transparent,#39ff14,transparent);animation:ef 2s linear infinite}
+        .e2{bottom:33%;background:linear-gradient(90deg,transparent,#f97316,transparent);animation:ef 2.6s linear infinite reverse}
+        @keyframes ef{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+        .orb{position:absolute;width:55%;aspect-ratio:1;border-radius:50%;filter:blur(45px);opacity:.4;top:50%;transform:translateY(-50%)}
+        .og{left:-20%;background:radial-gradient(circle,#39ff14,transparent 70%)}
+        .oo{right:-20%;background:radial-gradient(circle,#f97316,transparent 70%)}
+        .hud{position:absolute;top:5%;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:3}
+        .hudDot{width:7px;height:7px;border-radius:50%;background:#39ff14;box-shadow:0 0 8px #39ff14}
+        .hudDot.o{background:#f97316;box-shadow:0 0 8px #f97316}
+        .hudT{font:800 clamp(8px,1.6cqw,14px) 'Courier New',monospace;color:rgba(57,255,20,.8);letter-spacing:.12em}
+        .scene-text .hl{color:#39ff14;text-shadow:0 0 18px rgba(57,255,20,.7)}
+        .scene-text .hl2{color:#f97316;text-shadow:0 0 18px rgba(249,115,22,.7)}
+      `,
+      enter: "game"
+    },
+    "news": {
+      bg: "#f0f0f0",
+      text: "#111111", accent: "#cc0000", accent2: "#111111",
+      font: "'Inter','Arial Black',sans-serif", weight: 900,
+      decoHTML: `
+        <div class="news-hdr"><span class="liveBdg">● LIVE</span><span class="break">BREAKING NEWS</span></div>
+        <div class="news-ftr"><span class="ticker">SHORTSCRAFT.ONLINE — AI Content Generator &nbsp; • &nbsp; Free Animated Reel Maker &nbsp; • &nbsp; AI YouTube Shorts &nbsp;</span></div>`,
+      extraCss: `
+        .news-hdr{position:absolute;top:0;left:0;right:0;height:10%;background:#cc0000;display:flex;align-items:center;justify-content:center;gap:12px;z-index:3}
+        .liveBdg{background:#fff;color:#cc0000;font:900 clamp(8px,1.7cqw,16px) 'Arial Black',sans-serif;padding:3px 8px;border-radius:3px;letter-spacing:.08em;animation:bk 1s ease infinite}
+        .break{font:900 clamp(10px,2.4cqw,24px) 'Arial Black',sans-serif;color:#fff;letter-spacing:.06em}
+        @keyframes bk{0%,100%{opacity:1}50%{opacity:.55}}
+        .news-ftr{position:absolute;bottom:0;left:0;right:0;height:8%;background:#1a1a1a;display:flex;align-items:center;padding:0 4%;overflow:hidden;z-index:3}
+        .ticker{white-space:nowrap;font:700 clamp(8px,1.6cqw,16px) 'Inter',sans-serif;color:#fff;letter-spacing:.04em;animation:tk 16s linear infinite}
+        @keyframes tk{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+        .stage{padding-top:10%;padding-bottom:8%}
+        .scene-text .hl{background:#cc0000;color:#fff;padding:0 .12em;border-radius:2px}
+        .scene-text .hl2{border:3px solid #111;padding:0 .12em}
+        .progress{bottom:8% !important;background:#cc0000 !important}
+        .wm{bottom:9% !important;color:rgba(0,0,0,.45) !important}
+      `,
+      enter: "slide"
+    },
+    "vhs": {
+      bg: "linear-gradient(180deg,#0d0010 0%,#150020 40%,#0a0015 100%)",
+      text: "#f472b6", accent: "#22d3ee", accent2: "#ffffff",
+      font: "'Courier New',Courier,monospace", weight: 700,
+      decoHTML: `
+        <div class="scanlines"></div>
+        <div class="vhs-noise"></div>
+        <div class="pink-glow"></div>
+        <div class="rec-label"><span class="rec-dot"></span><span class="rec-t">REC ■</span></div>`,
+      extraCss: `
+        .scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.3) 2px,rgba(0,0,0,.3) 4px);pointer-events:none;z-index:3;animation:scvhs 10s linear infinite}
+        @keyframes scvhs{from{background-position:0 0}to{background-position:0 80px}}
+        .vhs-noise{position:absolute;inset:0;opacity:.04;mix-blend-mode:overlay;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+        .pink-glow{position:absolute;width:80%;height:60%;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(244,114,182,.25),transparent 70%);filter:blur(40px);animation:pp 4s ease-in-out infinite}
+        @keyframes pp{0%,100%{opacity:.45}50%{opacity:.85}}
+        .rec-label{position:absolute;top:4%;left:4%;display:flex;align-items:center;gap:8px;z-index:4}
+        .rec-dot{width:9px;height:9px;border-radius:50%;background:#f472b6;box-shadow:0 0 8px #f472b6;animation:bk 1s ease infinite}
+        .rec-t{font:700 clamp(8px,1.6cqw,14px) 'Courier New',monospace;color:rgba(244,114,182,.85);letter-spacing:.1em}
+        @keyframes bk{0%,100%{opacity:1}50%{opacity:.25}}
+        .scene-text{text-shadow:2px 0 #22d3ee,-2px 0 #f472b6,0 0 18px rgba(244,114,182,.4);letter-spacing:.04em}
+        .scene-text .hl{color:#22d3ee;text-shadow:2px 0 #f472b6,-2px 0 #22d3ee}
+        .scene-text .hl2{color:#fff;text-shadow:2px 0 #f472b6,-2px 0 #22d3ee}
+      `,
+      enter: "vhs"
+    },
+    "documentary": {
+      bg: "linear-gradient(180deg,#000 0%,#0a0a0a 100%)",
+      text: "#ffffff", accent: "#fbbf24", accent2: "#9ca3af",
+      font: "'Inter',Helvetica,Arial,sans-serif", weight: 700,
+      decoHTML: `<div class="bar bar-top"></div><div class="bar bar-bot"></div>`,
+      extraCss: `
+        .bar{position:absolute;left:0;right:0;height:13%;background:#000;z-index:3}
+        .bar-top{top:0}.bar-bot{bottom:0}
+        .scene-text{letter-spacing:.02em;text-shadow:0 2px 12px rgba(0,0,0,.8)}
+        .scene-text .hl{color:#fbbf24}
+        .scene-text .hl2{color:#9ca3af}
+      `,
+      enter: "fade"
+    },
+    "tech-blueprint": {
+      bg: "#03162a",
+      text: "#e0f2fe", accent: "#38bdf8", accent2: "#a5f3fc",
+      font: "'Inter','Courier New',monospace", weight: 800,
+      decoHTML: `<div class="bp-grid"></div><div class="bp-cross tl"></div><div class="bp-cross tr"></div><div class="bp-cross bl"></div><div class="bp-cross br"></div>`,
+      extraCss: `
+        .bp-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(56,189,248,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.12) 1px,transparent 1px);background-size:6% 6%}
+        .bp-cross{position:absolute;width:22px;height:22px;border:1.5px solid #38bdf8;opacity:.55}
+        .bp-cross.tl{top:5%;left:5%;border-right:none;border-bottom:none}
+        .bp-cross.tr{top:5%;right:5%;border-left:none;border-bottom:none}
+        .bp-cross.bl{bottom:5%;left:5%;border-right:none;border-top:none}
+        .bp-cross.br{bottom:5%;right:5%;border-left:none;border-top:none}
+        .scene-text{text-shadow:0 0 14px rgba(56,189,248,.5)}
+        .scene-text .hl{color:#38bdf8}
+        .scene-text .hl2{color:#a5f3fc}
+      `,
+      enter: "neon"
+    },
+    "podcast": {
+      bg: "linear-gradient(180deg,#11131a 0%,#1a1d28 100%)",
+      text: "#ffffff", accent: "#fb7185", accent2: "#fbbf24",
+      font: "'Inter',Helvetica,Arial,sans-serif", weight: 700,
+      decoHTML: `<div class="wave"></div>`,
+      extraCss: `
+        .wave{position:absolute;left:6%;right:6%;bottom:14%;height:30%;display:flex;align-items:flex-end;justify-content:center;gap:3px;opacity:.5}
+        .wave::before{content:'';width:100%;height:100%;background:repeating-linear-gradient(90deg,#fb7185 0,#fb7185 3px,transparent 3px,transparent 8px);mask:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent);-webkit-mask:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent)}
+        .scene-text{background:rgba(0,0,0,.45);border-left:4px solid #fb7185;padding:.4em .6em !important;border-radius:.2em;backdrop-filter:blur(8px)}
+        .scene-text .hl{color:#fb7185}
+        .scene-text .hl2{color:#fbbf24}
+      `,
+      enter: "slide"
+    },
+  };
+  return themes[styleKey] || themes["viral-hook"];
+}
+
+/* ============================================================
+   createVideoPreviewHTML — builds the complete iframe document
+   ============================================================ */
+function createVideoPreviewHTML(scenes, styleKey, aspect) {
+  const theme = getStyleTheme(styleKey);
+  const e = VIDEO_STATE.edit;
+  const speed = Math.max(0.5, Math.min(2.5, e.speed || 1));
+  const sceneMs = Math.round(2800 * speed);
+  const fontScale = e.fontScale || 1;
+  const customHL = e.highlight || "";
+
+  const safeScenes = (scenes.length ? scenes : ["Paste a script first"])
+    .map(line => highlightKeywords(line));
+
+  const tall = ["9:16","4:5","3:4","2:3"].includes(aspect);
+  const wide = ["16:9","21:9"].includes(aspect);
+  const aspectCss = {"9:16":"9/16","16:9":"16/9","1:1":"1/1","4:5":"4/5","3:4":"3/4","2:3":"2/3","21:9":"21/9"}[aspect] || "9/16";
+
+  // Container-query based font size — scales to iframe's actual width
+  // tall iframes typically narrow → use larger cqw value
+  const baseFont = tall
+    ? `clamp(18px, 8.2cqw, 64px)`
+    : wide
+      ? `clamp(18px, 4.6cqw, 56px)`
+      : `clamp(18px, 6.4cqw, 60px)`;
+
+  const enter = theme.enter || "fade";
+  const enterKeyframes = {
+    vh: `@keyframes en-vh{0%{opacity:0;transform:translateY(22px) scale(.96)}55%{opacity:1;transform:translateY(-3px) scale(1.01)}100%{opacity:1;transform:translateY(0) scale(1)}}`,
+    neon: `@keyframes en-neon{0%{opacity:0;transform:scaleX(1.25);filter:blur(6px)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:scaleX(1)}}`,
+    mot: `@keyframes en-mot{0%{opacity:0;transform:scale(.7)}55%{transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}`,
+    fade: `@keyframes en-fade{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}`,
+    lux: `@keyframes en-lux{0%{opacity:0;letter-spacing:.25em;filter:blur(4px)}60%{opacity:.85}100%{opacity:1;letter-spacing:.02em;filter:blur(0)}}`,
+    pop: `@keyframes en-pop{0%{opacity:0;transform:scale(.5) rotate(-6deg)}55%{transform:scale(1.07) rotate(2deg)}100%{opacity:1;transform:scale(1) rotate(0)}}`,
+    glitch: `@keyframes en-glitch{0%{opacity:0;transform:skewX(12deg);clip-path:inset(0 100% 0 0)}20%{clip-path:inset(0 60% 0 0)}60%{clip-path:inset(0 0 0 0);opacity:1}100%{opacity:1;transform:skewX(0);clip-path:inset(0 0 0 0)}}`,
+    game: `@keyframes en-game{0%{opacity:0;transform:scale(1.25);filter:blur(5px)}55%{transform:scale(.97)}100%{opacity:1;transform:scale(1);filter:blur(0)}}`,
+    slide: `@keyframes en-slide{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:translateX(0)}}`,
+    vhs: `@keyframes en-vhs{0%{opacity:0;transform:skewX(4deg) scaleY(1.2);clip-path:inset(45% 0 45% 0)}50%{clip-path:inset(0)}100%{opacity:1;transform:skewX(0) scaleY(1)}}`
+  };
+
+  const customHLcss = customHL
+    ? `.scene-text .hl,.scene-text .hl2{color:${customHL} !important;text-shadow:0 0 18px ${customHL}66 !important}`
+    : "";
+
+  // Build the inner HTML
+  return `<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>ShortsCraft Preview</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:${theme.font};-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scrollbar-width:none}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
+  body{display:flex;align-items:center;justify-content:center}
+  .stage{
+    position:relative;width:100%;height:100%;max-width:100vw;max-height:100vh;
+    aspect-ratio:${aspectCss};
+    background:${theme.bg};
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    container-type:inline-size;
+  }
+  /* preserve aspect if container too wide (wide aspects in tall iframe) */
+  @media (min-aspect-ratio: ${aspectCss}){
+    .stage{width:auto;height:100%}
+  }
+  @media (max-aspect-ratio: ${aspectCss}){
+    .stage{width:100%;height:auto}
+  }
+  .scene-wrap{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:8% 7%;
+    z-index:2;
+  }
+  .scene-text{
+    color:${theme.text};
+    font-size:calc(${baseFont} * ${fontScale});
+    font-weight:${theme.weight};
+    line-height:1.15;
+    letter-spacing:-.01em;
+    text-align:center;
+    max-width:100%;
+    /* CRITICAL: never break words */
+    word-break:keep-all;
+    overflow-wrap:normal;
+    hyphens:none;
+    white-space:normal;
+    text-wrap:balance;
+    animation:en-${enter} .55s cubic-bezier(.2,.7,.2,1.05) both;
+  }
+  ${enterKeyframes[enter]}
+  .progress{
+    position:absolute;left:0;bottom:0;height:5px;width:0;
+    background:linear-gradient(90deg,${theme.accent},${theme.accent2});
+    box-shadow:0 0 14px ${theme.accent}99;
+    z-index:5;
+  }
+  .wm{
+    position:absolute;right:3.5%;bottom:2.5%;
+    font:600 clamp(8px,1.5cqw,13px) 'Inter','Helvetica Neue',Arial,sans-serif;
+    color:rgba(255,255,255,.4);letter-spacing:.06em;
+    z-index:5;text-transform:lowercase;
+    pointer-events:none;
+  }
+  .scene-counter{
+    position:absolute;left:3.5%;bottom:2.5%;
+    font:700 clamp(8px,1.5cqw,12px) 'Inter',sans-serif;
+    color:rgba(255,255,255,.35);letter-spacing:.1em;
+    z-index:5;
+  }
+  /* Theme decorations */
+  ${theme.extraCss || ""}
+  ${customHLcss}
+</style>
+</head><body>
+<div class="stage">
+  ${theme.decoHTML || ""}
+  <div class="scene-wrap" id="sw">
+    <div class="scene-text" id="st"></div>
+  </div>
+  <div class="progress" id="pr"></div>
+  <div class="scene-counter" id="sc">1 / ${safeScenes.length}</div>
+  <div class="wm">shortscraft.online</div>
+</div>
+<script>
+(function(){
+  var SCENES = ${JSON.stringify(safeScenes)};
+  var DUR = ${sceneMs};
+  var idx = 0;
+  var st = document.getElementById('st');
+  var pr = document.getElementById('pr');
+  var sc = document.getElementById('sc');
+  function render(i){
+    if(!SCENES.length) return;
+    st.style.animation = 'none';
+    void st.offsetWidth; /* reflow */
+    st.innerHTML = SCENES[i];
+    st.style.animation = '';
+    sc.textContent = (i+1) + ' / ' + SCENES.length;
+    pr.style.transition = 'none';
+    pr.style.width = '0%';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        pr.style.transition = 'width ' + DUR + 'ms linear';
+        pr.style.width = '100%';
+      });
+    });
+  }
+  render(0);
+  if(SCENES.length > 1){
+    setInterval(function(){
+      idx = (idx + 1) % SCENES.length;
+      render(idx);
+    }, DUR);
+  }
+})();
+<\/script>
+</body></html>`;
+}
+
+/* ---------- Push HTML into the iframe + update wrap class ---------- */
+function setVideoPreview(html) {
+  const frame = $("#videoPreviewFrame");
+  const empty = $("#videoEmptyState");
+  const status = $("#videoPreviewStatus");
+  const wrap = $("#videoFrameWrap");
+  if (!frame) return;
+  frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+  frame.srcdoc = html;
+  if (empty) empty.classList.add("hidden");
+  if (status) status.textContent = "Preview ready";
+  if (wrap) {
+    wrap.classList.remove("ratio-916","ratio-169","ratio-11","ratio-45","ratio-34","ratio-23","ratio-219");
+    const cls = {"9:16":"ratio-916","16:9":"ratio-169","1:1":"ratio-11","4:5":"ratio-45","3:4":"ratio-34","2:3":"ratio-23","21:9":"ratio-219"}[VIDEO_STATE.aspect] || "ratio-916";
+    wrap.classList.add(cls);
+  }
+}
+
+/* ============================================================
+   buildVideoPreview — main entry called by Generate Video button
+   ============================================================ */
+function buildVideoPreview(deductCredit = true) {
+  const scriptInput = $("#videoScriptInput");
+  const styleSelect = $("#videoStyleSelect");
+  const aspectSelect = $("#videoAspectSelect");
+  if (!scriptInput) return;
+
+  const rawScript = scriptInput.value.trim();
+  if (!rawScript) { toast("Paste or generate a script first.", "error"); return; }
+
+  // Credits gate
+  if (deductCredit && !STATE.isPro) {
+    if (STATE.credits <= 0) { openModal("#noCreditsModal"); return; }
+    setCredits(STATE.credits - 1);
+  }
+
+  VIDEO_STATE.script = rawScript;
+  VIDEO_STATE.style = styleSelect?.value || "viral-hook";
+  VIDEO_STATE.aspect = aspectSelect?.value || "9:16";
+
+  // 1. Clean   2. Split into scenes   3. Build HTML
+  const scenes = splitScriptIntoScenes(rawScript, VIDEO_STATE.aspect);
+
+  if (!scenes.length) {
+    toast("Script could not be parsed. Try a different text.", "error");
+    return;
+  }
+
+  VIDEO_STATE.html = createVideoPreviewHTML(scenes, VIDEO_STATE.style, VIDEO_STATE.aspect);
+  setVideoPreview(VIDEO_STATE.html);
+
+  // History entry
+  try {
+    pushHistory({
+      topic: (cleanScriptForVideo(rawScript).split(/\n|\.|!|\?/).find(Boolean) || "Animated video").trim().slice(0, 80),
+      at: Date.now(),
+      content: rawScript,
+      videoHtml: VIDEO_STATE.html,
+      type: "video"
+    });
+  } catch {}
+
+  // Auto-scroll to Live Preview card
+  setTimeout(() => {
+    const previewCard = $(".video-preview-card") || $("#videoFrameWrap");
+    if (previewCard) {
+      const headerOffset = window.innerWidth <= 768 ? 70 : 80;
+      const top = previewCard.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  }, 150);
+
+  toast(`Video preview ready — ${scenes.length} scene${scenes.length > 1 ? "s" : ""}!`, "success");
+}
+
+/* ---------- Generate Script from topic (server) ---------- */
+async function generateScriptForVideo() {
+  const topicInput = $("#videoTopicInput");
+  const scriptInput = $("#videoScriptInput");
+  const topic = topicInput?.value.trim();
+  if (!topic) { toast("Enter a topic first.", "error"); return; }
+  if (!STATE.isPro && STATE.credits <= 0) { openModal("#noCreditsModal"); return; }
+
+  const btn = $("#videoGenerateScriptBtn");
+  const old = btn?.textContent;
+  if (btn) { btn.textContent = "Generating..."; btn.disabled = true; }
+  try {
+    const data = await api("/api/generate", { method: "POST", body: { topic, type: "script" } });
+    let script = (data.content || "").replace(/=== SCRIPT ===/gi, "").replace(/=== TITLES ===[\s\S]*/gi, "").trim();
+    if (scriptInput) scriptInput.value = script;
+
+
+    $$(".video-mode").forEach(b => b.classList.toggle("active", b.dataset.mode === "paste"));
+    $("#videoPastePanel")?.classList.add("active");
+    $("#videoGeneratePanel")?.classList.remove("active");
+    VIDEO_STATE.mode = "paste";
+    if (!STATE.isPro) setCredits(STATE.credits - 1);
+    toast("Script generated. Now create video preview.", "success");
+  } catch (e) {
+    toast(e.message, "error");
+  } finally {
+    if (btn) { btn.textContent = old || "Generate Script"; btn.disabled = false; }
+  }
+}
+
+function showProDownloadModal() {
+  const note = $("#upgradeNote");
+  if (note) note.textContent = "Download Video is a Pro feature. Upgrade to export your animated video.";
+  openModal("#upgradeModal");
+}
+
+function initVideoFirst() {
+  if (!$("#videoGenerator")) return;
+
+
+  $$(".video-mode").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode || "paste";
+      VIDEO_STATE.mode = mode;
+
+      $$(".video-mode").forEach(b => b.classList.toggle("active", b === btn));
+      $("#videoPastePanel")?.classList.toggle("active", mode === "paste");
+      $("#videoGeneratePanel")?.classList.toggle("active", mode === "generate");
+    });
+  });
+
+  on($("#videoGenerateScriptBtn"), "click", generateScriptForVideo);
+  on($("#generateVideoBtn"), "click", () => buildVideoPreview(true));
+
+  on($("#resetVideoBtn"), "click", () => {
+    if ($("#videoScriptInput")) $("#videoScriptInput").value = "";
+    if ($("#videoTopicInput")) $("#videoTopicInput").value = "";
+    resetEdits();
+    VIDEO_STATE.html = "";
+    if ($("#videoPreviewFrame")) $("#videoPreviewFrame").srcdoc = "";
+    $("#videoEmptyState")?.classList.remove("hidden");
+    if ($("#videoPreviewStatus")) $("#videoPreviewStatus").textContent = "No video generated yet";
+  });
+
+  on($("#applyVideoEditBtn"), "click", () => {
+    resetEdits();
+    parseEdits($("#videoEditPrompt")?.value || "");
+    buildVideoPreview(false);
+  });
+
+  on($("#resetVideoEditBtn"), "click", () => {
+    resetEdits();
+    if ($("#videoEditPrompt")) $("#videoEditPrompt").value = "";
+    buildVideoPreview(false);
+  });
+
+
+  $$(".quick-edit-chips button").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const val = (chip.dataset.edit || chip.textContent || "").trim();
+      const p = $("#videoEditPrompt");
+      const merged = p && p.value.trim() ? (p.value.trim() + ", " + val) : val;
+      if (p) p.value = merged;
+      resetEdits();
+      parseEdits(merged);
+      buildVideoPreview(false);
+    });
+  });
+
+  on($("#copyVideoHtmlBtn"), "click", async () => {
+    if (!VIDEO_STATE.html) { toast("Generate a video first.", "error"); return; }
+    try {
+      await navigator.clipboard.writeText(VIDEO_STATE.html);
+      toast("HTML copied!", "success");
+    } catch { toast("Copy failed.", "error"); }
+  });
+
+  on($("#openVideoPreviewBtn"), "click", () => {
+    if (!VIDEO_STATE.html) { toast("Generate a video first.", "error"); return; }
+    const w = window.open("", "_blank");
+    if (w) { w.document.open(); w.document.write(VIDEO_STATE.html); w.document.close(); }
+  });
+
+  on($("#downloadVideoBtn"), "click", () => {
+    if (!VIDEO_STATE.html) { toast("Generate a video first.", "error"); return; }
+    showProDownloadModal();
+  });
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initVideoFirst);
+} else {
+  initVideoFirst();
+}
+
+/* ── Extra safe profile action delegation ─────────────────── */
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#profilePop .pp-item, #profilePop #earnCreditsLink");
+  if (!btn) return;
+  if (btn.id === "earnCreditsLink") { e.preventDefault(); closeModal("#upgradeModal"); $("#profilePop")?.classList.add("hidden"); openModal("#earnModal"); }
+  if (btn.id === "upgradeBtn") { e.preventDefault(); $("#profilePop")?.classList.add("hidden"); openModal("#upgradeModal"); }
+  if (btn.id === "viewSavedBtn" || btn.id === "viewHistoryBtn") { e.preventDefault(); $("#profilePop")?.classList.add("hidden"); openSidebar(); }
+  if (btn.id === "profileFeedbackBtn") { e.preventDefault(); $("#profilePop")?.classList.add("hidden"); openModal("#feedbackModal"); }
+}, true);
+
+})();
+
+
+/* ===== APPENDED LATEST GENSPARK PATCH ===== */
+/* ============================================================
+   FINAL v10 PATCH — auth state, credits=10, earn tasks,
+   improved video preview, scroll-to-preview, profile fixes
    ============================================================ */
 (() => {
   "use strict";
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const AUTH_KEY = "sc:auth:v2";
+  const CREDITS_KEY = "sc:credits:v2";
+  const CREDITS_DAY = "sc:credits:day";
+  const CREDITS_RULE = "sc:credits:rule:v10";
+  const FREE_PER_DAY = 10;
 
-  const FREE_CREDITS_VIDEO = 10;
-  const LS_CREDIT = "sc:credits:v2";
-  const LS_DAY = "sc:credits:day";
-  const LS_VER = "sc:credits-version:v10";
-  const CREDIT_VER = "v10";
+  /* ---------- Force credits to 10 ---------- */
+  function ensureTenCredits() {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const day = localStorage.getItem(CREDITS_DAY);
+      const rule = localStorage.getItem(CREDITS_RULE);
+      if (day !== today || rule !== "v10-10") {
+        localStorage.setItem(CREDITS_DAY, today);
+        localStorage.setItem(CREDITS_RULE, "v10-10");
+        localStorage.setItem(CREDITS_KEY, String(FREE_PER_DAY));
+        localStorage.setItem("sc:credits:max", String(FREE_PER_DAY));
+        localStorage.setItem("sc:credits:max-version", "10");
+      } else {
+        const cur = parseInt(localStorage.getItem(CREDITS_KEY) || "10", 10);
+        if (isNaN(cur) || cur < 0) {
+          localStorage.setItem(CREDITS_KEY, String(FREE_PER_DAY));
+        }
+      }
+    } catch {}
+    const cur = parseInt(localStorage.getItem(CREDITS_KEY) || "10", 10);
 
-  const VIDEO_STATE = { html: "", scenes: [], style: "viral-hook", aspect: "9:16" };
+    $$("#creditsCount, #creditsInfoCount").forEach((el) => {
+      if (el) el.textContent = String(isNaN(cur) ? 10 : cur);
+    });
+    const pill = $("#creditsPill");
+    if (pill) pill.classList.remove("hidden");
+  }
 
-  const STYLE_NAMES = {
-    "viral-hook": "YouTube Viral Hook",
-    "typography-premium": "Premium Typography",
-    "clean-minimal": "Clean Minimal White",
-    "neon-cyber": "Neon Cyber Kinetic",
-    "motivation": "Motivation Reel",
-    "podcast": "Modern Podcast Subtitle",
-    "news": "Bold Breaking News",
-    "horror": "Horror / Mystery",
-    "luxury": "Luxury Gold Premium",
-    "social-pop": "Social Gradient Pop",
-    "documentary": "Faceless Documentary",
-    "tech-blueprint": "Tech Explainer Blueprint",
-    "gaming": "Gaming Esports",
-    "classroom": "Classroom Educational",
-    "vhs": "Retro VHS Tape",
-    "startup": "Startup SaaS Clean"
-  };
+  /* ---------- Auth state UI ---------- */
+  function getStoredUser() {
+    try { return JSON.parse(localStorage.getItem(AUTH_KEY) || "null"); }
+    catch { return null; }
+  }
+  function setAuthUI(user) {
+    const signed = !!user;
+    document.body.classList.toggle("sc-signed-in", signed);
 
-  function toast(message, type = "info", ms = 3200) {
-    if (typeof window.scToast === "function") return window.scToast(message, type, ms);
-    const wrap = $("#toasts") || document.body.appendChild(Object.assign(document.createElement("div"), { id: "toasts", className: "toasts" }));
+    $$("#loginBtn, #seoLoginBtn").forEach((btn) => {
+      if (!btn) return;
+      btn.classList.toggle("hidden", signed);
+      btn.style.display = signed ? "none" : "";
+    });
+
+    $$("#profileWrap").forEach((wrap) => {
+      if (!wrap) return;
+      wrap.classList.toggle("hidden", !signed);
+      wrap.style.display = signed ? "block" : "none";
+    });
+    if (signed) {
+      const meta = user.user_metadata || {};
+      const name = user.name || user.full_name || meta.full_name || meta.name || (user.email ? user.email.split("@")[0] : "Creator");
+      const email = user.email || "";
+      const initial = (name.trim()[0] || "C").toUpperCase();
+
+      $$("#profileName").forEach((el) => el.textContent = name);
+
+      $$("#profileEmail").forEach((el) => el.textContent = email);
+
+      $$("#avatarInitial, #avatarInitialLg").forEach((el) => el.textContent = initial);
+    } else {
+
+      $$("#profilePop").forEach((p) => p.classList.add("hidden"));
+      document.body.classList.remove("sc-profile-open");
+    }
+  }
+
+  function openModal(sel) {
+    const m = $(sel);
+    if (!m) return;
+    m.classList.remove("hidden");
+    document.body.classList.add("modal-open");
+  }
+  function closeModal(sel) {
+    const m = typeof sel === "string" ? $(sel) : sel;
+    if (!m) return;
+    m.classList.add("hidden");
+    document.body.classList.remove("modal-open");
+  }
+
+  function refreshEarnTasks() {
+    const list = $("#tasksList");
+    if (!list) return;
+
+    const TASKS = [
+      { id: "subscribe", label: "Subscribe Tech Vault channel", hint: "Open the channel, subscribe, then claim.", url: "https://www.youtube.com/@TechVault-90" },
+      { id: "watch", label: "Watch one Tech Vault video", hint: "Open the channel, watch any video, then claim.", url: "https://www.youtube.com/@TechVault-90/videos" },
+      { id: "telegram", label: "Follow on Telegram", hint: "Join our Telegram channel, then claim.", url: "https://t.me/+ZfQKHJhGg8xiMTRl" },
+      { id: "share", label: "Share ShortsCraft with a friend", hint: "Share the website link, then claim.", url: "https://shortscraft.online/" },
+      { id: "feedback", label: "Submit useful product feedback", hint: "Tell us what should improve, then claim.", action: "feedback" },
+    ];
+
+    let done = {};
+    let opened = {};
+    try { done = JSON.parse(localStorage.getItem("sc:tasks:v2") || "{}"); } catch {}
+    try { opened = JSON.parse(localStorage.getItem("sc:tasks-opened:v2") || "{}"); } catch {}
+
+    list.innerHTML = TASKS.map((t) => {
+      const isDone = !!done[t.id];
+      const isOpened = !!opened[t.id];
+      const btn = isDone ? "Done ✓" : isOpened ? "Claim +1" : (t.action === "feedback" ? "Open" : "Open");
+      return `
+        <div class="task premium-task ${isDone ? "task-done" : ""}">
+          <div class="task-info">
+            <b>${escapeHtmlSafe(t.label)}</b>
+            <span>${escapeHtmlSafe(t.hint)}</span>
+            <small>+1 credit</small>
+          </div>
+          <button data-id="${t.id}" data-action="${t.action || "open"}" data-url="${t.url || ""}" ${isDone ? "disabled" : ""}>${btn}</button>
+        </div>`;
+    }).join("");
+
+
+    $$("#tasksList button").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const url = btn.dataset.url;
+
+        let doneState = {};
+        let openedState = {};
+        try { doneState = JSON.parse(localStorage.getItem("sc:tasks:v2") || "{}"); } catch {}
+        try { openedState = JSON.parse(localStorage.getItem("sc:tasks-opened:v2") || "{}"); } catch {}
+
+        if (doneState[id]) return;
+
+        if (action === "feedback" && !openedState[id]) {
+          openedState[id] = true;
+          localStorage.setItem("sc:tasks-opened:v2", JSON.stringify(openedState));
+          closeModal("#earnModal");
+          openModal("#feedbackModal");
+          refreshEarnTasks();
+          return;
+        }
+
+        if (!openedState[id]) {
+          openedState[id] = true;
+          localStorage.setItem("sc:tasks-opened:v2", JSON.stringify(openedState));
+          if (url) window.open(url, "_blank", "noopener,noreferrer");
+          if (window.scToast) window.scToast("Task opened. Complete it, then come back to claim.", "info");
+          refreshEarnTasks();
+          return;
+        }
+
+        doneState[id] = true;
+        localStorage.setItem("sc:tasks:v2", JSON.stringify(doneState));
+        const cur = parseInt(localStorage.getItem(CREDITS_KEY) || "10", 10) || 0;
+        const nv = cur + 1;
+        localStorage.setItem(CREDITS_KEY, String(nv));
+
+        $$("#creditsCount, #creditsInfoCount").forEach((el) => el.textContent = String(nv));
+        if (window.scToast) window.scToast("+1 credit added!", "success");
+        refreshEarnTasks();
+      });
+    });
+  }
+
+  function escapeHtmlSafe(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function initMobileNav() {
+    const burger = $("#navBurger");
+    const nav = $("#navMobile");
+    if (!burger || !nav || burger.dataset.scV10 === "1") return;
+    burger.dataset.scV10 = "1";
+
+    const close = () => {
+      nav.classList.remove("open");
+      nav.setAttribute("hidden", "");
+      burger.classList.remove("active");
+      burger.setAttribute("aria-expanded", "false");
+    };
+    const open = () => {
+      nav.removeAttribute("hidden");
+      nav.classList.add("open");
+      burger.classList.add("active");
+      burger.setAttribute("aria-expanded", "true");
+    };
+
+    burger.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (nav.classList.contains("open")) close();
+      else open();
+    }, true);
+
+    nav.addEventListener("click", (e) => e.stopPropagation(), true);
+
+
+    $$(".nav-mobile a").forEach((a) => a.addEventListener("click", close));
+    document.addEventListener("click", (e) => {
+      if (nav.classList.contains("open") && !e.target.closest(".nav") && !e.target.closest("#navMobile")) {
+        close();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && nav.classList.contains("open")) close();
+    });
+  }
+
+  function bindGenerateScroll() {
+    const btn = $("#generateVideoBtn");
+    if (!btn || btn.dataset.scV10Scroll === "1") return;
+    btn.dataset.scV10Scroll = "1";
+
+    btn.addEventListener("click", () => {
+      const script = $("#videoScriptInput")?.value?.trim();
+      if (!script) return;
+      setTimeout(() => {
+        const target = $(".video-preview-card") || $("#videoFrameWrap") || $("#videoPreviewFrame");
+        if (target) {
+          const headerOffset = window.innerWidth <= 768 ? 64 : 70;
+          const rect = target.getBoundingClientRect();
+          const offsetTop = rect.top + window.scrollY - headerOffset - 12;
+          window.scrollTo({ top: offsetTop, behavior: "smooth" });
+        }
+      }, 380);
+    }, false);
+  }
+
+  function boot() {
+    ensureTenCredits();
+    setAuthUI(getStoredUser());
+    initMobileNav();
+    bindGenerateScroll();
+
+    const earnTriggers = ["#earnCreditsLink", "#noCreditsEarnBtn"];
+    earnTriggers.forEach((sel) => {
+      const btn = $(sel);
+      if (btn && btn.dataset.scV10Earn !== "1") {
+        btn.dataset.scV10Earn = "1";
+        btn.addEventListener("click", () => {
+          setTimeout(refreshEarnTasks, 60);
+        });
+      }
+    });
+    refreshEarnTasks();
+
+    setTimeout(ensureTenCredits, 600);
+    setTimeout(() => setAuthUI(getStoredUser()), 800);
+    setTimeout(refreshEarnTasks, 900);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+
+
+/* ============================================================
+   FINAL FEEDBACK SUBMIT FIX
+   ============================================================ */
+(() => {
+  "use strict";
+  const $ = (s, root = document) => root.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const showToast = (msg, type = "info") => {
+    if (window.scToast) return window.scToast(msg, type, 3500);
+    const wrap = $("#toasts");
+    if (!wrap) return console.log(`[${type}] ${msg}`);
     const el = document.createElement("div");
     el.className = `toast ${type}`;
-    el.textContent = message;
+    el.innerHTML = `<span class="toast-icon">${type === "success" ? "✅" : type === "error" ? "⚠️" : "💡"}</span><span>${esc(msg)}</span>`;
     wrap.appendChild(el);
-    setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 280); }, ms);
-  }
-
-  function todayKey() { return new Date().toISOString().slice(0, 10); }
-
-  function normalizeCredits() {
-    const t = todayKey();
-    const day = localStorage.getItem(LS_DAY);
-    const ver = localStorage.getItem(LS_VER);
-    if (day !== t || ver !== CREDIT_VER) {
-      localStorage.setItem(LS_DAY, t);
-      localStorage.setItem(LS_VER, CREDIT_VER);
-      localStorage.setItem(LS_CREDIT, String(FREE_CREDITS_VIDEO));
-      return FREE_CREDITS_VIDEO;
+    setTimeout(() => { el.classList.add("fade-out"); setTimeout(() => el.remove(), 300); }, 3500);
+  };
+  const closeFeedbackModal = () => {
+    const modal = $("#feedbackModal");
+    if (modal) modal.classList.add("hidden");
+    document.body.classList.remove("modal-open");
+    document.body.style.overflow = "";
+  };
+  const saveLocalFeedback = (payload) => {
+    try {
+      const key = "sc:feedback:pending:v1";
+      const arr = JSON.parse(localStorage.getItem(key) || "[]");
+      arr.unshift({ ...payload, at: new Date().toISOString() });
+      localStorage.setItem(key, JSON.stringify(arr.slice(0, 25)));
+    } catch {}
+  };
+  async function submitFeedback(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const btn = $("#feedbackSubmit");
+    const nameEl = $("#feedbackName");
+    const emailEl = $("#feedbackEmail");
+    const msgEl = $("#feedbackMessage");
+    const name = (nameEl?.value || "").trim();
+    const email = (emailEl?.value || "").trim();
+    const message = (msgEl?.value || "").trim();
+    if (!name) return showToast("Enter your name.", "error");
+    if (message.length < 5) return showToast("Message too short.", "error");
+    const payload = { name, email, subject: "Studio feedback", message };
+    const oldText = btn?.textContent || "Submit";
+    if (btn) { btn.disabled = true; btn.textContent = "Submitting..."; }
+    let serverOk = false;
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) throw new Error(data.error || `HTTP ${res.status}`);
+      serverOk = true;
+    } catch (err) {
+      console.warn("[feedback fallback]", err?.message || err);
+      saveLocalFeedback(payload);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = oldText; }
     }
-    const n = parseInt(localStorage.getItem(LS_CREDIT) || String(FREE_CREDITS_VIDEO), 10);
-    return Number.isFinite(n) ? Math.max(0, Math.min(FREE_CREDITS_VIDEO, n)) : FREE_CREDITS_VIDEO;
+    if (msgEl) msgEl.value = "";
+    closeFeedbackModal();
+    showToast(serverOk ? "Thanks! Feedback submitted." : "Thanks! Feedback saved. I'll keep it safely.", "success");
+  }
+  function bindFinalFeedbackFix() {
+    const btn = $("#feedbackSubmit");
+    if (!btn || btn.dataset.scFinalFeedbackFix === "1") return;
+    btn.dataset.scFinalFeedbackFix = "1";
+    btn.addEventListener("click", submitFeedback, true);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindFinalFeedbackFix);
+  else bindFinalFeedbackFix();
+})();
+
+/* ============================================================
+   SHORTSCRAFT PREMIUM VIDEO PREVIEW PATCH v4
+   Append at END of public/script.js
+   Fixes: distinct styles, aspect scaling, edit prompt, word reveal,
+   watermark, autoplay, scene dots, credits gate, preview scroll.
+   ============================================================ */
+(() => {
+  "use strict";
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  const CREDIT_KEY = "sc:credits:v2";
+  const DAY_KEY = "sc:credits:day";
+  const FREE_PER_DAY = 10;
+  const STYLE_KEY = "sc:premiumVideo:lastHtml";
+  const STATE = {
+    html: "",
+    script: "",
+    style: "viral-hook",
+    aspect: "9:16",
+    editText: "",
+    mods: { fontScale: 1, speed: 1, yellow: false, darker: false, minimal: false, premium: false }
+  };
+
+  const toast = (msg, type = "info") => {
+    if (window.scToast) return window.scToast(msg, type, 3200);
+    console[type === "error" ? "error" : "log"](msg);
+  };
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
+  function ensureCredits(){
+    try{
+      if(localStorage.getItem(DAY_KEY) !== todayISO()){
+        localStorage.setItem(DAY_KEY, todayISO());
+        localStorage.setItem(CREDIT_KEY, String(FREE_PER_DAY));
+      }
+    }catch{}
+    renderCredits();
+  }
+  function getCredits(){
+    ensureCredits();
+    const n = parseInt(localStorage.getItem(CREDIT_KEY) || String(FREE_PER_DAY), 10);
+    return Number.isFinite(n) ? n : FREE_PER_DAY;
+  }
+  function setCredits(n){
+    const v = Math.max(0, Number(n) || 0);
+    try{ localStorage.setItem(CREDIT_KEY, String(v)); }catch{}
+    renderCredits();
+  }
+  function renderCredits(){
+    const v = parseInt(localStorage.getItem(CREDIT_KEY) || String(FREE_PER_DAY), 10);
+    $$("#creditsCount,#creditsInfoCount").forEach(el => { if(el) el.textContent = String(Number.isFinite(v) ? v : FREE_PER_DAY); });
+    const pill = $("#creditsPill");
+    if(pill) pill.classList.remove("hidden");
+  }
+  function isPro(){ return document.body.classList.contains("sc-pro") || /true/i.test(localStorage.getItem("sc:isPro") || ""); }
+  function openNoCredits(){
+    const m = $("#noCreditsModal");
+    if(m){ m.classList.remove("hidden"); document.body.classList.add("modal-open"); document.body.style.overflow = "hidden"; }
+    else toast("No credits left. Come back tomorrow or upgrade.", "error");
   }
 
-  function setCredits(n) {
-    n = Math.max(0, Math.min(FREE_CREDITS_VIDEO, Number(n) || 0));
-    localStorage.setItem(LS_DAY, todayKey());
-    localStorage.setItem(LS_VER, CREDIT_VER);
-    localStorage.setItem(LS_CREDIT, String(n));
-    ["#creditsCount", "#creditsInfoCount"].forEach(sel => { const el = $(sel); if (el) el.textContent = n; });
-    const pill = $("#creditsPill"); if (pill) pill.classList.remove("hidden");
-    return n;
-  }
-
-  function deductCredit() {
-    const isPro = document.body.classList.contains("sc-pro") || localStorage.getItem("sc:isPro") === "true";
-    if (isPro) return true;
-    const current = normalizeCredits();
-    if (current <= 0) {
-      if (typeof window.openModal === "function") window.openModal("#noCreditsModal");
-      else $("#noCreditsModal")?.classList.remove("hidden");
-      return false;
-    }
-    setCredits(current - 1);
-    return true;
-  }
-
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>'"]/g, ch => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
-    }[ch]));
-  }
-
-  function cleanScript(raw) {
+  function cleanScript(raw){
     return String(raw || "")
-      .replace(/\r/g, "\n")
-      .replace(/\[(hook|main|body|cta|intro|outro|scene\s*\d+|part\s*\d+)\]/gi, "\n")
-      .replace(/(^|\n)\s*(hook|main|body|cta|intro|outro|scene\s*\d+|part\s*\d+)\s*[:：-]\s*/gi, "\n")
-      .replace(/[“”]/g, '"')
-      .replace(/[‘’]/g, "'")
-      .replace(/\s+\n/g, "\n")
-      .replace(/\n{2,}/g, "\n")
+      .replace(/```[\s\S]*?```/g," ")
+      .replace(/={2,}\s*[A-Z][A-Z\s]+={2,}/g,"\n")
+      .replace(/\[\s*(HOOK|MAIN|CTA|INTRO|OUTRO|BODY|END|START|TITLE|VOICEOVER|VO|NARRATOR|SCENE\s*\d*|PART\s*\d*|STEP\s*\d*|SHOT\s*\d*|CAPTION)\s*\]\s*:?/gi,"\n")
+      .replace(/^\s*(HOOK|MAIN|CTA|INTRO|OUTRO|BODY|TITLE|VOICEOVER|VO|NARRATOR|CAPTION)\s*[:\-–—]\s*/gim,"")
+      .replace(/^\s*(SCENE|PART|STEP|SHOT|CHAPTER)\s*\d+\s*[:\-–—]?\s*/gim,"")
+      .replace(/^\s*\d+\s*[).:\-–—]\s+/gm,"")
+      .replace(/[•▪▫➜►▶→·]/g,"\n")
+      .replace(/\*\*(.*?)\*\*/g,"$1")
+      .replace(/__(.*?)__/g,"$1")
+      .replace(/^#{1,6}\s+/gm,"")
+      .replace(/\((pause|camera|zoom|cut|music|sfx|beat|transition|fade|smile|laugh)[^)]{0,40}\)/gi," ")
+      .replace(/\r/g,"\n")
+      .replace(/[\t ]+/g," ")
+      .replace(/\n{2,}/g,"\n")
       .trim();
   }
 
-  function splitSentences(text) {
-    const cleaned = cleanScript(text);
-    if (!cleaned) return [];
-    const lines = cleaned.split(/\n+/).map(x => x.trim()).filter(Boolean);
-    const out = [];
-    lines.forEach(line => {
-      const parts = line
-        .replace(/([.!?।])\s+/g, "$1|SPLIT|")
-        .split("|SPLIT|")
-        .map(x => x.trim())
-        .filter(Boolean);
-      out.push(...parts);
+  function splitIntoScenes(raw, aspect){
+    const text = cleanScript(raw);
+    if(!text) return [];
+    const tall = ["9:16","4:5","3:4","2:3"].includes(aspect);
+    const wide = ["16:9","21:9"].includes(aspect);
+    const maxWords = tall ? 7 : wide ? 10 : 8;
+    const maxChars = tall ? 46 : wide ? 78 : 58;
+    const parts = [];
+    text.split(/\n+/).forEach(line => {
+      line.split(/(?<=[.!?।])\s+|(?<=[,;:])\s+/).forEach(p => { p = p.trim(); if(p) parts.push(p); });
     });
-    return out;
-  }
-
-  function chunkWords(sentence, maxWords) {
-    const words = sentence.split(/\s+/).filter(Boolean);
-    if (words.length <= maxWords) return [sentence.trim()];
-    const chunks = [];
-    let buf = [];
-    words.forEach(w => {
-      buf.push(w);
-      if (buf.length >= maxWords || /[,;:!?।]$/.test(w)) {
-        chunks.push(buf.join(" "));
-        buf = [];
-      }
-    });
-    if (buf.length) chunks.push(buf.join(" "));
-    return chunks;
-  }
-
-  function splitScenes(raw, aspect) {
-    const maxWords = aspect === "16:9" ? 9 : 7;
-    const pieces = [];
-    splitSentences(raw).forEach(s => pieces.push(...chunkWords(s, maxWords)));
     const scenes = [];
-    let carry = "";
-    pieces.forEach(p => {
-      p = p.trim();
-      if (!p) return;
-      const count = p.split(/\s+/).length;
-      if (count <= 2 && carry) {
-        carry = `${carry} ${p}`.trim();
-        scenes.push(carry); carry = "";
-      } else if (count <= 2) {
-        carry = p;
-      } else {
-        if (carry) { scenes.push(carry); carry = ""; }
-        scenes.push(p);
+    for(const p of parts){
+      const words = p.split(/\s+/).filter(Boolean);
+      if(!words.length) continue;
+      let chunk = [], len = 0;
+      for(const w of words){
+        const nextLen = len + (chunk.length ? 1 : 0) + w.length;
+        if(chunk.length && (chunk.length >= maxWords || nextLen > maxChars)){
+          scenes.push(chunk.join(" "));
+          chunk = [w]; len = w.length;
+        }else{
+          chunk.push(w); len = nextLen;
+        }
       }
-    });
-    if (carry) scenes.push(carry);
-    return scenes.slice(0, 14).map(s => s.replace(/^[-–—•]+\s*/, "").trim()).filter(Boolean);
-  }
-
-  function parseMods() {
-    const value = ($("#videoEditPrompt")?.value || "").toLowerCase();
-    return {
-      bigger: /big|bigger|large|larger|text bada|font/i.test(value),
-      slower: /slow|slower|धीरे|dheere/i.test(value),
-      faster: /fast|faster|speed/i.test(value),
-      yellow: /yellow|highlight|हाइलाइट/i.test(value),
-      dark: /dark|darker|black/i.test(value),
-      minimal: /minimal|clean|simple/i.test(value),
-      premium: /premium|luxury|gold|rich/i.test(value)
-    };
-  }
-
-  function setRatio(aspect) {
-    const wrap = $("#videoFrameWrap");
-    if (!wrap) return;
-    wrap.classList.remove("ratio-916", "ratio-169", "ratio-11", "ratio-45", "ratio-34", "ratio-23", "ratio-219");
-    const map = { "9:16": "ratio-916", "16:9": "ratio-169", "1:1": "ratio-11", "4:5": "ratio-45", "3:4": "ratio-34", "2:3": "ratio-23", "21:9": "ratio-219" };
-    wrap.classList.add(map[aspect] || "ratio-916");
-  }
-
-  function keywordize(text, style) {
-    const words = String(text).split(/\s+/).filter(Boolean);
-    return words.map((word, i) => {
-      const clean = word.replace(/[.,!?।:;"']/g, "");
-      const key = clean.length >= 6 || i === words.length - 1 || /^[A-Z]/.test(clean) || /AI|YouTube|Shorts|Pro|SEO/i.test(clean);
-      const cls = key ? "word kw" : "word";
-      return `<span class="${cls}" style="--i:${i}">${escapeHtml(word)}</span>`;
-    }).join(" ");
-  }
-
-  function styleDecor(style) {
-    const decor = {
-      "viral-hook": `<div class="ghost g1">KINETIC TYPE • STRONG HOOK • VIRAL SHORTS</div><div class="ghost g2">BOLD WORDS • FAST CUTS • RETENTION</div><i class="slash s1"></i><i class="slash s2"></i>`,
-      "typography-premium": `<div class="ghost g1">TYPOGRAPHY • MOTION DESIGN • PREMIUM</div><div class="ghost g2">CLEAN TYPE • STRONG COMPOSITION</div><i class="rule r1"></i><i class="rule r2"></i><i class="orb o1"></i>`,
-      "clean-minimal": `<i class="min-line l1"></i><i class="min-line l2"></i><i class="min-dot d1"></i><i class="min-dot d2"></i>`,
-      "neon-cyber": `<div class="grid"></div><i class="laser l1"></i><i class="laser l2"></i><i class="cy-dot d1"></i><i class="cy-dot d2"></i><div class="terminal">SYSTEM ONLINE</div>`,
-      motivation: `<i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><div class="rays"></div>`,
-      podcast: `<div class="mic"><i></i><i></i><i></i></div><div class="pod-card">PODCAST CLIP</div><div class="soundbars"><i></i><i></i><i></i><i></i></div>`,
-      news: `<div class="ticker">BREAKING NEWS • SHORTSCRAFT LIVE • VIRAL UPDATE</div><div class="news-box"></div><div class="news-grid"></div>`,
-      horror: `<div class="moon"></div><div class="fog f1"></div><div class="fog f2"></div><div class="case">CASE FILE // 09</div><div class="scratch"></div>`,
-      luxury: `<div class="gold-line gl1"></div><div class="gold-line gl2"></div><div class="crest">◆</div><div class="lux-grid"></div>`,
-      "social-pop": `<i class="pop p1"></i><i class="pop p2"></i><i class="pop p3"></i><i class="pop p4"></i><div class="emoji e1">✦</div><div class="emoji e2">●</div>`,
-      documentary: `<div class="letter top"></div><div class="letter bottom"></div><div class="grain"></div><div class="timecode">REC 00:12:08</div><div class="docline"></div>`,
-      "tech-blueprint": `<div class="bluegrid"></div><div class="hud h1"></div><div class="hud h2"></div><svg class="circuit" viewBox="0 0 100 100"><path d="M5 70 L35 70 L35 45 L70 45 L70 20 L95 20"/></svg>`,
-      gaming: `<div class="crosshair"></div><div class="hudbar top">PLAYER 01</div><div class="hudbar bottom">COMBO READY</div><i class="angle a1"></i><i class="angle a2"></i>`,
-      classroom: `<div class="paper-grid"></div><div class="note n1">TIP</div><div class="note n2">LEARN</div><i class="draw d1"></i><i class="draw d2"></i>`,
-      vhs: `<div class="scan"></div><div class="vhs-frame"></div><div class="rec">● REC</div><div class="tape">TAPE A-07</div><div class="noise"></div>`,
-      startup: `<div class="dash-card c1"></div><div class="dash-card c2"></div><div class="dash-card c3"></div><div class="kpi">+42%</div><div class="saas-grid"></div>`
-    };
-    return decor[style] || decor["viral-hook"];
-  }
-
-  function sceneClass(style, index) {
-    const variants = ["center", "left", "right", "bottom", "top", "center"];
-    if (style === "podcast") return "bottom subtitle";
-    if (style === "news") return index % 2 ? "left news-text" : "center news-text";
-    if (style === "gaming") return index % 2 ? "right punch" : "left punch";
-    if (style === "startup") return index % 2 ? "right carded" : "left carded";
-    if (style === "documentary") return "bottom subtitle";
-    if (style === "horror") return index % 2 ? "left eerie" : "center eerie";
-    if (style === "viral-hook" || style === "typography-premium") return variants[index % variants.length] + " kinetic";
-    return variants[index % variants.length];
-  }
-
-  function buildScenesMarkup(scenes, style) {
-    return scenes.map((scene, i) => `
-      <section class="scene ${sceneClass(style, i)}" data-scene="${i}">
-        <div class="copy">
-          <div class="eyebrow">${String(i + 1).padStart(2, "0")} / ${String(scenes.length).padStart(2, "0")}</div>
-          <div class="main-text">${keywordize(scene, style)}</div>
-        </div>
-      </section>`).join("");
-  }
-
-  function css() {
-    return `
-*{box-sizing:border-box;margin:0;padding:0}html,body{width:100%;height:100%;overflow:hidden}body{font-family:Inter,"Noto Sans Devanagari","Nirmala UI",Mangal,Arial,sans-serif;background:#05050a;color:#fff;-webkit-font-smoothing:antialiased}.video{position:fixed;inset:0;overflow:hidden;isolation:isolate;background:#090910}.decor{position:absolute;inset:0;z-index:1;pointer-events:none}.scene{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;padding:8vh 8vw;opacity:0;visibility:hidden;transform:translateY(18px) scale(.985);transition:opacity .42s ease,transform .42s ease,visibility .42s}.scene.active{opacity:1;visibility:visible;transform:translateY(0) scale(1)}.scene.left{justify-content:flex-start;text-align:left}.scene.right{justify-content:flex-end;text-align:right}.scene.top{align-items:flex-start}.scene.bottom{align-items:flex-end}.copy{max-width:min(88vw,980px);position:relative;z-index:5}.eyebrow{font:900 clamp(11px,1.7vw,24px)/1 Inter,sans-serif;letter-spacing:.18em;text-transform:uppercase;opacity:.62;margin-bottom:1.5vh}.main-text{font-weight:1000;font-size:var(--fs,clamp(34px,7.8vw,122px));line-height:.92;letter-spacing:-.055em;text-wrap:balance}.word{display:inline-block;opacity:0;transform:translateY(46px) scale(.92);filter:blur(8px);animation:wordIn var(--wordDur,.72s) cubic-bezier(.19,1,.22,1) forwards;animation-delay:calc(var(--i)*70ms + 80ms);margin:.02em .035em}.kw{color:var(--accent,#ffb02e);text-shadow:0 0 24px color-mix(in srgb,var(--accent,#ffb02e) 38%,transparent)}.progress{position:absolute;left:6%;right:6%;bottom:3.4%;height:5px;background:rgba(255,255,255,.14);border-radius:999px;z-index:10;overflow:hidden}.progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#ff3d6e,#ffb02e,#00f5ff);animation:progress var(--hold,3600ms) linear forwards}.dots{position:absolute;left:50%;bottom:5.2%;transform:translateX(-50%);display:flex;gap:8px;z-index:11}.dots i{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.28)}.dots i.on{background:var(--accent,#ffb02e);box-shadow:0 0 16px var(--accent,#ffb02e)}.watermark{position:absolute;right:6%;bottom:6.4%;z-index:10;font:800 clamp(8px,1.3vw,17px)/1 Inter,sans-serif;letter-spacing:.08em;color:rgba(255,255,255,.36)}.flash{position:absolute;inset:0;z-index:12;pointer-events:none;opacity:0;background:#fff}.flash.hit{animation:flash .2s ease}.mod-bigger{--fs:clamp(42px,9.6vw,150px)}.mod-slower{--wordDur:1.05s}.mod-faster{--wordDur:.42s}.mod-yellow .kw{background:#FFD60A;color:#111;text-shadow:none;padding:.03em .13em;border-radius:.16em}.mod-dark .video{filter:brightness(.78) contrast(1.08)}@keyframes wordIn{to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}@keyframes progress{to{width:100%}}@keyframes flash{0%,100%{opacity:0}45%{opacity:.12}}
-
-/* Premium Typography / Viral */
-.style-viral-hook,.style-typography-premium{--accent:#111;background:#f3eee4;color:#101010}.style-viral-hook .video,.style-typography-premium .video{background:radial-gradient(circle at 20% 12%,#fff 0 8%,transparent 30%),linear-gradient(135deg,#f8f2e7,#eee7dc)}.style-viral-hook .main-text,.style-typography-premium .main-text{font-family:"Arial Black",Impact,Inter,sans-serif;text-transform:uppercase;color:#111;text-shadow:none}.style-viral-hook .kw,.style-typography-premium .kw{color:#111;background:#111;color:#f8f2e7;padding:.02em .11em;border-radius:.13em}.ghost{position:absolute;left:-12%;width:130%;white-space:nowrap;font:1000 9vw/.8 "Arial Black";letter-spacing:-.06em;color:rgba(0,0,0,.045);text-transform:uppercase}.g1{top:11%;transform:rotate(-8deg);animation:ghostMove 18s linear infinite}.g2{bottom:12%;transform:rotate(7deg);animation:ghostMove2 20s linear infinite}.slash{position:absolute;width:28%;height:12px;border-radius:99px;background:#111;opacity:.12;transform:rotate(-12deg)}.slash.s1{left:-8%;top:23%}.slash.s2{right:-10%;bottom:24%}.rule{position:absolute;height:1px;background:rgba(0,0,0,.12);left:8%;right:8%}.r1{top:9%}.r2{bottom:9%}.orb{position:absolute;width:28%;aspect-ratio:1;border-radius:50%;right:-8%;top:12%;background:rgba(0,0,0,.035)}@keyframes ghostMove{to{transform:translateX(-180px) rotate(-8deg)}}@keyframes ghostMove2{to{transform:translateX(180px) rotate(7deg)}}
-
-/* Clean Minimal */
-.style-clean-minimal .video{background:#fff;color:#111}.style-clean-minimal .main-text{font-weight:900;letter-spacing:-.045em;color:#111;text-shadow:0 14px 28px rgba(0,0,0,.12)}.style-clean-minimal .kw{color:#111;text-shadow:none}.min-line{position:absolute;height:1px;width:48%;background:rgba(0,0,0,.08);transform:rotate(-8deg)}.min-line.l1{top:23%;left:8%}.min-line.l2{bottom:22%;right:8%}.min-dot{position:absolute;width:10%;aspect-ratio:1;border-radius:50%;border:1px solid rgba(0,0,0,.08)}.min-dot.d1{right:12%;top:12%}.min-dot.d2{left:10%;bottom:16%}.style-clean-minimal .eyebrow,.style-startup .eyebrow{color:#111}
-
-/* Neon */
-.style-neon-cyber .video{background:radial-gradient(circle at 80% 25%,rgba(180,79,255,.22),transparent 30%),radial-gradient(circle at 20% 70%,rgba(0,245,255,.15),transparent 34%),#02030a;color:#cfffff}.style-neon-cyber{--accent:#00f5ff}.style-neon-cyber .main-text{color:#dfffff;text-shadow:0 0 18px #00f5ff,0 0 42px rgba(180,79,255,.7);text-transform:uppercase}.grid,.bluegrid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,245,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(180,79,255,.06) 1px,transparent 1px);background-size:44px 44px;opacity:.55}.laser{position:absolute;height:2px;width:120%;background:linear-gradient(90deg,transparent,#00f5ff,#b44fff,transparent);filter:blur(.2px);opacity:.65}.laser.l1{top:28%;left:-10%;transform:rotate(-12deg)}.laser.l2{bottom:22%;left:-10%;transform:rotate(10deg)}.cy-dot{position:absolute;width:8px;height:8px;border-radius:50%;background:#00f5ff;box-shadow:0 0 22px #00f5ff}.cy-dot.d1{left:18%;top:21%}.cy-dot.d2{right:18%;bottom:25%}.terminal{position:absolute;left:6%;top:6%;font:800 14px monospace;color:#00f5ff;opacity:.7}
-
-/* Motivation */
-.style-motivation .video{background:linear-gradient(145deg,#ffd36a 0%,#ff7a18 42%,#f72555 100%);color:white}.style-motivation{--accent:#fff}.style-motivation .main-text{text-transform:uppercase;text-shadow:0 16px 34px rgba(0,0,0,.26)}.style-motivation .word{animation-name:bounceWord}.blob{position:absolute;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.12);border-radius:28px;transform:rotate(14deg)}.b1{width:22%;height:9%;right:8%;top:16%}.b2{width:26%;height:8%;right:-8%;bottom:26%}.b3{width:12%;height:12%;left:12%;bottom:18%;border-radius:50%}.rays{position:absolute;inset:-20%;background:repeating-linear-gradient(115deg,rgba(255,255,255,.08) 0 2px,transparent 2px 28px);opacity:.35}@keyframes bounceWord{0%{opacity:0;transform:translateY(60px) scale(.76)}65%{opacity:1;transform:translateY(-5px) scale(1.05);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
-
-/* Podcast */
-.style-podcast .video{background:#141414;color:#fff}.style-podcast{--accent:#FFD60A}.style-podcast .scene{align-items:flex-end;padding-bottom:18vh}.style-podcast .copy{background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.13);border-radius:28px;padding:28px 34px;box-shadow:0 24px 60px rgba(0,0,0,.36);max-width:90%}.style-podcast .main-text{font-size:clamp(28px,5.3vw,78px);line-height:1.08;text-align:center}.style-podcast .kw{color:#FFD60A;text-shadow:none}.mic{position:absolute;left:50%;top:18%;width:180px;height:180px;border-radius:50%;transform:translateX(-50%);border:2px solid rgba(255,214,10,.25);display:grid;place-items:center}.mic:before{content:"";width:62px;height:104px;border-radius:40px;background:#FFD60A;box-shadow:0 0 40px rgba(255,214,10,.35)}.pod-card{position:absolute;left:8%;top:7%;font:900 14px Inter;color:#FFD60A;letter-spacing:.18em}.soundbars{position:absolute;right:9%;top:15%;display:flex;gap:8px;align-items:end}.soundbars i{width:9px;background:#FFD60A;border-radius:99px;animation:bar 1s ease-in-out infinite alternate}.soundbars i:nth-child(1){height:35px}.soundbars i:nth-child(2){height:76px}.soundbars i:nth-child(3){height:50px}.soundbars i:nth-child(4){height:96px}@keyframes bar{to{transform:scaleY(.45);opacity:.45}}
-
-/* News */
-.style-news .video{background:#f7f7f7;color:#111}.style-news{--accent:#e50914}.style-news .main-text{font-family:Georgia,"Times New Roman",serif;font-weight:1000;color:#111;line-height:.98}.style-news .kw{background:#e50914;color:#fff;text-shadow:none;padding:.01em .1em}.ticker{position:absolute;left:0;right:0;top:0;height:74px;background:#e50914;color:#fff;display:flex;align-items:center;padding-left:5%;font:1000 22px Inter;letter-spacing:.12em}.news-box{position:absolute;left:7%;right:7%;bottom:8%;height:120px;border-top:5px solid #111;border-bottom:1px solid rgba(0,0,0,.15)}.news-grid{position:absolute;inset:0;background:linear-gradient(90deg,transparent 49%,rgba(0,0,0,.04) 50%,transparent 51%);background-size:120px 100%;opacity:.4}
-
-/* Horror */
-.style-horror .video{background:radial-gradient(circle at 72% 18%,rgba(255,255,255,.16),transparent 7%),radial-gradient(circle at 50% 50%,rgba(139,0,0,.18),transparent 38%),#030303;color:#f0dede}.style-horror{--accent:#8B0000}.style-horror .main-text{font-family:Georgia,serif;color:#ead7d7;text-shadow:0 0 24px #8B0000;animation:flicker 3s infinite}.style-horror .kw{color:#ff3333}.moon{position:absolute;right:12%;top:12%;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.22);filter:blur(1px)}.fog{position:absolute;left:-20%;right:-20%;height:18%;background:rgba(255,255,255,.06);filter:blur(30px);animation:fog 8s linear infinite}.f1{bottom:18%}.f2{top:40%;animation-duration:11s}.case{position:absolute;left:7%;top:6%;font:800 14px monospace;color:#8B0000}.scratch{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 5px)}@keyframes fog{to{transform:translateX(18%)}}@keyframes flicker{0%,95%,100%{opacity:1}96%{opacity:.45}97%{opacity:.92}98%{opacity:.32}}
-
-/* Luxury */
-.style-luxury .video{background:radial-gradient(circle at 50% 30%,rgba(212,175,55,.14),transparent 36%),#050403;color:#f8e7a1}.style-luxury{--accent:#D4AF37}.style-luxury .main-text{font-family:Georgia,"Times New Roman",serif;font-weight:700;letter-spacing:-.035em;color:#f6e6a8;text-shadow:0 0 22px rgba(212,175,55,.35)}.gold-line{position:absolute;height:1px;width:80%;background:linear-gradient(90deg,transparent,#D4AF37,transparent);opacity:.55}.gl1{top:22%;left:10%;transform:rotate(-10deg)}.gl2{bottom:20%;left:10%;transform:rotate(-10deg)}.crest{position:absolute;top:11%;left:50%;transform:translateX(-50%);font-size:50px;color:#D4AF37}.lux-grid{position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(212,175,55,.06) 0 1px,transparent 1px 28px)}
-
-/* Social */
-.style-social-pop .video{background:linear-gradient(135deg,#7c3aed,#ec4899 55%,#fb7185);color:white}.style-social-pop{--accent:#fff}.style-social-pop .main-text{text-shadow:0 16px 30px rgba(0,0,0,.22)}.style-social-pop .word{animation-name:bounceWord}.pop{position:absolute;border-radius:40%;background:rgba(255,255,255,.18);filter:blur(.2px);animation:float 5s ease-in-out infinite}.p1{width:28%;height:20%;left:7%;top:12%}.p2{width:22%;height:17%;right:8%;bottom:12%}.p3{width:14%;height:14%;right:14%;top:18%}.p4{width:16%;height:16%;left:12%;bottom:20%}.emoji{position:absolute;font-size:55px;color:rgba(255,255,255,.35)}.e1{right:18%;top:22%}.e2{left:19%;bottom:28%}@keyframes float{50%{transform:translateY(-22px) rotate(8deg)}}
-
-/* Documentary */
-.style-documentary .video{background:#050505;color:#eee}.style-documentary .main-text{font-family:Inter,sans-serif;font-size:clamp(28px,5.1vw,80px);line-height:1.12;text-shadow:0 0 28px rgba(255,255,255,.4)}.style-documentary{--accent:#e6e1d8}.letter{position:absolute;left:0;right:0;height:13%;background:#000;z-index:2}.letter.top{top:0}.letter.bottom{bottom:0}.grain,.noise,.scan{position:absolute;inset:0;opacity:.14;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 3px)}.timecode{position:absolute;left:7%;top:16%;font:800 14px monospace;color:#ddd}.docline{position:absolute;left:7%;right:7%;bottom:17%;height:1px;background:rgba(255,255,255,.22)}
-
-/* Tech */
-.style-tech-blueprint .video{background:radial-gradient(circle at 50% 60%,rgba(0,245,255,.14),transparent 35%),#071522;color:#dffcff}.style-tech-blueprint{--accent:#00f5ff}.style-tech-blueprint .main-text{text-transform:uppercase;text-shadow:0 0 24px #00f5ff}.hud{position:absolute;border:1px solid rgba(0,245,255,.25);border-radius:20px}.h1{left:8%;top:12%;width:28%;height:13%}.h2{right:8%;bottom:14%;width:38%;height:16%}.circuit{position:absolute;inset:0;width:100%;height:100%;opacity:.38}.circuit path{fill:none;stroke:#00f5ff;stroke-width:.4;stroke-dasharray:4 2}
-
-/* Gaming */
-.style-gaming .video{background:radial-gradient(circle at 76% 24%,rgba(255,48,86,.28),transparent 32%),radial-gradient(circle at 20% 78%,rgba(0,245,255,.18),transparent 32%),#090914;color:#fff}.style-gaming{--accent:#ff3056}.style-gaming .main-text{font-family:"Arial Black",Impact,Inter,sans-serif;text-transform:uppercase;font-style:italic;text-shadow:5px 5px 0 #000,0 0 28px #ff3056}.crosshair{position:absolute;left:50%;top:50%;width:220px;height:220px;border:2px solid rgba(255,255,255,.16);border-radius:50%;transform:translate(-50%,-50%)}.crosshair:before,.crosshair:after{content:"";position:absolute;background:rgba(255,255,255,.16)}.crosshair:before{left:50%;top:-50px;width:2px;height:320px}.crosshair:after{top:50%;left:-50px;height:2px;width:320px}.hudbar{position:absolute;padding:12px 20px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.42);font:900 14px Inter}.hudbar.top{left:6%;top:6%}.hudbar.bottom{right:6%;bottom:7%}.angle{position:absolute;width:30%;height:18%;border:4px solid #ff3056;opacity:.38}.angle.a1{left:-4%;top:20%;border-right:0}.angle.a2{right:-4%;bottom:20%;border-left:0}
-
-/* Classroom */
-.style-classroom .video{background:#f7fbff;color:#0f172a}.style-classroom{--accent:#2563eb}.style-classroom .main-text{color:#0f172a;text-shadow:0 10px 20px rgba(15,23,42,.13)}.style-classroom .kw{color:#2563eb}.paper-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(37,99,235,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.08) 1px,transparent 1px);background-size:44px 44px}.note{position:absolute;background:#fde68a;color:#111;padding:14px 18px;border-radius:8px;box-shadow:0 14px 28px rgba(0,0,0,.08);font:900 15px Inter;transform:rotate(-6deg)}.n1{left:10%;top:14%}.n2{right:10%;bottom:18%;transform:rotate(7deg)}.draw{position:absolute;height:3px;background:#2563eb;opacity:.18;border-radius:99px}.draw.d1{width:42%;left:9%;bottom:24%;transform:rotate(-8deg)}.draw.d2{width:36%;right:10%;top:29%;transform:rotate(7deg)}
-
-/* VHS */
-.style-vhs .video{background:linear-gradient(135deg,#2b0828,#092c33);color:#dff}.style-vhs{--accent:#ff4fd8}.style-vhs .main-text{text-transform:uppercase;font-family:monospace;text-shadow:2px 0 #ff4fd8,-2px 0 #00e5ff,0 0 18px #fff}.vhs-frame{position:absolute;inset:6%;border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 0 80px rgba(0,0,0,.55)}.rec,.tape{position:absolute;top:7%;font:900 14px monospace;color:#fff}.rec{left:7%;color:#ff4f6d}.tape{right:7%;color:#bff}.scan{background:repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 1px,transparent 1px 5px);opacity:.22}.noise{background:repeating-radial-gradient(circle,rgba(255,255,255,.12) 0 1px,transparent 1px 4px);opacity:.08}
-
-/* Startup */
-.style-startup .video{background:#f8fbff;color:#111}.style-startup{--accent:#16a34a}.style-startup .copy{background:rgba(255,255,255,.86);border:1px solid rgba(15,23,42,.08);border-radius:28px;padding:34px;box-shadow:0 28px 80px rgba(15,23,42,.12)}.style-startup .main-text{font-size:clamp(30px,5.8vw,86px);color:#0f172a}.style-startup .kw{color:#16a34a;text-shadow:none}.saas-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px);background-size:50px 50px}.dash-card{position:absolute;background:white;border:1px solid rgba(15,23,42,.08);border-radius:20px;box-shadow:0 20px 50px rgba(15,23,42,.1)}.c1{left:8%;top:12%;width:32%;height:12%}.c2{right:8%;top:20%;width:26%;height:18%}.c3{left:10%;bottom:14%;width:38%;height:14%}.kpi{position:absolute;right:12%;bottom:17%;font:1000 42px Inter;color:#16a34a}
-
-.aspect-wide .main-text{font-size:var(--fs,clamp(30px,5.4vw,92px))}.aspect-wide .scene{padding:8vh 10vw}.aspect-square .main-text{font-size:clamp(30px,7vw,90px)}
-`;
-  }
-
-  function buildVideoHtml(style, scenes, aspect, mods) {
-    if (mods.minimal) style = "clean-minimal";
-    if (mods.premium) style = "luxury";
-    const hold = mods.slower ? 5200 : mods.faster ? 2400 : 3600;
-    const aspectClass = aspect === "16:9" || aspect === "21:9" ? "aspect-wide" : aspect === "1:1" ? "aspect-square" : "aspect-portrait";
-    const modClasses = [mods.bigger && "mod-bigger", mods.slower && "mod-slower", mods.faster && "mod-faster", mods.yellow && "mod-yellow", mods.dark && "mod-dark"].filter(Boolean).join(" ");
-    const dots = scenes.map((_, i) => `<i ${i === 0 ? 'class="on"' : ""}></i>`).join("");
-    const safeStyle = style in STYLE_NAMES ? style : "viral-hook";
-    const jsScenes = JSON.stringify(scenes);
-    return `<!doctype html><html lang="hi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ShortsCraft Preview</title><style>${css()}</style></head><body class="style-${safeStyle} ${aspectClass} ${modClasses}" style="--hold:${hold}ms"><main class="video"><div class="decor">${styleDecor(safeStyle)}</div>${buildScenesMarkup(scenes, safeStyle)}<div class="progress"><i></i></div><div class="dots">${dots}</div><div class="watermark">shortscraft.online</div><div class="flash"></div></main><script>
-(function(){
-const scenes=[...document.querySelectorAll('.scene')];
-const dots=[...document.querySelectorAll('.dots i')];
-const bar=document.querySelector('.progress i');
-const flash=document.querySelector('.flash');
-const HOLD=${hold};
-let i=0;
-function restartWords(scene){scene.querySelectorAll('.word').forEach(w=>{w.style.animation='none';void w.offsetWidth;w.style.animation='';});}
-function show(n){scenes.forEach((s,k)=>s.classList.toggle('active',k===n));dots.forEach((d,k)=>d.classList.toggle('on',k===n));if(bar){bar.style.animation='none';void bar.offsetWidth;bar.style.animation='progress '+HOLD+'ms linear forwards';}if(flash){flash.classList.remove('hit');void flash.offsetWidth;flash.classList.add('hit');}restartWords(scenes[n]);}
-show(0);
-if(scenes.length>1){setInterval(()=>{i=(i+1)%scenes.length;show(i)},HOLD);}
-})();<\/script></body></html>`;
-  }
-
-  function renderVideo({ deduct = false } = {}) {
-    const input = $("#videoScriptInput");
-    const raw = input?.value?.trim() || "";
-    if (raw.length < 2) { toast("Paste or generate a script first.", "error"); input?.focus(); return; }
-    if (deduct && !deductCredit()) return;
-    const style = $("#videoStyleSelect")?.value || "viral-hook";
-    const aspect = $("#videoAspectSelect")?.value || "9:16";
-    const mods = parseMods();
-    const scenes = splitScenes(raw, aspect);
-    if (!scenes.length) { toast("Script could not be parsed.", "error"); return; }
-    setRatio(aspect);
-    const html = buildVideoHtml(style, scenes, aspect, mods);
-    VIDEO_STATE.html = html; VIDEO_STATE.scenes = scenes; VIDEO_STATE.style = style; VIDEO_STATE.aspect = aspect;
-    const frame = $("#videoPreviewFrame");
-    if (frame) {
-      frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
-      frame.srcdoc = html;
+      if(chunk.length) scenes.push(chunk.join(" "));
     }
+    const merged = [];
+    for(let i=0;i<scenes.length;i++){
+      const cur = scenes[i].trim();
+      if(!cur) continue;
+      if(merged.length && cur.split(/\s+/).length <= 2){
+        const candidate = merged[merged.length-1] + " " + cur;
+        if(candidate.split(/\s+/).length <= maxWords + 1 && candidate.length <= maxChars + 8){ merged[merged.length-1] = candidate; continue; }
+      }
+      merged.push(cur);
+    }
+    return merged.slice(0, 24);
+  }
+
+  function keywordClass(word, i, total){
+    const clean = word.toLowerCase().replace(/[^\p{L}\p{N}]/gu,"");
+    const power = new Set(["ai","viral","secret","money","paise","free","pro","hack","trick","views","youtube","shorts","creator","income","earn","earning","warning","truth","today","now","kaise","kyu","best"]);
+    if(power.has(clean) || clean.length >= 8 || /[!?]$/.test(word) || i === total - 1) return "kw";
+    if(i === 0 || /^[A-Z]/.test(word)) return "kw2";
+    return "";
+  }
+  function lineToWordSpans(line){
+    const words = line.split(/\s+/).filter(Boolean);
+    return words.map((w,i)=>`<span class="word ${keywordClass(w,i,words.length)}" style="--i:${i}">${esc(w)}</span>`).join(" ");
+  }
+
+  function parseEdits(text){
+    const p = String(text || "").toLowerCase();
+    const m = { fontScale: 1, speed: 1, yellow: false, darker: false, minimal: false, premium: false };
+    if(/bigger|large|big|text bada|bada|font/.test(p)) m.fontScale = 1.22;
+    if(/smaller|small|chhota/.test(p)) m.fontScale = .9;
+    if(/slow|slower/.test(p)) m.speed = 1.45;
+    if(/fast|faster/.test(p)) m.speed = .72;
+    if(/yellow|highlight/.test(p)) m.yellow = true;
+    if(/dark|darker|black/.test(p)) m.darker = true;
+    if(/minimal|simple|clean/.test(p)) m.minimal = true;
+    if(/premium|luxury|gold|professional/.test(p)) m.premium = true;
+    return m;
+  }
+
+  function themeFor(style, mods){
+    if(mods.minimal) style = "clean-minimal";
+    if(mods.premium) style = "luxury";
+    const base = {
+      "viral-hook": {
+        bg:"radial-gradient(circle at 20% 20%,#ff3d6e33,transparent 34%),radial-gradient(circle at 82% 78%,#ffb02e33,transparent 38%),linear-gradient(145deg,#050505,#111)",
+        text:"#fff", a:"#ff3d6e", b:"#ffb02e", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"flyUp", weight:950, deco:"<div class='slash'></div><div class='grain'></div>", placement:"center"
+      },
+      "clean-minimal": {
+        bg:"#fafafa", text:"#111", a:"#111", b:"#666", font:"Inter, 'Helvetica Neue', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"softFade", weight:760, deco:"<i class='dot d1'></i><i class='dot d2'></i><i class='dot d3'></i><i class='dot d4'></i>", placement:"center"
+      },
+      "neon-cyber": {
+        bg:"#000", text:"#eaffff", a:"#00f5ff", b:"#b44fff", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"neonZoom", weight:950, deco:"<div class='grid'></div><div class='scan'></div><div class='orb cyan'></div><div class='orb purple'></div>", placement:"center"
+      },
+      "motivation": {
+        bg:"linear-gradient(135deg,#ff3d2e,#ff7a18 48%,#b91372)", text:"#fff", a:"#fff200", b:"#fff", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"bounceIn", weight:950, deco:"<div class='sunburst'></div>", placement:"center"
+      },
+      "podcast": {
+        bg:"#171717", text:"#fff", a:"#FFD60A", b:"#FFD60A", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"subtitleUp", weight:820, deco:"<div class='wave'></div>", placement:"bottom"
+      },
+      "news": {
+        bg:"#f4f4f4", text:"#111", a:"#d60000", b:"#fff", font:"Inter, Georgia, 'Times New Roman', 'Noto Sans Devanagari', serif", anim:"flashIn", weight:980, deco:"<div class='newsTop'>BREAKING NEWS</div><div class='ticker'>SHORTSCRAFT • AI VIDEO • LATEST UPDATE •</div>", placement:"center"
+      },
+      "horror": {
+        bg:"#000", text:"#8B0000", a:"#ff0000", b:"#fff", font:"Georgia, 'Times New Roman', 'Noto Sans Devanagari', 'Nirmala UI', serif", anim:"glitch", weight:900, deco:"<div class='fog'></div><div class='vignette'></div>", placement:"center"
+      },
+      "luxury": {
+        bg:"radial-gradient(circle at 50% 25%,#d4af3726,transparent 38%),linear-gradient(145deg,#050400,#141006)", text:"#f7e7a0", a:"#D4AF37", b:"#fff6c7", font:"Georgia, 'Times New Roman', 'Noto Sans Devanagari', 'Nirmala UI', serif", anim:"shimmerIn", weight:900, deco:"<div class='goldFrame'></div><div class='goldDust'></div>", placement:"center"
+      },
+      "social-pop": {
+        bg:"linear-gradient(135deg,#7c3aed,#ec4899 48%,#fb7185)", text:"#fff", a:"#fff200", b:"#ffffff", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"popScale", weight:950, deco:"<div class='bubble b1'></div><div class='bubble b2'></div><div class='bubble b3'></div>", placement:"center"
+      },
+      "documentary": {
+        bg:"linear-gradient(180deg,#050505,#111)", text:"#f5f5f5", a:"#fbbf24", b:"#a3a3a3", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"softFade", weight:760, deco:"<div class='letter top'></div><div class='letter bottom'></div>", placement:"center"
+      },
+      "tech-blueprint": {
+        bg:"#03162a", text:"#e0f2fe", a:"#38bdf8", b:"#a5f3fc", font:"Inter, 'Courier New', 'Noto Sans Devanagari', 'Nirmala UI', monospace", anim:"techSlide", weight:850, deco:"<div class='blueGrid'></div><div class='hud'>SYSTEM ONLINE</div>", placement:"center"
+      },
+      "gaming": {
+        bg:"linear-gradient(145deg,#090a12,#111827)", text:"#fff", a:"#39ff14", b:"#f97316", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', sans-serif", anim:"popScale", weight:980, deco:"<div class='energy e1'></div><div class='energy e2'></div>", placement:"center"
+      },
+      "classroom": {
+        bg:"linear-gradient(160deg,#f8fafc,#e2e8f0)", text:"#0f172a", a:"#2563eb", b:"#f97316", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"softFade", weight:820, deco:"<div class='paper'></div>", placement:"center"
+      },
+      "vhs": {
+        bg:"linear-gradient(180deg,#140018,#08000f)", text:"#f472b6", a:"#22d3ee", b:"#fff", font:"'Courier New','Noto Sans Devanagari','Nirmala UI',monospace", anim:"glitch", weight:800, deco:"<div class='scanlines'></div><div class='rec'>● REC</div>", placement:"center"
+      },
+      "startup": {
+        bg:"linear-gradient(145deg,#ffffff,#eef2ff)", text:"#101828", a:"#4f46e5", b:"#0ea5e9", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', sans-serif", anim:"softFade", weight:850, deco:"<div class='cardGrid'></div>", placement:"center"
+      }
+    };
+    const t = base[style] || base["viral-hook"];
+    if(mods.darker) t.bg = "linear-gradient(145deg,#000,#05000a)";
+    if(mods.yellow){ t.a = "#FFD60A"; t.b = "#FFD60A"; }
+    return t;
+  }
+
+  function buildHTML(scenes, style, aspect, mods){
+    const t = themeFor(style, mods);
+    const dims = {"9:16":[1080,1920],"16:9":[1920,1080],"1:1":[1080,1080],"4:5":[1080,1350],"3:4":[1080,1440],"2:3":[1080,1620],"21:9":[1920,823]}[aspect] || [1080,1920];
+    const [W,H] = dims;
+    const tall = H > W;
+    const font = Math.round((tall ? 84 : 76) * (mods.fontScale || 1));
+    const sceneMs = Math.round(3000 * (mods.speed || 1));
+    const sceneData = scenes.map((s,i) => ({ html: lineToWordSpans(s), anim: [t.anim,"techSlide","softFade","popScale","flyUp"][i % 5] || t.anim }));
+    const dots = sceneData.map((_,i)=>`<span class='sd' data-i='${i}'></span>`).join("");
+    return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><style>
+      *{box-sizing:border-box;margin:0;padding:0} html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:${t.font};-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility} body::-webkit-scrollbar{display:none}
+      .viewport{position:fixed;inset:0;overflow:hidden;background:#000;display:grid;place-items:center}
+      .canvas{position:absolute;left:50%;top:50%;width:${W}px;height:${H}px;transform-origin:center center;overflow:hidden;background:${t.bg};color:${t.text};}
+      .canvas:after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 2px rgba(255,255,255,.05);pointer-events:none;z-index:8}
+      .deco,.deco>*{position:absolute;pointer-events:none}.deco{inset:0;z-index:1}.content{position:absolute;inset:0;display:flex;align-items:${t.placement==='bottom'?'flex-end':'center'};justify-content:center;text-align:center;padding:${t.placement==='bottom'?'0 90px 210px':'160px 95px'};z-index:3}.scene{display:none;max-width:${t.placement==='bottom'?'86%':'92%'};font-weight:${t.weight};font-size:${font}px;line-height:1.04;letter-spacing:-.035em;word-break:keep-all;overflow-wrap:normal;hyphens:none;text-wrap:balance;text-shadow:0 8px 30px rgba(0,0,0,.30)}.scene.active{display:block}.word{display:inline-block;opacity:0;margin:.02em .035em;animation-duration:.72s;animation-fill-mode:both;animation-timing-function:cubic-bezier(.18,.82,.2,1);animation-delay:calc(var(--i)*70ms)}.scene.active .word{animation-name:var(--anim)}.kw{color:${t.a};font-size:1.12em;text-shadow:0 0 24px color-mix(in srgb, ${t.a} 60%, transparent)}.kw2{color:${t.b}} ${mods.yellow?`.kw,.kw2{background:#FFD60A;color:#111;padding:.02em .13em;border-radius:.12em;text-shadow:none}`:""}
+      .progress{position:absolute;left:0;bottom:0;width:0;height:10px;background:linear-gradient(90deg,${t.a},${t.b});z-index:7;box-shadow:0 0 22px ${t.a}}.watermark{position:absolute;right:42px;bottom:38px;font:700 22px Inter,Arial,sans-serif;color:${t.text==="#111"||t.text==="#101828"||t.text==="#0f172a"?'rgba(0,0,0,.28)':'rgba(255,255,255,.33)'};letter-spacing:.08em;z-index:7}.counter{position:absolute;left:42px;bottom:38px;font:800 22px Inter,Arial,sans-serif;color:${t.text==="#111"||t.text==="#101828"||t.text==="#0f172a"?'rgba(0,0,0,.32)':'rgba(255,255,255,.38)'};z-index:7}.dots{position:absolute;left:50%;bottom:58px;transform:translateX(-50%);display:flex;gap:12px;z-index:7}.sd{width:12px;height:12px;border-radius:99px;background:${t.text==="#111"?'rgba(0,0,0,.2)':'rgba(255,255,255,.2)'}}.sd.on{width:34px;background:${t.a}}
+      @keyframes flyUp{0%{opacity:0;transform:translateY(110px) scale(.92)}65%{opacity:1;transform:translateY(-10px) scale(1.03)}100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes softFade{0%{opacity:0;transform:translateY(38px)}100%{opacity:1;transform:translateY(0)}}@keyframes neonZoom{0%{opacity:0;transform:scale(1.5);filter:blur(12px)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:scale(1)}}@keyframes bounceIn{0%{opacity:0;transform:scale(.35) rotate(-4deg)}55%{opacity:1;transform:scale(1.09) rotate(1deg)}100%{opacity:1;transform:scale(1)}}@keyframes subtitleUp{0%{opacity:0;transform:translateY(70px)}100%{opacity:1;transform:translateY(0)}}@keyframes flashIn{0%,18%,32%{opacity:0}12%,25%,100%{opacity:1;transform:scale(1)}}@keyframes glitch{0%{opacity:0;transform:skewX(18deg);filter:blur(5px)}25%{opacity:1;transform:translateX(-14px) skewX(-8deg)}40%{transform:translateX(12px) skewX(8deg)}100%{opacity:1;transform:none;filter:blur(0)}}@keyframes shimmerIn{0%{opacity:0;letter-spacing:.22em;filter:blur(8px)}70%{opacity:.9}100%{opacity:1;letter-spacing:-.02em;filter:blur(0)}}@keyframes popScale{0%{opacity:0;transform:scale(.2) rotate(-8deg)}70%{opacity:1;transform:scale(1.12) rotate(2deg)}100%{opacity:1;transform:scale(1)}}@keyframes techSlide{0%{opacity:0;transform:translateX(-90px);clip-path:inset(0 100% 0 0)}100%{opacity:1;transform:none;clip-path:inset(0)}}
+      .slash{inset:auto -120px 12% -120px;height:180px;background:linear-gradient(90deg,${t.a},${t.b});transform:skewY(-10deg);opacity:.22}.grain{inset:0;background:radial-gradient(circle,rgba(255,255,255,.12) 1px,transparent 1px);background-size:42px 42px;opacity:.12}.dot{position:absolute;width:24px;height:24px;border-radius:50%;background:#111}.d1{left:70px;top:90px}.d2{right:70px;top:90px}.d3{left:70px;bottom:90px}.d4{right:70px;bottom:90px}.grid,.blueGrid{inset:0;background-image:linear-gradient(rgba(0,245,255,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,.13) 1px,transparent 1px);background-size:85px 85px}.scan,.scanlines{inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(255,255,255,.04) 4px,rgba(255,255,255,.04) 8px);animation:scan 9s linear infinite}@keyframes scan{to{background-position:0 150px}}.orb{width:700px;height:700px;border-radius:50%;filter:blur(90px);opacity:.45}.cyan{left:-220px;top:-170px;background:#00f5ff}.purple{right:-220px;bottom:-170px;background:#b44fff}.sunburst{inset:-20%;background:conic-gradient(from 0deg,transparent 0 12deg,rgba(255,255,255,.12) 12deg 18deg,transparent 18deg 30deg);animation:rot 16s linear infinite}@keyframes rot{to{transform:rotate(360deg)}}.wave{left:12%;right:12%;bottom:120px;height:90px;background:repeating-linear-gradient(90deg,#FFD60A 0 8px,transparent 8px 24px);opacity:.23}.newsTop{top:0;left:0;right:0;height:130px;background:#d60000;color:white;display:grid;place-items:center;font:950 48px Inter,Arial,sans-serif;letter-spacing:.08em}.ticker{bottom:0;left:0;right:0;height:105px;background:#111;color:white;display:grid;place-items:center;font:850 28px Inter,Arial,sans-serif}.fog{inset:0;background:radial-gradient(circle at 50% 70%,rgba(139,0,0,.22),transparent 45%);animation:fog 6s ease-in-out infinite}@keyframes fog{50%{opacity:.55;transform:scale(1.08)}}.vignette{inset:0;box-shadow:inset 0 0 260px #000}.goldFrame{inset:70px;border:3px solid rgba(212,175,55,.45)}.goldDust{inset:0;background:radial-gradient(circle,rgba(212,175,55,.45) 1px,transparent 2px);background-size:90px 90px;opacity:.13}.bubble{border-radius:50%;background:rgba(255,255,255,.18);filter:blur(2px)}.b1{width:260px;height:260px;left:70px;top:140px}.b2{width:360px;height:360px;right:-80px;bottom:140px}.b3{width:150px;height:150px;right:160px;top:100px}.letter.top,.letter.bottom{left:0;right:0;height:180px;background:#000;z-index:2}.letter.top{top:0}.letter.bottom{bottom:0}.hud{top:58px;left:58px;color:${t.a};font:800 26px Inter,monospace;letter-spacing:.16em}.energy{left:-20%;width:140%;height:8px;background:linear-gradient(90deg,transparent,${t.a},transparent)}.e1{top:28%;animation:energy 2.2s linear infinite}.e2{bottom:30%;animation:energy 2.8s linear infinite reverse;background:linear-gradient(90deg,transparent,${t.b},transparent)}@keyframes energy{to{transform:translateX(45%)}}.paper{inset:70px;background:rgba(255,255,255,.45);border:1px solid rgba(15,23,42,.12);border-radius:36px}.rec{top:45px;left:45px;color:#f472b6;font:800 28px 'Courier New',monospace}.cardGrid{inset:0;background:radial-gradient(circle at 20% 20%,rgba(79,70,229,.15),transparent 35%),radial-gradient(circle at 80% 70%,rgba(14,165,233,.14),transparent 35%)}
+    </style></head><body><div class="viewport"><div class="canvas" id="cv"><div class="deco">${t.deco}</div><div class="content" id="content"></div><div class="progress" id="progress"></div><div class="counter" id="counter"></div><div class="dots" id="dots">${dots}</div><div class="watermark">shortscraft.online</div></div></div><script>
+      const W=${W}, H=${H}, DUR=${sceneMs};
+      const SCENES=${JSON.stringify(sceneData)};
+      const cv=document.getElementById('cv'), content=document.getElementById('content'), progress=document.getElementById('progress'), counter=document.getElementById('counter'), dots=[...document.querySelectorAll('.sd')];
+      function fit(){ const s=Math.min(innerWidth/W, innerHeight/H); cv.style.transform='translate(-50%,-50%) scale('+s+')'; }
+      addEventListener('resize',fit,{passive:true}); fit();
+      let idx=0;
+      function render(){ const s=SCENES[idx]||SCENES[0]; content.innerHTML='<div class="scene active" style="--anim:'+s.anim+'">'+s.html+'</div>'; counter.textContent=(idx+1)+' / '+SCENES.length; dots.forEach((d,i)=>d.classList.toggle('on',i===idx)); progress.style.transition='none'; progress.style.width='0%'; requestAnimationFrame(()=>requestAnimationFrame(()=>{progress.style.transition='width '+DUR+'ms linear'; progress.style.width='100%'})); }
+      render(); if(SCENES.length>1) setInterval(()=>{idx=(idx+1)%SCENES.length; render();}, DUR);
+    <\/script></body></html>`;
+  }
+
+  function setRatioClass(aspect){
+    const wrap = $("#videoFrameWrap");
+    if(!wrap) return;
+    wrap.classList.remove("ratio-916","ratio-169","ratio-11","ratio-45","ratio-34","ratio-23","ratio-219");
+    wrap.classList.add({"9:16":"ratio-916","16:9":"ratio-169","1:1":"ratio-11","4:5":"ratio-45","3:4":"ratio-34","2:3":"ratio-23","21:9":"ratio-219"}[aspect] || "ratio-916");
+  }
+  function renderPreview({deduct=false, applyEdits=false} = {}){
+    const input = $("#videoScriptInput");
+    if(!input || !input.value.trim()){ toast("Paste or generate a script first.", "error"); return; }
+    if(deduct && !isPro()){
+      const c = getCredits();
+      if(c <= 0){ openNoCredits(); return; }
+      setCredits(c - 1);
+    }
+    STATE.script = input.value.trim();
+    STATE.style = $("#videoStyleSelect")?.value || "viral-hook";
+    STATE.aspect = $("#videoAspectSelect")?.value || "9:16";
+    STATE.editText = $("#videoEditPrompt")?.value || "";
+    STATE.mods = applyEdits ? parseEdits(STATE.editText) : STATE.mods;
+    const scenes = splitIntoScenes(STATE.script, STATE.aspect);
+    if(!scenes.length){ toast("Script could not be parsed.", "error"); return; }
+
+    // ── Use premium template system if available, fallback to buildHTML ──
+    let generatedHTML = null;
+    if(window.SC_VIDEO_TEMPLATES && window.SC_VIDEO_TEMPLATES.buildTemplateHTML){
+      try{
+        generatedHTML = window.SC_VIDEO_TEMPLATES.buildTemplateHTML(
+          scenes, STATE.style, STATE.aspect, STATE.mods
+        );
+      }catch(e){ console.warn("Template build failed, using fallback:", e); }
+    }
+    STATE.html = generatedHTML || buildHTML(scenes, STATE.style, STATE.aspect, STATE.mods);
+
+    try{ localStorage.setItem(STYLE_KEY, STATE.html); }catch{}
+    setRatioClass(STATE.aspect);
+    const frame = $("#videoPreviewFrame");
+    if(frame){ frame.setAttribute("sandbox","allow-scripts allow-same-origin"); frame.srcdoc = STATE.html; }
     $("#videoEmptyState")?.classList.add("hidden");
-    const status = $("#videoPreviewStatus"); if (status) status.textContent = "Preview ready";
-    setTimeout(() => ($(".video-preview-card") || $("#videoFrameWrap"))?.scrollIntoView({ behavior: "smooth", block: "center" }), 90);
-    toast(`${STYLE_NAMES[(mods.premium ? "luxury" : mods.minimal ? "clean-minimal" : style)] || "Video"} ready — ${scenes.length} scenes`, "success");
+    const st = $("#videoPreviewStatus"); if(st) st.textContent = "Preview ready";
+    setTimeout(()=> ($(".video-preview-card") || $("#videoFrameWrap"))?.scrollIntoView({behavior:"smooth",block:"center"}), 180);
+    toast(`Premium video preview ready — ${scenes.length} scenes`, "success");
   }
 
-  function bindVideoEngine() {
-    setCredits(normalizeCredits());
-    setRatio($("#videoAspectSelect")?.value || "9:16");
-
+  function bindPremiumVideoPatch(){
+    ensureCredits();
     const gen = $("#generateVideoBtn");
-    if (gen) gen.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); renderVideo({ deduct: true }); }, true);
-
+    if(gen && gen.dataset.premiumPatch !== "1"){
+      gen.dataset.premiumPatch = "1";
+      gen.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); STATE.mods = parseEdits($("#videoEditPrompt")?.value || ""); renderPreview({deduct:true, applyEdits:true}); }, true);
+    }
     const apply = $("#applyVideoEditBtn");
-    if (apply) apply.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); renderVideo({ deduct: false }); }, true);
-
-    const resetEdit = $("#resetVideoEditBtn");
-    if (resetEdit) resetEdit.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const p = $("#videoEditPrompt"); if (p) p.value = ""; if ($("#videoPreviewFrame")?.srcdoc) renderVideo({ deduct: false }); }, true);
-
-    $$(".quick-edit-chips button").forEach(chip => {
-      chip.addEventListener("click", e => {
-        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-        const p = $("#videoEditPrompt");
-        const val = (chip.dataset.edit || chip.textContent || "").trim();
-        if (p) p.value = p.value.trim() ? `${p.value.trim()}, ${val}` : val;
-        if ($("#videoScriptInput")?.value.trim()) renderVideo({ deduct: false });
-      }, true);
+    if(apply && apply.dataset.premiumPatch !== "1"){
+      apply.dataset.premiumPatch = "1";
+      apply.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); renderPreview({deduct:false, applyEdits:true}); }, true);
+    }
+    const reset = $("#resetVideoEditBtn");
+    if(reset && reset.dataset.premiumPatch !== "1"){
+      reset.dataset.premiumPatch = "1";
+      reset.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const p=$("#videoEditPrompt"); if(p) p.value=""; STATE.mods={fontScale:1,speed:1,yellow:false,darker:false,minimal:false,premium:false}; if($("#videoScriptInput")?.value.trim()) renderPreview({deduct:false, applyEdits:false}); }, true);
+    }
+    $$(".quick-edit-chips button").forEach(chip=>{
+      if(chip.dataset.premiumPatch === "1") return;
+      chip.dataset.premiumPatch = "1";
+      chip.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const p=$("#videoEditPrompt"); const val=(chip.dataset.edit||chip.textContent||"").trim(); if(p){ p.value = p.value.trim() ? p.value.trim()+", "+val : val; } renderPreview({deduct:false, applyEdits:true}); }, true);
     });
-
-    const styleSel = $("#videoStyleSelect");
-    if (styleSel) styleSel.addEventListener("change", () => { if ($("#videoPreviewFrame")?.srcdoc && $("#videoScriptInput")?.value.trim()) renderVideo({ deduct: false }); });
-
-    const aspectSel = $("#videoAspectSelect");
-    if (aspectSel) aspectSel.addEventListener("change", () => { setRatio(aspectSel.value); if ($("#videoPreviewFrame")?.srcdoc && $("#videoScriptInput")?.value.trim()) renderVideo({ deduct: false }); });
-
+    const aspect = $("#videoAspectSelect");
+    if(aspect && aspect.dataset.premiumPatch !== "1"){
+      aspect.dataset.premiumPatch = "1";
+      aspect.addEventListener("change", ()=>{ setRatioClass(aspect.value); if($("#videoScriptInput")?.value.trim()) renderPreview({deduct:false, applyEdits:true}); });
+    }
     const copy = $("#copyVideoHtmlBtn");
-    if (copy) copy.addEventListener("click", async e => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (!VIDEO_STATE.html) { toast("Generate a video first.", "error"); return; } try { await navigator.clipboard.writeText(VIDEO_STATE.html); toast("HTML copied!", "success"); } catch { toast("Copy failed.", "error"); } }, true);
-
+    if(copy && copy.dataset.premiumPatch !== "1"){
+      copy.dataset.premiumPatch = "1";
+      copy.addEventListener("click", async (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if(!STATE.html){ toast("Generate a video first.","error"); return; } try{ await navigator.clipboard.writeText(STATE.html); toast("HTML copied!","success"); }catch{ toast("Copy failed.","error"); } }, true);
+    }
     const open = $("#openVideoPreviewBtn");
-    if (open) open.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (!VIDEO_STATE.html) { toast("Generate a video first.", "error"); return; } const w = window.open("", "_blank"); if (w) { w.document.open(); w.document.write(VIDEO_STATE.html); w.document.close(); } }, true);
-
-    const reset = $("#resetVideoBtn");
-    if (reset) reset.addEventListener("click", e => {
-      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-      const input = $("#videoScriptInput"); if (input) input.value = "";
-      const edit = $("#videoEditPrompt"); if (edit) edit.value = "";
-      const frame = $("#videoPreviewFrame"); if (frame) frame.srcdoc = "";
-      VIDEO_STATE.html = "";
-      $("#videoEmptyState")?.classList.remove("hidden");
-      const status = $("#videoPreviewStatus"); if (status) status.textContent = "No video generated yet";
-      toast("Reset complete.", "info");
-    }, true);
+    if(open && open.dataset.premiumPatch !== "1"){
+      open.dataset.premiumPatch = "1";
+      open.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if(!STATE.html){ toast("Generate a video first.","error"); return; } const w=window.open("","_blank"); if(w){ w.document.open(); w.document.write(STATE.html); w.document.close(); } }, true);
+    }
   }
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindVideoEngine);
-  else bindVideoEngine();
-})();
-
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindPremiumVideoPatch); else bindPremiumVideoPatch();
+  setTimeout(bindPremiumVideoPatch, 800);
 })();
