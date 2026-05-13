@@ -111,6 +111,9 @@ app.use(
     maxAge: NODE_ENV === "production" ? "7d" : 0,
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "no-cache, must-revalidate");
+      if (/favicon|apple-touch-icon|site\.webmanifest/i.test(filePath)) {
+        res.setHeader("Cache-Control", "no-cache, must-revalidate");
+      }
     },
   })
 );
