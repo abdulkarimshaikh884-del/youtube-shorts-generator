@@ -2286,19 +2286,23 @@ document.addEventListener("click", (e) => {
     STATE.aspect = $("#videoAspectSelect")?.value || "9:16";
     STATE.editText = $("#videoEditPrompt")?.value || "";
     STATE.mods = applyEdits ? parseEdits(STATE.editText) : STATE.mods;
-    const scenes = splitIntoScenes(STATE.script, STATE.aspect);
-    if(!scenes.length){ toast("Script could not be parsed.", "error"); return; }
-
-    // ── Use premium template system if available, fallback to buildHTML ──
+    // ── Premium template system — pass RAW script directly ──
     let generatedHTML = null;
-    if(window.SC_VIDEO_TEMPLATES && window.SC_VIDEO_TEMPLATES.buildTemplateHTML){
+    if(window.SC_VIDEO_TEMPLATES && window.SC_VIDEO_TEMPLATES.build){
       try{
-        generatedHTML = window.SC_VIDEO_TEMPLATES.buildTemplateHTML(
-          scenes, STATE.style, STATE.aspect, STATE.mods
+        generatedHTML = window.SC_VIDEO_TEMPLATES.build(
+          STATE.script, STATE.style, STATE.aspect, STATE.mods
         );
       }catch(e){ console.warn("Template build failed, using fallback:", e); }
     }
-    STATE.html = generatedHTML || buildHTML(scenes, STATE.style, STATE.aspect, STATE.mods);
+
+    // Fallback: old system
+    if(!generatedHTML){
+      const scenes = splitIntoScenes(STATE.script, STATE.aspect);
+      if(!scenes.length){ toast("Script could not be parsed.", "error"); return; }
+      generatedHTML = buildHTML(scenes, STATE.style, STATE.aspect, STATE.mods);
+    }
+    STATE.html = generatedHTML;
 
     try{ localStorage.setItem(STYLE_KEY, STATE.html); }catch{}
     setRatioClass(STATE.aspect);
