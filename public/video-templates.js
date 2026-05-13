@@ -162,18 +162,42 @@ window.SC_VIDEO_TEMPLATES = (function() {
 
   function injectResponsiveShell(doc, W, H, mods, durationMs) {
     Array.from(doc.querySelectorAll('script')).forEach(s => s.remove());
+
+    // IMPORTANT RATIO FIX:
+    // Your uploaded HTML templates are designed in a premium 9:16 canvas.
+    // Earlier code forced every template root to 16:9 dimensions when ratio changed,
+    // which stretched the original composition and pushed text outside the frame.
+    // Now we keep the template at its native 1080x1920 size and place it inside
+    // the requested ratio canvas. This preserves the exact template design while
+    // making 16:9 / other ratios safe and non-breaking.
+    const NATIVE_W = 1080;
+    const NATIVE_H = 1920;
     const stage = doc.querySelector('.canvas, .phone') || doc.querySelector('main') || doc.body.firstElementChild;
-    if (stage) stage.classList.add('sc-stage-fit');
+    let shell = null;
+    if (stage) {
+      stage.classList.add('sc-stage-fit');
+      shell = doc.createElement('div');
+      shell.className = 'sc-aspect-shell';
+      stage.parentNode.insertBefore(shell, stage);
+      shell.appendChild(stage);
+    }
+
     if (mods?.darker) doc.documentElement.classList.add('sc-dark');
     if (mods?.minimal) doc.documentElement.classList.add('sc-minimal');
     if (mods?.premium) doc.documentElement.classList.add('sc-premium');
     if (mods?.yellow) doc.documentElement.classList.add('sc-accent-yellow');
 
+    const fitMode = (W === NATIVE_W && H === NATIVE_H) ? 'cover' : 'contain';
+    const innerScale = fitMode === 'cover' ? 1 : Math.min(W / NATIVE_W, H / NATIVE_H);
+
     const style = doc.createElement('style');
     style.textContent = `
       html,body{width:100%;height:100%;overflow:hidden;background:#000 !important;}
       body{display:grid;place-items:center;}
-      .sc-stage-fit{position:absolute !important;left:50% !important;top:50% !important;width:${W}px !important;height:${H}px !important;max-width:none !important;max-height:none !important;margin:0 !important;transform-origin:center center !important;}
+      .sc-aspect-shell{position:absolute !important;left:50% !important;top:50% !important;width:${W}px !important;height:${H}px !important;overflow:hidden !important;background:#050505 !important;transform-origin:center center !important;border-radius:0 !important;isolation:isolate;}
+      .sc-aspect-shell::before{content:"";position:absolute;inset:0;z-index:0;background:radial-gradient(circle at 22% 18%,rgba(255,61,110,.18),transparent 35%),radial-gradient(circle at 80% 55%,rgba(0,245,255,.12),transparent 38%),linear-gradient(135deg,#050505,#0b0713 55%,#03040a);}
+      .sc-aspect-shell::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.18),transparent 18%,transparent 82%,rgba(0,0,0,.18));}
+      .sc-stage-fit{position:absolute !important;left:50% !important;top:50% !important;width:${NATIVE_W}px !important;height:${NATIVE_H}px !important;max-width:none !important;max-height:none !important;margin:0 !important;transform-origin:center center !important;z-index:2;}
       .sc-preview-counter{position:absolute;left:3.2%;top:3.2%;z-index:60;font:800 clamp(14px,1.8vw,24px)/1 Inter,Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.72);mix-blend-mode:difference;}
       .sc-dark .sc-stage-fit{filter:brightness(.90) contrast(1.05);}
       .sc-minimal .ghost,.sc-minimal .orb,.sc-minimal .bubble,.sc-minimal .scanlines,.sc-minimal .goldDust,.sc-minimal .energy,.sc-minimal .spark{display:none !important;}
@@ -186,16 +210,21 @@ window.SC_VIDEO_TEMPLATES = (function() {
     const counter = doc.createElement('div');
     counter.className = 'sc-preview-counter';
     counter.textContent = '01';
-    (doc.body || doc.documentElement).appendChild(counter);
+    (shell || doc.body || doc.documentElement).appendChild(counter);
 
     const script = doc.createElement('script');
     script.textContent = `(function(){
-      const W=${W}, H=${H}, HOLD=${durationMs};
+      const W=${W}, H=${H}, STAGE_W=${NATIVE_W}, STAGE_H=${NATIVE_H}, INNER_SCALE=${innerScale}, HOLD=${durationMs};
+      const shell=document.querySelector('.sc-aspect-shell');
       const stage=document.querySelector('.sc-stage-fit');
       const scenes=[...document.querySelectorAll('.scene')];
       const flash=document.querySelector('.flash');
       const counter=document.querySelector('.sc-preview-counter');
-      function fit(){ if(!stage) return; const s=Math.min(innerWidth/W, innerHeight/H); stage.style.transform='translate(-50%,-50%) scale('+s+')'; }
+      function fit(){
+        const outerScale=Math.min(innerWidth/W, innerHeight/H);
+        if(shell) shell.style.transform='translate(-50%,-50%) scale('+outerScale+')';
+        if(stage) stage.style.transform='translate(-50%,-50%) scale('+INNER_SCALE+')';
+      }
       addEventListener('resize', fit, {passive:true}); fit();
       function resetAnims(scene){
         if(!scene) return;
