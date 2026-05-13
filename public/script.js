@@ -2311,7 +2311,8 @@ document.addEventListener("click", (e) => {
     $("#videoEmptyState")?.classList.add("hidden");
     const st = $("#videoPreviewStatus"); if(st) st.textContent = "Preview ready";
     setTimeout(()=> ($(".video-preview-card") || $("#videoFrameWrap"))?.scrollIntoView({behavior:"smooth",block:"center"}), 180);
-    toast(`Premium video preview ready — ${scenes.length} scenes`, "success");
+    const sceneCount = (window.SC_VIDEO_TEMPLATES && window.SC_VIDEO_TEMPLATES.splitScript) ? window.SC_VIDEO_TEMPLATES.splitScript(STATE.script, STATE.aspect).length : 0;
+    toast(`Premium video preview ready${sceneCount ? ` — ${sceneCount} scenes` : ""}`, "success");
   }
 
   function bindPremiumVideoPatch(){
@@ -2354,115 +2355,4 @@ document.addEventListener("click", (e) => {
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindPremiumVideoPatch); else bindPremiumVideoPatch();
   setTimeout(bindPremiumVideoPatch, 800);
-})();
-
-
-/* ============================================================
-   ShortsCraft Video Engine FINAL OVERRIDE v7
-   Fixes template rendering by always using SC_VIDEO_TEMPLATES.build()
-   ============================================================ */
-(function(){
-  "use strict";
-  const $ = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-  const toast = window.scToast || function(msg){ console.log(msg); };
-  function getCredits(){
-    const n = parseInt(localStorage.getItem('sc:credits:v2') || localStorage.getItem('sc_credits') || '10', 10);
-    return Number.isFinite(n) ? n : 10;
-  }
-  function setCredits(n){
-    localStorage.setItem('sc:credits:v2', String(Math.max(0,n)));
-    localStorage.setItem('sc_credits', String(Math.max(0,n)));
-    ['#creditsCount','#creditsInfoCount'].forEach(sel=>{ const el=$(sel); if(el) el.textContent=String(Math.max(0,n)); });
-  }
-  function ensureTenCredits(){
-    const today = new Date().toISOString().slice(0,10);
-    const dayKey = 'sc:credits:day';
-    if(localStorage.getItem(dayKey) !== today){
-      localStorage.setItem(dayKey, today);
-      setCredits(10);
-    }
-    if(!localStorage.getItem('sc:credits:v2')) setCredits(10);
-  }
-  function parseEdits(text){
-    const p=String(text||'').toLowerCase();
-    return { fontScale:/bigger|large|font|bada/.test(p)?1.2:/small|chhota/.test(p)?.9:1, speed:/slow/.test(p)?1.45:/fast/.test(p)?.72:1, yellow:/yellow|highlight/.test(p), darker:/dark|black/.test(p), minimal:/minimal|clean|simple/.test(p), premium:/premium|gold|luxury|professional/.test(p) };
-  }
-  function ratioClass(aspect){ return {"9:16":"ratio-916","16:9":"ratio-169","1:1":"ratio-11","4:5":"ratio-45","3:4":"ratio-34","2:3":"ratio-23","21:9":"ratio-219"}[aspect] || 'ratio-916'; }
-  function setWrap(aspect){ const wrap=$('#videoFrameWrap'); if(!wrap)return; wrap.classList.remove('ratio-916','ratio-169','ratio-11','ratio-45','ratio-34','ratio-23','ratio-219'); wrap.classList.add(ratioClass(aspect)); }
-  function renderVideo({deduct=false, applyEdits=true}={}){
-    const input=$('#videoScriptInput');
-    const frame=$('#videoPreviewFrame');
-    if(!input || !frame) return;
-    const script=input.value.trim();
-    if(!script){ toast('Paste or generate a script first.', 'error'); return; }
-    ensureTenCredits();
-    if(deduct){
-      const c=getCredits();
-      if(c<=0){ const m=$('#noCreditsModal'); if(m) m.classList.remove('hidden'); else toast('Out of credits.', 'error'); return; }
-      setCredits(c-1);
-    }
-    const style=$('#videoStyleSelect')?.value || 'clean-minimal';
-    const aspect=$('#videoAspectSelect')?.value || '9:16';
-    const mods=applyEdits ? parseEdits($('#videoEditPrompt')?.value || '') : {};
-    let html='';
-    try{
-      html = window.SC_VIDEO_TEMPLATES && window.SC_VIDEO_TEMPLATES.build ? window.SC_VIDEO_TEMPLATES.build(script, style, aspect, mods) : '';
-    }catch(e){ console.error('SC template build failed', e); }
-    if(!html){ toast('Template engine failed. Check video-templates.js.', 'error'); return; }
-    window.__SC_LAST_VIDEO_HTML__ = html;
-    setWrap(aspect);
-    frame.setAttribute('sandbox','allow-scripts allow-same-origin');
-    frame.srcdoc = html;
-    $('#videoEmptyState')?.classList.add('hidden');
-    const st=$('#videoPreviewStatus'); if(st) st.textContent='Preview ready';
-    setTimeout(()=>($('.video-preview-card')||$('#videoFrameWrap'))?.scrollIntoView({behavior:'smooth',block:'center'}),160);
-    const label = $('#videoStyleSelect')?.selectedOptions?.[0]?.textContent?.trim() || 'Video';
-    toast(label + ' ready', 'success');
-  }
-  function bind(){
-    ensureTenCredits();
-    const gen=$('#generateVideoBtn');
-    if(gen && gen.dataset.scFinalV7 !== '1'){
-      gen.dataset.scFinalV7='1';
-      gen.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); renderVideo({deduct:true,applyEdits:true}); }, true);
-    }
-    const apply=$('#applyVideoEditBtn');
-    if(apply && apply.dataset.scFinalV7 !== '1'){
-      apply.dataset.scFinalV7='1';
-      apply.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); renderVideo({deduct:false,applyEdits:true}); }, true);
-    }
-    const reset=$('#resetVideoEditBtn');
-    if(reset && reset.dataset.scFinalV7 !== '1'){
-      reset.dataset.scFinalV7='1';
-      reset.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const p=$('#videoEditPrompt'); if(p)p.value=''; if($('#videoScriptInput')?.value.trim()) renderVideo({deduct:false,applyEdits:false}); }, true);
-    }
-    $$('.quick-edit-chips button').forEach(chip=>{
-      if(chip.dataset.scFinalV7 === '1') return;
-      chip.dataset.scFinalV7='1';
-      chip.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const p=$('#videoEditPrompt'); const val=(chip.dataset.edit||chip.textContent||'').trim(); if(p) p.value = p.value.trim() ? p.value.trim()+', '+val : val; renderVideo({deduct:false,applyEdits:true}); }, true);
-    });
-    const aspect=$('#videoAspectSelect');
-    if(aspect && aspect.dataset.scFinalV7 !== '1'){
-      aspect.dataset.scFinalV7='1';
-      aspect.addEventListener('change', ()=>{ setWrap(aspect.value); if($('#videoScriptInput')?.value.trim()) renderVideo({deduct:false,applyEdits:true}); });
-    }
-    const style=$('#videoStyleSelect');
-    if(style && style.dataset.scFinalV7 !== '1'){
-      style.dataset.scFinalV7='1';
-      style.addEventListener('change', ()=>{ if($('#videoScriptInput')?.value.trim()) renderVideo({deduct:false,applyEdits:true}); });
-    }
-    const copy=$('#copyVideoHtmlBtn');
-    if(copy && copy.dataset.scFinalV7 !== '1'){
-      copy.dataset.scFinalV7='1';
-      copy.addEventListener('click', async e=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const html=window.__SC_LAST_VIDEO_HTML__; if(!html){toast('Generate a video first.','error');return;} try{await navigator.clipboard.writeText(html);toast('HTML copied!','success');}catch{toast('Copy failed.','error');} }, true);
-    }
-    const open=$('#openVideoPreviewBtn');
-    if(open && open.dataset.scFinalV7 !== '1'){
-      open.dataset.scFinalV7='1';
-      open.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const html=window.__SC_LAST_VIDEO_HTML__; if(!html){toast('Generate a video first.','error');return;} const w=window.open('','_blank'); if(w){w.document.open();w.document.write(html);w.document.close();} }, true);
-    }
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind); else bind();
-  setTimeout(bind,500); setTimeout(bind,1500);
 })();
