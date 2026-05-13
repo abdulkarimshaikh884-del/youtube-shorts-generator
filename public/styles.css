@@ -7231,15 +7231,3 @@ html {
 #videoPreviewFrame{width:100%!important;height:100%!important;border:0!important;background:#000!important;display:block!important}
 .video-frame-wrap{display:block!important;overflow:hidden!important}
 .video-preview-card{scroll-margin-top:88px!important}
-
-
-/* SC FINAL VIDEO PREVIEW SAFETY v7 */
-.video-frame-wrap{background:#05030a!important;overflow:hidden!important}
-#videoPreviewFrame{width:100%!important;height:100%!important;display:block!important;border:0!important;background:#000!important}
-.video-frame-wrap.ratio-916{aspect-ratio:9/16!important}
-.video-frame-wrap.ratio-169{aspect-ratio:16/9!important}
-.video-frame-wrap.ratio-11{aspect-ratio:1/1!important}
-.video-frame-wrap.ratio-45{aspect-ratio:4/5!important}
-.video-frame-wrap.ratio-34{aspect-ratio:3/4!important}
-.video-frame-wrap.ratio-23{aspect-ratio:2/3!important}
-.video-frame-wrap.ratio-219{aspect-ratio:21/9!important}
