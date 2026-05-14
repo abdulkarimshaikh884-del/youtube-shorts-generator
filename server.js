@@ -161,7 +161,7 @@ async function callGroq(prompt, { temperature = 0.85, maxTokens = 1500 } = {}) {
           {
             role: "system",
             content:
-              "You are ShortsCraft, an expert YouTube Shorts content creator who writes punchy Hinglish (Hindi-English mix) content. You produce viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and creator-focused.",
+              "You are ShortsCraft, an expert AI video and YouTube Shorts creator who writes punchy Hinglish (Hindi-English mix) content for animated motion graphics, kinetic typography, viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and video-first.",
           },
           { role: "user", content: prompt },
         ],
@@ -413,10 +413,10 @@ app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 20 }), async (req, 
 const SEO_ROUTE_META = {
   "/seo-tools": {
     title: "SEO Tools — ShortsCraft",
-    description: "ShortsCraft SEO tools for YouTube Shorts scripts, titles, descriptions, hashtags, ideas and thumbnail prompts.",
-    h1: "Scripts, titles, hashtags & more",
-    intro: "Use these tools after creating your video, or generate a complete Shorts content pack from one topic.",
-    h2: "Scripts, titles, hashtags & more"
+    description: "Generate SEO titles, descriptions, hashtags, ideas and thumbnail prompts for animated YouTube Shorts created with ShortsCraft motion graphics video generator.",
+    h1: "SEO tools for animated Shorts",
+    intro: "Use these tools after creating your motion graphics video, or generate a complete Shorts content pack from one topic.",
+    h2: "Titles, hashtags, scripts & more"
   },
   "/youtube-shorts-script-generator": {
     title: "YouTube Shorts Script Generator — ShortsCraft",
