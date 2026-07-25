@@ -40,12 +40,12 @@ app.use((req, res, next) => {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://checkout.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com",
+      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co https://api.groq.com https://api.razorpay.com https://www.google-analytics.com",
-      "frame-src https://checkout.razorpay.com https://api.razorpay.com",
+      "connect-src 'self' https://*.supabase.co https://api.groq.com https://*.razorpay.com https://www.google-analytics.com https://www.googletagmanager.com",
+      "frame-src https://*.razorpay.com",
       "object-src 'none'",
       "base-uri 'self'",
     ].join("; ")
@@ -111,7 +111,7 @@ app.use(
     maxAge: NODE_ENV === "production" ? "7d" : 0,
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "no-cache, must-revalidate");
-      if (/favicon|apple-touch-icon|site\.webmanifest/i.test(filePath)) {
+      if (/favicon|apple-touch-icon|android-chrome|site\.webmanifest/i.test(filePath)) {
         res.setHeader("Cache-Control", "no-cache, must-revalidate");
       }
     },
@@ -136,6 +136,11 @@ app.get("/api/config", (req, res) => {
     proPriceInr: Number(process.env.PRO_PRICE_INR || 99),
     freeCreditsPerDay: Number(process.env.FREE_CREDITS_PER_DAY || 10),
     gaId: process.env.GA_ID || "",
+    services: {
+      ai: Boolean(process.env.GROQ_API_KEY),
+      auth: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+      payments: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+    },
   });
 });
 
