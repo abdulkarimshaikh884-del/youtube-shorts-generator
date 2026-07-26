@@ -1,1 +1,12 @@
 node_modules/
+.env
+.env.local
+.env.example
+data/
+*.log
+*.ps1
+shots/
+shot.js
+verify_*.js
+diag_studio.js
+DEPENDENCY_REPORT.md
