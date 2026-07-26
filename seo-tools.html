@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BBE03D3FDT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BBE03D3FDT');
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Creator SEO Tools for Animated YouTube Shorts — ShortsCraft</title>
+<meta name="description" content="Generate SEO titles, descriptions, hashtags, ideas and thumbnail prompts for animated YouTube Shorts created with ShortsCraft motion graphics video generator."/>
+<meta name="robots" content="index, follow, max-image-preview:large"/>
+<link rel="canonical" href="https://shortscraft.online/seo-tools"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v=premium-home-v1">
+<meta name="theme-color" content="#0b0b0d">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
+<link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20260725">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260725">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260725">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
+<link rel="manifest" href="/site.webmanifest?v=20260725">
+<link rel="stylesheet" href="/premium.css?v=3">
+<link rel="stylesheet" href="/seo-tools.css?v=20260725-a11y-large">
+</head>
+<body class="page-studio page-seo-tools">
+<div class="aurora" aria-hidden="true">
+  <span class="aurora-blob aurora-1"></span>
+  <span class="aurora-blob aurora-2"></span>
+  <span class="aurora-grid"></span>
+</div>
+
+<header class="studio-bar">
+  <button class="icon-btn" id="seoSidebarToggle" aria-label="History">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a href="/" class="logo sm">
+    <span class="logo-mark brand-logo-mark"><img class="brand-logo-image" src="/favicon.svg?v=20260725" width="32" height="32" alt="" aria-hidden="true"></span>
+    <span class="logo-text">Shorts<span>Craft</span></span>
+  </a>
+  <span class="studio-tag">Studio</span>
+
+  <div class="studio-bar-spacer"></div>
+
+  <div class="studio-search-wrap">
+    <span class="studio-search-icon">⌕</span>
+    <input id="seoStudioSearchInput" class="studio-search-input" type="search" placeholder="Search tools, commands, scripts..." autocomplete="off" aria-label="Search tools and commands" />
+    <span class="studio-search-key">⌘K</span>
+  </div>
+  <div class="credits-pill hidden" id="creditsPill" title="Daily credits">
+    <span>⚡</span><b id="creditsCount">10</b><i>/day</i>
+  </div>
+  <button class="btn-ghost sm" id="seoFeedbackBtn">💬 Feedback</button>
+  <button class="btn-primary sm" id="seoLoginBtn">Sign in</button>
+  <div class="profile-wrap hidden" id="profileWrap">
+    <button class="avatar" id="avatarBtn" aria-label="Account">
+      <img id="avatarImg" alt="" hidden>
+      <span id="avatarInitial">U</span>
+    </button>
+    <div class="profile-pop hidden" id="profilePop" role="menu">
+      <div class="pp-head">
+        <div class="avatar lg"><img id="avatarImgLg" alt="" hidden><span id="avatarInitialLg">U</span></div>
+        <div>
+          <b id="profileName">Creator</b>
+          <span id="profileEmail">user@email.com</span>
+        </div>
+      </div>
+      <div class="pp-credits">
+        <span>⚡ Credits</span><b id="creditsInfoCount">10</b>
+        <button id="earnCreditsLink">Earn more</button>
+      </div>
+      <button class="pp-item upgrade" id="upgradeBtn">⭐ Upgrade to Pro — ₹99/mo</button>
+      <button class="pp-item" id="viewSavedBtn">🔖 Saved scripts</button>
+      <button class="pp-item" id="viewHistoryBtn">📚 History</button>
+      <button class="pp-item" id="profileFeedbackBtn">💬 Feedback</button>
+      <hr>
+      <button class="pp-item danger" id="logoutBtn">🚪 Sign out</button>
+    </div>
+  </div>
+</header>
+
+<!-- SEO page header support elements -->
+<aside class="sidebar" id="sidebar" aria-hidden="true">
+  <div class="sb-head">
+    <b>📚 History</b>
+    <button class="icon-btn" id="sidebarClose" type="button" aria-label="Close history">✕</button>
+  </div>
+  <div class="sb-section">
+    <div class="sb-label">RECENT</div>
+    <div class="sb-empty">
+      <p>Use Video Studio to create and save scripts.</p>
+    </div>
+  </div>
+  <div class="sb-foot">
+    <a class="btn-ghost full" href="/generator">🎬 Open Video Studio</a>
+  </div>
+</aside>
+<div class="sidebar-veil" id="sidebarVeil"></div>
+
+<div class="cmd-palette hidden" id="cmdPalette" role="dialog" aria-modal="true">
+  <div class="cmd-box" id="cmdBox">
+    <button class="cmd-close" id="cmdCloseBtn" type="button" aria-label="Close search">✕</button>
+    <input type="text" id="cmdInput" placeholder="Search SEO tools, commands, shortcuts..." />
+    <ul class="cmd-list" id="cmdList">
+      <li data-action="video">🎬 Open Video Studio</li>
+      <li data-action="generate">⚡ Generate script pack</li>
+      <li data-action="copy">📋 Copy current output</li>
+      <li data-action="download">⬇ Download .txt</li>
+      <li data-action="upgrade">⭐ Upgrade to Pro</li>
+    </ul>
+    <div class="cmd-foot">esc to close</div>
+  </div>
+</div>
+
+<!-- ── AUTH MODAL ──────────────────────────────────────────── -->
+<div class="modal-veil hidden" id="authModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button class="modal-x" id="authModalClose" aria-label="Close">✕</button>
+    <div class="modal-tabs">
+      <button class="m-tab active" data-auth="login">Sign in</button>
+      <button class="m-tab" data-auth="signup">Sign up</button>
+    </div>
+    <div class="auth-form active" id="auth-login">
+      <h3>Welcome back 👋</h3>
+      <p class="muted">Sign in to save and sync your scripts.</p>
+      <button class="btn-google" id="googleSignInBtn">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.5 5C9.7 39.6 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divider"><span>or</span></div>
+      <input type="email" id="loginEmail" class="m-input" placeholder="Email"/>
+      <input type="password" id="loginPassword" class="m-input" placeholder="Password"/>
+      <p class="m-error hidden" id="loginError"></p>
+      <button class="btn-primary full" id="loginSubmit">Sign in</button>
+    </div>
+    <div class="auth-form" id="auth-signup">
+      <h3>Create your account 🚀</h3>
+      <p class="muted">Free forever — no card required.</p>
+      <button class="btn-google" id="googleSignUpBtn">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.6-2.9-11.3-7.1l-6.5 5C9.7 39.6 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.2 5.2C41 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divider"><span>or</span></div>
+      <input type="text" id="signupName" class="m-input" placeholder="Your name"/>
+      <input type="email" id="signupEmail" class="m-input" placeholder="Email"/>
+      <input type="password" id="signupPassword" class="m-input" placeholder="Password (min 6 chars)"/>
+      <p class="m-error hidden" id="signupError"></p>
+      <button class="btn-primary full" id="signupSubmit">Create account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── UPGRADE MODAL ───────────────────────────────────────── -->
+<div class="modal-veil hidden" id="upgradeModal" role="dialog" aria-modal="true">
+  <div class="modal upgrade-modal">
+    <button class="modal-x" id="upgradeModalClose" aria-label="Close">✕</button>
+    <div class="up-hero">
+      <div class="up-icon">⭐</div>
+      <h3>ShortsCraft <span class="grad">Pro</span></h3>
+      <p class="muted">Unlimited generations. Priority speed. Save anywhere.</p>
+    </div>
+    <ul class="up-feats">
+      <li>✓ Unlimited daily generations</li>
+      <li>✓ Cloud-saved scripts &amp; history</li>
+      <li>✓ Priority AI speed</li>
+      <li>✓ All 6 content tools</li>
+      <li>✓ Cancel anytime</li>
+    </ul>
+    <div class="up-price"><b>₹99</b><span>/month</span></div>
+    <button class="btn-primary full lg" id="upgradeSubmit">Upgrade to Pro ⭐</button>
+    <p class="up-note" id="upgradeNote"></p>
+  </div>
+</div>
+
+<!-- ── EARN CREDITS MODAL ──────────────────────────────────── -->
+<div class="modal-veil hidden" id="earnModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button class="modal-x" id="earnModalClose" aria-label="Close">✕</button>
+    <h3>⚡ Earn free credits</h3>
+    <p class="muted">Complete tasks to get +1 credit each.</p>
+    <div id="tasksList" class="tasks"></div>
+    <p class="muted center sm">Credits reset daily. Pro = unlimited.</p>
+  </div>
+</div>
+
+<!-- ── NO CREDITS MODAL ────────────────────────────────────── -->
+<div class="modal-veil hidden" id="noCreditsModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button class="modal-x" id="noCreditsModalClose" aria-label="Close">✕</button>
+    <div class="up-hero">
+      <div class="up-icon">😔</div>
+      <h3>Out of credits</h3>
+      <p class="muted">You've used your 10 free generations for today.</p>
+    </div>
+    <div class="stack">
+      <button class="btn-ghost full" id="noCreditsEarnBtn">⚡ Earn more credits</button>
+      <button class="btn-primary full" id="noCreditsUpgradeBtn">⭐ Upgrade to Pro — ₹99/mo</button>
+    </div>
+    <p class="muted center sm">Or come back tomorrow — credits auto-reset.</p>
+  </div>
+</div>
+
+<!-- ── FEEDBACK MODAL ──────────────────────────────────────── -->
+<div class="modal-veil hidden" id="feedbackModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button class="modal-x" id="feedbackModalClose" aria-label="Close">✕</button>
+    <h3>💬 Share feedback</h3>
+    <p class="muted">Tell us what to improve.</p>
+    <input type="text" id="feedbackName" class="m-input" placeholder="Your name"/>
+    <input type="email" id="feedbackEmail" class="m-input" placeholder="Email (optional)"/>
+    <textarea id="feedbackMessage" class="m-input" rows="4" placeholder="Your message…"></textarea>
+    <div class="row gap">
+      <button class="btn-primary full" id="feedbackSubmit">Submit</button>
+      <button class="btn-ghost" id="feedbackCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<main class="seo-tools-page-wrap">
+  <section class="seo-tools-hero">
+    <div>
+      <span class="video-badge">Creator growth workspace</span>
+      <h1>Package every Short for discovery.</h1>
+      <p>Turn one topic into a ready-to-publish script, titles, description, hashtags, follow-up ideas and thumbnail directions.</p>
+    </div>
+    <div class="seo-hero-metrics" aria-label="Workspace capabilities">
+      <div class="seo-hero-metric"><b>6 focused tools</b><span>One generation</span></div>
+      <div class="seo-hero-metric"><b>Hinglish ready</b><span>Creator-first output</span></div>
+    </div>
+  </section>
+
+  <section class="text-tools-shell seo-tools-page-shell">
+    
+    <div class="text-tools-head">
+      <div>
+        <span class="video-badge">🧰 Optional tools</span>
+        <h2>Titles, hashtags, scripts & more</h2>
+        <p>Use these tools after creating your video or whenever you need a complete Shorts content pack.</p>
+      </div>
+      <a class="btn-ghost sm seo-back-btn" href="/generator">← Back to Studio</a>
+    </div>
+
+  <!-- Topic input -->
+  <section class="topic-card secondary-tools-card">
+    <label for="topic" class="topic-label">Generate SEO assets for your animated Short</label>
+    <div class="topic-row">
+      <span class="topic-prefix">›</span>
+      <input id="topic" type="text" autocomplete="off"
+        placeholder="e.g. Morning productivity hacks for Indian students"/>
+      <button id="generateBtn" class="btn-primary lg" type="button">
+        <span class="btn-label">Generate ✦</span>
+      </button>
+    </div>
+    <div class="topic-suggest">
+      <span>Try:</span>
+      <button class="chip" data-topic="Morning productivity hacks">☀️ Morning hacks</button>
+      <button class="chip" data-topic="Cricket tips for beginners">🏏 Cricket tips</button>
+      <button class="chip" data-topic="Study motivation for Indian students">📚 Study motivation</button>
+      <button class="chip" data-topic="Money saving hacks India">💰 Money hacks</button>
+      <button class="chip" data-topic="AI tools for content creators">🤖 AI tools</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </section>
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist" aria-label="Creator tools">
+    <button class="tab active" data-tab="script" role="tab" aria-selected="true"><span class="seo-tab-icon">✎</span><span class="seo-tab-copy"><b>Script</b><small>Hook &amp; narration</small></span></button>
+    <button class="tab" data-tab="titles" role="tab" aria-selected="false"><span class="seo-tab-icon">T</span><span class="seo-tab-copy"><b>Titles</b><small>Click-worthy options</small></span></button>
+    <button class="tab" data-tab="description" role="tab" aria-selected="false"><span class="seo-tab-icon">≡</span><span class="seo-tab-copy"><b>Description</b><small>SEO-ready copy</small></span></button>
+    <button class="tab" data-tab="hashtags" role="tab" aria-selected="false"><span class="seo-tab-icon">#</span><span class="seo-tab-copy"><b>Hashtags</b><small>Niche discovery</small></span></button>
+    <button class="tab" data-tab="ideas" role="tab" aria-selected="false"><span class="seo-tab-icon">◇</span><span class="seo-tab-copy"><b>Ideas</b><small>Next-video angles</small></span></button>
+    <button class="tab" data-tab="thumbnail" role="tab" aria-selected="false"><span class="seo-tab-icon">▣</span><span class="seo-tab-copy"><b>Thumbnail</b><small>Visual prompts</small></span></button>
+  </nav>
+
+  <!-- Output area -->
+  <section id="resultsArea" class="results">
+    <div class="results-bar">
+      <span class="results-topic" id="resultsTopic">Your output will appear here</span>
+      <div class="results-actions">
+        <button class="btn-ghost sm" id="downloadTxtBtn">⬇ Download .txt</button>
+        <button class="btn-ghost sm" id="regenerateBtn" hidden>↻ Regenerate</button>
+      </div>
+    </div>
+
+    <div class="panel active" id="panel-script">
+      <div class="out-card">
+        <header><h2>📝 Generated Script</h2>
+          <div class="out-actions">
+            <button class="icon-btn" id="saveScriptBtn" title="Save">♡</button>
+            <button class="btn-ghost sm" id="copyScriptBtn">Copy</button>
+          </div>
+        </header>
+        <div id="scriptSections" class="script-body">
+          <div class="placeholder">Type a topic and hit <b>Generate</b> ⚡</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="panel-titles">
+      <div class="out-card">
+        <header><h2>🎯 Title Suggestions</h2><button class="btn-ghost sm" id="copyTitlesBtn">Copy all</button></header>
+        <div id="titlesContent" class="list-body"><div class="placeholder">Titles will appear here 🎯</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-description">
+      <div class="out-card">
+        <header><h2>📄 YouTube Description</h2><button class="btn-ghost sm" id="copyDescBtn">Copy</button></header>
+        <p class="hint">Paste-ready, SEO-tuned. Add your channel CTA at the end.</p>
+        <div id="descContent" class="desc-body"><div class="placeholder">Description will appear here 📄</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-hashtags">
+      <div class="out-card">
+        <header><h2>#️⃣ Hashtags</h2><button class="btn-ghost sm" id="copyHashtagsBtn">Copy all</button></header>
+        <div id="hashtagsContent" class="list-body"><div class="placeholder">Hashtags will appear here #️⃣</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-ideas">
+      <div class="out-card">
+        <header><h2>💡 Content Ideas</h2><button class="btn-ghost sm" id="copyIdeasBtn">Copy all</button></header>
+        <div id="ideasContent" class="list-body"><div class="placeholder">Ideas will appear here 💡</div></div>
+      </div>
+    </div>
+    <div class="panel" id="panel-thumbnail">
+      <div class="out-card">
+        <header><h2>🖼 Thumbnail Prompts</h2><button class="btn-ghost sm" id="copyThumbnailBtn">Copy all</button></header>
+        <p class="hint">Paste these English prompts into Midjourney, DALL·E or Stable Diffusion.</p>
+        <div id="thumbnailContent" class="list-body"><div class="placeholder">Prompts will appear here 🖼</div></div>
+      </div>
+    </div>
+  </section>
+
+  
+  </section>
+</main>
+
+<script src="/script.js"></script>
+</body>
+</html>
