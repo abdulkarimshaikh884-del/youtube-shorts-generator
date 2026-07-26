@@ -18,15 +18,18 @@
 <link rel="canonical" href="https://shortscraft.online/seo-tools"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css?v=premium-home-v1">
-<meta name="theme-color" content="#0b0613">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0b0b0d">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
+<link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20260725">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260725">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260725">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
+<link rel="manifest" href="/site.webmanifest?v=20260725">
+<link rel="stylesheet" href="/premium.css?v=3">
+<link rel="stylesheet" href="/seo-tools.css?v=20260725-a11y-large">
 </head>
 <body class="page-studio page-seo-tools">
 <div class="aurora" aria-hidden="true">
@@ -40,7 +43,7 @@
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
   <a href="/" class="logo sm">
-    <span class="logo-mark"><span class="logo-bolt">⚡</span></span>
+    <span class="logo-mark brand-logo-mark"><img class="brand-logo-image" src="/favicon.svg?v=20260725" width="32" height="32" alt="" aria-hidden="true"></span>
     <span class="logo-text">Shorts<span>Craft</span></span>
   </a>
   <span class="studio-tag">Studio</span>
@@ -49,7 +52,7 @@
 
   <div class="studio-search-wrap">
     <span class="studio-search-icon">⌕</span>
-    <input id="seoStudioSearchInput" class="studio-search-input" type="search" placeholder="Search tools, commands, scripts..." autocomplete="off" />
+    <input id="seoStudioSearchInput" class="studio-search-input" type="search" placeholder="Search tools, commands, scripts..." autocomplete="off" aria-label="Search tools and commands" />
     <span class="studio-search-key">⌘K</span>
   </div>
   <div class="credits-pill hidden" id="creditsPill" title="Daily credits">
@@ -224,9 +227,15 @@
 
 <main class="seo-tools-page-wrap">
   <section class="seo-tools-hero">
-    <span class="video-badge">🚀 Optional Creator Toolkit</span>
-    <h1>SEO tools for animated Shorts</h1>
-    <p>Use these tools after creating your video, or generate a complete Shorts content pack from one topic.</p>
+    <div>
+      <span class="video-badge">Creator growth workspace</span>
+      <h1>Package every Short for discovery.</h1>
+      <p>Turn one topic into a ready-to-publish script, titles, description, hashtags, follow-up ideas and thumbnail directions.</p>
+    </div>
+    <div class="seo-hero-metrics" aria-label="Workspace capabilities">
+      <div class="seo-hero-metric"><b>6 focused tools</b><span>One generation</span></div>
+      <div class="seo-hero-metric"><b>Hinglish ready</b><span>Creator-first output</span></div>
+    </div>
   </section>
 
   <section class="text-tools-shell seo-tools-page-shell">
@@ -263,13 +272,13 @@
   </section>
 
   <!-- Tabs -->
-  <nav class="tabs" role="tablist" aria-label="Output tabs">
-    <button class="tab active" data-tab="script" role="tab">📝 Script</button>
-    <button class="tab" data-tab="titles" role="tab">🎯 Titles</button>
-    <button class="tab" data-tab="description" role="tab">📄 Description</button>
-    <button class="tab" data-tab="hashtags" role="tab">#️⃣ Hashtags</button>
-    <button class="tab" data-tab="ideas" role="tab">💡 Ideas</button>
-    <button class="tab" data-tab="thumbnail" role="tab">🖼 Thumbnail</button>
+  <nav class="tabs" role="tablist" aria-label="Creator tools">
+    <button class="tab active" data-tab="script" role="tab" aria-selected="true"><span class="seo-tab-icon">✎</span><span class="seo-tab-copy"><b>Script</b><small>Hook &amp; narration</small></span></button>
+    <button class="tab" data-tab="titles" role="tab" aria-selected="false"><span class="seo-tab-icon">T</span><span class="seo-tab-copy"><b>Titles</b><small>Click-worthy options</small></span></button>
+    <button class="tab" data-tab="description" role="tab" aria-selected="false"><span class="seo-tab-icon">≡</span><span class="seo-tab-copy"><b>Description</b><small>SEO-ready copy</small></span></button>
+    <button class="tab" data-tab="hashtags" role="tab" aria-selected="false"><span class="seo-tab-icon">#</span><span class="seo-tab-copy"><b>Hashtags</b><small>Niche discovery</small></span></button>
+    <button class="tab" data-tab="ideas" role="tab" aria-selected="false"><span class="seo-tab-icon">◇</span><span class="seo-tab-copy"><b>Ideas</b><small>Next-video angles</small></span></button>
+    <button class="tab" data-tab="thumbnail" role="tab" aria-selected="false"><span class="seo-tab-icon">▣</span><span class="seo-tab-copy"><b>Thumbnail</b><small>Visual prompts</small></span></button>
   </nav>
 
   <!-- Output area -->

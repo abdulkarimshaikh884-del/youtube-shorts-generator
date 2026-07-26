@@ -93,9 +93,25 @@ function loadAuthLocal() {
 }
 
 /* ── Config + Supabase ─────────────────────────────── */
+function renderServiceStatus(aiAvailable = false, configLoaded = true) {
+  const status = $("#aiServiceStatus");
+  if (!status) return;
+
+  status.classList.remove("checking", "online", "offline");
+  status.classList.add(aiAvailable ? "online" : "offline");
+  const label = $("span", status);
+  if (label) label.textContent = aiAvailable
+    ? "AI ready"
+    : (configLoaded ? "AI unavailable" : "Status unknown");
+  status.title = aiAvailable
+    ? "AI script generation is configured"
+    : "Video previews still work; AI script generation is currently unavailable";
+}
+
 async function loadConfig() {
   try {
     STATE.config = await api("/api/config");
+    renderServiceStatus(Boolean(STATE.config.services?.ai));
     if (window.supabase && STATE.config.supabaseUrl && STATE.config.supabaseAnonKey) {
       STATE.supabase = window.supabase.createClient(STATE.config.supabaseUrl, STATE.config.supabaseAnonKey);
       const { data: { session } } = await STATE.supabase.auth.getSession();
@@ -106,6 +122,7 @@ async function loadConfig() {
       });
     }
   } catch (e) {
+    renderServiceStatus(false, false);
     console.warn("[config]", e.message);
   }
 
@@ -433,18 +450,46 @@ function restoreEntry(item) {
 
 /* ── Tabs ──────────────────────────────────────────── */
 function bindTabs() {
+  const tabs = $$(".tab[data-tab]");
+  tabs.forEach((tab, index) => {
+    const panel = $(`#panel-${tab.dataset.tab}`);
+    if (!tab.id) tab.id = `seo-tab-${tab.dataset.tab}`;
+    tab.setAttribute("aria-controls", `panel-${tab.dataset.tab}`);
+    tab.setAttribute("aria-selected", String(tab.classList.contains("active")));
+    tab.tabIndex = tab.classList.contains("active") ? 0 : -1;
+    if (panel) {
+      panel.setAttribute("role", "tabpanel");
+      panel.setAttribute("aria-labelledby", tab.id);
+      panel.tabIndex = 0;
+    }
+  });
+  const activateTab = (tab, moveFocus = false) => {
+    tabs.forEach((item) => {
+      const active = item === tab;
+      item.classList.toggle("active", active);
+      item.setAttribute("aria-selected", String(active));
+      item.tabIndex = active ? 0 : -1;
+    });
+    $$(".panel").forEach((panel) => panel.classList.remove("active"));
+    tab.classList.add("active");
+    STATE.currentTab = tab.dataset.tab;
+    $(`#panel-${tab.dataset.tab}`)?.classList.add("active");
+    if (moveFocus) tab.focus();
+  };
 
-  $$(".tab").forEach((t) =>
-    on(t, "click", () => {
-
-      $$(".tab").forEach((x) => x.classList.remove("active"));
-
-      $$(".panel").forEach((x) => x.classList.remove("active"));
-      t.classList.add("active");
-      STATE.currentTab = t.dataset.tab;
-      $(`#panel-${t.dataset.tab}`)?.classList.add("active");
-    })
-  );
+  tabs.forEach((tab, index) => {
+    on(tab, "click", () => activateTab(tab));
+    on(tab, "keydown", (event) => {
+      if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      let next = index;
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % tabs.length;
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + tabs.length) % tabs.length;
+      if (event.key === "Home") next = 0;
+      if (event.key === "End") next = tabs.length - 1;
+      activateTab(tabs[next], true);
+    });
+  });
 }
 
 /* ── Copy / Download ───────────────────────────────── */
@@ -1571,7 +1616,10 @@ async function generateScriptForVideo() {
   try {
     const data = await api("/api/generate", { method: "POST", body: { topic, type: "script" } });
     let script = (data.content || "").replace(/=== SCRIPT ===/gi, "").replace(/=== TITLES ===[\s\S]*/gi, "").trim();
-    if (scriptInput) scriptInput.value = script;
+    if (scriptInput) {
+      scriptInput.value = script;
+      scriptInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
 
 
     $$(".video-mode").forEach(b => b.classList.toggle("active", b.dataset.mode === "paste"));
@@ -2154,6 +2202,46 @@ document.addEventListener("click", (e) => {
     return merged.slice(0, 24);
   }
 
+  function scenesForTimeline(rawScript, aspect){
+    try{
+      if(window.SC_VIDEO_TEMPLATES?.splitScript){
+        return window.SC_VIDEO_TEMPLATES.splitScript(rawScript, aspect).slice(0, 24);
+      }
+    }catch(e){ console.warn("Timeline split failed, using fallback:", e); }
+    return splitIntoScenes(rawScript, aspect);
+  }
+
+  function renderSceneTimeline(rawScript = "", aspect = "9:16"){
+    const track = $("#sceneTimelineTrack");
+    const count = $("#sceneTimelineCount");
+    if(!track) return [];
+    const scenes = scenesForTimeline(rawScript, aspect);
+    if(!scenes.length){
+      track.innerHTML = `<button class="scene-card active empty" type="button" data-scene="0"><span class="scene-number">01</span><span class="scene-thumb"><i>✦</i></span><span class="scene-copy">Start writing to build scenes</span></button>`;
+      if(count) count.textContent = "1 scene";
+      return [];
+    }
+    track.innerHTML = scenes.map((scene, index) => `<button class="scene-card${index === 0 ? " active" : ""}" type="button" data-scene="${index}" title="Scene ${index + 1}: ${esc(scene)}"><span class="scene-number">${String(index + 1).padStart(2,"0")}</span><span class="scene-thumb"><i>✦</i></span><span class="scene-copy">${esc(scene)}</span></button>`).join("");
+    if(count) count.textContent = `${scenes.length} scene${scenes.length === 1 ? "" : "s"}`;
+    return scenes;
+  }
+
+  function updateScriptWordCount(){
+    const input = $("#videoScriptInput");
+    const output = $("#scriptWordCount");
+    if(!output) return;
+    const words = (input?.value.trim().match(/\S+/g) || []).length;
+    output.textContent = `${words} word${words === 1 ? "" : "s"}`;
+  }
+
+  function updateCanvasAspectLabel(){
+    const aspect = $("#videoAspectSelect")?.value || "9:16";
+    const label = $("#canvasAspectLabel");
+    if(label) label.textContent = aspect;
+  }
+
+  window.scRenderTimeline = renderSceneTimeline;
+
   function keywordClass(word, i, total){
     const clean = word.toLowerCase().replace(/[^\p{L}\p{N}]/gu,"");
     const power = new Set(["ai","viral","secret","money","paise","free","pro","hack","trick","views","youtube","shorts","creator","income","earn","earning","warning","truth","today","now","kaise","kyu","best"]);
@@ -2194,11 +2282,14 @@ document.addEventListener("click", (e) => {
       "neon-cyber": {
         bg:"#000", text:"#eaffff", a:"#00f5ff", b:"#b44fff", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"neonZoom", weight:950, deco:"<div class='grid'></div><div class='scan'></div><div class='orb cyan'></div><div class='orb purple'></div>", placement:"center"
       },
+      "kinetic-3d": {
+        bg:"radial-gradient(circle at 50% 26%,#7c8bff33,transparent 42%),linear-gradient(180deg,#0a0c1c,#03040c)", text:"#f4f7ff", a:"#7c8bff", b:"#37e0c8", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"neonZoom", weight:950, deco:"<div class='grid'></div><div class='orb cyan'></div><div class='orb purple'></div>", placement:"center"
+      },
+      "liquid": {
+        bg:"radial-gradient(circle at 20% 15%,#7c5cff55,transparent 45%),radial-gradient(circle at 82% 80%,#2fe6d044,transparent 45%),linear-gradient(160deg,#0a0f1e,#0a0f1e)", text:"#ffffff", a:"#c9c2ff", b:"#bffaf0", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"popScale", weight:850, deco:"<div class='orb cyan'></div><div class='orb purple'></div><div class='bubble b1'></div>", placement:"center"
+      },
       "motivation": {
         bg:"linear-gradient(135deg,#ff3d2e,#ff7a18 48%,#b91372)", text:"#fff", a:"#fff200", b:"#fff", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"bounceIn", weight:950, deco:"<div class='sunburst'></div>", placement:"center"
-      },
-      "podcast": {
-        bg:"#171717", text:"#fff", a:"#FFD60A", b:"#FFD60A", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"subtitleUp", weight:820, deco:"<div class='wave'></div>", placement:"bottom"
       },
       "news": {
         bg:"#f4f4f4", text:"#111", a:"#d60000", b:"#fff", font:"Inter, Georgia, 'Times New Roman', 'Noto Sans Devanagari', serif", anim:"flashIn", weight:980, deco:"<div class='newsTop'>BREAKING NEWS</div><div class='ticker'>SHORTSCRAFT • AI VIDEO • LATEST UPDATE •</div>", placement:"center"
@@ -2212,23 +2303,11 @@ document.addEventListener("click", (e) => {
       "social-pop": {
         bg:"linear-gradient(135deg,#7c3aed,#ec4899 48%,#fb7185)", text:"#fff", a:"#fff200", b:"#ffffff", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"popScale", weight:950, deco:"<div class='bubble b1'></div><div class='bubble b2'></div><div class='bubble b3'></div>", placement:"center"
       },
-      "documentary": {
-        bg:"linear-gradient(180deg,#050505,#111)", text:"#f5f5f5", a:"#fbbf24", b:"#a3a3a3", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"softFade", weight:760, deco:"<div class='letter top'></div><div class='letter bottom'></div>", placement:"center"
-      },
-      "tech-blueprint": {
-        bg:"#03162a", text:"#e0f2fe", a:"#38bdf8", b:"#a5f3fc", font:"Inter, 'Courier New', 'Noto Sans Devanagari', 'Nirmala UI', monospace", anim:"techSlide", weight:850, deco:"<div class='blueGrid'></div><div class='hud'>SYSTEM ONLINE</div>", placement:"center"
-      },
       "gaming": {
         bg:"linear-gradient(145deg,#090a12,#111827)", text:"#fff", a:"#39ff14", b:"#f97316", font:"Inter, 'Arial Black', 'Noto Sans Devanagari', 'Nirmala UI', sans-serif", anim:"popScale", weight:980, deco:"<div class='energy e1'></div><div class='energy e2'></div>", placement:"center"
       },
-      "classroom": {
-        bg:"linear-gradient(160deg,#f8fafc,#e2e8f0)", text:"#0f172a", a:"#2563eb", b:"#f97316", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', Mangal, sans-serif", anim:"softFade", weight:820, deco:"<div class='paper'></div>", placement:"center"
-      },
       "vhs": {
         bg:"linear-gradient(180deg,#140018,#08000f)", text:"#f472b6", a:"#22d3ee", b:"#fff", font:"'Courier New','Noto Sans Devanagari','Nirmala UI',monospace", anim:"glitch", weight:800, deco:"<div class='scanlines'></div><div class='rec'>● REC</div>", placement:"center"
-      },
-      "startup": {
-        bg:"linear-gradient(145deg,#ffffff,#eef2ff)", text:"#101828", a:"#4f46e5", b:"#0ea5e9", font:"Inter, 'Noto Sans Devanagari', 'Nirmala UI', sans-serif", anim:"softFade", weight:850, deco:"<div class='cardGrid'></div>", placement:"center"
       }
     };
     const t = base[style] || base["viral-hook"];
@@ -2273,7 +2352,7 @@ document.addEventListener("click", (e) => {
     wrap.classList.remove("ratio-916","ratio-169","ratio-11","ratio-45","ratio-34","ratio-23","ratio-219");
     wrap.classList.add({"9:16":"ratio-916","16:9":"ratio-169","1:1":"ratio-11","4:5":"ratio-45","3:4":"ratio-34","2:3":"ratio-23","21:9":"ratio-219"}[aspect] || "ratio-916");
   }
-  function renderPreview({deduct=false, applyEdits=false} = {}){
+  function renderPreview({deduct=false, applyEdits=false, silent=false} = {}){
     const input = $("#videoScriptInput");
     if(!input || !input.value.trim()){ toast("Paste or generate a script first.", "error"); return; }
     if(deduct && !isPro()){
@@ -2311,17 +2390,52 @@ document.addEventListener("click", (e) => {
     $("#videoEmptyState")?.classList.add("hidden");
     const st = $("#videoPreviewStatus"); if(st) st.textContent = "Preview ready";
     setTimeout(()=> ($(".video-preview-card") || $("#videoFrameWrap"))?.scrollIntoView({behavior:"smooth",block:"center"}), 180);
-    const sceneCount = (window.SC_VIDEO_TEMPLATES && window.SC_VIDEO_TEMPLATES.splitScript) ? window.SC_VIDEO_TEMPLATES.splitScript(STATE.script, STATE.aspect).length : 0;
-    toast(`Premium video preview ready${sceneCount ? ` — ${sceneCount} scenes` : ""}`, "success");
+    const timelineScenes = renderSceneTimeline(STATE.script, STATE.aspect);
+    updateScriptWordCount();
+    updateCanvasAspectLabel();
+    if(!silent) toast(`Premium video preview ready${timelineScenes.length ? ` — ${timelineScenes.length} scenes` : ""}`, "success");
   }
 
   function bindPremiumVideoPatch(){
     ensureCredits();
+    updateScriptWordCount();
+    updateCanvasAspectLabel();
+    setRatioClass($("#videoAspectSelect")?.value || "9:16");
+    renderSceneTimeline($("#videoScriptInput")?.value || "", $("#videoAspectSelect")?.value || "9:16");
+
     const gen = $("#generateVideoBtn");
     if(gen && gen.dataset.premiumPatch !== "1"){
       gen.dataset.premiumPatch = "1";
       gen.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); STATE.mods = parseEdits($("#videoEditPrompt")?.value || ""); renderPreview({deduct:true, applyEdits:true}); }, true);
     }
+
+    const topGen = $("#topGenerateBtn");
+    if(topGen && topGen.dataset.premiumPatch !== "1"){
+      topGen.dataset.premiumPatch = "1";
+      topGen.addEventListener("click", ()=> gen?.click());
+    }
+
+    const resetVideo = $("#resetVideoBtn");
+    if(resetVideo && resetVideo.dataset.premiumPatch !== "1"){
+      resetVideo.dataset.premiumPatch = "1";
+      resetVideo.addEventListener("click", (e)=>{
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+        const script = $("#videoScriptInput"), topic = $("#videoTopicInput"), edit = $("#videoEditPrompt"), frame = $("#videoPreviewFrame");
+        if(script) script.value = "";
+        if(topic) topic.value = "";
+        if(edit) edit.value = "";
+        STATE.html = ""; STATE.script = ""; STATE.editText = "";
+        STATE.mods = {fontScale:1,speed:1,yellow:false,darker:false,minimal:false,premium:false};
+        try{ localStorage.removeItem(STYLE_KEY); }catch{}
+        if(frame) frame.srcdoc = "";
+        $("#videoEmptyState")?.classList.remove("hidden");
+        const status = $("#videoPreviewStatus"); if(status) status.textContent = "No video generated yet";
+        updateScriptWordCount();
+        renderSceneTimeline("", $("#videoAspectSelect")?.value || "9:16");
+        toast("Project reset.", "info");
+      }, true);
+    }
+
     const apply = $("#applyVideoEditBtn");
     if(apply && apply.dataset.premiumPatch !== "1"){
       apply.dataset.premiumPatch = "1";
@@ -2337,11 +2451,35 @@ document.addEventListener("click", (e) => {
       chip.dataset.premiumPatch = "1";
       chip.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); const p=$("#videoEditPrompt"); const val=(chip.dataset.edit||chip.textContent||"").trim(); if(p){ p.value = p.value.trim() ? p.value.trim()+", "+val : val; } renderPreview({deduct:false, applyEdits:true}); }, true);
     });
+
+    const scriptInput = $("#videoScriptInput");
+    if(scriptInput && scriptInput.dataset.editorPatch !== "1"){
+      scriptInput.dataset.editorPatch = "1";
+      scriptInput.addEventListener("input", ()=>{
+        updateScriptWordCount();
+        renderSceneTimeline(scriptInput.value, $("#videoAspectSelect")?.value || "9:16");
+      });
+    }
+
+    $$(".video-mode").forEach(tab=>{
+      if(tab.dataset.editorAria === "1") return;
+      tab.dataset.editorAria = "1";
+      tab.addEventListener("click", ()=>{
+        $$(".video-mode").forEach(item=> item.setAttribute("aria-selected", String(item === tab)));
+      });
+    });
+
     const aspect = $("#videoAspectSelect");
     if(aspect && aspect.dataset.premiumPatch !== "1"){
       aspect.dataset.premiumPatch = "1";
-      aspect.addEventListener("change", ()=>{ setRatioClass(aspect.value); if($("#videoScriptInput")?.value.trim()) renderPreview({deduct:false, applyEdits:true}); });
+      aspect.addEventListener("change", ()=>{
+        updateCanvasAspectLabel();
+        setRatioClass(aspect.value);
+        renderSceneTimeline($("#videoScriptInput")?.value || "", aspect.value);
+        if($("#videoScriptInput")?.value.trim()) renderPreview({deduct:false, applyEdits:true, silent:true});
+      });
     }
+
     const copy = $("#copyVideoHtmlBtn");
     if(copy && copy.dataset.premiumPatch !== "1"){
       copy.dataset.premiumPatch = "1";
@@ -2352,6 +2490,43 @@ document.addEventListener("click", (e) => {
       open.dataset.premiumPatch = "1";
       open.addEventListener("click", (e)=>{ e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if(!STATE.html){ toast("Generate a video first.","error"); return; } const w=window.open("","_blank"); if(w){ w.document.open(); w.document.write(STATE.html); w.document.close(); } }, true);
     }
+    const download = $("#downloadVideoBtn");
+    if(download && download.dataset.premiumPatch !== "1"){
+      download.dataset.premiumPatch = "1";
+      download.addEventListener("click", (e)=>{
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+        if(!STATE.html){ toast("Generate a video first.", "error"); return; }
+        const note = $("#upgradeNote"); if(note) note.textContent = "Video export is a Pro feature. Upgrade to download your animated video.";
+        const modal = $("#upgradeModal"); if(modal){ modal.classList.remove("hidden"); document.body.classList.add("modal-open"); document.body.style.overflow = "hidden"; }
+      }, true);
+    }
+
+    const timeline = $("#sceneTimelineTrack");
+    if(timeline && timeline.dataset.editorPatch !== "1"){
+      timeline.dataset.editorPatch = "1";
+      timeline.addEventListener("click", (e)=>{
+        const card = e.target.closest(".scene-card");
+        if(!card) return;
+        $$(".scene-card", timeline).forEach(item=> item.classList.toggle("active", item === card));
+      });
+    }
+
+    const toolTargets = {
+      script: "#editorScriptPanel",
+      design: "#designSection",
+      edits: "#videoEditorBox",
+      export: "#downloadVideoBtn"
+    };
+    $$(".toolrail-item").forEach(item=>{
+      if(item.dataset.editorPatch === "1") return;
+      item.dataset.editorPatch = "1";
+      item.addEventListener("click", ()=>{
+        $$(".toolrail-item").forEach(button=> button.classList.toggle("active", button === item));
+        const target = $(toolTargets[item.dataset.editorTarget]);
+        if(item.dataset.editorTarget === "export") target?.click();
+        else target?.scrollIntoView({behavior:"smooth", block:"nearest"});
+      });
+    });
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindPremiumVideoPatch); else bindPremiumVideoPatch();
   setTimeout(bindPremiumVideoPatch, 800);
