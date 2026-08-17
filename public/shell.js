@@ -217,6 +217,13 @@
           tile.dataset.lines = JSON.stringify(t.lines || []);
         }
 
+        var detailUrl = "/template?id=" + encodeURIComponent(t.tpl);
+        if (t.isCommunity) {
+          detailUrl += "&comm=1&commId=" + encodeURIComponent(t.commId || "");
+        }
+
+        var creatorUrl = "/creator?handle=" + encodeURIComponent(author.handle.replace(/^@/, ""));
+
         var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl);
         if (t.isCommunity) {
           editUrl += "&accent=" + encodeURIComponent(t.accent || "#ffffff")
@@ -233,14 +240,15 @@
 
         var linkCover = document.createElement("a");
         linkCover.className = "sh-stage-link";
-        linkCover.href = editUrl;
-        linkCover.setAttribute("aria-label", "Open " + t.name + " in Editor");
+        linkCover.href = detailUrl;
+        linkCover.setAttribute("aria-label", "View details for " + t.name);
         stage.appendChild(linkCover);
 
         // Top Badges
         if (t.isCommunity) {
-          var commBadge = document.createElement("span");
+          var commBadge = document.createElement("a");
           commBadge.className = "sh-comm-badge";
+          commBadge.href = creatorUrl;
           commBadge.innerHTML = '✦ @' + author.handle.replace(/^@/, "");
           stage.appendChild(commBadge);
         } else if (t.cat === "paper" || t.cat === "docu") {
@@ -256,7 +264,7 @@
         skel.textContent = "Preview";
         stage.appendChild(skel);
 
-        // Hover Floating Play Button & Open Button
+        // Hover Floating Play Button & Open in Studio Button
         var hoverBar = document.createElement("div");
         hoverBar.className = "sh-card-hover-bar";
 
@@ -275,8 +283,8 @@
         var openBtn = document.createElement("a");
         openBtn.className = "sh-card-btn open";
         openBtn.href = editUrl;
-        openBtn.setAttribute("aria-label", "Open in Video Studio");
-        openBtn.title = "Open in Studio";
+        openBtn.setAttribute("aria-label", "Open directly in Video Studio");
+        openBtn.title = "Customize in Studio Editor";
         openBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>';
 
         hoverBar.appendChild(playBtn);
@@ -287,11 +295,12 @@
         var meta = document.createElement("div");
         meta.className = "sh-tmeta";
 
-        // 1. Title
+        // 1. Title (Clickable to /template)
         var titleRow = document.createElement("div");
         titleRow.className = "sh-ttitle-row";
-        var titleEl = document.createElement("b");
+        var titleEl = document.createElement("a");
         titleEl.className = "sh-ttitle";
+        titleEl.href = detailUrl;
         titleEl.textContent = t.name;
         titleRow.appendChild(titleEl);
         meta.appendChild(titleRow);
@@ -302,9 +311,11 @@
         descEl.textContent = t.desc;
         meta.appendChild(descEl);
 
-        // 3. Creator Profile Row (Avatar + Account Handle)
-        var creatorRow = document.createElement("div");
+        // 3. Creator Profile Row (Clickable to /creator)
+        var creatorRow = document.createElement("a");
         creatorRow.className = "sh-tcreator-row";
+        creatorRow.href = creatorUrl;
+        creatorRow.title = "View profile of " + author.name;
 
         var avatarEl = document.createElement("div");
         avatarEl.className = "sh-tcreator-avatar";
@@ -352,11 +363,11 @@
           }
         });
 
-        // Comment Button
+        // Comment Button (Opens /template#comments)
         var commentBtn = document.createElement("a");
         commentBtn.className = "sh-tact-btn comment";
-        commentBtn.href = editUrl;
-        commentBtn.title = "Open in Studio to comment & remix";
+        commentBtn.href = detailUrl + "#comments";
+        commentBtn.title = "View comments & discussions";
         commentBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + Math.max(2, Math.floor(t.likes / 6)) + '</span>';
 
         // Share Button
@@ -368,7 +379,7 @@
         shareBtn.addEventListener("click", function (ev) {
           ev.preventDefault();
           ev.stopPropagation();
-          var shareUrl = window.location.origin + editUrl;
+          var shareUrl = window.location.origin + detailUrl;
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareUrl).then(function () {
               var sp = shareBtn.querySelector("span");

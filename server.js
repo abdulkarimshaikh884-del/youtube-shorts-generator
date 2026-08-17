@@ -227,6 +227,131 @@ app.post("/api/community-templates/:id/like", (req, res) => {
   res.json(result);
 });
 
+// ── Comments & Discussions API ──────────────────────────────
+const comments = require("./comments");
+
+app.get("/api/comments", (req, res) => {
+  const tplId = String(req.query.tpl || "docu-red-string");
+  res.json({ success: true, comments: comments.getComments(tplId) });
+});
+
+app.post("/api/comments", express.json(), (req, res) => {
+  const tplId = req.body?.tpl;
+  if (!tplId) return res.status(400).json({ success: false, error: "Template id is required." });
+  const newC = comments.addComment(tplId, req.body, req.user);
+  res.json({ success: true, comment: newC });
+});
+
+// ── Creator Profile API ─────────────────────────────────────
+app.get("/api/creator", (req, res) => {
+  const handle = String(req.query.handle || "").replace(/^@/, "").toLowerCase();
+  const creatorProfiles = {
+    crimedocu: {
+      name: "Crime Stories",
+      handle: "@crimedocu",
+      initials: "CD",
+      bio: "Creating high-retention dark documentary hooks, investigation evidence boards, and true crime storytelling templates for YouTube Shorts.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "12.4k",
+      likes: "48.2k",
+      cat: "docu"
+    },
+    aman_fx: {
+      name: "Aman Motion FX",
+      handle: "@aman_fx",
+      initials: "AF",
+      bio: "Procedural paper craft, cutting mat collage textures, deckle edges and viral kinetic transitions.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "8.9k",
+      likes: "32.1k",
+      cat: "paper"
+    },
+    sarah_motion: {
+      name: "Sarah Creative",
+      handle: "@sarah_motion",
+      initials: "SC",
+      bio: "Clean 3D UI toggles, iOS notifications, Google search widgets, and modern device mockups.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "15.1k",
+      likes: "54.0k",
+      cat: "ui"
+    },
+    vikram_creations: {
+      name: "Vikram Shorts",
+      handle: "@vikram_creations",
+      initials: "VS",
+      bio: "Viral social counter animations, live views tickers, subscriber milestones, and engagement overlays.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "19.3k",
+      likes: "72.5k",
+      cat: "social"
+    },
+    kabir_motion: {
+      name: "Kabir Motion",
+      handle: "@kabir_motion",
+      initials: "KM",
+      bio: "Cyberpunk neon rings, data visualizations, circular progress meters and futuristic HUD graphics.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "6.2k",
+      likes: "21.4k",
+      cat: "charts"
+    },
+    finance_pulse: {
+      name: "Finance Pulse",
+      handle: "@finance_pulse",
+      initials: "FP",
+      bio: "Titanium cards, market candlestick charts, crypto surges, and luxury finance motion graphics.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "11.7k",
+      likes: "44.9k",
+      cat: "money"
+    },
+    typography_pro: {
+      name: "Kinetic Studio",
+      handle: "@typography_pro",
+      initials: "KS",
+      bio: "High-impact kinetic text, word-by-word cascades, 3D typography and punchy dialogue animations.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "14.8k",
+      likes: "61.2k",
+      cat: "text"
+    },
+    geo_explorer: {
+      name: "Geo Explorer",
+      handle: "@geo_explorer",
+      initials: "GE",
+      bio: "Tactical map route animations, radar pulses, satellite coordinates and geo-location documentary graphics.",
+      youtube: "https://youtube.com/@VaultGamer-in",
+      instagram: "https://instagram.com/tech_vault_in",
+      followers: "9.5k",
+      likes: "37.8k",
+      cat: "maps"
+    }
+  };
+
+  const prof = creatorProfiles[handle] || {
+    name: handle ? (handle.charAt(0).toUpperCase() + handle.slice(1)) : "ShortsCraft Creator",
+    handle: "@" + (handle || "creator"),
+    initials: (handle ? handle.slice(0, 2).toUpperCase() : "SC"),
+    bio: "Passionate motion designer crafting animated templates for YouTube Shorts and Instagram Reels on ShortsCraft.",
+    youtube: "https://youtube.com/@VaultGamer-in",
+    instagram: "https://instagram.com/tech_vault_in",
+    followers: "4.5k",
+    likes: "18.2k",
+    cat: "all"
+  };
+
+  const commTemplates = community.listByAuthor(null, "@" + handle);
+  res.json({ success: true, creator: prof, communityTemplates: commTemplates });
+});
+
 // ── Health check ────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, version: "2.0.0", time: new Date().toISOString() });
@@ -1054,6 +1179,8 @@ const PAGES = {
   "/login": "login.html",
   "/signup": "signup.html",
   "/account": "account.html",
+  "/template": "template.html",
+  "/creator": "creator.html",
 
   // Legacy SEO tool URLs now open the new SEO Tools workspace.
   "/youtube-shorts-script-generator": "seo-tools.html",
