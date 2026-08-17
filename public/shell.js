@@ -1,10 +1,9 @@
 /* ============================================================
    ShortsCraft — App Shell behaviour (index page)
    - Live template gallery from SC_TPL2 (sandboxed, lazy-mounted iframes)
-   - Swishy & AutoAE style category chips & search filter
-   - Interactive card controls (Play/Pause, Like count, Open in Studio)
+   - Clean category filtering & real-time search
+   - Full card presentation: Title, 2-line clamped Description, Creator Avatar & Handle, Like / Comment / Share action buttons
    - Prompt composer -> Video Studio
-   - Mobile nav + scroll progress
    Depends on /templates-v2.js -> window.SC_TPL2
    ============================================================ */
 (function () {
@@ -16,6 +15,26 @@
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function engine() { return window.SC_TPL2; }
+
+  function getAuthor(t) {
+    if (t.isCommunity && t.authorHandle) {
+      var name = t.authorName || t.authorHandle;
+      var handle = t.authorHandle.replace(/^@/, "");
+      var initials = handle.slice(0, 2).toUpperCase();
+      return { name: name, handle: "@" + handle, initials: initials };
+    }
+    var catMap = {
+      docu: { name: "Crime Stories", handle: "@crimedocu", initials: "CD" },
+      paper: { name: "Aman Motion FX", handle: "@aman_fx", initials: "AF" },
+      ui: { name: "Sarah Creative", handle: "@sarah_motion", initials: "SC" },
+      social: { name: "Vikram Shorts", handle: "@vikram_creations", initials: "VS" },
+      charts: { name: "Kabir Motion", handle: "@kabir_motion", initials: "KM" },
+      money: { name: "Finance Pulse", handle: "@finance_pulse", initials: "FP" },
+      text: { name: "Kinetic Studio", handle: "@typography_pro", initials: "KS" },
+      maps: { name: "Geo Explorer", handle: "@geo_explorer", initials: "GE" }
+    };
+    return catMap[t.cat] || { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC" };
+  }
 
   /* ── Gallery Rendering ─────────────────────────────────── */
   function mount(tile, force) {
@@ -180,6 +199,8 @@
       var frag = document.createDocumentFragment();
 
       allItems.forEach(function (t) {
+        var author = getAuthor(t);
+
         var tile = document.createElement("article");
         tile.className = "sh-tile";
         tile.dataset.tpl = t.tpl;
@@ -220,7 +241,7 @@
         if (t.isCommunity) {
           var commBadge = document.createElement("span");
           commBadge.className = "sh-comm-badge";
-          commBadge.innerHTML = '✦ @' + t.authorHandle;
+          commBadge.innerHTML = '✦ @' + author.handle.replace(/^@/, "");
           stage.appendChild(commBadge);
         } else if (t.cat === "paper" || t.cat === "docu") {
           var proBadge = document.createElement("span");
@@ -235,7 +256,7 @@
         skel.textContent = "Preview";
         stage.appendChild(skel);
 
-        // Hover Floating Play Button & Open Button (AutoAE style)
+        // Hover Floating Play Button & Open Button
         var hoverBar = document.createElement("div");
         hoverBar.className = "sh-card-hover-bar";
 
@@ -262,22 +283,60 @@
         hoverBar.appendChild(openBtn);
         stage.appendChild(hoverBar);
 
-        // Meta area below thumbnail
+        // Meta Area (Title, Description, Creator Profile, Like/Comment/Share action bar)
         var meta = document.createElement("div");
         meta.className = "sh-tmeta";
 
-        var headRow = document.createElement("div");
-        headRow.className = "sh-tmeta-head";
-
+        // 1. Title
+        var titleRow = document.createElement("div");
+        titleRow.className = "sh-ttitle-row";
         var titleEl = document.createElement("b");
+        titleEl.className = "sh-ttitle";
         titleEl.textContent = t.name;
-        headRow.appendChild(titleEl);
+        titleRow.appendChild(titleEl);
+        meta.appendChild(titleRow);
 
-        // Like button with optimistic increment
+        // 2. Description (Clamped 2 lines)
+        var descEl = document.createElement("p");
+        descEl.className = "sh-tdesc";
+        descEl.textContent = t.desc;
+        meta.appendChild(descEl);
+
+        // 3. Creator Profile Row (Avatar + Account Handle)
+        var creatorRow = document.createElement("div");
+        creatorRow.className = "sh-tcreator-row";
+
+        var avatarEl = document.createElement("div");
+        avatarEl.className = "sh-tcreator-avatar";
+        avatarEl.textContent = author.initials;
+
+        var infoEl = document.createElement("div");
+        infoEl.className = "sh-tcreator-info";
+
+        var nameEl = document.createElement("span");
+        nameEl.className = "sh-tcreator-name";
+        nameEl.textContent = author.name;
+
+        var handleEl = document.createElement("span");
+        handleEl.className = "sh-tcreator-handle";
+        handleEl.textContent = author.handle;
+
+        infoEl.appendChild(nameEl);
+        infoEl.appendChild(handleEl);
+        creatorRow.appendChild(avatarEl);
+        creatorRow.appendChild(infoEl);
+        meta.appendChild(creatorRow);
+
+        // 4. Action Bar (Like, Comment, Share)
+        var actBar = document.createElement("div");
+        actBar.className = "sh-tact-bar";
+
+        // Like Button
         var likeBtn = document.createElement("button");
         likeBtn.type = "button";
-        likeBtn.className = "sh-tlike-btn";
-        likeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>' + t.likes + '</span>';
+        likeBtn.className = "sh-tact-btn like";
+        likeBtn.title = "Like template";
+        likeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="sh-like-count">' + t.likes + '</span>';
         likeBtn.addEventListener("click", function (ev) {
           ev.preventDefault();
           ev.stopPropagation();
@@ -285,20 +344,50 @@
           likeBtn.dataset.liked = "1";
           likeBtn.classList.add("liked");
           t.likes++;
-          var sp = likeBtn.querySelector("span");
+          var sp = likeBtn.querySelector(".sh-like-count");
           if (sp) sp.textContent = String(t.likes);
 
           if (t.commId) {
             fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/like", { method: "POST" }).catch(function () {});
           }
         });
-        headRow.appendChild(likeBtn);
-        meta.appendChild(headRow);
 
-        var descEl = document.createElement("span");
-        descEl.className = "sh-tdesc";
-        descEl.textContent = t.desc;
-        meta.appendChild(descEl);
+        // Comment Button
+        var commentBtn = document.createElement("a");
+        commentBtn.className = "sh-tact-btn comment";
+        commentBtn.href = editUrl;
+        commentBtn.title = "Open in Studio to comment & remix";
+        commentBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + Math.max(2, Math.floor(t.likes / 6)) + '</span>';
+
+        // Share Button
+        var shareBtn = document.createElement("button");
+        shareBtn.type = "button";
+        shareBtn.className = "sh-tact-btn share";
+        shareBtn.title = "Share template link";
+        shareBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span>Share</span>';
+        shareBtn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          var shareUrl = window.location.origin + editUrl;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl).then(function () {
+              var sp = shareBtn.querySelector("span");
+              if (sp) sp.textContent = "Copied!";
+              shareBtn.classList.add("copied");
+              setTimeout(function () {
+                if (sp) sp.textContent = "Share";
+                shareBtn.classList.remove("copied");
+              }, 2000);
+            });
+          } else {
+            prompt("Copy template link:", shareUrl);
+          }
+        });
+
+        actBar.appendChild(likeBtn);
+        actBar.appendChild(commentBtn);
+        actBar.appendChild(shareBtn);
+        meta.appendChild(actBar);
 
         tile.appendChild(stage);
         tile.appendChild(meta);
@@ -327,52 +416,6 @@
         tiles.forEach(function (t) { mount(t); });
       }
     }
-  }
-
-  /* ── Aspect Ratio Switcher ─────────────────────────────── */
-  function wireRatioSwitch() {
-    var bar = $("#ratioSwitch");
-    var grid = $("#gallery");
-    if (!bar || !grid) return;
-
-    bar.addEventListener("click", function (ev) {
-      var btn = ev.target && ev.target.closest ? ev.target.closest(".sh-rchip") : null;
-      if (!btn || !btn.dataset.ar) return;
-
-      var ar = btn.dataset.ar;
-      if (ar === currentAspect) return;
-      currentAspect = ar;
-
-      Array.prototype.forEach.call(bar.querySelectorAll(".sh-rchip"), function (b) {
-        var active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-pressed", String(active));
-      });
-
-      grid.dataset.ar = currentAspect;
-
-      // Update URLs and remount visible tiles
-      Array.prototype.forEach.call(grid.children, function (tile) {
-        if (!tile.dataset.tpl) return;
-        var editUrl = "/editor?tpl=" + encodeURIComponent(tile.dataset.tpl);
-        if (tile.dataset.comm === "1") {
-          editUrl += "&accent=" + encodeURIComponent(tile.dataset.accent || "#ffffff")
-            + "&font=" + encodeURIComponent(tile.dataset.font || "inter")
-            + "&dur=" + encodeURIComponent(tile.dataset.dur || 4600)
-            + "&aspect=" + encodeURIComponent(currentAspect)
-            + "&lines=" + encodeURIComponent(tile.dataset.lines || "[]");
-        } else {
-          editUrl += "&aspect=" + encodeURIComponent(currentAspect);
-        }
-
-        var links = tile.querySelectorAll(".sh-stage-link, .sh-card-btn.open");
-        Array.prototype.forEach.call(links, function (l) { l.href = editUrl; });
-
-        if (!tile.hidden) {
-          mount(tile, true);
-        }
-      });
-    });
   }
 
   /* ── Category Chips & Search Filter ────────────────────── */
@@ -431,19 +474,6 @@
       var walk = (x - startX) * 1.8;
       bar.scrollLeft = scrollLeftVal - walk;
     });
-
-    var prevBtn = $("#fnavPrev");
-    var nextBtn = $("#fnavNext");
-    if (prevBtn) {
-      prevBtn.addEventListener("click", function () {
-        bar.scrollBy({ left: -220, behavior: "smooth" });
-      });
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener("click", function () {
-        bar.scrollBy({ left: 220, behavior: "smooth" });
-      });
-    }
 
     bar.addEventListener("click", function (ev) {
       var btn = ev.target && ev.target.closest ? ev.target.closest(".sh-chip") : null;
@@ -655,7 +685,6 @@
   function init() {
     buildFilters();
     buildGallery();
-    wireRatioSwitch();
     wireComposer();
     wireChrome();
   }

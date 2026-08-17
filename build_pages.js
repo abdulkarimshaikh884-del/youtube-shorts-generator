@@ -770,12 +770,6 @@ const indexPage = {
               <button type="button" id="tplSearchClear" hidden>×</button>
             </div>
             <div class="sh-filters-scroll" id="filters"></div>
-            <div class="sh-ratio-switch" id="ratioSwitch" role="group" aria-label="Aspect Ratio Filter">
-              <button type="button" class="sh-rchip active" data-ar="9:16" aria-pressed="true">9:16</button>
-              <button type="button" class="sh-rchip" data-ar="16:9" aria-pressed="false">16:9</button>
-              <button type="button" class="sh-rchip" data-ar="1:1" aria-pressed="false">1:1</button>
-              <button type="button" class="sh-rchip" data-ar="4:5" aria-pressed="false">4:5</button>
-            </div>
           </div>
         </div>
         <div class="sh-gallery" id="gallery" data-ar="9:16"></div>

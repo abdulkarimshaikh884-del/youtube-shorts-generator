@@ -553,34 +553,10 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   font-weight:700;
 }
 
-/* Aspect Ratio Switch */
-.sh-ratio-switch{
-  display:flex;align-items:center;gap:4px;flex:none;
-}
-.sh-rchip{
-  display:inline-flex;align-items:center;gap:4px;
-  height:32px;padding:0 10px;
-  border-radius:999px;
-  border:1px solid var(--sh-line);
-  background:rgba(255,255,255,0.03);
-  color:var(--sh-ink2);
-  font-size:12px;font-weight:600;
-  cursor:pointer;
-  transition:all .15s ease;
-}
-.sh-rchip:hover{color:#fff;background:rgba(255,255,255,0.08);border-color:var(--sh-line2)}
-.sh-rchip.active,
-.sh-rchip[aria-pressed="true"]{
-  background:#fff;
-  color:#000 !important;
-  border-color:#fff;
-  font-weight:700;
-}
-
 /* ── Gallery Cards Grid (AutoAE & Swishy Style) ────────── */
 .sh-gallery{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
   gap:18px;
   padding:16px 28px 64px;
   width:100%;
@@ -598,10 +574,6 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   .sh-gallery { grid-template-columns: 1fr; }
 }
 
-.sh-gallery[data-ar="16:9"] .sh-stage{ aspect-ratio:16/9; }
-.sh-gallery[data-ar="1:1"] .sh-stage{ aspect-ratio:1/1; }
-.sh-gallery[data-ar="4:5"] .sh-stage{ aspect-ratio:4/5; }
-
 .sh-tile{
   display:flex;
   flex-direction:column;
@@ -609,7 +581,7 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   background:#0c0c10;
   border:1px solid rgba(255,255,255,0.07);
   border-radius:16px;
-  padding:8px;
+  padding:10px;
   width:100%;
   max-width:100%;
   box-sizing:border-box;
@@ -716,38 +688,138 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
 .sh-card-btn.open svg{width:14px;height:14px}
 .sh-card-btn:hover{transform:scale(1.1);filter:brightness(1.15)}
 
-/* Card Meta Below Stage */
+/* ── Card Meta Below Stage (User Spec) ─────────────────── */
 .sh-tmeta{
-  padding:10px 4px 2px;
-}
-.sh-tmeta-head{
-  display:flex;align-items:flex-start;justify-content:space-between;gap:6px;
-}
-.sh-tmeta b{
-  font-family:var(--sh-display);
-  font-size:13.5px;font-weight:650;
-  color:#fff;letter-spacing:-.01em;line-height:1.3;
-}
-.sh-tdesc{
-  display:block;font-size:11.5px;color:var(--sh-ink3);
-  margin-top:3px;line-height:1.4;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:12px 2px 2px;
+  display:flex;
+  flex-direction:column;
 }
 
-.sh-tlike-btn{
-  display:inline-flex;align-items:center;gap:4px;
-  background:transparent;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:999px;
-  padding:2px 7px;
+.sh-ttitle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:4px;
+}
+.sh-ttitle{
+  font-family:var(--sh-display);
+  font-size:14px;
+  font-weight:700;
+  color:#fff;
+  letter-spacing:-.015em;
+  line-height:1.3;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  display:block;
+  width:100%;
+}
+
+.sh-tdesc{
+  font-size:12px;
   color:var(--sh-ink3);
-  font-size:11px;font-weight:600;
-  cursor:pointer;
-  transition:all .15s ease;
+  margin:0 0 10px;
+  line-height:1.45;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  min-height:34px;
+}
+
+/* Creator Profile Row */
+.sh-tcreator-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding-bottom:10px;
+  margin-bottom:10px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.sh-tcreator-avatar{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 100%);
+  border:1px solid rgba(255,255,255,0.15);
+  display:grid;
+  place-items:center;
+  font-size:9.5px;
+  font-weight:750;
+  color:#fff;
   flex:none;
 }
-.sh-tlike-btn svg{width:11px;height:11px}
-.sh-tlike-btn:hover{border-color:rgba(255,75,110,.4);color:#ff4b6e;background:rgba(255,75,110,.08)}
+.sh-tcreator-info{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  flex:1;
+  line-height:1.2;
+}
+.sh-tcreator-name{
+  font-size:12px;
+  font-weight:600;
+  color:#fff;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sh-tcreator-handle{
+  font-size:10.5px;
+  color:var(--sh-ink3);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* 3 Actions Bar (Like, Comment, Share) */
+.sh-tact-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:4px;
+}
+.sh-tact-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:999px;
+  padding:4px 9px;
+  color:var(--sh-ink3);
+  font-size:11.5px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s ease;
+  flex:1;
+  justify-content:center;
+}
+.sh-tact-btn svg{width:12px;height:12px;flex:none}
+.sh-tact-btn:hover{
+  border-color:rgba(255,255,255,0.2);
+  color:#fff;
+  background:rgba(255,255,255,0.06);
+}
+.sh-tact-btn.like:hover{
+  color:#ff4b6e;
+  border-color:rgba(255,75,110,0.4);
+  background:rgba(255,75,110,0.1);
+}
+.sh-tact-btn.like.liked{
+  color:#ff4b6e;
+  border-color:#ff4b6e;
+  background:rgba(255,75,110,0.15);
+}
+.sh-tact-btn.like.liked svg{fill:#ff4b6e}
+
+.sh-tact-btn.share:active,
+.sh-tact-btn.share.copied{
+  color:#3ddc84;
+  border-color:#3ddc84;
+  background:rgba(61,220,132,0.12);
+}
 .sh-tlike-btn.liked{color:#ff4b6e;border-color:#ff4b6e;background:rgba(255,75,110,.15)}
 .sh-tlike-btn.liked svg{fill:#ff4b6e}
 
