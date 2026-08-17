@@ -89,7 +89,7 @@ ${p.robots ? `<meta name="robots" content="${p.robots}"/>\n` : ""}<meta property
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=3">
+<link rel="stylesheet" href="/shell.css?v=${V}">
 <link rel="stylesheet" href="/page.css?v=${V}">
 ${p.head || ""}</head>
 `;
