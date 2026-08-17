@@ -1,24 +1,23 @@
 /* ============================================================
    ShortsCraft — App Shell behaviour (index page)
-   - live template gallery from SC_TPL2 (sandboxed, lazy-mounted iframes)
-   - category filter chips, driven by engine metadata
-   - prompt composer -> Video Studio
-   - mobile nav + scroll progress (this page does not load script.js)
+   - Live template gallery from SC_TPL2 (sandboxed, lazy-mounted iframes)
+   - Swishy & AutoAE style category chips & search filter
+   - Interactive card controls (Play/Pause, Like count, Open in Studio)
+   - Prompt composer -> Video Studio
+   - Mobile nav + scroll progress
    Depends on /templates-v2.js -> window.SC_TPL2
    ============================================================ */
 (function () {
   "use strict";
 
-  // Each template carries its own demo content (SC_TPL2 DEMO map), so the
-  // gallery passes no lines and lets every card show what it is best at.
-  var MAX_LIVE = 16; // v2 templates are pure CSS, so a full gallery is affordable
-
   var currentAspect = "9:16";
+  var currentCategory = "all";
+  var searchQuery = "";
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function engine() { return window.SC_TPL2; }
 
-  /* ── Gallery ──────────────────────────────────────────── */
+  /* ── Gallery Rendering ─────────────────────────────────── */
   function mount(tile, force) {
     if (!tile) return;
     if (tile.dataset.mounted === "1" && !force) return;
@@ -29,7 +28,7 @@
     var stage = $(".sh-stage", tile);
     if (!stage) return;
 
-    var html;
+    var html = "";
     try {
       if (tile.dataset.comm === "1") {
         var lines = [];
@@ -45,6 +44,7 @@
         html = e.build(tile.dataset.tpl, { aspect: currentAspect });
       }
     } catch (err) {
+      console.warn("[mount error]", tile.dataset.tpl, err);
       html = "";
     }
     if (!html) return;
@@ -53,7 +53,7 @@
     if (oldFrame) oldFrame.remove();
 
     var frame = document.createElement("iframe");
-    frame.setAttribute("sandbox", "");
+    frame.setAttribute("sandbox", "allow-scripts");
     frame.setAttribute("scrolling", "no");
     frame.setAttribute("tabindex", "-1");
     frame.setAttribute("aria-hidden", "true");
@@ -64,13 +64,47 @@
     frame.addEventListener("load", function () {
       if (sk && sk.parentNode) sk.remove();
     });
-    // Fallback: also remove skeleton after short timeout if load event already fired
     setTimeout(function () {
       if (sk && sk.parentNode) sk.remove();
-    }, 300);
+    }, 400);
 
     stage.appendChild(frame);
     tile.dataset.mounted = "1";
+  }
+
+  function filterTiles() {
+    var grid = $("#gallery");
+    if (!grid) return;
+    var q = searchQuery.toLowerCase().trim();
+    var cat = currentCategory;
+
+    var count = 0;
+    Array.prototype.forEach.call(grid.children, function (tile) {
+      var name = (tile.dataset.name || "").toLowerCase();
+      var desc = (tile.dataset.desc || "").toLowerCase();
+      var tCat = tile.dataset.cat || "";
+      var tpl = (tile.dataset.tpl || "").toLowerCase();
+
+      var matchCat = (cat === "all" || tCat === cat);
+      var matchSearch = !q || name.indexOf(q) !== -1 || desc.indexOf(q) !== -1 || tpl.indexOf(q) !== -1;
+
+      var show = matchCat && matchSearch;
+      tile.hidden = !show;
+      if (show) {
+        count++;
+        mount(tile);
+      }
+    });
+
+    var emptyState = $("#galleryEmpty");
+    if (!emptyState) {
+      emptyState = document.createElement("div");
+      emptyState.id = "galleryEmpty";
+      emptyState.className = "sh-empty-state";
+      emptyState.innerHTML = '<div class="sh-empty-ico">🔍</div><h3>No templates found</h3><p>Try searching for a different keyword or category.</p>';
+      grid.appendChild(emptyState);
+    }
+    emptyState.hidden = count > 0;
   }
 
   function buildGallery() {
@@ -81,7 +115,6 @@
     grid.innerHTML = "";
     grid.dataset.ar = currentAspect;
 
-    // Fetch community templates and merge with built-in templates
     fetch("/api/community-templates")
       .then(function (r) { return r.json(); })
       .then(function (d) {
@@ -94,38 +127,24 @@
 
     function renderAllTemplates(commList) {
       var allItems = [];
+      var seenIds = {};
 
-      // 1. Built-in templates with base engagement score
-      e.list().forEach(function (t, idx) {
-        allItems.push({
-          id: t.id,
-          tpl: t.id,
-          name: t.name,
-          desc: t.desc,
-          cat: t.cat,
-          isCommunity: false,
-          likes: Math.max(12, 45 - idx),
-          downloads: Math.max(20, 80 - (idx * 2)),
-          score: (Math.max(12, 45 - idx) * 10) + (Math.max(20, 80 - (idx * 2)) * 5)
-        });
-      });
-
-      // 2. User-uploaded community templates with engagement ranking
+      // 1. Featured Community Templates
       commList.forEach(function (ct) {
         var likes = Number(ct.likes || 1);
         var downloads = Number(ct.downloads || 1);
-        // Ranking score: user uploaded templates get active community bonus + likes/downloads
-        var score = (likes * 25) + (downloads * 12) + 60;
+        var score = (likes * 25) + (downloads * 12) + 120;
+        var tplId = ct.tpl || "text-cascade";
 
         allItems.push({
-          id: ct.tpl || "type-cascade",
+          id: ct.id || ("comm_" + Math.random()),
           commId: ct.id,
-          tpl: ct.tpl || "type-cascade",
+          tpl: tplId,
           name: ct.title || "Community Template",
-          desc: ct.description || (Array.isArray(ct.lines) ? ct.lines.filter(Boolean).join(" · ") : "Custom motion design"),
+          desc: ct.description || "Custom creator motion design",
           cat: ct.category || "text",
           authorHandle: ct.authorHandle || "creator",
-          authorName: ct.authorName,
+          authorName: ct.authorName || "Creator",
           accent: ct.accent || "#ffffff",
           font: ct.font || "inter",
           dur: ct.dur || 4600,
@@ -135,9 +154,25 @@
           downloads: downloads,
           score: score
         });
+        seenIds[tplId] = true;
       });
 
-      // 3. Sort by engagement ranking score (highest first)
+      // 2. Built-in 80+ Templates
+      e.list().forEach(function (t, idx) {
+        allItems.push({
+          id: t.id,
+          tpl: t.id,
+          name: t.name,
+          desc: t.desc,
+          cat: t.cat,
+          isCommunity: false,
+          likes: Math.max(18, 95 - idx),
+          downloads: Math.max(30, 180 - (idx * 2)),
+          score: (Math.max(18, 95 - idx) * 10) + (Math.max(30, 180 - (idx * 2)) * 5)
+        });
+      });
+
+      // Sort by score
       allItems.sort(function (a, b) {
         return b.score - a.score;
       });
@@ -149,6 +184,7 @@
         tile.className = "sh-tile";
         tile.dataset.tpl = t.tpl;
         tile.dataset.name = t.name;
+        tile.dataset.desc = t.desc;
         tile.dataset.cat = t.cat;
 
         if (t.isCommunity) {
@@ -159,9 +195,6 @@
           tile.dataset.dur = t.dur;
           tile.dataset.lines = JSON.stringify(t.lines || []);
         }
-
-        var stage = document.createElement("a");
-        stage.className = "sh-stage";
 
         var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl);
         if (t.isCommunity) {
@@ -174,43 +207,98 @@
           editUrl += "&aspect=" + encodeURIComponent(currentAspect);
         }
 
-        stage.href = editUrl;
-        stage.setAttribute("aria-label", "Open " + t.name + " in the Video Studio");
+        var stage = document.createElement("div");
+        stage.className = "sh-stage";
 
+        var linkCover = document.createElement("a");
+        linkCover.className = "sh-stage-link";
+        linkCover.href = editUrl;
+        linkCover.setAttribute("aria-label", "Open " + t.name + " in Editor");
+        stage.appendChild(linkCover);
+
+        // Top Badges
         if (t.isCommunity) {
-          var badge = document.createElement("span");
-          badge.className = "sh-comm-badge";
-          badge.textContent = "✦ By @" + t.authorHandle;
-          stage.appendChild(badge);
+          var commBadge = document.createElement("span");
+          commBadge.className = "sh-comm-badge";
+          commBadge.innerHTML = '✦ @' + t.authorHandle;
+          stage.appendChild(commBadge);
+        } else if (t.cat === "paper" || t.cat === "docu") {
+          var proBadge = document.createElement("span");
+          proBadge.className = "sh-pro-badge";
+          proBadge.textContent = "PRO";
+          stage.appendChild(proBadge);
         }
 
+        // Shimmer skeleton
         var skel = document.createElement("span");
         skel.className = "sh-skel";
         skel.textContent = "Preview";
-
-        var use = document.createElement("span");
-        use.className = "sh-use";
-        use.textContent = "Use template";
-
         stage.appendChild(skel);
-        stage.appendChild(use);
 
+        // Hover Floating Play Button & Open Button (AutoAE style)
+        var hoverBar = document.createElement("div");
+        hoverBar.className = "sh-card-hover-bar";
+
+        var playBtn = document.createElement("button");
+        playBtn.type = "button";
+        playBtn.className = "sh-card-btn play";
+        playBtn.setAttribute("aria-label", "Replay animation");
+        playBtn.title = "Replay Animation";
+        playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+        playBtn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          mount(tile, true);
+        });
+
+        var openBtn = document.createElement("a");
+        openBtn.className = "sh-card-btn open";
+        openBtn.href = editUrl;
+        openBtn.setAttribute("aria-label", "Open in Video Studio");
+        openBtn.title = "Open in Studio";
+        openBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>';
+
+        hoverBar.appendChild(playBtn);
+        hoverBar.appendChild(openBtn);
+        stage.appendChild(hoverBar);
+
+        // Meta area below thumbnail
         var meta = document.createElement("div");
         meta.className = "sh-tmeta";
-        var b = document.createElement("b");
-        b.textContent = t.name;
-        var sp = document.createElement("span");
-        sp.textContent = t.desc;
-        meta.appendChild(b);
-        meta.appendChild(sp);
 
-        if (t.isCommunity) {
-          var crow = document.createElement("div");
-          crow.className = "sh-tcomm-row";
-          crow.innerHTML = '<span class="sh-tcomm-author">@' + t.authorHandle + '</span>'
-            + '<span class="sh-tcomm-likes">❤️ ' + t.likes + '</span>';
-          meta.appendChild(crow);
-        }
+        var headRow = document.createElement("div");
+        headRow.className = "sh-tmeta-head";
+
+        var titleEl = document.createElement("b");
+        titleEl.textContent = t.name;
+        headRow.appendChild(titleEl);
+
+        // Like button with optimistic increment
+        var likeBtn = document.createElement("button");
+        likeBtn.type = "button";
+        likeBtn.className = "sh-tlike-btn";
+        likeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>' + t.likes + '</span>';
+        likeBtn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (likeBtn.dataset.liked === "1") return;
+          likeBtn.dataset.liked = "1";
+          likeBtn.classList.add("liked");
+          t.likes++;
+          var sp = likeBtn.querySelector("span");
+          if (sp) sp.textContent = String(t.likes);
+
+          if (t.commId) {
+            fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/like", { method: "POST" }).catch(function () {});
+          }
+        });
+        headRow.appendChild(likeBtn);
+        meta.appendChild(headRow);
+
+        var descEl = document.createElement("span");
+        descEl.className = "sh-tdesc";
+        descEl.textContent = t.desc;
+        meta.appendChild(descEl);
 
         tile.appendChild(stage);
         tile.appendChild(meta);
@@ -222,18 +310,21 @@
 
       var tiles = Array.prototype.slice.call(grid.children);
 
-      // Mount all tiles directly so previews are instantly animated
-      tiles.forEach(function (t) {
+      // Mount the top tiles immediately
+      tiles.slice(0, 16).forEach(function (t) {
         mount(t);
       });
 
+      // Lazy mount the rest via IntersectionObserver
       if ("IntersectionObserver" in window) {
         var io = new IntersectionObserver(function (entries) {
           entries.forEach(function (en) {
             if (en.isIntersecting) mount(en.target);
           });
-        }, { rootMargin: "600px 0px" });
+        }, { rootMargin: "800px 0px" });
         tiles.forEach(function (t) { io.observe(t); });
+      } else {
+        tiles.forEach(function (t) { mount(t); });
       }
     }
   }
@@ -260,21 +351,23 @@
 
       grid.dataset.ar = currentAspect;
 
-      // Re-mount and update URLs for all tiles
+      // Update URLs and remount visible tiles
       Array.prototype.forEach.call(grid.children, function (tile) {
-        var stage = tile.querySelector(".sh-stage");
-        if (stage) {
-          if (tile.dataset.comm === "1") {
-            stage.href = "/editor?tpl=" + encodeURIComponent(tile.dataset.tpl)
-              + "&accent=" + encodeURIComponent(tile.dataset.accent || "#ffffff")
-              + "&font=" + encodeURIComponent(tile.dataset.font || "inter")
-              + "&dur=" + encodeURIComponent(tile.dataset.dur || 4600)
-              + "&aspect=" + encodeURIComponent(currentAspect)
-              + "&lines=" + encodeURIComponent(tile.dataset.lines || "[]");
-          } else {
-            stage.href = "/editor?tpl=" + encodeURIComponent(tile.dataset.tpl) + "&aspect=" + encodeURIComponent(currentAspect);
-          }
+        if (!tile.dataset.tpl) return;
+        var editUrl = "/editor?tpl=" + encodeURIComponent(tile.dataset.tpl);
+        if (tile.dataset.comm === "1") {
+          editUrl += "&accent=" + encodeURIComponent(tile.dataset.accent || "#ffffff")
+            + "&font=" + encodeURIComponent(tile.dataset.font || "inter")
+            + "&dur=" + encodeURIComponent(tile.dataset.dur || 4600)
+            + "&aspect=" + encodeURIComponent(currentAspect)
+            + "&lines=" + encodeURIComponent(tile.dataset.lines || "[]");
+        } else {
+          editUrl += "&aspect=" + encodeURIComponent(currentAspect);
         }
+
+        var links = tile.querySelectorAll(".sh-stage-link, .sh-card-btn.open");
+        Array.prototype.forEach.call(links, function (l) { l.href = editUrl; });
+
         if (!tile.hidden) {
           mount(tile, true);
         }
@@ -282,26 +375,40 @@
     });
   }
 
-  /* ── Filter chips ─────────────────────────────────────── */
+  /* ── Category Chips & Search Filter ────────────────────── */
   function buildFilters() {
     var bar = $("#filters");
-    var grid = $("#gallery");
     var e = engine();
-    if (!bar || !grid || !e) return;
+    if (!bar || !e) return;
 
-    var cats = [{ id: "all", label: "All" }].concat(e.cats());
+    var categoryLabels = {
+      all: "All",
+      docu: "Documentary",
+      paper: "Paper Craft",
+      text: "Kinetic Text",
+      maps: "Maps & Radar",
+      money: "Finance",
+      ui: "UI & Devices",
+      social: "Social Media",
+      charts: "Charts & Data"
+    };
+
+    var cats = [{ id: "all", label: "All" }].concat(e.cats().map(function (c) {
+      return { id: c.id, label: categoryLabels[c.id] || c.label };
+    }));
+
     bar.innerHTML = "";
     cats.forEach(function (c, i) {
       var b = document.createElement("button");
       b.type = "button";
-      b.className = "sh-chip";
+      b.className = "sh-chip" + (i === 0 ? " active" : "");
       b.dataset.cat = c.id;
       b.textContent = c.label;
       b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
       bar.appendChild(b);
     });
 
-    // Horizontal mouse wheel scrolling
+    // Horizontal wheel & drag scrolling
     bar.addEventListener("wheel", function (ev) {
       if (ev.deltaY !== 0) {
         ev.preventDefault();
@@ -309,7 +416,6 @@
       }
     }, { passive: false });
 
-    // Drag-to-scroll
     var isDown = false, startX, scrollLeftVal;
     bar.addEventListener("mousedown", function (e) {
       isDown = true;
@@ -326,7 +432,6 @@
       bar.scrollLeft = scrollLeftVal - walk;
     });
 
-    // Prev / Next arrow buttons
     var prevBtn = $("#fnavPrev");
     var nextBtn = $("#fnavNext");
     if (prevBtn) {
@@ -345,38 +450,41 @@
       if (!btn) return;
 
       Array.prototype.forEach.call(bar.querySelectorAll(".sh-chip"), function (c) {
-        c.setAttribute("aria-pressed", String(c === btn));
+        var isSel = c === btn;
+        c.classList.toggle("active", isSel);
+        c.setAttribute("aria-pressed", String(isSel));
       });
 
       btn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
 
-      var cat = btn.dataset.cat;
-      Array.prototype.forEach.call(grid.children, function (tile) {
-        var show = cat === "all" || tile.dataset.cat === cat;
-        tile.hidden = !show;
-        if (show) mount(tile);
+      currentCategory = btn.dataset.cat || "all";
+      filterTiles();
+    });
+
+    // Wire Real-Time Search Box
+    var searchInput = $("#tplSearch");
+    var searchClear = $("#tplSearchClear");
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function () {
+        searchQuery = searchInput.value;
+        if (searchClear) searchClear.hidden = !searchQuery;
+        filterTiles();
       });
-    });
+
+      if (searchClear) {
+        searchClear.addEventListener("click", function () {
+          searchInput.value = "";
+          searchQuery = "";
+          searchClear.hidden = true;
+          searchInput.focus();
+          filterTiles();
+        });
+      }
+    }
   }
 
-  /* ── Composer: fill template options from the engine ──── */
-  function fillTemplateSelect() {
-    var sel = $("#styleSelect");
-    var e = engine();
-    if (!sel || !e) return;
-    sel.innerHTML = "";
-    e.list().forEach(function (t) {
-      var op = document.createElement("option");
-      op.value = t.id;
-      op.textContent = t.name;
-      sel.appendChild(op);
-    });
-  }
-
-  /* The composer is the AI path: a prompt, an optional image, and which model
-     tier to use. Templates are picked from the gallery below it, so the bar does
-     not repeat that choice — and aspect ratio belongs in the editor, where all
-     seven ratios have device toggles. */
+  /* ── Composer Form Wireup ──────────────────────────────── */
   function wireComposer() {
     var form = $("#composer");
     var text = $("#composerPrompt") || $("#promptInput");
@@ -390,8 +498,7 @@
     var qMenu = $("#qualityMenu");
     var qVal  = $("#qualityVal");
     var tier  = $("#qualitySelect");
-    var cost  = $("#composerCost") || $(".sh-chint", form) || $(".sh-cost", form);
-    var attached = null;      // {name, dataUrl}
+    var attached = null;
 
     if (qBtn && qMenu && tier) {
       qBtn.addEventListener("click", function (ev) {
@@ -406,7 +513,7 @@
           ev.stopPropagation();
           var val = opt.dataset.val;
           tier.value = val;
-          if (qVal) qVal.textContent = val === "mini" ? "Free" : (val === "pro" ? "Pro" : "Pro Max");
+          if (qVal) qVal.textContent = val === "mini" ? "Free (5 credits)" : (val === "pro" ? "Pro (10 credits)" : "Pro Max (15 credits)");
           if (qBtn) qBtn.setAttribute("aria-label", "Model tier: " + (val === "mini" ? "Free" : val));
 
           Array.prototype.forEach.call(qMenu.querySelectorAll(".sh-csel-opt"), function (o) {
@@ -414,12 +521,6 @@
             o.classList.toggle("selected", isSel);
             o.setAttribute("aria-selected", String(isSel));
           });
-
-          if (cost) {
-            if (val === "mini") cost.textContent = "5 credits";
-            else if (val === "pro") cost.textContent = "Pro · 10 credits";
-            else if (val === "max") cost.textContent = "Pro Max · 15 credits";
-          }
 
           qMenu.hidden = true;
           qBtn.setAttribute("aria-expanded", "false");
@@ -432,18 +533,11 @@
           qBtn.setAttribute("aria-expanded", "false");
         }
       });
-    } else if (tier && cost) {
-      tier.addEventListener("change", function () {
-        var v = tier.value;
-        if (v === "mini") cost.textContent = "5 credits";
-        else if (v === "pro") cost.textContent = "Pro · 10 credits";
-        else if (v === "max") cost.textContent = "Pro Max · 15 credits";
-      });
     }
 
     function sync() {
       text.style.height = "auto";
-      text.style.height = Math.min(text.scrollHeight, 210) + "px";
+      text.style.height = Math.min(text.scrollHeight, 180) + "px";
       go.disabled = text.value.trim().length < 2;
     }
 
@@ -488,9 +582,6 @@
       var topic = text.value.trim();
       if (topic.length < 2) { text.focus(); return; }
 
-      // Hand off to the editor. Stored as well as passed on the URL so the
-      // editor can pick it up either way. The image is too big for a URL, so it
-      // travels in sessionStorage and is dropped if storage refuses it.
       try {
         localStorage.setItem("sc_pending_prompt", JSON.stringify({
           topic: topic, mode: "ai",
@@ -499,15 +590,14 @@
         }));
         if (attached) sessionStorage.setItem("sc_pending_image", attached.dataUrl);
         else sessionStorage.removeItem("sc_pending_image");
-      } catch (err) { /* storage blocked; the URL still carries the text */ }
+      } catch (err) {}
 
       window.location.href = "/editor?topic=" + encodeURIComponent(topic) + "&mode=ai";
     });
   }
 
-  /* ── Mobile nav + scroll progress ─────────────────────── */
+  /* ── App Shell & Live Credit Balance ───────────────────── */
   function wireChrome() {
-    /* live credit balance in the sidebar badge — the server owns the number */
     var badge = document.querySelector(".sh-plan-badge");
     if (badge) {
       fetch("/api/credits", { headers: { Accept: "application/json" } })
@@ -523,12 +613,11 @@
           var up = badge.querySelector("a");
           if (up && j.plan !== "free") up.textContent = "Manage your plan";
         })
-        .catch(function () { /* the badge keeps its static copy */ });
+        .catch(function () {});
     }
 
     var burger = $("#navBurger");
     var menu   = $("#navMobile");
-
     if (burger && menu) {
       burger.addEventListener("click", function () {
         var open = menu.hasAttribute("hidden");
@@ -564,7 +653,6 @@
 
   /* ── Boot ─────────────────────────────────────────────── */
   function init() {
-    fillTemplateSelect();
     buildFilters();
     buildGallery();
     wireRatioSwitch();
