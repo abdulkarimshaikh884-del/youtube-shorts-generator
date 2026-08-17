@@ -2,109 +2,192 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-BBE03D3FDT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-BBE03D3FDT');
-</script>
-
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>About — ShortsCraft</title>
-<meta name="description" content="ShortsCraft is an AI motion graphics video generator for Indian creators, built to turn scripts into animated YouTube Shorts with kinetic typography and SEO tools.">
-<link rel="canonical" href="https://shortscraft.online/about">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=premium-motion-v1">
-<meta name="theme-color" content="#0b0b0d">
+<meta name="description" content="ShortsCraft is an AI motion-design workspace for short-form creators: CSS-based motion templates, a real timeline editor and server-side MP4 export."/>
+<link rel="canonical" href="https://shortscraft.online/about"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="About — ShortsCraft"/>
+<meta property="og:description" content="ShortsCraft is an AI motion-design workspace for short-form creators: CSS-based motion templates, a real timeline editor and server-side MP4 export."/>
+<meta property="og:url" content="https://shortscraft.online/about"/>
+<meta name="twitter:card" content="summary_large_image"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<meta name="theme-color" content="#000000">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
 <link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
-<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=20260725">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260725">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260725">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
 <link rel="manifest" href="/site.webmanifest?v=20260725">
-<link rel="stylesheet" href="/premium.css?v=3">
+
+<!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
+     the legacy theme and are deliberately never loaded here. -->
+<link rel="stylesheet" href="/shell.css?v=3">
+<link rel="stylesheet" href="/page.css?v=20260808">
 </head>
-<body class="page-seo">
-<div class="aurora"><span class="aurora-blob aurora-1"></span><span class="aurora-blob aurora-2"></span></div>
-<div class="scroll-bar" id="scrollBar"></div>
+<body class="sh-body">
 
-<header class="nav"><div class="nav-inner">
-  <a href="/" class="logo"><span class="logo-mark brand-logo-mark"><img class="brand-logo-image" src="/favicon.svg?v=20260725" width="32" height="32" alt="" aria-hidden="true"></span><span class="logo-text">Shorts<span>Craft</span></span></a>
-  <nav class="nav-links"><a href="/">Home</a><a href="/generator">Studio</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
-  <div class="nav-cta"><a href="/generator" class="btn-primary">Open Studio →</a></div>
-  <button class="nav-burger" id="navBurger" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</div>
-<div class="nav-mobile" id="navMobile" hidden>
-  <a href="/">Home</a>
-  <a href="/generator">Studio</a>
-  <a href="/pricing">Pricing</a>
-  <a href="/about">About</a>
-  <a href="/contact">Contact</a>
-  <a href="/generator" class="btn-primary full">Open Studio →</a>
-</div>
-</header>
+<div class="sh-wrap">
 
-<main>
-<section class="seo-hero">
-<span class="kicker">About</span>
-<h1>Built for <span class="grad">animated Shorts creators</span>. Powered by AI.</h1>
-<p>ShortsCraft is a premium AI motion graphics workspace that turns your script into animated YouTube Shorts with kinetic typography, viral reel templates, captions, and creator SEO tools. Hindi and Hinglish ready.</p>
-</section>
+  <aside class="sh-rail">
+    <a href="/" class="sh-brand" aria-label="ShortsCraft home">
+      <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
+      <span class="sh-brand-name">Shorts<i>Craft</i></span>
+    </a>
 
-<section class="seo-mini">
-<div><b>Video-first</b><span>Motion graphics</span></div>
-<div><b>10+ styles</b><span>Typography templates</span></div>
-<div><b>Free</b><span>To start</span></div>
-<div><b>9:16</b><span>Shorts-ready</span></div>
-</section>
+    <div class="sh-social">
+      <a href="https://youtube.com/@VaultGamer-in" rel="noopener" target="_blank" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
+      </a>
+      <a href="https://instagram.com/tech_vault_in" rel="noopener" target="_blank" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
 
-<section class="seo-grid">
-<article class="seo-card large">
-<h2>🎯 Our mission</h2>
-<p>Indian creators write, record, edit, and design videos alone. Making premium motion graphics, typography scenes, captions, hooks, and SEO assets for every upload takes hours. ShortsCraft was built to help every creator — whether you have 100 subs or 1M — create professional animated Shorts previews faster.</p>
-<p>Great content should be about storytelling — not fighting with layout, fonts, and animation timing. Let ShortsCraft handle the first motion-graphics draft. You add the personality, voice, and local flavour.</p>
-</article>
-<article class="seo-card">
-<h2>👥 Who is it for?</h2>
-<ul>
-<li>Beginner creators</li>
-<li>Daily-posting channels</li>
-<li>Faceless / cashflow channels</li>
-<li>Educators &amp; coaches</li>
-<li>Local-language creators</li>
-</ul>
-</article>
-<article class="seo-card">
-<h2>⚙️ How it works</h2>
-<p>Powered by AI and template-based animation logic, tuned for Hindi/Hinglish creator workflows. Each generation produces an animated preview plus supporting SEO assets your YouTube workflow can use immediately.</p>
-</article>
-<article class="seo-card large">
-<h2>🛡️ Review-first &amp; AdSense-safe</h2>
-<p>ShortsCraft generates AI-assisted video previews and content drafts. Always review, edit, and fact-check before publishing. We do not sell your data, do not show intrusive ads, and do not require a card for the free tier.</p>
-<p>Read our full <a href="/privacy">Privacy Policy</a> and <a href="/terms">Terms</a>.</p>
-</article>
-</section>
+    <a href="/editor" class="sh-cta">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
+      <span>Create Animation</span>
+    </a>
 
-<section class="final-cta"><div class="cta-card"><h2>Ready to create?</h2><p>Open Studio and let's ship your next Short.</p><a href="/generator" class="btn-primary lg">Open Studio →</a></div></section>
-</main>
+    <nav class="sh-nav" aria-label="Workspace">
+        <a href="/#templates">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+          <span>Templates</span>
+        </a>
+        <a href="/community">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Community</span>
+        </a>
+        <a href="/editor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2.5" y="5" width="14" height="14" rx="3"/><path d="M16.5 10l5-3v10l-5-3z"/></svg>
+          <span>Editor</span>
+        </a>
+        <a href="/pricing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10.5V6a2 2 0 0 1 2-2h4.5L21 15.5 15.5 21 4 9.5"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>
+          <span>Pricing</span>
+        </a>
+        <a href="/contact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 4h16v13H8l-4 4z"/></svg>
+          <span>Help &amp; Feedback</span>
+        </a>
+    </nav>
 
-<footer class="footer">
-<div class="footer-inner">
-<div class="footer-brand"><a href="/" class="logo"><span class="logo-mark brand-logo-mark"><img class="brand-logo-image" src="/favicon.svg?v=20260725" width="32" height="32" alt="" aria-hidden="true"></span><span class="logo-text">Shorts<span>Craft</span></span></a><p>Premium AI workspace for short-form creators.</p></div>
-<nav><h4>Product</h4><a href="/generator">Studio</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
-<nav><h4>Tools</h4><a href="/youtube-shorts-script-generator">Script</a><a href="/youtube-shorts-title-generator">Titles</a><a href="/youtube-shorts-hashtag-generator">Hashtags</a></nav>
+    <div class="sh-rail-foot">
+      <div class="sh-plan-badge">
+        <b>Free plan</b>
+        <span>10 credits every day. Export 1, AI scene 5.</span>
+        <a href="/pricing">Upgrade to Pro · $5/mo (New user $2.50)</a>
+      </div>
+    </div>
+  </aside>
 
-</div>
-<div class="footer-bottom"><span>© 2026 ShortsCraft</span><span class="footer-status"><i></i> Operational</span></div>
-</footer>
+  <div class="sh-main">
 
-<script src="/script.js" defer></script>
-<script src="/animations.js" defer></script>
+    <header class="sh-topbar">
+      <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="/community" class="sh-tlink">Community</a>
+      <a href="/contact" class="sh-tlink">Feedback</a>
+      <a href="/about" class="sh-tlink">About</a>
+      <a href="/pricing" class="sh-tfill">Upgrade</a>
+      <span class="sh-tsep" aria-hidden="true"></span>
+      <a href="/login" class="sh-tlink" data-auth="out">Log in</a>
+      <a href="/signup" class="sh-tline" data-auth="out">Sign up</a>
+      <a href="/account" class="sh-tlink" data-auth="in" hidden><span data-auth-email>Account</span></a>
+      <button type="button" class="sh-tline" data-auth="in" id="logoutBtn" hidden>Log out</button>
+    </header>
+
+    <div id="navMobile" hidden>
+      <a href="/#templates">Templates</a>
+      <a href="/community">Community</a>
+      <a href="/editor">Editor</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/about">About</a>
+      <a href="/contact">Help &amp; Feedback</a>
+      <a href="/login" data-auth="out">Log in</a>
+      <a href="/signup" data-auth="out">Sign up</a>
+      <a href="/account" data-auth="in" hidden>Account</a>
+      <a href="/editor" class="sh-mfill">Create Animation</a>
+    </div>
+
+    <main class="pg">
+    <section class="pg-head">
+      <span class="pg-eyebrow">About</span>
+      <h1>A motion-design workspace, not another text-on-gradient app.</h1>
+      <p>ShortsCraft turns one line of an idea into an animated vertical video, and hands you the SEO pack that goes with it.</p>
+    </section>
+
+      <section class="pg-sec pg-prose">
+        <h2>Why we rebuilt it</h2>
+        <p>The first version of ShortsCraft animated paragraphs: big words sliding across a colourful gradient. Creators told us plainly that it did not look like animation. They were right — the tools people admire animate <em>objects and interfaces</em>: a toggle flipping, a counter ticking, a progress ring sweeping, a logo drawing itself. The subject matter was the problem, not the polish.</p>
+        <p>So the template engine was replaced. Every template is now a single looping idea, built from CSS only, on a monochrome base with exactly one accent colour you control.</p>
+
+        <h2>How it works</h2>
+        <ol>
+          <li><strong>Pick a template</strong> from twelve motion pieces across eight categories.</li>
+          <li><strong>Edit the content</strong> — the fields are named for what the animation actually shows, so a progress ring asks for a percentage, not a paragraph.</li>
+          <li><strong>Build a sequence</strong> on the timeline. Each clip has its own template, text, accent and duration.</li>
+          <li><strong>Export a real MP4.</strong> Headless Chrome renders the animation frame by frame and ffmpeg encodes H.264 — deterministic timing, no screen recording, no dropped frames.</li>
+        </ol>
+
+        <h2>What the AI does and does not do</h2>
+        <p>The AI writes: scripts, titles, descriptions, hashtags, follow-up ideas and thumbnail prompts, in Hinglish. The motion is not AI-generated — it is deterministic CSS, which is why the same project exports identically every time.</p>
+        <p>Everything it writes is a first draft. Review it, make it yours, then publish. That is also the platform-safe way to work.</p>
+
+        <h2>Who builds this</h2>
+        <p>ShortsCraft is an independent product built for Indian creators, from the same workshop as the <a href="https://youtube.com/@VaultGamer-in" rel="noopener" target="_blank">Vault Gamer</a> channel. Feature requests reach a human: use <a href="/contact">Help &amp; Feedback</a>.</p>
+      </section>
+
+      <section class="pg-cta">
+        <h2>See it for yourself</h2>
+        <p>No signup needed to try the editor.</p>
+        <div class="pg-row">
+          <a href="/editor" class="pg-bw">Open the Editor</a>
+          <a href="/pricing" class="pg-bo">See pricing</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="sh-footer">
+      <div class="sh-fgrid">
+        <div class="sh-fbrand">
+          <a href="/" class="sh-brand" aria-label="ShortsCraft home">
+            <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
+            <span class="sh-brand-name">Shorts<i>Craft</i></span>
+          </a>
+          <p>The AI motion design studio for viral YouTube Shorts and kinetic animations.</p>
+        </div>
+
+        <nav class="sh-fcol" aria-label="Product">
+          <h4>Product</h4>
+          <a href="/editor">Studio Editor</a>
+          <a href="/#templates">Templates Gallery</a>
+          <a href="/community">Community Hub</a>
+          <a href="/pricing">Pricing</a>
+        </nav>
+
+        <nav class="sh-fcol" aria-label="Legal and support">
+          <h4>Legal &amp; Support</h4>
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+          <a href="/contact">Help &amp; Feedback</a>
+          <a href="/about">About Us</a>
+        </nav>
+      </div>
+
+      <div class="sh-fbot">
+        <span>© 2026 ShortsCraft. All rights reserved.</span>
+        <span class="sh-status"><i></i> Website online</span>
+      </div>
+    </footer>
+
+  </div><!-- /.sh-main -->
+</div><!-- /.sh-wrap -->
+
+<script src="/authui.js?v=20260808" defer></script>
+<script src="/page.js?v=20260808" defer></script>
 </body>
 </html>

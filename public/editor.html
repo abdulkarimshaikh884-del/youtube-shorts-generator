@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en" class="ed-html">
+<head>
+<meta charset="UTF-8"/>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BBE03D3FDT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BBE03D3FDT');
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Editor — ShortsCraft</title>
+<meta name="description" content="Customise any ShortsCraft motion template: text, typography, accent colour, aspect ratio and loop length, with live playback."/>
+<link rel="canonical" href="https://shortscraft.online/editor"/>
+<meta name="robots" content="noindex, follow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#000000">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=circle2026">
+<link rel="icon" href="/favicon.ico?v=circle2026" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=circle2026">
+<link rel="manifest" href="/site.webmanifest?v=power2026">
+<link rel="stylesheet" href="/editor.css?v=4">
+</head>
+<body class="ed-body">
+
+<div class="ed-app">
+
+  <!-- ── TOP BAR ─────────────────────────────────────────── -->
+  <header class="ed-top">
+    <a href="/#templates" class="ed-back" aria-label="Back to templates">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <label class="ed-sr" for="edProject">Project name</label>
+    <input class="ed-name" id="edProject" type="text" value="Untitled animation" maxlength="60">
+
+    <div class="ed-devices" role="group" aria-label="Aspect ratio">
+      <button class="ed-dev" type="button" data-ar="9:16" aria-pressed="true" title="9:16 Shorts">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="3" width="8" height="18" rx="2"/></svg>
+      </button>
+      <button class="ed-dev" type="button" data-ar="1:1" aria-pressed="false" title="1:1 Square">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+      </button>
+      <button class="ed-dev" type="button" data-ar="4:5" aria-pressed="false" title="4:5 Feed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="4" width="12" height="16" rx="2"/></svg>
+      </button>
+      <button class="ed-dev" type="button" data-ar="16:9" aria-pressed="false" title="16:9 YouTube">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="10" rx="2"/></svg>
+      </button>
+      <button class="ed-dev" type="button" data-ar="21:9" aria-pressed="false" title="21:9 Cinematic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="9" width="20" height="6" rx="1.6"/></svg>
+      </button>
+    </div>
+
+    <div class="ed-topright">
+      <a href="/pricing" class="ed-credits" id="edCredits" title="Credits left today">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9 10h4.2a2 2 0 0 1 0 4H9"/></svg>
+        <b id="edCreditsN">10</b>
+      </a>
+      <input class="ed-chip" id="edChip" type="color" value="#ffffff" aria-label="Accent colour" title="Accent colour">
+      <button class="ed-pub-btn" id="edPublishOpen" type="button" title="Publish this animation as a community template">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Publish Template
+      </button>
+      <a href="/contact" class="ed-flink">Feedback</a>
+      <button class="ed-export" id="edExport" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
+        Export
+      </button>
+    </div>
+  </header>
+
+  <!-- ── BODY ────────────────────────────────────────────── -->
+  <div class="ed-main">
+
+    <!-- LEFT: AI Assistant & Refinement Chatbox -->
+    <aside class="ed-col ed-left">
+      <div class="ed-colhead">AI Assistant</div>
+      <div class="ed-scroll ed-ai-scroll">
+        <div class="ed-chat" id="edChatHistory">
+          <div class="ed-msg ed-msg-ai">
+            <div class="ed-msg-avatar">✦</div>
+            <div class="ed-msg-body">
+              <p><b>ShortsCraft AI Assistant</b></p>
+              <p>Describe what you want to create or refine the active animation. For example:</p>
+              <div class="ed-pills">
+                <button type="button" class="ed-pill-prompt">Subscriber Count Chart</button>
+                <button type="button" class="ed-pill-prompt">Cybernetic Neon Heart</button>
+                <button type="button" class="ed-pill-prompt">Product Price Flash Sale</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="edRail" style="display:none;"></div>
+      </div>
+
+      <!-- AI COMPOSER (LEFT SIDEBAR) -->
+      <form class="ed-ai" id="edAi">
+        <label class="ed-sr" for="edPrompt">Describe or refine the animation</label>
+        <textarea id="edPrompt" rows="2" maxlength="600"
+          placeholder="Describe animation or refine changes... (e.g. glowing subscriber count chart)"></textarea>
+
+        <div class="ed-airow">
+          <input type="file" id="edImg" accept="image/png,image/jpeg,image/webp,image/gif" class="ed-sr">
+          <label class="ed-aibtn" for="edImg" title="Attach an image to animate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+            <span class="ed-sr">Attach an image</span>
+          </label>
+          <button class="ed-aichip" type="button" id="edImgClear" hidden>
+            <span id="edImgName">image</span> <b aria-hidden="true">×</b>
+            <span class="ed-sr">Remove the attached image</span>
+          </button>
+
+          <label class="ed-sr" for="edQuality">Model</label>
+          <select class="ed-aiq" id="edQuality">
+            <option value="mini" selected>Free</option>
+            <option value="pro">Pro</option>
+            <option value="max">Pro Max</option>
+          </select>
+
+          <span class="ed-aicost" id="edAiCost">5 credits</span>
+        </div>
+
+        <button class="ed-export ed-aigo" id="edCreate" type="submit" style="width:100%;margin-top:8px;justify-content:center">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
+          Create / Refine
+        </button>
+      </form>
+    </aside>
+
+    <!-- CENTRE: stage + playback -->
+    <section class="ed-col ed-center">
+      <div class="ed-stagewrap">
+        <div class="ed-frame" id="edFrame" style="--arw:9;--arh:16">
+          <iframe class="ed-lay" data-i="0" id="animationPlayer" title="Template preview" style="border:none;width:100%;height:100%;" src="/player.html"></iframe>
+        </div>
+      </div>
+
+      <!-- ── TIMELINE ──────────────────────────────────────
+           Transport centred over a ruler + clip lane, with a red playhead.
+           #edSeek is the accessible slider for the playhead: it overlays the
+           ruler, so pointer drag, click-to-seek and arrow keys all work. -->
+      <div class="ed-tlwrap">
+        <div class="ed-transport">
+          <button class="ed-pbtn" id="edRestart" type="button" aria-label="Restart">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z"/></svg>
+          </button>
+          <button class="ed-pbtn ed-primary" id="edPlay" type="button" aria-label="Pause" data-state="playing">
+            <svg id="edPlayIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zM13 5h3v14h-3z"/></svg>
+          </button>
+          <div class="ed-time"><b id="edNow">0:00</b> / <span id="edLen">0:04</span></div>
+          <span class="ed-loop">Loop</span>
+        </div>
+
+        <div class="ed-tl" id="edTl">
+          <div class="ed-ruler" id="edRuler">
+            <div class="ed-ticks" id="edTicks" aria-hidden="true"></div>
+            <label class="ed-sr" for="edSeek">Playhead position</label>
+            <input class="ed-seek" type="range" id="edSeek" min="0" max="1000" value="0" step="1">
+          </div>
+
+          <div class="ed-lane" id="edLane">
+            <div class="ed-clips" id="edClips"></div>
+            <button class="ed-add" id="edAdd" type="button">
+              <span aria-hidden="true">+</span> Add
+            </button>
+          </div>
+
+          <div class="ed-head" id="edHead" aria-hidden="true"><i></i></div>
+        </div>
+      </div>
+
+      <div class="ed-status" id="edStatus" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- RIGHT: properties -->
+    <aside class="ed-col ed-right">
+      <div class="ed-colhead">Properties</div>
+      <div class="ed-scroll">
+        <div class="ed-props">
+
+          <div class="ed-grp">
+            <h3>Template</h3>
+            <div class="ed-f">
+              <label for="edTpl">Current template</label>
+              <select id="edTpl"></select>
+            </div>
+          </div>
+
+          <div class="ed-grp">
+            <h3>Typography</h3>
+            <div class="ed-f">
+              <label for="edFont">Scene font</label>
+              <select id="edFont"></select>
+            </div>
+          </div>
+
+          <div class="ed-grp">
+            <h3>Content</h3>
+            <div id="edFields"></div>
+          </div>
+
+          <div class="ed-grp">
+            <h3>Colours</h3>
+            <div class="ed-f">
+              <label for="edHex">Accent</label>
+              <div class="ed-inline">
+                <input type="color" id="edColor" value="#ffffff" aria-label="Accent colour picker">
+                <input type="text" id="edHex" value="#ffffff" maxlength="7" spellcheck="false">
+              </div>
+            </div>
+            <div class="ed-sw" id="edSwatches"></div>
+          </div>
+
+          <div class="ed-grp">
+            <h3>Format</h3>
+            <div class="ed-f">
+              <label for="edAspect">Aspect ratio</label>
+              <select id="edAspect"></select>
+            </div>
+            <div class="ed-f">
+              <label for="edDur">Loop length — <span id="edDurVal">4.6s</span></label>
+              <input type="range" id="edDur" min="2000" max="9000" step="200" value="4600">
+            </div>
+          </div>
+
+          <div class="ed-grp" style="margin-top:4px;">
+            <button class="ed-pbtn" id="edReset" type="button" style="width:100%;height:38px;border-radius:999px">Reset to defaults</button>
+          </div>
+
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<!-- ── EXPORT VIDEO MODAL ─────────────────────────────────── -->
+<div id="exportModal" class="ed-modal-backdrop" hidden>
+  <div class="ed-modal">
+    <div class="ed-modal-head">
+      <h3>🎬 Export Video (MP4)</h3>
+      <button type="button" class="ed-modal-close" id="exportClose" aria-label="Close modal">×</button>
+    </div>
+    <p class="ed-modal-sub">Render your animation frame-by-frame with exact timing, crisp typography, and full 60 FPS motion in H.264 MP4.</p>
+    <div class="ed-modal-form">
+      <div class="ed-f">
+        <label for="edRes">Resolution</label>
+        <select id="edRes">
+          <option value="1080" selected>1080p (Full HD — Recommended)</option>
+          <option value="720">720p (HD — Faster)</option>
+          <option value="1440">1440p (2K QHD)</option>
+          <option value="2160">2160p (4K Ultra HD)</option>
+        </select>
+      </div>
+      <div class="ed-f">
+        <label for="edFps">Frame Rate</label>
+        <select id="edFps">
+          <option value="30" selected>30 fps (Standard)</option>
+          <option value="60">60 fps (Ultra Smooth)</option>
+          <option value="24">24 fps (Cinematic)</option>
+        </select>
+      </div>
+      <div class="ed-export-meta" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink2);margin:4px 0 10px;">
+        <span>Format: <b id="edExportAspect" style="color:#fff">9:16 Shorts</b></span>
+        <span>Duration: <b id="edExportDur" style="color:#fff">4.6s</b></span>
+        <span style="color:#34d17a;font-weight:600;">⚡ 1 Export Credit</span>
+      </div>
+      <div id="exportMsg" class="ed-modal-msg"></div>
+      <div class="ed-modal-actions" style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+        <button type="button" class="ed-pbtn" id="exportCancel" style="padding:0 20px;height:40px;border-radius:10px;white-space:nowrap;">Cancel</button>
+        <button type="button" class="ed-export" id="edDownload" style="flex:1;height:40px;justify-content:center;font-size:13.5px;">
+          <svg viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:currentColor;"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
+          Render &amp; Download MP4
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PUBLISH TEMPLATE MODAL ────────────────────────────── -->
+<div id="publishModal" class="ed-modal-backdrop" hidden>
+  <div class="ed-modal">
+    <div class="ed-modal-head">
+      <h3>🚀 Publish as Template</h3>
+      <button type="button" class="ed-modal-close" id="publishClose">×</button>
+    </div>
+    <p class="ed-modal-sub">Publish your customized animation to the Community Gallery so other creators can discover, use, and like it.</p>
+    <form id="publishForm" class="ed-modal-form">
+      <div class="ed-f">
+        <label for="pubTitle">Template Title</label>
+        <input type="text" id="pubTitle" required maxlength="60" placeholder="e.g. Cyberpunk Neon Counter">
+      </div>
+      <div class="ed-f">
+        <label for="pubCategory">Category</label>
+        <select id="pubCategory">
+          <option value="text">Text Animation</option>
+          <option value="ui">UI Elements</option>
+          <option value="social">Social Media</option>
+          <option value="logos">Logos &amp; Monograms</option>
+          <option value="charts">Charts &amp; Data</option>
+          <option value="money">Money &amp; Sales</option>
+          <option value="app">App &amp; Website</option>
+          <option value="launch">Launch Videos</option>
+        </select>
+      </div>
+      <div class="ed-f">
+        <label for="pubDesc">Description</label>
+        <textarea id="pubDesc" rows="2" maxlength="240" placeholder="Brief description of what makes this animation great..."></textarea>
+      </div>
+      <div class="ed-f">
+        <label for="pubAuthor">Creator Handle</label>
+        <input type="text" id="pubAuthor" maxlength="30" placeholder="e.g. your_creator_name">
+      </div>
+      <div id="pubMsg" class="ed-modal-msg"></div>
+      <div class="ed-modal-actions">
+        <button type="button" class="ed-pbtn" id="publishCancel">Cancel</button>
+        <button type="submit" class="ed-export" id="publishSubmit">Publish to Community 🚀</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/templates-v2.js?v=8" defer></script>
+<script src="/editor.js?v=8" defer></script>
+</body>
+</html>

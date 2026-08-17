@@ -2217,7 +2217,7 @@ document.addEventListener("click", (e) => {
     if(!track) return [];
     const scenes = scenesForTimeline(rawScript, aspect);
     if(!scenes.length){
-      track.innerHTML = `<button class="scene-card active empty" type="button" data-scene="0"><span class="scene-number">01</span><span class="scene-thumb"><i>✦</i></span><span class="scene-copy">Start writing to build scenes</span></button>`;
+      track.innerHTML = `<button class="scene-card empty" type="button" data-scene="0" disabled><span class="scene-number">01</span><span class="scene-thumb"><i>✦</i></span><span class="scene-copy">Start writing to build scenes</span></button>`;
       if(count) count.textContent = "1 scene";
       return [];
     }

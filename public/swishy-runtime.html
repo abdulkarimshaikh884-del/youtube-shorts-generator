@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    #root {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+  </style>
+  <script src="/vendor/react.production.min.js"></script>
+  <script src="/vendor/react-dom.production.min.js"></script>
+  <script src="/vendor/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    let VideoConfig = {
+      fps: 30,
+      durationInFrames: 150,
+      width: 1080,
+      height: 1920,
+    };
+    
+    let currentFrame = 0;
+    let SceneComponent = null;
+    let sceneProps = {};
+    let isPlaying = true;
+    let autoPlayTimer = null;
+    
+    function useCurrentFrame() { return currentFrame; }
+    function useVideoConfig() { return VideoConfig; }
+    
+    function interpolate(input, inputRange, outputRange, options = {}) {
+      const { extrapolateLeft = "extend", extrapolateRight = "extend" } = options;
+      if (inputRange.length !== outputRange.length || inputRange.length < 2) return outputRange[0] || 0;
+      if (input <= inputRange[0]) {
+        if (extrapolateLeft === "clamp") return outputRange[0];
+        const slope = (outputRange[1] - outputRange[0]) / (inputRange[1] - inputRange[0]);
+        return outputRange[0] + slope * (input - inputRange[0]);
+      }
+      if (input >= inputRange[inputRange.length - 1]) {
+        if (extrapolateRight === "clamp") return outputRange[outputRange.length - 1];
+        const n = inputRange.length - 1;
+        const slope = (outputRange[n] - outputRange[n-1]) / (inputRange[n] - inputRange[n-1]);
+        return outputRange[n] + slope * (input - inputRange[n]);
+      }
+      for (let i = 0; i < inputRange.length - 1; i++) {
+        if (input >= inputRange[i] && input <= inputRange[i + 1]) {
+          const t = (input - inputRange[i]) / (inputRange[i + 1] - inputRange[i]);
+          return outputRange[i] + t * (outputRange[i + 1] - outputRange[i]);
+        }
+      }
+      return outputRange[0];
+    }
+    
+    function spring({ frame, fps = 30, config = {} }) {
+      const { damping = 10, mass = 1, stiffness = 100 } = config;
+      const t = Math.max(0, frame) / fps;
+      const omega = Math.sqrt(stiffness / mass);
+      const zeta = damping / (2 * Math.sqrt(stiffness * mass));
+      if (zeta < 1) {
+        const omegaD = omega * Math.sqrt(1 - zeta * zeta);
+        return 1 - Math.exp(-zeta * omega * t) * (Math.cos(omegaD * t) + (zeta * omega / omegaD) * Math.sin(omegaD * t));
+      }
+      return 1 - (1 + omega * t) * Math.exp(-omega * t);
+    }
+    
+    function AbsoluteFill({ children, style = {}, ...props }) {
+      return React.createElement("div", {
+        ...props,
+        style: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, width: "100%", height: "100%", display: "flex", flexDirection: "column", ...style }
+      }, children);
+    }
+
+    function Sequence({ from = 0, durationInFrames, children, layout = "absolute-fill" }) {
+      const frame = useCurrentFrame();
+      if (frame < from) return null;
+      if (durationInFrames !== undefined && frame >= from + durationInFrames) return null;
+      if (layout === "absolute-fill") return React.createElement(AbsoluteFill, null, children);
+      return children;
+    }
+
+    function Series({ children }) {
+      const frame = useCurrentFrame();
+      let currentOffset = 0;
+      const childArray = React.Children.toArray(children);
+      for (const child of childArray) {
+        const duration = (child.props && child.props.durationInFrames) || 30;
+        if (frame >= currentOffset && frame < currentOffset + duration) {
+          return React.createElement(AbsoluteFill, null, child);
+        }
+        currentOffset += duration;
+      }
+      return null;
+    }
+
+    function Loop({ durationInFrames, times = Infinity, children }) {
+      const frame = useCurrentFrame();
+      const iteration = Math.floor(frame / durationInFrames);
+      if (times !== Infinity && iteration >= times) return null;
+      return React.createElement(AbsoluteFill, null, children);
+    }
+
+    function Freeze({ frame: freezeFrame, children }) {
+      return React.createElement(AbsoluteFill, null, children);
+    }
+
+    function Img({ src, style = {}, ...props }) {
+      return React.createElement("img", { ...props, src, crossOrigin: "anonymous", style: { maxWidth: "100%", maxHeight: "100%", ...style } });
+    }
+
+    function Video({ src, style = {}, ...props }) {
+      const videoRef = React.useRef(null);
+      const frame = useCurrentFrame();
+      const { fps } = useVideoConfig();
+      React.useEffect(() => {
+        if (videoRef.current) {
+          const time = frame / fps;
+          if (Math.abs(videoRef.current.currentTime - time) > 0.1) {
+            videoRef.current.currentTime = time;
+          }
+        }
+      }, [frame, fps]);
+      return React.createElement("video", { ...props, ref: videoRef, src, crossOrigin: "anonymous", muted: true, playsInline: true, style: { maxWidth: "100%", maxHeight: "100%", ...style } });
+    }
+
+    function OffthreadVideo(props) { return Video(props); }
+
+    function Audio({ src, ...props }) {
+      const audioRef = React.useRef(null);
+      const frame = useCurrentFrame();
+      const { fps } = useVideoConfig();
+      React.useEffect(() => {
+        if (audioRef.current) {
+          const time = frame / fps;
+          if (Math.abs(audioRef.current.currentTime - time) > 0.1) {
+            audioRef.current.currentTime = time;
+          }
+        }
+      }, [frame, fps]);
+      return React.createElement("audio", { ...props, ref: audioRef, src, muted: true });
+    }
+
+    function IFrame({ src, style = {}, ...props }) {
+      return React.createElement("iframe", { ...props, src, style: { border: "none", ...style } });
+    }
+
+    function useCurrentScale() { return 1; }
+
+    function interpolateColors(input, inputRange, outputRange) {
+      const t = (input - inputRange[0]) / (inputRange[inputRange.length - 1] - inputRange[0]);
+      const clampedT = Math.max(0, Math.min(1, t));
+      const index = Math.round(clampedT * (outputRange.length - 1));
+      return outputRange[index] || outputRange[0];
+    }
+
+    function measureSpring({ fps = 30, config = {} }) {
+      const { damping = 10, mass = 1 } = config;
+      return Math.ceil(fps * (4 / damping) * Math.sqrt(mass));
+    }
+
+    const Easing = {
+      linear: (t) => t,
+      ease: (t) => t * t * (3 - 2 * t),
+      easeIn: (t) => t * t,
+      easeOut: (t) => t * (2 - t),
+      easeInOut: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+      bezier: (x1, y1, x2, y2) => (t) => t,
+      cubic: (t) => t * t * t,
+      sin: (t) => 1 - Math.cos((t * Math.PI) / 2),
+      circle: (t) => 1 - Math.sqrt(1 - t * t),
+      exp: (t) => t === 0 ? 0 : Math.pow(2, 10 * (t - 1)),
+      bounce: (t) => {
+        const n1 = 7.5625, d1 = 2.75;
+        if (t < 1 / d1) return n1 * t * t;
+        if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+        if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+        return n1 * (t -= 2.625 / d1) * t + 0.984375;
+      }
+    };
+
+    function random(seed) {
+      if (typeof seed === 'number') {
+        const x = Math.sin(seed) * 10000;
+        return x - Math.floor(x);
+      }
+      return Math.random();
+    }
+
+    function staticFile(path) { return path; }
+    function delayRender(label) { return Math.random(); }
+    function continueRender(handle) {}
+    function cancelRender(error) { console.error("Render cancelled:", error); }
+    function getInputProps() { return sceneProps || {}; }
+    function prefetch(src) { return { free: () => {}, waitUntilDone: () => Promise.resolve() }; }
+
+    window.React = React;
+    window.AbsoluteFill = AbsoluteFill;
+    window.Sequence = Sequence;
+    window.Series = Series;
+    window.Loop = Loop;
+    window.Freeze = Freeze;
+    window.Img = Img;
+    window.Video = Video;
+    window.OffthreadVideo = OffthreadVideo;
+    window.Audio = Audio;
+    window.IFrame = IFrame;
+    window.useCurrentFrame = useCurrentFrame;
+    window.useVideoConfig = useVideoConfig;
+    window.useCurrentScale = useCurrentScale;
+    window.interpolate = interpolate;
+    window.interpolateColors = interpolateColors;
+    window.spring = spring;
+    window.measureSpring = measureSpring;
+    window.Easing = Easing;
+    window.random = random;
+    window.staticFile = staticFile;
+    window.delayRender = delayRender;
+    window.continueRender = continueRender;
+    window.cancelRender = cancelRender;
+    window.getInputProps = getInputProps;
+    window.prefetch = prefetch;
+    
+    function render() {
+      if (!SceneComponent) return;
+      try {
+        ReactDOM.render(React.createElement(SceneComponent, sceneProps), document.getElementById("root"));
+      } catch (err) {
+        console.error("Swishy render error:", err);
+      }
+    }
+
+    function startAutoPlay() {
+      if (autoPlayTimer) clearInterval(autoPlayTimer);
+      const intervalMs = 1000 / (VideoConfig.fps || 30);
+      autoPlayTimer = setInterval(() => {
+        if (!isPlaying) return;
+        currentFrame = (currentFrame + 1) % (VideoConfig.durationInFrames || 150);
+        render();
+      }, intervalMs);
+    }
+    
+    let codeReceived = false;
+    window.addEventListener("message", (e) => {
+      const { type, payload } = e.data || {};
+      if (type === "UPDATE_CODE") {
+        codeReceived = true;
+        try {
+          if (payload.config) {
+            VideoConfig = Object.assign(VideoConfig, payload.config);
+          }
+          if (payload.props) {
+            sceneProps = payload.props;
+          }
+          const rawCode = payload.code || "";
+          const cleanedCode = rawCode
+            .replace(/export\s+default\s+/g, "")
+            .replace(/export\s+/g, "")
+            .replace(/import\s+[\s\S]*?from\s+['"][^'"]*['"];?/g, "")
+            .replace(/import\s+['"][^'"]*['"];?/g, "");
+          const transformed = Babel.transform(cleanedCode, { presets: [["react", { runtime: "classic" }]] }).code;
+          const func = new Function(
+            "React",
+            "AbsoluteFill", "Sequence", "Series", "Loop", "Freeze", "Img", "Video", "OffthreadVideo", "Audio", "IFrame",
+            "useCurrentFrame", "useVideoConfig", "useCurrentScale",
+            "interpolate", "interpolateColors", "spring", "measureSpring", "Easing",
+            "random", "staticFile", "delayRender", "continueRender", "cancelRender", "getInputProps", "prefetch",
+            transformed + "\nreturn typeof Scene !== 'undefined' ? Scene : (typeof App !== 'undefined' ? App : null);"
+          );
+          SceneComponent = func(
+            React,
+            AbsoluteFill, Sequence, Series, Loop, Freeze, Img, Video, OffthreadVideo, Audio, IFrame,
+            useCurrentFrame, useVideoConfig, useCurrentScale,
+            interpolate, interpolateColors, spring, measureSpring, Easing,
+            random, staticFile, delayRender, continueRender, cancelRender, getInputProps, prefetch
+          );
+          render();
+          if (payload.autoplay !== false) {
+            startAutoPlay();
+          }
+          window.parent.postMessage({ type: "READY" }, "*");
+        } catch (err) {
+          console.error("Swishy compile error:", err);
+        }
+      } else if (type === "UPDATE_FRAME") {
+        isPlaying = false;
+        currentFrame = payload.frame || 0;
+        render();
+      } else if (type === "PLAY") {
+        isPlaying = true;
+      } else if (type === "PAUSE") {
+        isPlaying = false;
+      } else if (type === "UPDATE_PROPS") {
+        sceneProps = Object.assign({}, sceneProps, payload.props || {});
+        render();
+      } else if (type === "UPDATE_SIZE") {
+        VideoConfig.width = payload.width;
+        VideoConfig.height = payload.height;
+        render();
+      }
+    });
+
+    function notifyLoaded() {
+      if (!codeReceived) {
+        window.parent.postMessage({ type: "IFRAME_LOADED" }, "*");
+        setTimeout(notifyLoaded, 100);
+      }
+    }
+    notifyLoaded();
+  </script>
+</body>
+</html>

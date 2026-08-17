@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Privacy Policy — ShortsCraft</title>
-<meta name="description" content="What ShortsCraft collects, why, who processes it and how to get your data removed."/>
-<link rel="canonical" href="https://shortscraft.online/privacy"/>
+<title>Your account — ShortsCraft</title>
+<meta name="description" content="Your ShortsCraft plan, daily credits and account details."/>
+<link rel="canonical" href="https://shortscraft.online/account"/>
+<meta name="robots" content="noindex, follow"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Privacy Policy — ShortsCraft"/>
-<meta property="og:description" content="What ShortsCraft collects, why, who processes it and how to get your data removed."/>
-<meta property="og:url" content="https://shortscraft.online/privacy"/>
+<meta property="og:title" content="Your account — ShortsCraft"/>
+<meta property="og:description" content="Your ShortsCraft plan, daily credits and account details."/>
+<meta property="og:url" content="https://shortscraft.online/account"/>
 <meta name="twitter:card" content="summary_large_image"/>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,53 +114,33 @@
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
-    <main class="pg">
-    <section class="pg-head">
-      <span class="pg-eyebrow">Legal</span>
-      <h1>Privacy Policy</h1>
-      <p>Last updated 8 August 2026. Written to be read, not to hide behind.</p>
-    </section>
+    <main class="pg pg-narrow">
+      <section class="pg-head">
+        <span class="pg-eyebrow">Account</span>
+        <h1>Your account</h1>
+        <p>Plan, credits and sign-out live here.</p>
+      </section>
 
-      <section class="pg-sec pg-prose pg-legal">
-        <h2>The short version</h2>
-        <p>You can use the editor without an account. We do not sell your data, we do not run advertising networks on this site, and the text you type is used to produce your result — not to train a model of our own.</p>
+      <section class="pg-sec" id="accountBox" hidden>
+        <div class="pg-grid">
+          <article class="pg-card"><h3>Email</h3><p id="accEmail">—</p></article>
+          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p></article>
+          <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
+          <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
+        </div>
+        <div class="pg-row" style="margin-top:20px">
+          <a href="/editor" class="pg-bw">Open the Editor</a>
+          <a href="/pricing" class="pg-bo">Change plan</a>
+          <button type="button" class="pg-bo" id="accLogout">Log out</button>
+        </div>
+      </section>
 
-        <h2>What we collect</h2>
-        <ul>
-          <li><strong>What you type into a tool</strong> — the topic or script you submit is sent to our AI provider to generate your result. It is not stored in a database by us.</li>
-          <li><strong>What you send us on purpose</strong> — the name, email, subject and message from the Help &amp; Feedback form, so we can reply.</li>
-          <li><strong>Usage analytics</strong> — Google Analytics gives us aggregate page views and device types. It sets cookies in your browser.</li>
-          <li><strong>Server logs</strong> — standard request logs including IP address, kept short-term for abuse and rate limiting.</li>
-          <li><strong>Payment details</strong> — handled entirely by Razorpay. Card numbers never reach our servers.</li>
-        </ul>
-        <p>We do not ask for your date of birth, address, phone number or any government ID.</p>
-
-        <h2>Who else processes it</h2>
-        <ul>
-          <li><strong>Groq</strong> — runs the language model that writes scripts, titles, descriptions, hashtags and ideas.</li>
-          <li><strong>Supabase</strong> — stores feedback-form messages.</li>
-          <li><strong>Razorpay</strong> — processes payments and holds the billing record.</li>
-          <li><strong>Google Analytics</strong> — aggregate usage measurement.</li>
-          <li><strong>Our hosting provider</strong> — serves the site and keeps request logs.</li>
-        </ul>
-
-        <h2>Your animations</h2>
-        <p>Projects live in your browser. Exported MP4 files are rendered on demand, streamed to your download and not archived on our side.</p>
-
-        <h2>Cookies</h2>
-        <p>Analytics cookies from Google, and browser local storage we use to carry your prompt from the home page into the editor. No advertising or cross-site tracking cookies are set by us.</p>
-
-        <h2>Children</h2>
-        <p>ShortsCraft is not directed at children under 13, and we do not knowingly collect their data.</p>
-
-        <h2>Your choices</h2>
-        <p>Block analytics cookies in your browser and the site still works. To have a feedback message or billing record deleted, write to us from the same email address using <a href="/contact">Help &amp; Feedback</a> and we will remove it, except where we must keep a payment record for tax purposes.</p>
-
-        <h2>Changes</h2>
-        <p>If this policy changes materially, the date at the top changes with it.</p>
-
-        <h2>Contact</h2>
-        <p>Questions about privacy go through <a href="/contact">Help &amp; Feedback</a>.</p>
+      <section class="pg-sec" id="accountGuest" hidden>
+        <p class="pg-planline">You are not logged in. Credits are attached to this browser only.</p>
+        <div class="pg-row">
+          <a href="/login" class="pg-bw">Log in</a>
+          <a href="/signup" class="pg-bo">Create an account</a>
+        </div>
       </section>
     </main>
 

@@ -40,12 +40,15 @@ app.use((req, res, next) => {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co https://api.groq.com https://*.razorpay.com https://www.google-analytics.com https://www.googletagmanager.com",
-      "frame-src https://*.razorpay.com",
+      "connect-src 'self' https://*.supabase.co https://api.groq.com https://integrate.api.nvidia.com https://*.razorpay.com https://www.google-analytics.com https://www.googletagmanager.com",
+      // 'self' is required for the sandboxed srcdoc iframes that render
+      // animation template previews on the landing page. Those frames are
+      // sandboxed WITHOUT allow-same-origin, so they get a unique origin.
+      "frame-src 'self' https://*.razorpay.com",
       "object-src 'none'",
       "base-uri 'self'",
     ].join("; ")
@@ -61,7 +64,13 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "https://shortscraft.onli
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        (NODE_ENV !== "production" && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
+      ) {
+        return cb(null, true);
+      }
       cb(new Error("CORS blocked"));
     },
     credentials: true,
@@ -76,6 +85,7 @@ app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 const rateLimitStore = new Map();
 function rateLimit({ windowMs = 60_000, max = 20 } = {}) {
   return (req, res, next) => {
+    if (process.env.DISABLE_RATE_LIMIT === "true") return next();
     const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
     const key = `${ip}:${req.path}`;
     const now = Date.now();
@@ -122,6 +132,101 @@ app.use(
 // API ROUTES
 // ============================================================
 
+// ── Accounts ───────────────────────────────────────────────
+// Real sign-up / log-in, backed by scrypt hashes and hashed session tokens in a
+// local store. Auth runs BEFORE credits so a signed-in visitor is billed against
+// their account instead of an anonymous cookie.
+const auth = require("./auth");
+app.use(auth.middleware);
+
+app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), (req, res) => {
+  const { email, password } = req.body || {};
+  const out = auth.signUp(res, email, password);
+  if (out.error) return res.status(400).json({ success: false, error: out.error });
+  console.log("[auth] new account", out.user.email, "· total", auth.count());
+  return res.json({ success: true, user: out.user });
+});
+
+app.post("/api/auth/login", rateLimit({ windowMs: 600_000, max: 20 }), (req, res) => {
+  const { email, password } = req.body || {};
+  const out = auth.logIn(res, email, password);
+  // deliberately vague: never reveal whether the address exists
+  if (out.error) return res.status(401).json({ success: false, error: out.error });
+  return res.json({ success: true, user: out.user });
+});
+
+app.post("/api/auth/logout", (req, res) => {
+  auth.logOut(req, res);
+  return res.json({ success: true });
+});
+
+app.get("/api/auth/me", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  return res.json({ success: true, user: req.user || null });
+});
+
+app.post("/api/auth/profile", (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ success: false, error: "Please log in first." });
+  }
+  const out = auth.updateProfile(req.user.id, req.body || {});
+  if (out.error) return res.status(400).json({ success: false, error: out.error });
+  return res.json({ success: true, user: out.user });
+});
+
+app.post("/api/auth/star", (req, res) => {
+  const targetId = req.body?.userId || req.user?.id;
+  if (!targetId) return res.status(400).json({ success: false, error: "Target creator is required." });
+  const out = auth.giveStar(targetId);
+  if (out.error) return res.status(400).json({ success: false, error: out.error });
+  return res.json({ success: true, stars: out.stars });
+});
+
+// ── Credits ────────────────────────────────────────────────
+// Runs after static so asset requests do not touch the ledger. Every page and
+// API request gets (or reuses) a signed anonymous id, because charging has to
+// happen on the server: the old browser-side counter reset with local storage.
+const credits = require("./credits");
+const community = require("./community");
+app.use(credits.middleware);
+
+app.get("/api/credits", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ success: true, ...credits.state(req) });
+});
+
+// ── Community Templates & Creator Publishing ─────────────────
+app.get("/api/community-templates", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ success: true, templates: community.list(req.query.cat) });
+});
+
+app.get("/api/user/creations", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const userId = req.user?.id || null;
+  const userHandle = req.user?.handle || (req.user?.email ? req.user.email.split("@")[0] : null);
+  const items = community.listByAuthor(userId, userHandle);
+  return res.json({ success: true, creations: items });
+});
+
+app.post("/api/community-templates", express.json(), (req, res) => {
+  const result = community.publish(req.body, req.user);
+  if (result.error) return res.status(400).json({ success: false, error: result.error });
+  res.json(result);
+});
+
+app.delete("/api/community-templates/:id", (req, res) => {
+  const result = community.remove(req.params.id, req.user);
+  if (result.error) return res.status(400).json({ success: false, error: result.error });
+  res.json({ success: true });
+});
+
+app.post("/api/community-templates/:id/like", (req, res) => {
+  const result = community.like(req.params.id);
+  if (result.error) return res.status(404).json({ success: false, error: result.error });
+  res.json(result);
+});
+
 // ── Health check ────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, version: "2.0.0", time: new Date().toISOString() });
@@ -134,58 +239,154 @@ app.get("/api/config", (req, res) => {
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
     razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
     proPriceInr: Number(process.env.PRO_PRICE_INR || 99),
-    freeCreditsPerDay: Number(process.env.FREE_CREDITS_PER_DAY || 10),
+    freeCreditsPerDay: credits.PLANS.free.perDay,
+    plans: Object.values(credits.PLANS),
+    cost: credits.COST,
     gaId: process.env.GA_ID || "",
     services: {
-      ai: Boolean(process.env.GROQ_API_KEY),
+      ai: Boolean(process.env.NVIDIA_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY),
       auth: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
       payments: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
     },
   });
 });
 
-// ── Groq AI generation ──────────────────────────────────────
-async function callGroq(prompt, { temperature = 0.85, maxTokens = 1500 } = {}) {
-  const key = process.env.GROQ_API_KEY;
-  if (!key) throw new Error("AI service not configured");
+// ── Unified AI Generation (NVIDIA NIM / Groq / Gemini) ───────
+async function callAI(prompt, { temperature = 0.7, maxTokens = 2200, system, model: modelOverride, timeoutMs = 120_000 } = {}) {
+  const nvidiaKey = process.env.NVIDIA_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
 
-  const model = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+  if (!nvidiaKey && !groqKey && !geminiKey) throw new Error("AI service not configured");
+
   const ctrl = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), 30_000);
+  const timeout = setTimeout(() => ctrl.abort(), timeoutMs);
 
   try {
-    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are ShortsCraft, an expert AI video and YouTube Shorts creator who writes punchy Hinglish (Hindi-English mix) content for animated motion graphics, kinetic typography, viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and video-first.",
+    // 1) Primary: NVIDIA NIM (Llama 3.1 / Nemotron)
+    if (nvidiaKey) {
+      try {
+        const baseUrl = process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1";
+        const model = modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct";
+        const r = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${nvidiaKey}`,
           },
-          { role: "user", content: prompt },
-        ],
-        temperature,
-        max_tokens: maxTokens,
-      }),
-      signal: ctrl.signal,
-    });
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: "system",
+                content: system ||
+                  "You are ShortsCraft, an expert AI video and YouTube Shorts creator who writes punchy Hinglish (Hindi-English mix) content for animated motion graphics, kinetic typography, viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and video-first.",
+              },
+              { role: "user", content: prompt },
+            ],
+            temperature,
+            top_p: 0.95,
+            max_tokens: Math.min(maxTokens, 2500),
+          }),
+          signal: ctrl.signal,
+        });
 
-    if (!r.ok) {
-      const errText = await r.text().catch(() => "");
-      throw new Error(`AI provider error (${r.status}): ${errText.slice(0, 200)}`);
+        if (r.ok) {
+          const data = await r.json();
+          const msg = data?.choices?.[0]?.message;
+          const content = msg?.content?.trim() || "";
+          if (content) return content;
+        } else {
+          const errText = await r.text().catch(() => "");
+          console.warn(`[NVIDIA NIM error ${r.status}]:`, errText.slice(0, 200));
+          if (!groqKey && !geminiKey) {
+            throw new Error(`NVIDIA AI provider error (${r.status}): ${errText.slice(0, 200)}`);
+          }
+        }
+      } catch (nErr) {
+        console.warn("[NVIDIA NIM attempt failed]:", nErr.message);
+        if (!groqKey && !geminiKey) throw nErr;
+      }
     }
-    const data = await r.json();
-    return data?.choices?.[0]?.message?.content?.trim() || "";
+
+    // 2) Secondary: Groq
+    if (groqKey) {
+      const model = modelOverride || process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${groqKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: "system",
+              content: system ||
+                "You are ShortsCraft, an expert AI video and YouTube Shorts creator who writes punchy Hinglish (Hindi-English mix) content for animated motion graphics, kinetic typography, viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and video-first.",
+            },
+            { role: "user", content: prompt },
+          ],
+          temperature,
+          max_tokens: maxTokens,
+        }),
+        signal: ctrl.signal,
+      });
+
+      if (!r.ok) {
+        const errText = await r.text().catch(() => "");
+        if (!geminiKey) throw new Error(`Groq AI error (${r.status}): ${errText.slice(0, 200)}`);
+      } else {
+        const data = await r.json();
+        const c = data?.choices?.[0]?.message?.content?.trim() || "";
+        if (c) return c;
+      }
+    }
+
+    // 3) Fallback: Gemini
+    if (geminiKey) {
+      const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+      let attempts = 0;
+      let r, errText;
+      while (attempts < 2) {
+        attempts++;
+        r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature,
+                maxOutputTokens: 8192,
+                responseMimeType: "application/json"
+              }
+            }),
+            signal: ctrl.signal,
+          }
+        );
+        if (r.ok) break;
+        if (r.status === 503 && attempts < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          continue;
+        }
+        errText = await r.text().catch(() => "");
+        throw new Error(`Gemini AI provider error (${r.status}): ${errText.slice(0, 200)}`);
+      }
+      const data = await r.json();
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      return parts.map((p) => p.text).filter(Boolean).join("").trim();
+    }
+
+    throw new Error("AI returned empty response. Please retry.");
   } finally {
     clearTimeout(timeout);
   }
 }
+const callGroq = callAI;
 
 function sanitizeTopic(s) {
   return String(s || "")
@@ -415,6 +616,342 @@ app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 20 }), async (req, 
   return res.json({ success: true });
 });
 
+// ============================================================
+// VIDEO EXPORT  —  template -> real MP4
+// ============================================================
+// Renders the generated animation in headless Chrome, steps the CSS timeline
+// frame-by-frame with the Web Animations API (deterministic: exact fps, no
+// dropped frames, unlike screen recording), pipes PNG frames into ffmpeg and
+// streams back an H.264 MP4.
+const puppeteer = require("puppeteer");
+const { spawn } = require("child_process");
+
+const EXPORT_LIMITS = {
+  fps: [24, 30, 60],
+  heights: [720, 1080, 1440],
+  maxDurMs: 12000,              // total across all clips
+  maxFrames: 900,
+  maxClips: 8,
+  aspects: {
+    "9:16": [9, 16], "16:9": [16, 9], "1:1": [1, 1], "4:5": [4, 5],
+    "3:4": [3, 4], "2:3": [2, 3], "21:9": [21, 9]
+  }
+};
+
+let _browser = null;
+async function getBrowser() {
+  if (_browser && _browser.connected) return _browser;
+  _browser = await puppeteer.launch({
+    headless: "new",
+    args: ["--no-sandbox", "--disable-dev-shm-usage", "--font-render-hinting=none"]
+  });
+  return _browser;
+}
+
+// Exports are CPU heavy. Serialise them so one request cannot starve the box.
+let _queue = Promise.resolve();
+function serialise(job) {
+  const run = _queue.then(job, job);
+  _queue = run.catch(() => {});
+  return run;
+}
+
+// even dimensions are required by yuv420p
+const even = (n) => (n % 2 === 0 ? n : n + 1);
+
+function encodeMp4(frames, fps) {
+  return new Promise((resolve, reject) => {
+    const ff = spawn("ffmpeg", [
+      "-y",
+      "-f", "image2pipe",
+      "-framerate", String(fps),
+      "-i", "pipe:0",
+      "-c:v", "libx264",
+      "-preset", "veryfast",
+      "-crf", "20",
+      "-pix_fmt", "yuv420p",
+      "-movflags", "frag_keyframe+empty_moov+faststart",
+      "-f", "mp4",
+      "pipe:1"
+    ], { stdio: ["pipe", "pipe", "pipe"] });
+
+    const out = [];
+    let err = "";
+    ff.stdout.on("data", (d) => out.push(d));
+    ff.stderr.on("data", (d) => { err += d.toString(); });
+    ff.on("error", (e) => reject(new Error("ffmpeg not available: " + e.message)));
+    ff.on("close", (code) => {
+      if (code !== 0) return reject(new Error("ffmpeg exited " + code + ": " + err.slice(-400)));
+      resolve(Buffer.concat(out));
+    });
+
+    (async () => {
+      for (const f of frames) {
+        if (!ff.stdin.write(f)) {
+          await new Promise((r) => ff.stdin.once("drain", r));
+        }
+      }
+      ff.stdin.end();
+    })().catch(reject);
+  });
+}
+
+// ============================================================
+// AI ANIMATION  —  prompt (+ optional image) -> a real scene
+// ============================================================
+// The model writes only `css` + `body`; the document is assembled by
+// SC_TPL2.buildCustom, so a generated scene is structurally identical to a
+// shipped template and exports through the same frame-stepped pipeline.
+// Costs credits.animate because it burns a model call.
+const anim = require("./animate");
+
+// bigger body than the 100kb global limit: an attached image travels as a data URL
+const jsonBig = express.json({ limit: "2mb" });
+
+app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async (req, res) => {
+  const b = req.body || {};
+  const prompt = String(b.prompt || "").trim().slice(0, 600);
+  const dur = Math.min(Math.max(Number(b.dur) || 4600, 1500), EXPORT_LIMITS.maxDurMs);
+  const image = b.image ? String(b.image) : null;
+
+  /* The three model tiers are the three plans. A free account cannot silently
+     use the Pro model, and it is told which plan unlocks it rather than being
+     quietly downgraded. */
+  const TIER = {
+    mini: { plans: ["free", "pro", "promax"], label: "Free", model: () => process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct" },
+    pro: { plans: ["pro", "promax"], label: "Pro", model: () => process.env.NVIDIA_MODEL_PRO || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct" },
+    max: { plans: ["promax"], label: "Pro Max", model: () => process.env.NVIDIA_MODEL_MAX || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct" }
+  };
+  const quality = TIER[b.quality] ? b.quality : "mini";
+
+  if (prompt.length < 8) {
+    return res.status(400).json({ success: false, error: "Describe the animation in a few more words." });
+  }
+  // validate what the user sent before complaining about our own configuration:
+  // "your image is the wrong format" is actionable, "no API key" is not
+  if (image) {
+    try { anim.sanitise({ css: "a{}", body: "<div></div>", img: image }); }
+    catch (err) { return res.status(400).json({ success: false, error: err.message }); }
+  }
+  /* Order matters: validate the request, then check what this account is allowed
+     to use, and only then complain about our own configuration. */
+  const plan = credits.state(req).plan;
+  if (TIER[quality].plans.indexOf(plan) < 0) {
+    return res.status(403).json({
+      success: false,
+      error: `The ${TIER[quality].label} model needs the ${TIER[quality].label} plan. ` +
+        `You are on ${credits.PLANS[plan].label}.`,
+      needPlan: TIER[quality].plans[0],
+      credits: credits.state(req)
+    });
+  }
+  if (!process.env.NVIDIA_API_KEY && !process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+    return res.status(503).json({
+      success: false,
+      error: "AI generation is not configured on this server yet."
+    });
+  }
+
+  const bill = credits.charge(req, "animate");
+  if (!bill.ok) {
+    return res.status(402).json({
+      success: false,
+      error: `A custom animation costs ${bill.need} credits and you have ${bill.left} left today.`,
+      credits: credits.state(req)
+    });
+  }
+
+  try {
+    const scene = await anim.generateScene({
+      prompt, dur, image,
+      model: TIER[quality].model(),
+      callModel: ({ system, user, model, maxTokens, temperature }) =>
+        callAI(user, { system, model, maxTokens, temperature })
+    });
+    return res.json({ success: true, scene, credits: credits.state(req) });
+  } catch (err) {
+    // nobody pays for our failure
+    credits.refund(req, "animate");
+    const bad = err instanceof anim.BadScene;
+    console.error("[/api/animate]", bad ? "rejected: " : "", err.message);
+    return res.status(bad ? 422 : 502).json({
+      success: false,
+      error: bad
+        ? "The generated scene did not pass our safety and quality checks. Try rewording the prompt."
+        : "The AI service did not respond. Please retry.",
+      detail: bad ? err.message : undefined,
+      credits: credits.state(req)
+    });
+  }
+});
+
+app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async (req, res) => {
+  const b = req.body || {};
+
+  // A project is a sequence of clips. `clips` is the current payload; the flat
+  // tpl/lines/dur fields are still accepted as a single-clip request.
+  const rawClips = Array.isArray(b.clips) && b.clips.length
+    ? b.clips.slice(0, EXPORT_LIMITS.maxClips)
+    : [{ tpl: b.tpl, lines: b.lines, accent: b.accent, font: b.font, dur: b.dur }];
+
+  const aspect = EXPORT_LIMITS.aspects[b.aspect] ? b.aspect : "9:16";
+  const fps = EXPORT_LIMITS.fps.includes(Number(b.fps)) ? Number(b.fps) : 30;
+  const height = EXPORT_LIMITS.heights.includes(Number(b.height)) ? Number(b.height) : 1080;
+
+  const clips = [];
+  for (const c of rawClips) {
+    // a clip is either a shipped template id or an AI-authored scene. The scene
+    // is re-sanitised here: /api/animate is not the only way to reach this route.
+    if (c && c.spec) {
+      let spec;
+      try {
+        spec = anim.sanitise(c.spec);
+      } catch (err) {
+        return res.status(400).json({ success: false, error: "Scene rejected: " + err.message });
+      }
+      clips.push({
+        spec,
+        tpl: "custom",
+        dur: Math.min(Math.max(Number(c.dur) || 4600, 1000), EXPORT_LIMITS.maxDurMs),
+        font: String((c && c.font) || "inter").slice(0, 24),
+        accent: /^#[0-9a-fA-F]{6}$/.test(String((c && c.accent) || "")) ? c.accent : undefined,
+        lines: []
+      });
+      continue;
+    }
+    const tpl = String((c && c.tpl) || "").slice(0, 40);
+    if (!/^[a-z0-9-]{2,40}$/.test(tpl)) {
+      return res.status(400).json({ success: false, error: "Invalid template id." });
+    }
+    clips.push({
+      tpl,
+      dur: Math.min(Math.max(Number(c.dur) || 4600, 1000), EXPORT_LIMITS.maxDurMs),
+      font: String((c && c.font) || "inter").slice(0, 24),
+      accent: /^#[0-9a-fA-F]{6}$/.test(String((c && c.accent) || "")) ? c.accent : undefined,
+      lines: Array.isArray(c && c.lines)
+        ? c.lines.slice(0, 3).map((l) => String(l == null ? "" : l).slice(0, 160))
+        : []
+    });
+  }
+
+  const dur = clips.reduce((s, c) => s + c.dur, 0);
+  if (dur > EXPORT_LIMITS.maxDurMs) {
+    return res.status(400).json({ success: false, error: "Requested clip is too long." });
+  }
+  const tpl = clips[0].tpl;
+
+  const ar = EXPORT_LIMITS.aspects[aspect];
+  // "720p" / "1080p" means the SHORT side, the way creators mean it: a 9:16
+  // 1080p export is 1080x1920, not 1080 tall.
+  const short = even(height);
+  let w, h;
+  if (ar[0] < ar[1]) {            // portrait -> width is the short side
+    w = short;
+    h = even(Math.round((short * ar[1]) / ar[0]));
+  } else if (ar[0] > ar[1]) {     // landscape -> height is the short side
+    h = short;
+    w = even(Math.round((short * ar[0]) / ar[1]));
+  } else {                        // square
+    w = h = short;
+  }
+
+  // frames are apportioned per clip so the total matches duration * fps exactly
+  const total = Math.round((dur / 1000) * fps);
+  if (total > EXPORT_LIMITS.maxFrames) {
+    return res.status(400).json({ success: false, error: "Requested clip is too long." });
+  }
+
+  // Exporting costs a credit. Charged after validation so a malformed request
+  // never bills, and refunded below if the render itself fails.
+  const bill = credits.charge(req, "export");
+  if (!bill.ok) {
+    return res.status(402).json({
+      success: false,
+      error: `Exporting costs ${bill.need} credit and you have ${bill.left} left today.`,
+      credits: credits.state(req)
+    });
+  }
+
+  try {
+    const mp4 = await serialise(async () => {
+      const browser = await getBrowser();
+      const page = await browser.newPage();
+      try {
+        await page.setViewport({ width: w, height: h, deviceScaleFactor: 1 });
+
+        // Build the documents with the very same engine the editor uses.
+        await page.goto("about:blank");
+        await page.addScriptTag({ path: path.join(__dirname, "public", "templates-v2.js") });
+        const docs = [];
+        for (const c of clips) {
+          const html = c.spec
+            ? await page.evaluate(
+              (spec, opts) => window.SC_TPL2.buildCustom(spec, opts),
+              c.spec,
+              { aspect, dur: c.dur, font: c.font, accent: c.accent || c.spec.accent }
+            )
+            : await page.evaluate(
+              (id, opts) => window.SC_TPL2.build(id, opts),
+              c.tpl,
+              { lines: c.lines, accent: c.accent, aspect, dur: c.dur, font: c.font }
+            );
+          if (!html) throw new Error("Unknown template.");
+          docs.push(html);
+        }
+
+        const frames = [];
+        let done = 0;
+        for (let ci = 0; ci < clips.length; ci++) {
+          const c = clips[ci];
+          // last clip absorbs the rounding remainder
+          const n = ci === clips.length - 1
+            ? total - done
+            : Math.round((c.dur / 1000) * fps);
+
+          await page.setContent(docs[ci], { waitUntil: "load" });
+          await page.evaluateHandle("document.fonts.ready");
+
+          // Freeze the timeline: from here every frame is positioned explicitly.
+          await page.evaluate(() => {
+            document.getAnimations().forEach((a) => a.pause());
+          });
+
+          const step = c.dur / Math.max(1, n);
+          for (let i = 0; i < n; i++) {
+            await page.evaluate((t) => {
+              document.getAnimations().forEach((a) => { a.currentTime = t; });
+            }, i * step);
+            frames.push(await page.screenshot({ type: "png", optimizeForSpeed: true }));
+          }
+          done += n;
+        }
+
+        return encodeMp4(frames, fps);
+      } finally {
+        await page.close().catch(() => {});
+      }
+    });
+
+    res.setHeader("Content-Type", "video/mp4");
+    res.setHeader("Content-Length", String(mp4.length));
+    res.setHeader("Content-Disposition",
+      `attachment; filename="shortscraft-${tpl}-${aspect.replace(":", "x")}.mp4"`);
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Credits-Left", String(credits.state(req).left));
+    return res.end(mp4);
+  } catch (err) {
+    credits.refund(req, "export");
+    console.error("[/api/export]", err.message);
+    if (/Unknown template/.test(err.message)) {
+      return res.status(400).json({ success: false, error: "Unknown template." });
+    }
+    const msg = /ffmpeg/i.test(err.message)
+      ? "Video encoder unavailable on the server."
+      : "Export failed. Please retry.";
+    return res.status(500).json({ success: false, error: msg });
+  }
+});
+
 const SEO_ROUTE_META = {
   "/seo-tools": {
     title: "SEO Tools — ShortsCraft",
@@ -471,17 +1008,34 @@ function escapeHtml(value = "") {
   return String(value).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch]));
 }
 
+/* The six keyword URLs all serve seo-tools.html with their own metadata.
+   The page is generated by build_pages.js, so the swap targets stable hooks
+   (data-seo attributes) instead of matching prose that a redesign would move. */
 function renderSeoToolsPage(route) {
   const meta = SEO_ROUTE_META[route] || SEO_ROUTE_META["/seo-tools"];
   const canonical = `https://shortscraft.online${route}`;
   const filePath = path.join(__dirname, "public", "seo-tools.html");
   let html = fs.readFileSync(filePath, "utf8");
-  html = html
-    .replace(/<title>.*?<\/title>/s, `<title>${escapeHtml(meta.title)}</title>`)
-    .replace(/<meta name="description" content=".*?"\/>/s, `<meta name="description" content="${escapeHtml(meta.description)}"/>`)
-    .replace(/<link rel="canonical" href=".*?"\/>/s, `<link rel="canonical" href="${canonical}"/>`)
-    .replace(/<section class="seo-tools-hero">([\s\S]*?)<h1>.*?<\/h1>\s*<p>.*?<\/p>/, `<section class="seo-tools-hero">$1<h1>${escapeHtml(meta.h1)}</h1>\n    <p>${escapeHtml(meta.intro)}</p>`)
-    .replace(/<h2>Scripts, titles, hashtags & more<\/h2>\s*<p>Use these tools after creating your video or whenever you need a complete Shorts content pack\.<\/p>/, `<h2>${escapeHtml(meta.h2)}</h2>\n        <p>${escapeHtml(meta.intro)}</p>`);
+
+  const swaps = [
+    [/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(meta.title)}</title>`],
+    [/<meta name="description" content="[\s\S]*?"\/>/, `<meta name="description" content="${escapeHtml(meta.description)}"/>`],
+    [/<meta property="og:title" content="[\s\S]*?"\/>/, `<meta property="og:title" content="${escapeHtml(meta.title)}"/>`],
+    [/<meta property="og:description" content="[\s\S]*?"\/>/, `<meta property="og:description" content="${escapeHtml(meta.description)}"/>`],
+    [/<meta property="og:url" content="[\s\S]*?"\/>/, `<meta property="og:url" content="${canonical}"/>`],
+    [/<link rel="canonical" href="[\s\S]*?"\/>/, `<link rel="canonical" href="${canonical}"/>`],
+    [/<h1 data-seo="h1">[\s\S]*?<\/h1>/, `<h1 data-seo="h1">${escapeHtml(meta.h1)}</h1>`],
+    [/<p data-seo="intro">[\s\S]*?<\/p>/, `<p data-seo="intro">${escapeHtml(meta.intro)}</p>`]
+  ];
+
+  for (const [re, replacement] of swaps) {
+    if (!re.test(html)) {
+      // fail loudly in the log instead of silently serving the generic page
+      console.warn("[seo meta] hook missing for", route, re.source.slice(0, 40));
+      continue;
+    }
+    html = html.replace(re, replacement);
+  }
   return html;
 }
 
@@ -490,13 +1044,16 @@ function renderSeoToolsPage(route) {
 // ============================================================
 const PAGES = {
   "/": "index.html",
-  "/generator": "generator.html",
-  "/seo-tools": "seo-tools.html",
+  "/editor": "editor.html",
+  "/community": "community.html",
   "/pricing": "pricing.html",
   "/about": "about.html",
   "/contact": "contact.html",
   "/privacy": "privacy.html",
   "/terms": "terms.html",
+  "/login": "login.html",
+  "/signup": "signup.html",
+  "/account": "account.html",
 
   // Legacy SEO tool URLs now open the new SEO Tools workspace.
   "/youtube-shorts-script-generator": "seo-tools.html",
@@ -506,6 +1063,12 @@ const PAGES = {
   "/youtube-shorts-ideas-generator": "seo-tools.html",
   "/ai-thumbnail-prompt-generator": "seo-tools.html",
 };
+
+// /generator was the old Studio on the legacy stylesheet stack. Its only unique
+// feature — AI script writing — now lives in the rebuilt /seo-tools, so the URL
+// is kept alive as a redirect instead of serving the old theme. 302, not 301,
+// because nothing is deployed yet and a permanent redirect is cached hard.
+app.get("/generator", (req, res) => res.redirect(302, "/seo-tools"));
 
 for (const [route, file] of Object.entries(PAGES)) {
   app.get(route, (req, res) => {
