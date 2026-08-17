@@ -131,7 +131,7 @@ ${nav}
       <div class="sh-plan-badge">
         <b>Free plan</b>
         <span>${P.free.perDay} credits every day. Export ${C.export}, AI scene ${C.animate}.</span>
-        <a href="/pricing">Upgrade to Pro · $5/mo (New user $2.50)</a>
+        <a href="/pricing">Upgrade to Pro · ₹99/mo — Upgrade ↗</a>
       </div>
     </div>
   </aside>
@@ -814,7 +814,7 @@ const indexPage = {
         <p>No complex video software or steep learning curves required. Generate modern, animated short-form graphics right in your browser.</p>
         <div class="sh-frow">
           <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
-          <a href="/pricing" class="sh-bo">View Pricing Plans · $5/mo</a>
+          <a href="/pricing" class="sh-bo">View Pricing Plans · From ₹99/mo</a>
         </div>
       </section>
     </main>`,

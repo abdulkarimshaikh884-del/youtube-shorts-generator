@@ -315,7 +315,8 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   line-height:1.1;letter-spacing:-.04em;font-weight:800;color:#fff;
   text-transform:none;
 }
-.sh-hero-sub{
+.sh-hero-sub,
+.sh-sub{
   position:relative;
   z-index:1;
   display:block;
@@ -323,6 +324,14 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   max-width:620px;
   font-size:clamp(15px,1.6vw,18px);
   line-height:1.6;color:var(--sh-ink3);
+}
+
+/* Gradient accent span inside hero h1 */
+.sh-grad{
+  background:linear-gradient(135deg,#fff 30%,#a0a0b0 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
 }
 
 .sh-composer{
