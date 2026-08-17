@@ -273,19 +273,19 @@
       var frag = document.createDocumentFragment();
       comments.forEach(function (c) {
         var item = document.createElement("div");
-        item.className = "td-comment-item";
+        item.className = "sh-m-comm-item";
 
         var initials = (c.authorHandle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
 
         item.innerHTML = [
-          '<div class="td-c-avatar">' + initials + '</div>',
-          '<div class="td-c-body">',
-          '  <div class="td-c-head">',
-          '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="td-c-name">' + (c.authorName || "Creator") + '</a>',
-          '    <span class="td-c-handle">' + (c.authorHandle || "@creator") + '</span>',
-          '    <span class="td-c-time">' + (c.time || "Recently") + '</span>',
+          '<div class="sh-m-c-item-av">' + initials + '</div>',
+          '<div class="sh-m-c-item-body">',
+          '  <div class="sh-m-c-item-head">',
+          '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="sh-m-c-item-name">' + (c.authorName || "Creator") + '</a>',
+          '    <span class="sh-m-c-item-handle">' + (c.authorHandle || "@creator") + '</span>',
+          '    <span class="sh-m-c-item-time">' + (c.time || "Recently") + '</span>',
           '  </div>',
-          '  <p class="td-c-text">' + escapeHtml(c.text || "") + '</p>',
+          '  <p class="sh-m-c-item-text">' + escapeHtml(c.text || "") + '</p>',
           '</div>'
         ].join("");
 

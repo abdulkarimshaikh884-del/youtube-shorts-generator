@@ -855,103 +855,48 @@ const templatePage = {
   active: "templates",
   title: "Template Details — ShortsCraft",
   desc: "Preview, customize and discuss creator motion graphics templates for YouTube Shorts and Instagram Reels.",
-  head: `<style>
-.td-wrap{display:grid;grid-template-columns:minmax(320px, 440px) 1fr;gap:40px;padding:32px 36px 64px;max-width:1300px;margin:0 auto}
-@media(max-width:960px){.td-wrap{grid-template-columns:1fr;padding:20px 16px}}
-.td-left{display:flex;flex-direction:column;gap:18px}
-.td-stage-box{position:relative;width:100%;aspect-ratio:9/16;background:#050508;border:1px solid rgba(255,255,255,.1);border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.8)}
-.td-stage-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.td-stage-bar{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.td-studio-cta{flex:1;height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#000 !important;border-radius:999px;font-family:var(--sh-display);font-size:15px;font-weight:750;box-shadow:0 8px 24px rgba(255,255,255,.25);transition:all .18s ease;text-decoration:none}
-.td-studio-cta:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(255,255,255,.35);filter:brightness(1.05)}
-.td-act-btn{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#fff;display:grid;place-items:center;cursor:pointer;transition:all .15s ease}
-.td-act-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25)}
-.td-act-btn.liked{color:#ff4b6e;border-color:#ff4b6e;background:rgba(255,75,110,.15)}
-
-.td-right{display:flex;flex-direction:column;gap:24px}
-.td-head-sec{border-bottom:1px solid var(--sh-line);padding-bottom:20px}
-.td-back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--sh-ink3);margin-bottom:12px;transition:color .15s ease}
-.td-back-link:hover{color:#fff}
-.td-cat-pill{display:inline-block;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);font-size:11px;font-weight:750;letter-spacing:.08em;color:#fff;margin-bottom:10px}
-.td-head-sec h1{font-family:var(--sh-display);font-size:clamp(26px,3vw,38px);font-weight:750;letter-spacing:-.025em;margin:0 0 10px;color:#fff}
-.td-desc{font-size:14.5px;line-height:1.6;color:var(--sh-ink2);margin:0 0 16px}
-.td-specs-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.td-spec-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:8px;background:var(--sh-bg2);border:1px solid var(--sh-line);font-size:12px;color:var(--sh-ink3)}
-.td-spec-chip b{color:#fff;font-weight:600}
-
-.td-creator-card{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:16px;background:var(--sh-bg2);border:1px solid var(--sh-line);transition:all .18s ease;text-decoration:none;color:inherit}
-.td-creator-card:hover{border-color:var(--sh-line2);background:var(--sh-bg3);transform:translateY(-2px)}
-.td-creator-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.2);display:grid;place-items:center;font-size:16px;font-weight:750;color:#fff;flex:none}
-.td-creator-info{flex:1;min-width:0}
-.td-creator-name{display:block;font-size:15px;font-weight:700;color:#fff}
-.td-creator-handle{display:block;font-size:12.5px;color:var(--sh-ink3)}
-.td-creator-bio{display:block;font-size:12px;color:var(--sh-ink2);margin-top:4px;line-height:1.4}
-.td-creator-arrow{color:var(--sh-ink3);font-size:18px;font-weight:700}
-
-.td-comments-sec{display:flex;flex-direction:column;gap:16px}
-.td-comments-head{font-family:var(--sh-display);font-size:19px;font-weight:700;color:#fff;margin:0}
-.td-comment-form{display:flex;flex-direction:column;gap:10px}
-.td-comment-input{width:100%;height:68px;padding:12px 16px;background:var(--sh-bg2);border:1px solid var(--sh-line);border-radius:12px;color:#fff;font-family:var(--sh-font);font-size:13.5px;resize:none;outline:none;transition:border-color .15s ease}
-.td-comment-input:focus{border-color:rgba(255,255,255,.3)}
-.td-comment-submit{align-self:flex-end;height:36px;padding:0 20px;background:#fff;color:#000;border:0;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s ease}
-.td-comment-submit:hover{opacity:.9}
-.td-comments-list{display:flex;flex-direction:column;gap:12px}
-.td-comment-item{display:flex;gap:12px;padding:12px 14px;background:var(--sh-bg2);border:1px solid var(--sh-line);border-radius:12px}
-.td-c-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid var(--sh-line);display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;flex:none}
-.td-c-body{flex:1;min-width:0}
-.td-c-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.td-c-name{font-size:13px;font-weight:650;color:#fff;text-decoration:none}
-.td-c-name:hover{text-decoration:underline}
-.td-c-handle{font-size:11px;color:var(--sh-ink3)}
-.td-c-time{font-size:10.5px;color:var(--sh-ink4);margin-left:auto}
-.td-c-text{font-size:13px;line-height:1.5;color:var(--sh-ink2);margin:0}
-</style>`,
-  body: `    <main class="sh-home">
-      <div class="td-wrap">
-        <div class="td-left">
-          <div class="td-stage-box" id="detailStage"></div>
-          <div class="td-stage-bar">
-            <a href="/editor" class="td-studio-cta" id="detailStudioBtn">✦ Customize in Studio →</a>
-            <button type="button" class="td-act-btn" id="detailReplayBtn" title="Replay Animation"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>
-            <button type="button" class="td-act-btn" id="detailLikeBtn" title="Like Template"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-            <button type="button" class="td-act-btn" id="detailShareBtn" title="Share Template Link"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+  body: `    <main class="sh-home" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 60px);padding:24px 16px;">
+      <div class="sh-modal-card" style="transform:none;opacity:1;position:relative;">
+        <a href="/#templates" class="sh-modal-close" aria-label="Back to templates">×</a>
+        <div class="sh-modal-left">
+          <div class="sh-modal-stage" id="detailStage"></div>
+          <a href="/editor" class="sh-modal-cta" id="detailStudioBtn">✦ Customize in Studio →</a>
+          <div class="sh-modal-ctrls">
+            <button type="button" class="sh-modal-act-btn" id="detailReplayBtn">▶ Replay</button>
+            <button type="button" class="sh-modal-act-btn" id="detailLikeBtn">♥ <span class="td-like-count">0</span></button>
+            <button type="button" class="sh-modal-act-btn" id="detailShareBtn">🔗 Share</button>
           </div>
         </div>
 
-        <div class="td-right">
-          <div class="td-head-sec">
-            <a href="/#templates" class="td-back-link">← Back to Templates</a>
-            <div><span class="td-cat-pill" id="detailCat">✦ DOCUMENTARY</span></div>
-            <h1 id="detailTitle">Template Title</h1>
-            <p class="td-desc" id="detailDesc">Loading template details...</p>
-            <div class="td-specs-row">
-              <span class="td-spec-chip">Duration: <b id="detailDur">4.6s</b></span>
-              <span class="td-spec-chip">Framerate: <b>60 FPS</b></span>
-              <span class="td-spec-chip">Format: <b>9:16 Shorts</b></span>
-              <span class="td-spec-chip">Engine: <b>Pure CSS Motion</b></span>
+        <div class="sh-modal-right">
+          <div>
+            <span class="sh-m-cat" id="detailCat">✦ DOCUMENTARY</span>
+            <h2 class="sh-m-title" id="detailTitle">Template Title</h2>
+            <p class="sh-m-desc" id="detailDesc">Loading template details...</p>
+            <div class="sh-m-specs">
+              <span class="sh-m-spec">Duration: <b id="detailDur">4.6s</b></span>
+              <span class="sh-m-spec">Framerate: <b>60 FPS</b></span>
+              <span class="sh-m-spec">Format: <b>9:16 Shorts</b></span>
             </div>
           </div>
 
-          <div>
-            <span style="font-size:12px;font-weight:700;color:var(--sh-ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;display:block;">Created By</span>
-            <a href="/creator" class="td-creator-card" id="detailCreatorCard">
-              <div class="td-creator-avatar">CD</div>
-              <div class="td-creator-info">
-                <span class="td-creator-name">Crime Stories</span>
-                <span class="td-creator-handle">@crimedocu</span>
-                <span class="td-creator-bio">Creating high-retention true crime and investigation templates.</span>
-              </div>
-              <span class="td-creator-arrow">→</span>
-            </a>
-          </div>
+          <a href="/creator" class="sh-m-creator" id="detailCreatorCard">
+            <div class="sh-m-c-av td-creator-avatar">CD</div>
+            <div class="sh-m-c-info">
+              <span class="sh-m-c-name td-creator-name">Crime Stories</span>
+              <span class="sh-m-c-handle td-creator-handle">@crimedocu</span>
+              <span class="sh-m-c-bio td-creator-bio">Creating high-retention true crime and investigation templates.</span>
+            </div>
+            <span style="color:var(--sh-ink3);font-size:16px;font-weight:700;">→</span>
+          </a>
 
-          <div class="td-comments-sec" id="comments">
-            <h2 class="td-comments-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink3);font-size:15px;font-weight:550;">(3)</span></h2>
-            <form class="td-comment-form" id="commentForm">
-              <textarea class="td-comment-input" id="commentInput" placeholder="Write a comment or question about this template..." required></textarea>
-              <button type="submit" class="td-comment-submit">Post Comment</button>
+          <div class="sh-m-comments" id="comments">
+            <h3 class="sh-m-comm-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink3);font-size:13px;">(3)</span></h3>
+            <form class="sh-m-comm-form" id="commentForm">
+              <textarea class="sh-m-comm-input" id="commentInput" placeholder="Write a comment or question about this template..." required></textarea>
+              <button type="submit" class="sh-m-comm-btn">Post Comment</button>
             </form>
-            <div class="td-comments-list" id="commentsList">
+            <div class="sh-m-comm-list" id="commentsList">
               <div class="td-no-comments">Loading discussions...</div>
             </div>
           </div>

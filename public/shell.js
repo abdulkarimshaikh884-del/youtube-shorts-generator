@@ -3,6 +3,7 @@
    - Live template gallery from SC_TPL2 (sandboxed, lazy-mounted iframes)
    - Clean category filtering & real-time search
    - Full card presentation: Title, 2-line clamped Description, Creator Avatar & Handle, Like / Comment / Share action buttons
+   - Compact Centered Modal Popup on click (User Spec)
    - Prompt composer -> Video Studio
    Depends on /templates-v2.js -> window.SC_TPL2
    ============================================================ */
@@ -21,19 +22,225 @@
       var name = t.authorName || t.authorHandle;
       var handle = t.authorHandle.replace(/^@/, "");
       var initials = handle.slice(0, 2).toUpperCase();
-      return { name: name, handle: "@" + handle, initials: initials };
+      return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft." };
     }
     var catMap = {
-      docu: { name: "Crime Stories", handle: "@crimedocu", initials: "CD" },
-      paper: { name: "Aman Motion FX", handle: "@aman_fx", initials: "AF" },
-      ui: { name: "Sarah Creative", handle: "@sarah_motion", initials: "SC" },
-      social: { name: "Vikram Shorts", handle: "@vikram_creations", initials: "VS" },
-      charts: { name: "Kabir Motion", handle: "@kabir_motion", initials: "KM" },
-      money: { name: "Finance Pulse", handle: "@finance_pulse", initials: "FP" },
-      text: { name: "Kinetic Studio", handle: "@typography_pro", initials: "KS" },
-      maps: { name: "Geo Explorer", handle: "@geo_explorer", initials: "GE" }
+      docu: { name: "Crime Stories", handle: "@crimedocu", initials: "CD", bio: "Creating high-retention dark documentary hooks, investigation evidence boards, and true crime storytelling templates for YouTube Shorts." },
+      paper: { name: "Aman Motion FX", handle: "@aman_fx", initials: "AF", bio: "Procedural paper craft, cutting mat collage textures, deckle edges and viral kinetic transitions." },
+      ui: { name: "Sarah Creative", handle: "@sarah_motion", initials: "SC", bio: "Clean 3D UI toggles, iOS notifications, Google search widgets, and modern device mockups." },
+      social: { name: "Vikram Shorts", handle: "@vikram_creations", initials: "VS", bio: "Viral social counter animations, live views tickers, subscriber milestones, and engagement overlays." },
+      charts: { name: "Kabir Motion", handle: "@kabir_motion", initials: "KM", bio: "Cyberpunk neon rings, data visualizations, circular progress meters and futuristic HUD graphics." },
+      money: { name: "Finance Pulse", handle: "@finance_pulse", initials: "FP", bio: "Titanium cards, market candlestick charts, crypto surges, and luxury finance motion graphics." },
+      text: { name: "Kinetic Studio", handle: "@typography_pro", initials: "KS", bio: "High-impact kinetic text, word-by-word cascades, 3D typography and punchy dialogue animations." },
+      maps: { name: "Geo Explorer", handle: "@geo_explorer", initials: "GE", bio: "Tactical map route animations, radar pulses, satellite coordinates and geo-location documentary graphics." }
     };
-    return catMap[t.cat] || { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC" };
+    return catMap[t.cat] || { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC", bio: "Official curated ShortsCraft animation library presets for viral YouTube Shorts and Reels." };
+  }
+
+  /* ── Modal Dialog Logic (Compact Centered Size) ────────── */
+  function openTemplateModal(t) {
+    var modal = $("#tplModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "tplModal";
+      modal.className = "sh-modal-overlay";
+      modal.innerHTML = [
+        '<div class="sh-modal-card">',
+        '  <button type="button" class="sh-modal-close" id="modalClose" aria-label="Close modal">×</button>',
+        '  <div class="sh-modal-left">',
+        '    <div class="sh-modal-stage" id="modalStage"></div>',
+        '    <a href="/editor" class="sh-modal-cta" id="modalStudioBtn">✦ Customize in Studio →</a>',
+        '    <div class="sh-modal-ctrls">',
+        '      <button type="button" class="sh-modal-act-btn" id="modalReplayBtn">▶ Replay</button>',
+        '      <button type="button" class="sh-modal-act-btn" id="modalLikeBtn">♥ <span class="sh-m-like-num">0</span></button>',
+        '      <button type="button" class="sh-modal-act-btn" id="modalShareBtn">🔗 Share</button>',
+        '    </div>',
+        '  </div>',
+        '  <div class="sh-modal-right">',
+        '    <div>',
+        '      <span class="sh-m-cat" id="modalCat">✦ DOCUMENTARY</span>',
+        '      <h2 class="sh-m-title" id="modalTitle">Template Title</h2>',
+        '      <p class="sh-m-desc" id="modalDesc">Description</p>',
+        '      <div class="sh-m-specs">',
+        '        <span class="sh-m-spec">Duration: <b id="modalDur">4.6s</b></span>',
+        '        <span class="sh-m-spec">Framerate: <b>60 FPS</b></span>',
+        '        <span class="sh-m-spec">Format: <b>9:16 Shorts</b></span>',
+        '      </div>',
+        '    </div>',
+        '    <a href="/creator" class="sh-m-creator" id="modalCreatorLink">',
+        '      <div class="sh-m-c-av" id="modalCreatorAv">CD</div>',
+        '      <div class="sh-m-c-info">',
+        '        <span class="sh-m-c-name" id="modalCreatorName">Creator Name</span>',
+        '        <span class="sh-m-c-handle" id="modalCreatorHandle">@creator</span>',
+        '        <span class="sh-m-c-bio" id="modalCreatorBio">Creator bio description</span>',
+        '      </div>',
+        '      <span style="color:var(--sh-ink3);font-size:16px;font-weight:700;">→</span>',
+        '    </a>',
+        '    <div class="sh-m-comments">',
+        '      <h3 class="sh-m-comm-head">Community Comments <span id="modalCommCount" style="color:var(--sh-ink3);font-size:13px;">(0)</span></h3>',
+        '      <form class="sh-m-comm-form" id="modalCommForm">',
+        '        <textarea class="sh-m-comm-input" id="modalCommInput" placeholder="Write a comment about this template..." required></textarea>',
+        '        <button type="submit" class="sh-m-comm-btn">Post Comment</button>',
+        '      </form>',
+        '      <div class="sh-m-comm-list" id="modalCommList"></div>',
+        '    </div>',
+        '  </div>',
+        '</div>'
+      ].join("");
+      document.body.appendChild(modal);
+
+      modal.addEventListener("click", function (ev) {
+        if (ev.target === modal || (ev.target.id && ev.target.id === "modalClose")) {
+          closeTemplateModal();
+        }
+      });
+
+      document.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape" && modal.classList.contains("open")) {
+          closeTemplateModal();
+        }
+      });
+    }
+
+    var author = getAuthor(t);
+    $("#modalTitle").textContent = t.name;
+    $("#modalCat").textContent = "✦ " + (t.cat ? t.cat.toUpperCase() : "MOTION");
+    $("#modalDesc").textContent = t.desc;
+    $("#modalDur").textContent = ((t.dur || 4600) / 1000).toFixed(1) + "s";
+
+    var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl);
+    if (t.isCommunity) {
+      editUrl += "&accent=" + encodeURIComponent(t.accent || "#ffffff")
+        + "&font=" + encodeURIComponent(t.font || "inter")
+        + "&dur=" + encodeURIComponent(t.dur || 4600)
+        + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
+    }
+    $("#modalStudioBtn").href = editUrl;
+
+    var creatorUrl = "/creator?handle=" + encodeURIComponent(author.handle.replace(/^@/, ""));
+    $("#modalCreatorLink").href = creatorUrl;
+    $("#modalCreatorAv").textContent = author.initials;
+    $("#modalCreatorName").textContent = author.name;
+    $("#modalCreatorHandle").textContent = author.handle;
+    $("#modalCreatorBio").textContent = author.bio || "Motion graphics designer on ShortsCraft.";
+
+    var lkSpan = modal.querySelector(".sh-m-like-num");
+    if (lkSpan) lkSpan.textContent = String(t.likes);
+
+    // Mount live preview stage
+    var mStage = $("#modalStage");
+    mStage.innerHTML = "";
+    var e = engine();
+    if (e) {
+      var html = t.isCommunity
+        ? e.build(t.tpl, { lines: t.lines || [], accent: t.accent || "#ffffff", font: t.font || "inter", dur: Number(t.dur) || 4600, aspect: "9:16" })
+        : e.build(t.tpl, { aspect: "9:16" });
+
+      var frame = document.createElement("iframe");
+      frame.setAttribute("sandbox", "allow-scripts");
+      frame.setAttribute("scrolling", "no");
+      frame.srcdoc = html;
+      mStage.appendChild(frame);
+    }
+
+    // Load comments
+    loadModalComments(t.tpl);
+
+    // Wire Replay
+    $("#modalReplayBtn").onclick = function () {
+      openTemplateModal(t);
+    };
+
+    // Wire Share
+    $("#modalShareBtn").onclick = function () {
+      var url = window.location.origin + "/template?id=" + encodeURIComponent(t.tpl);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () {
+          var sp = $("#modalShareBtn");
+          sp.textContent = "Copied!";
+          setTimeout(function () { sp.textContent = "🔗 Share"; }, 2000);
+        });
+      } else {
+        prompt("Copy template link:", url);
+      }
+    };
+
+    // Wire Comment form
+    $("#modalCommForm").onsubmit = function (ev) {
+      ev.preventDefault();
+      var inp = $("#modalCommInput");
+      var val = inp.value.trim();
+      if (!val) return;
+      fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tpl: t.tpl, text: val, authorName: "You", authorHandle: "@creator" })
+      })
+        .then(function () {
+          inp.value = "";
+          loadModalComments(t.tpl);
+        })
+        .catch(function () { loadModalComments(t.tpl); });
+    };
+
+    modal.classList.add("open");
+    modal.removeAttribute("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeTemplateModal() {
+    var modal = $("#tplModal");
+    if (modal) {
+      modal.classList.remove("open");
+      modal.setAttribute("hidden", "");
+      var mStage = $("#modalStage");
+      if (mStage) mStage.innerHTML = "";
+    }
+    document.body.style.overflow = "";
+  }
+
+  function loadModalComments(tplId) {
+    var list = $("#modalCommList");
+    var count = $("#modalCommCount");
+    if (!list) return;
+
+    fetch("/api/comments?tpl=" + encodeURIComponent(tplId))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var comms = (d && d.comments) || [];
+        if (count) count.textContent = "(" + comms.length + ")";
+        list.innerHTML = "";
+        if (comms.length === 0) {
+          list.innerHTML = '<div style="font-size:12px;color:var(--sh-ink3);padding:6px 0;">No comments yet.</div>';
+          return;
+        }
+        var frag = document.createDocumentFragment();
+        comms.forEach(function (c) {
+          var item = document.createElement("div");
+          item.className = "sh-m-comm-item";
+          var initials = (c.authorHandle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
+          item.innerHTML = [
+            '<div class="sh-m-c-item-av">' + initials + '</div>',
+            '<div class="sh-m-c-item-body">',
+            '  <div class="sh-m-c-item-head">',
+            '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="sh-m-c-item-name">' + (c.authorName || "Creator") + '</a>',
+            '    <span class="sh-m-c-item-handle">' + (c.authorHandle || "@creator") + '</span>',
+            '    <span class="sh-m-c-item-time">' + (c.time || "Recently") + '</span>',
+            '  </div>',
+            '  <p class="sh-m-c-item-text">' + escapeHtml(c.text || "") + '</p>',
+            '</div>'
+          ].join("");
+          frag.appendChild(item);
+        });
+        list.appendChild(frag);
+      })
+      .catch(function () {});
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
   }
 
   /* ── Gallery Rendering ─────────────────────────────────── */
@@ -132,7 +339,6 @@
     if (!grid || !e) return;
 
     grid.innerHTML = "";
-    grid.dataset.ar = currentAspect;
 
     fetch("/api/community-templates")
       .then(function (r) { return r.json(); })
@@ -229,10 +435,7 @@
           editUrl += "&accent=" + encodeURIComponent(t.accent || "#ffffff")
             + "&font=" + encodeURIComponent(t.font || "inter")
             + "&dur=" + encodeURIComponent(t.dur || 4600)
-            + "&aspect=" + encodeURIComponent(currentAspect)
             + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
-        } else {
-          editUrl += "&aspect=" + encodeURIComponent(currentAspect);
         }
 
         var stage = document.createElement("div");
@@ -242,6 +445,10 @@
         linkCover.className = "sh-stage-link";
         linkCover.href = detailUrl;
         linkCover.setAttribute("aria-label", "View details for " + t.name);
+        linkCover.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          openTemplateModal(t);
+        });
         stage.appendChild(linkCover);
 
         // Top Badges
@@ -295,13 +502,17 @@
         var meta = document.createElement("div");
         meta.className = "sh-tmeta";
 
-        // 1. Title (Clickable to /template)
+        // 1. Title (Clickable to open modal)
         var titleRow = document.createElement("div");
         titleRow.className = "sh-ttitle-row";
         var titleEl = document.createElement("a");
         titleEl.className = "sh-ttitle";
         titleEl.href = detailUrl;
         titleEl.textContent = t.name;
+        titleEl.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          openTemplateModal(t);
+        });
         titleRow.appendChild(titleEl);
         meta.appendChild(titleRow);
 
@@ -363,12 +574,16 @@
           }
         });
 
-        // Comment Button (Opens /template#comments)
+        // Comment Button (Opens modal with comments focus)
         var commentBtn = document.createElement("a");
         commentBtn.className = "sh-tact-btn comment";
         commentBtn.href = detailUrl + "#comments";
         commentBtn.title = "View comments & discussions";
         commentBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + Math.max(2, Math.floor(t.likes / 6)) + '</span>';
+        commentBtn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          openTemplateModal(t);
+        });
 
         // Share Button
         var shareBtn = document.createElement("button");
@@ -410,12 +625,12 @@
 
       var tiles = Array.prototype.slice.call(grid.children);
 
-      // Mount the top tiles immediately
+      // Mount top tiles
       tiles.slice(0, 16).forEach(function (t) {
         mount(t);
       });
 
-      // Lazy mount the rest via IntersectionObserver
+      // Lazy mount via IntersectionObserver
       if ("IntersectionObserver" in window) {
         var io = new IntersectionObserver(function (entries) {
           entries.forEach(function (en) {
@@ -706,5 +921,5 @@
     init();
   }
 
-  window.SC_SHELL = { refreshGallery: buildGallery };
+  window.SC_SHELL = { refreshGallery: buildGallery, openModal: openTemplateModal };
 })();
