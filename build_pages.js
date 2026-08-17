@@ -731,9 +731,6 @@ const indexPage = {
           <label class="sh-imgbtn" for="composerImg" title="Attach image to animate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
           </label>
-          <a href="/editor" class="sh-imgbtn" title="Open Video Studio timeline">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          </a>
           <button class="sh-imgchip" type="button" id="composerImgClear" hidden>
             <span id="composerImgName">image</span> <b>×</b>
           </button>
@@ -766,23 +763,19 @@ const indexPage = {
 
       <section class="sh-gallery-sec" id="templates">
         <div class="sh-ghead">
-          <div class="sh-ghead-top">
+          <div class="sh-search-bar-row">
             <div class="sh-search-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input type="text" id="tplSearch" placeholder="Search 80+ motion templates..." autocomplete="off">
               <button type="button" id="tplSearchClear" hidden>×</button>
             </div>
+            <div class="sh-filters-scroll" id="filters"></div>
             <div class="sh-ratio-switch" id="ratioSwitch" role="group" aria-label="Aspect Ratio Filter">
               <button type="button" class="sh-rchip active" data-ar="9:16" aria-pressed="true">9:16</button>
               <button type="button" class="sh-rchip" data-ar="16:9" aria-pressed="false">16:9</button>
               <button type="button" class="sh-rchip" data-ar="1:1" aria-pressed="false">1:1</button>
               <button type="button" class="sh-rchip" data-ar="4:5" aria-pressed="false">4:5</button>
             </div>
-          </div>
-          <div class="sh-filters-wrap">
-            <button type="button" class="sh-fnav-btn prev" id="fnavPrev" aria-label="Scroll left">‹</button>
-            <div class="sh-filters" id="filters"></div>
-            <button type="button" class="sh-fnav-btn next" id="fnavNext" aria-label="Scroll right">›</button>
           </div>
         </div>
         <div class="sh-gallery" id="gallery" data-ar="9:16"></div>
