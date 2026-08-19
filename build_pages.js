@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const OUT = path.join(__dirname, "public");
-const V = "20260819";
+const V = "202608192";
 
 const { LIFETIME_SLOTS } = require("./credits");
 
@@ -362,7 +362,7 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
             <li>MP4 export up to 1080p</li>
             <li>No card required</li>
           </ul>
-          <a href="/editor" class="pg-bo">Start free</a>
+          <a href="/" class="pg-bo">Start free</a>
         </article>
 
         <article class="pg-plan pg-hot">

@@ -101,16 +101,19 @@
 }
 .pg-bw::after{
   content:"";
-  position:absolute;top:-50%;left:-60%;
+  position:absolute;top:-50%;left:0;
   width:40%;height:200%;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);
-  transform:rotate(25deg);
   animation:pgBtnShine 4.5s cubic-bezier(.16,1,.3,1) infinite;
   pointer-events:none;
+  will-change:transform;
 }
+/* Animating `left` re-runs layout on every frame of an infinite loop, on every
+   white button on the page. translateX composites on the GPU instead and looks
+   identical. */
 @keyframes pgBtnShine{
-  0%,65%{left:-60%}
-  100%{left:140%}
+  0%,65%{transform:translateX(-160%) rotate(25deg)}
+  100%  {transform:translateX(350%) rotate(25deg)}
 }
 /* shell.css sets `body.sh-body{color:#fff !important}` plus
    `body.sh-body a{color:inherit}` — that selector outranks a single class, so an
@@ -1114,5 +1117,100 @@ body.pg-bare{
   .sh-footer-inner {
     flex-direction: column;
     gap: 24px;
+  }
+}
+/* ============================================================
+   Micro-interactions
+   Every rule below animates only `transform`, `opacity`, `box-shadow` or
+   `filter` — properties the compositor handles on the GPU. Nothing here
+   animates width/height/top/left, so no rule can trigger layout on scroll and
+   the page stays smooth on a phone. Everything is switched off under
+   prefers-reduced-motion at the end of the file.
+   ============================================================ */
+
+/* Buttons: a small lift, and a press that actually feels pressed. */
+.pg-bw, .pg-bo, button.pg-buy{
+  transition:transform .18s cubic-bezier(.16,1,.3,1),
+             box-shadow .18s ease,
+             background-color .18s ease,
+             border-color .18s ease;
+}
+.pg-bw:hover, .pg-bo:hover, button.pg-buy:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 26px rgba(0,0,0,.55);
+}
+.pg-bw:active, .pg-bo:active, button.pg-buy:active{
+  transform:translateY(0) scale(.985);
+  transition-duration:.06s;
+}
+button.pg-buy[disabled]{transform:none;box-shadow:none}
+
+/* The paid plans are the page's job — give them a slow breathing glow so the
+   eye lands there, and a firmer lift on hover. */
+.pg-plan.pg-hot, .pg-plan.pg-max{position:relative}
+.pg-plan.pg-hot:hover, .pg-plan.pg-max:hover{transform:translateY(-7px)}
+.pg-plan.pg-max{animation:pgMaxGlow 4.5s ease-in-out infinite alternate}
+@keyframes pgMaxGlow{
+  from{box-shadow:0 22px 60px rgba(0,0,0,.6), 0 0 22px rgba(245,180,60,.10)}
+  to  {box-shadow:0 22px 60px rgba(0,0,0,.6), 0 0 38px rgba(245,180,60,.26)}
+}
+
+/* Launch-offer banner: slides in once, then the tag pulses gently. */
+.pg-offer{animation:pgOfferIn .5s cubic-bezier(.16,1,.3,1) both}
+@keyframes pgOfferIn{
+  from{opacity:0;transform:translateY(-8px)}
+  to  {opacity:1;transform:none}
+}
+.pg-offer-tag{animation:pgTagPulse 2.6s ease-in-out infinite}
+@keyframes pgTagPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(245,180,60,0)}
+  50%    {transform:scale(1.045);box-shadow:0 0 14px rgba(245,180,60,.4)}
+}
+#offerLeft{animation:pgSeatsIn .45s ease-out both}
+@keyframes pgSeatsIn{from{opacity:0}to{opacity:1}}
+
+/* Cards lift on hover; the tick marks stay put so nothing reflows. */
+.pg-card{
+  transition:transform .2s cubic-bezier(.16,1,.3,1), border-color .2s ease, box-shadow .2s ease;
+}
+.pg-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,255,255,.24);
+  box-shadow:0 16px 40px rgba(0,0,0,.5);
+}
+
+/* Status line under the plans fades in whenever its text changes. */
+.pg-note:not(:empty){animation:pgNoteIn .3s ease-out both}
+@keyframes pgNoteIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+
+/* Account: the profile card and each section arrive in sequence. */
+.pg-prof{animation:pgUp .45s cubic-bezier(.16,1,.3,1) both}
+.pg-accsec{animation:pgUp .45s cubic-bezier(.16,1,.3,1) both}
+.pg-accsec:nth-of-type(1){animation-delay:.05s}
+.pg-accsec:nth-of-type(2){animation-delay:.10s}
+.pg-accsec:nth-of-type(3){animation-delay:.15s}
+@keyframes pgUp{
+  from{opacity:0;transform:translateY(10px)}
+  to  {opacity:1;transform:none}
+}
+.pg-prof-av{transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
+.pg-prof:hover .pg-prof-av{transform:scale(1.06) rotate(-3deg)}
+
+/* SEO tools: results fade in, and the active tab slides rather than snaps. */
+.pg-tab{transition:transform .16s ease, background-color .16s ease, color .16s ease}
+.pg-tab:hover{transform:translateY(-1px)}
+.pg-outbody > *{animation:pgOutIn .32s ease-out both}
+@keyframes pgOutIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Anyone who has asked their OS for less motion gets none of it. */
+@media (prefers-reduced-motion:reduce){
+  .pg-bw, .pg-bo, button.pg-buy,
+  .pg-plan.pg-hot, .pg-plan.pg-max,
+  .pg-offer, .pg-offer-tag, #offerLeft,
+  .pg-card, .pg-note, .pg-prof, .pg-accsec,
+  .pg-prof-av, .pg-tab, .pg-outbody > *{
+    animation:none !important;
+    transition:none !important;
+    transform:none !important;
   }
 }
