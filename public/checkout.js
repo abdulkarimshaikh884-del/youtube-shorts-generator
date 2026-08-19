@@ -17,6 +17,38 @@
     note.className = "pg-note pg-center" + (kind ? " " + kind : "");
   }
 
+  /* Until the gateway is switched on the page reserves seats instead of
+     charging. The server decides which mode we are in, so turning payments on
+     needs no edit here. */
+  var paymentsLive = true;
+
+  function paintReserveMode(o) {
+    var banner = $("#offerBanner");
+    var left = $("#offerLeft");
+    var term = $("#maxTerm");
+    var line = $("#maxLine");
+
+    if (banner) banner.hidden = false;
+    if (left) {
+      var when = o.opensOn ? " Opens " + o.opensOn + "." : "";
+      left.textContent = (o.reserved > 0
+        ? o.reserved + (o.reserved === 1 ? " creator has" : " creators have") + " reserved a seat."
+        : "Reserve yours before it opens.") + when;
+    }
+    if (term) term.textContent = "one-time · lifetime";
+    if (line) {
+      line.innerHTML = "<b>Lifetime access</b> — pay once when it opens, keep "
+        + "Pro Max for good. Reserve now and you keep this price.";
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".pg-buy"), function (btn) {
+      btn.textContent = btn.dataset.plan === "promax"
+        ? "Reserve a lifetime seat"
+        : "Notify me when Pro opens";
+    });
+    say("Payments open shortly. Reserve a seat and we will email you the moment they do — nothing is charged now.");
+  }
+
   /* ── Launch offer counter ─────────────────────────────────
      Pro Max is lifetime for the first N members. Once they are gone the same
      price buys a year, so the page must say which one the visitor is getting. */
@@ -25,6 +57,9 @@
       .then(function (r) { return r.json(); })
       .then(function (o) {
         if (!o || !o.success) return;
+
+        paymentsLive = o.paymentsLive !== false;
+        if (!paymentsLive) { paintReserveMode(o); return; }
 
         var banner = $("#offerBanner");
         var left = $("#offerLeft");
@@ -163,11 +198,59 @@
       });
   }
 
+  /* ── Reserve a seat (payments not open yet) ───────────────
+     Asks for an email rather than silently using the account's, so a signed-in
+     visitor can still put a different address on the list. */
+  function reserve(planId, btn) {
+    var pre = "";
+    try {
+      var el = document.querySelector("[data-user-email]");
+      if (el && el.textContent.indexOf("@") > -1) pre = el.textContent.trim();
+    } catch (e) { /* not signed in */ }
+
+    var email = window.prompt(
+      "Enter your email and we will tell you the moment " +
+      (planId === "promax" ? "lifetime Pro Max" : "Pro") + " opens.\n" +
+      "Nothing is charged now.", pre);
+    if (email === null) return;
+
+    email = String(email).trim();
+    if (!email) { say("Enter an email to reserve a seat.", "err"); return; }
+
+    var label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Reserving…";
+
+    fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, plan: planId })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j.success) throw new Error(j.error || "Could not reserve that seat.");
+        say(j.alreadyOn
+          ? "You are already on the list — number " + j.position + ". We will email you when it opens."
+          : "Reserved — you are number " + j.position + " on the list. We will email you when it opens.", "ok");
+        paintOffer();
+      })
+      .catch(function (err) {
+        say(err.message || "Network problem. Please try again.", "err");
+      })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = label;
+      });
+  }
+
   function init() {
     note = $("#buyNote");
     paintOffer();
     Array.prototype.forEach.call(document.querySelectorAll(".pg-buy"), function (btn) {
-      btn.addEventListener("click", function () { buy(btn.dataset.plan, btn); });
+      btn.addEventListener("click", function () {
+        if (paymentsLive) buy(btn.dataset.plan, btn);
+        else reserve(btn.dataset.plan, btn);
+      });
     });
   }
 

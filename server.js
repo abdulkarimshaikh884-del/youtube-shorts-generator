@@ -187,6 +187,7 @@ app.post("/api/auth/star", (req, res) => {
 // API request gets (or reuses) a signed anonymous id, because charging has to
 // happen on the server: the old browser-side counter reset with local storage.
 const credits = require("./credits");
+const waitlist = require("./waitlist");
 const community = require("./community");
 app.use(credits.middleware);
 
@@ -631,6 +632,9 @@ function planTermFor(planId) {
   return taken < credits.LIFETIME_SLOTS ? "lifetime" : (plan.fallbackTerm || "year");
 }
 
+const paymentsLive = () =>
+  Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+
 // ── Launch offer status (how many lifetime seats are left) ──
 app.get("/api/offer", (req, res) => {
   res.set("Cache-Control", "no-store");
@@ -641,10 +645,28 @@ app.get("/api/offer", (req, res) => {
     success: true,
     plan: "promax",
     price: credits.PLANS.promax.price,
+    proPrice: credits.PLANS.pro.price,
     total, taken, left,
     lifetimeAvailable: left > 0,
-    term: left > 0 ? "lifetime" : (credits.PLANS.promax.fallbackTerm || "year")
+    term: left > 0 ? "lifetime" : (credits.PLANS.promax.fallbackTerm || "year"),
+    // Until the gateway is configured the pricing page collects reservations
+    // instead of payments. Adding the keys flips it to real checkout with no
+    // code change.
+    paymentsLive: paymentsLive(),
+    opensOn: process.env.PAYMENTS_OPEN_DATE || "",
+    reserved: waitlist.count()
   });
+});
+
+// ── Reserve a seat while payments are not open yet ──────────
+app.post("/api/waitlist", rateLimit({ windowMs: 60_000, max: 10 }), (req, res) => {
+  const email = String(req.body?.email || "").trim().slice(0, 140);
+  const plan = credits.PLANS[String(req.body?.plan || "")] ? String(req.body.plan) : "promax";
+  if (!/^[^\s@]{1,64}@[^\s@]{3,255}\.[a-z]{2,24}$/i.test(email)) {
+    return res.status(400).json({ success: false, error: "That email address does not look right." });
+  }
+  const r = waitlist.add(email, plan, req.user ? req.user.id : null);
+  res.json({ success: true, alreadyOn: r.already, position: r.position });
 });
 
 // ── Razorpay: create order ──────────────────────────────────

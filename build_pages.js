@@ -427,7 +427,7 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/checkout.js?v=${V}" defer></script>`
+  scripts: `<script src="/checkout.js?v=${V}2" defer></script>`
 };
 
 /* ── ABOUT ────────────────────────────────────────────────── */

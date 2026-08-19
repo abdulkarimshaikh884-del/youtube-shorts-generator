@@ -18,3 +18,4 @@ DEPENDENCY_REPORT.md
 .community.json
 audit_results/
 audit_*.js
+.waitlist.json
