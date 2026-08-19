@@ -81,27 +81,35 @@ window.SC_TPL2 = (function () {
       + 'html,body{width:100%;height:100%;overflow:hidden;background:#08080a}'
       + 'body{display:grid;place-items:center;'
       + 'font-family:' + fontStack(o.font) + ';'
-      + '-webkit-font-smoothing:antialiased}'
+      + '-webkit-font-smoothing:antialiased;'
+      + '-moz-osx-font-smoothing:grayscale;'
+      + 'text-rendering:optimizeLegibility}'
       + '.vp{position:relative;overflow:hidden;container-type:size;'
       + 'width:min(100vw,calc(100vh * ' + ar[0] + ' / ' + ar[1] + '));'
       + 'height:min(100vh,calc(100vw * ' + ar[1] + ' / ' + ar[0] + '));'
-      + 'background:' + (t.dark ? '#09090b' : '#f8f8fa') + ';'
+      + 'background:' + (t.dark ? 'radial-gradient(ellipse at 50% 30%, #151522 0%, #08080d 100%)' : 'radial-gradient(ellipse at 50% 30%, #ffffff 0%, #f0f0f4 100%)') + ';'
       + 'color:' + (t.dark ? '#fff' : '#0a0a0a') + ';'
       + '--ac:' + o.accent + ';'
       + '--fg:' + (t.dark ? '#fff' : '#0a0a0a') + ';'
-      + '--dim:' + (t.dark ? 'rgba(255,255,255,.5)' : 'rgba(10,10,10,.5)') + ';'
+      + '--dim:' + (t.dark ? 'rgba(255,255,255,.55)' : 'rgba(10,10,10,.55)') + ';'
       + '--hair:' + (t.dark ? 'rgba(255,255,255,.14)' : 'rgba(10,10,10,.12)') + ';'
       + '--surf:' + (t.dark ? 'rgba(255,255,255,.07)' : 'rgba(10,10,10,.05)') + ';'
       + '--D:' + o.dur + 'ms;'
       + '--sp:cubic-bezier(.16,1,.3,1);'
       + '--ov:cubic-bezier(.34,1.56,.64,1);'
+      + '--ae-expo:cubic-bezier(.16,1,.3,1);'
+      + '--ae-spring:cubic-bezier(.34,1.56,.64,1);'
+      + '--ae-snap:cubic-bezier(.12,.9,.15,1);'
+      + '--ae-smooth:cubic-bezier(.4,0,.2,1);'
+      + '--ae-recoil:cubic-bezier(.68,-.6,.32,1.6);'
+      + 'transform-style:preserve-3d;perspective:1000px;'
       + '}'
       + '.cv{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'
-      + 'width:100%;height:100%;aspect-ratio:' + ar[0] + '/' + ar[1] + ';max-width:100%;max-height:100%;'
-      + 'container-type:size;overflow:hidden}'
-      + '.wm{position:absolute;left:0;right:0;bottom:2.4cqh;text-align:center;'
-      + 'font-size:1.9cqw;letter-spacing:.22em;text-transform:uppercase;'
-      + 'color:var(--dim);opacity:.45}'
+      + 'width:auto;height:100%;aspect-ratio:9/16;max-width:100%;max-height:100%;'
+      + 'container-type:size;overflow:hidden;display:flex;align-items:center;justify-content:center}'
+      + '.wm{position:absolute;left:0;right:0;bottom:2.2cqh;text-align:center;'
+      + 'font-size:1.8cqw;letter-spacing:.25em;text-transform:uppercase;font-weight:700;'
+      + 'color:var(--dim);opacity:.45;pointer-events:none;z-index:90}'
       + '@media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;'
       + 'animation-iteration-count:1!important}}';
   }
@@ -116,6 +124,493 @@ window.SC_TPL2 = (function () {
     css: '.bk{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqh;padding:8cqw;text-align:center}.bk .icon{width:18cqw;height:18cqw;border-radius:50%;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);display:grid;place-items:center;font-size:7.5cqw;color:var(--dim);margin-bottom:1cqh}.bk h2{font-size:6.8cqw;font-weight:750;letter-spacing:-.03em;color:#fff;margin:0}.bk p{font-size:3.6cqw;color:var(--dim);margin:0;line-height:1.45;max-width:85%}',
     html: function (o) {
       return '<div class="bk"><div class="icon">✦</div><h2>' + esc(o.lines[0] || "Blank Canvas") + '</h2><p>' + esc(o.lines[1] || "Select a template or generate with AI.") + '</p></div>';
+    }
+  };
+
+  /* ============================================================
+     AUTOAE EXACT 4-SCENE MASTER SUITE
+     Matches: z2dugjhz-6311bd0c8643a51afd55495ef5a024116614b904.mp4
+     ============================================================ */
+
+  T["autoae-exact-master"] = {
+    name: "AutoAE 4-Scene Masterpiece", cat: "ui", dark: true, accent: "#ffffff",
+    desc: "Exact 1:1 AutoAE 4-scene video template: 1. ChatGPT Prompt Fly-In, 2. Wireframe Search Stream, 3. 3D Blue Evidence Board, 4. 3D Wall Clock in Light Beam",
+    css: '.sc-master-wrap{position:absolute;inset:0;background:#000000;color:#ffffff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
+      + '.sc-master-scene{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none}'
+      
+      /* Scene 1: ChatGPT Prompt Fly-In (0% - 25%) */
+      + '.sc-m-s1{animation:mScene1 var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-cg-brand{font-size:8cqw;font-weight:900;letter-spacing:-.02em;color:#ffffff;margin-bottom:2.5cqh;text-align:center}'
+      + '.sc-cg-pill{width:86cqw;background:#323232;border-radius:6cqw;padding:3cqh 5cqw;box-shadow:0 30px 70px rgba(0,0,0,.9);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:2.5cqh}'
+      + '.sc-cg-input{font-size:5.8cqw;font-weight:600;color:#f3f4f6}'
+      + '.sc-cg-actions{display:flex;gap:2cqw}'
+      + '.sc-cg-btn{padding:.8cqh 2.8cqw;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-size:3cqw;font-weight:600;color:#e5e7eb;display:flex;align-items:center;gap:1.5cqw;background:rgba(255,255,255,.05)}'
+
+      /* Scene 2: 3D Wireframe Stream (25% - 50%) */
+      + '.sc-m-s2{animation:mScene2 var(--D) cubic-bezier(.16,1,.3,1) infinite;background:radial-gradient(circle at 50% 50%,#202020 0%,#000000 75%)}'
+      + '.sc-wf-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28cqw;font-weight:900;color:transparent;-webkit-text-stroke:1.1px rgba(255,255,255,.10);pointer-events:none;white-space:nowrap;z-index:0}'
+      + '.sc-wf-pill{position:absolute;background:#262626;border:1px solid rgba(255,255,255,.15);border-radius:3cqw;padding:1.5cqh 4cqw;font-size:3cqw;color:#9ca3af}'
+      + '.sc-wf-hero{position:relative;z-index:5;text-align:center}'
+      + '.sc-wf-sub{font-size:4.8cqw;color:#ffffff;font-weight:600}'
+      + '.sc-wf-title{font-size:16cqw;font-weight:900;font-style:italic;color:#ffffff;line-height:1;margin-top:.4cqh;text-shadow:0 10px 30px rgba(0,0,0,.95)}'
+
+      /* Scene 3: 3D Blue Spotlight Evidence Board (50% - 75%) */
+      + '.sc-m-s3{animation:mScene3 var(--D) cubic-bezier(.16,1,.3,1) infinite;background:#030712}'
+      + '.sc-ev-light{position:absolute;top:-20%;right:-20%;width:120cqw;height:120cqw;background:radial-gradient(circle,rgba(56,189,248,.35) 0%,transparent 65%);filter:blur(50px);pointer-events:none}'
+      + '.sc-ev-board{width:86cqw;height:54cqh;object-fit:contain;filter:drop-shadow(0 30px 70px rgba(0,0,0,.95)) drop-shadow(0 0 45px rgba(56,189,248,.5));animation:evFloat 4s ease-in-out infinite alternate}'
+      + '.sc-ev-text-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center}'
+      + '.sc-ev-sub{font-size:5cqw;font-weight:700;color:#ffffff;margin-bottom:.5cqh}'
+      + '.sc-ev-title{font-size:14cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 35px rgba(56,189,248,.9),0 4px 15px rgba(0,0,0,.9)}'
+
+      /* Scene 4: 3D Analog Clock in Light Beam (75% - 100%) */
+      + '.sc-m-s4{animation:mScene4 var(--D) cubic-bezier(.16,1,.3,1) infinite;background:#000000}'
+      + '.sc-clk-beam{position:absolute;top:-40%;left:-20%;width:140cqw;height:180cqh;background:linear-gradient(135deg,rgba(255,255,255,.25) 0%,rgba(255,255,255,.05) 40%,transparent 70%);filter:blur(25px);pointer-events:none;transform:rotate(-25deg)}'
+      + '.sc-clk-img{width:68cqw;height:68cqw;object-fit:contain;filter:drop-shadow(0 30px 60px rgba(0,0,0,.95)) drop-shadow(0 0 30px rgba(255,255,255,.25));animation:clkSpin 6s ease-in-out infinite alternate}'
+      + '.sc-clk-text-box{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center}'
+      + '.sc-clk-sub{font-size:4.6cqw;font-weight:600;color:#ffffff}'
+      + '.sc-clk-title{font-size:16cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 10px 40px rgba(0,0,0,.95)}'
+
+      /* Keyframe Sequencing */
+      + '@keyframes mScene1{0%,2%{opacity:0;transform:scale(.9) translateY(4cqh)}5%,22%{opacity:1;transform:scale(1) translateY(0)}25%,100%{opacity:0;transform:scale(1.05) translateY(-2cqh)}}'
+      + '@keyframes mScene2{0%,24%{opacity:0;transform:scale(.94)}27%,47%{opacity:1;transform:scale(1)}50%,100%{opacity:0;transform:scale(1.05)}}'
+      + '@keyframes mScene3{0%,49%{opacity:0;transform:scale(.92)}52%,72%{opacity:1;transform:scale(1)}75%,100%{opacity:0;transform:scale(1.06)}}'
+      + '@keyframes mScene4{0%,74%{opacity:0;transform:scale(.92)}77%,97%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04)}}'
+      + '@keyframes evFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-8deg) translateY(-1.5cqh)}}'
+      + '@keyframes clkSpin{0%{transform:rotateX(15deg) rotateY(10deg) scale(0.96)}100%{transform:rotateX(-10deg) rotateY(-15deg) scale(1.04)}}',
+    html: function (o) {
+      var t1 = getP(o, "t1", o.lines[0] || "Main Text 1");
+      var t2 = getP(o, "t2", o.lines[1] || "Text 1");
+      var t3 = getP(o, "t3", o.lines[2] || "Text 3");
+      var t5 = getP(o, "t5", o.lines[3] || "Text 5");
+      return '<div class="sc-master-wrap">'
+        /* Scene 1 */
+        + '<div class="sc-master-scene sc-m-s1">'
+        + '<div class="sc-cg-brand">ChatGPT</div>'
+        + '<div class="sc-cg-pill">'
+        + '<div class="sc-cg-input">' + esc(t1) + '</div>'
+        + '<div class="sc-cg-actions">'
+        + '<div class="sc-cg-btn">📎 Attach</div>'
+        + '<div class="sc-cg-btn">🌐 Search</div>'
+        + '<div class="sc-cg-btn">📖 Study</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
+
+        /* Scene 2 */
+        + '<div class="sc-master-scene sc-m-s2">'
+        + '<div class="sc-wf-bg">Text 2</div>'
+        + '<div class="sc-wf-pill" style="top:18%;left:8%;transform:rotate(-12deg);">Main Text 2<br/><small>Subtext</small></div>'
+        + '<div class="sc-wf-pill" style="bottom:20%;right:6%;transform:rotate(-6deg);">Main Text 2<br/><small>Subtext</small></div>'
+        + '<div class="sc-wf-hero">'
+        + '<div class="sc-wf-sub">Main Text 3</div>'
+        + '<div class="sc-wf-title">' + esc(t2) + '</div>'
+        + '</div>'
+        + '</div>'
+
+        /* Scene 3 */
+        + '<div class="sc-master-scene sc-m-s3">'
+        + '<div class="sc-ev-light"></div>'
+        + '<img src="/assets/investigation_photo_board_3d.png" class="sc-ev-board" alt="Investigation Photo Board" />'
+        + '<div class="sc-ev-text-overlay">'
+        + '<div class="sc-ev-sub">Main Text 4</div>'
+        + '<div class="sc-ev-title">' + esc(t3) + '</div>'
+        + '</div>'
+        + '</div>'
+
+        /* Scene 4 */
+        + '<div class="sc-master-scene sc-m-s4">'
+        + '<div class="sc-clk-beam"></div>'
+        + '<img src="/assets/analog_wall_clock_3d.png" class="sc-clk-img" alt="3D Wall Clock" />'
+        + '<div class="sc-clk-text-box">'
+        + '<div class="sc-clk-sub">Main Text 6</div>'
+        + '<div class="sc-clk-title">' + esc(t5) + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE Scene 1: Standalone ChatGPT Prompt */
+  T["autoae-chatgpt-prompt"] = {
+    name: "ChatGPT 3D Prompt Box", cat: "ui", dark: true, accent: "#10b981",
+    desc: "3D floating ChatGPT prompt input capsule with action pills (Attach, Search, Study) and kinetic spring fly-in",
+    css: '.sc-cg-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000000;color:#fff;padding:6cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sc-cg-single-brand{font-size:9cqw;font-weight:900;letter-spacing:-.02em;color:#ffffff;margin-bottom:3cqh;text-align:center;animation:cgPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-cg-single-pill{width:86cqw;background:#323232;border-radius:6cqw;padding:3.5cqh 5cqw;box-shadow:0 30px 80px rgba(0,0,0,.95);border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:3cqh;animation:cgPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-cg-single-input{font-size:6.4cqw;font-weight:600;color:#f3f4f6}'
+      + '.sc-cg-single-actions{display:flex;gap:2.5cqw}'
+      + '.sc-cg-single-btn{padding:1cqh 3cqw;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-size:3.4cqw;font-weight:600;color:#e5e7eb;display:flex;align-items:center;gap:1.5cqw;background:rgba(255,255,255,.06)}'
+      + '@keyframes cgPop{0%,12%{transform:perspective(1000px) rotateX(20deg) translateY(6cqh);opacity:0}25%{transform:perspective(1000px) rotateX(0deg) translateY(0);opacity:1}45%{transform:perspective(1000px) rotateX(2deg) translateY(-.4cqh);opacity:1}65%{transform:perspective(1000px) rotateX(-1.5deg) translateY(.3cqh);opacity:1}85%{transform:perspective(1000px) rotateX(0deg) translateY(0);opacity:1}100%{transform:perspective(1000px) rotateX(-10deg) translateY(-3cqh);opacity:0}}',
+    html: function (o) {
+      var query = getP(o, "query", o.lines[0] || "Main Text 1");
+      return '<div class="sc-cg-standalone">'
+        + '<div class="sc-cg-single-brand">ChatGPT</div>'
+        + '<div class="sc-cg-single-pill">'
+        + '<div class="sc-cg-single-input">' + esc(query) + '</div>'
+        + '<div class="sc-cg-single-actions">'
+        + '<div class="sc-cg-single-btn">📎 Attach</div>'
+        + '<div class="sc-cg-single-btn">🌐 Search</div>'
+        + '<div class="sc-cg-single-btn">📖 Study</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE Scene 2: Standalone Wireframe Search Stream */
+  T["autoae-wireframe-stream"] = {
+    name: "Wireframe Search Stream", cat: "ui", dark: true, accent: "#ffffff",
+    desc: "Massive 3D stroked background wireframe typography with bold italic hero headline and orbiting search cards",
+    css: '.sc-wf-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 50%,#202020 0%,#000000 80%);color:#fff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
+      + '.sc-wf-s-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30cqw;font-weight:900;color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.10);pointer-events:none;white-space:nowrap;z-index:0;animation:wfSpin 8s ease-in-out infinite alternate}'
+      + '.sc-wf-s-pill{position:absolute;background:#262626;border:1px solid rgba(255,255,255,.15);border-radius:3cqw;padding:1.8cqh 4.5cqw;font-size:3.4cqw;color:#9ca3af;box-shadow:0 20px 40px rgba(0,0,0,.8)}'
+      + '.sc-wf-s-hero{position:relative;z-index:5;text-align:center;animation:wfPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-wf-s-sub{font-size:5.2cqw;color:#ffffff;font-weight:600}'
+      + '.sc-wf-s-title{font-size:18cqw;font-weight:900;font-style:italic;color:#ffffff;line-height:1;margin-top:.4cqh;text-shadow:0 10px 40px rgba(0,0,0,.95)}'
+      + '@keyframes wfPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}'
+      + '@keyframes wfSpin{0%{transform:scale(1.25) rotate(-10deg)}100%{transform:scale(1.35) rotate(-6deg)}}',
+    html: function (o) {
+      var sub = getP(o, "sub", o.lines[0] || "Main Text 3");
+      var title = getP(o, "title", o.lines[1] || "Text 1");
+      return '<div class="sc-wf-standalone">'
+        + '<div class="sc-wf-s-bg">Text 2</div>'
+        + '<div class="sc-wf-s-pill" style="top:16%;left:6%;transform:rotate(-12deg);">Main Text 2<br/><small>Subtext</small></div>'
+        + '<div class="sc-wf-s-pill" style="bottom:18%;right:6%;transform:rotate(-6deg);">Main Text 2<br/><small>Subtext</small></div>'
+        + '<div class="sc-wf-s-hero">'
+        + '<div class="sc-wf-s-sub">' + esc(sub) + '</div>'
+        + '<div class="sc-wf-s-title">' + esc(title) + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE Scene 3: Standalone Blue Spotlight Evidence Board */
+  T["autoae-blue-evidence"] = {
+    name: "3D Blue Evidence Board", cat: "docu", dark: true, accent: "#38bdf8",
+    desc: "3D tilted investigation evidence board bathed in intense cyan spotlight with glowing headline",
+    css: '.sc-ev-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#030712;color:#fff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
+      + '.sc-ev-s-light{position:absolute;top:-20%;right:-20%;width:130cqw;height:130cqw;background:radial-gradient(circle,rgba(56,189,248,.35) 0%,transparent 65%);filter:blur(50px);pointer-events:none}'
+      + '.sc-ev-s-board{width:88cqw;height:56cqh;object-fit:contain;filter:drop-shadow(0 30px 70px rgba(0,0,0,.95)) drop-shadow(0 0 45px rgba(56,189,248,.5));animation:evFloat 4s ease-in-out infinite alternate}'
+      + '.sc-ev-s-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center;animation:evTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-ev-s-sub{font-size:5.4cqw;font-weight:700;color:#ffffff;margin-bottom:.5cqh}'
+      + '.sc-ev-s-title{font-size:16cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 35px rgba(56,189,248,.9),0 4px 15px rgba(0,0,0,.9)}'
+      + '@keyframes evFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-8deg) translateY(-1.5cqh)}}'
+      + '@keyframes evTextPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.06);opacity:0}}',
+    html: function (o) {
+      var sub = getP(o, "sub", o.lines[0] || "Main Text 4");
+      var title = getP(o, "title", o.lines[1] || "Text 3");
+      return '<div class="sc-ev-standalone">'
+        + '<div class="sc-ev-s-light"></div>'
+        + '<img src="/assets/investigation_photo_board_3d.png" class="sc-ev-s-board" alt="Investigation Photo Board" />'
+        + '<div class="sc-ev-s-text">'
+        + '<div class="sc-ev-s-sub">' + esc(sub) + '</div>'
+        + '<div class="sc-ev-s-title">' + esc(title) + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE Scene 4: Standalone 3D Wall Clock Light Beam */
+  T["autoae-volumetric-clock"] = {
+    name: "3D Clock in Light Beam", cat: "docu", dark: true, accent: "#ffffff",
+    desc: "3D floating analog wall clock in volumetric diagonal spotlight beam with orbiting arcs and clean bold typography",
+    css: '.sc-clk-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000000;color:#fff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
+      + '.sc-clk-s-beam{position:absolute;top:-40%;left:-20%;width:140cqw;height:180cqh;background:linear-gradient(135deg,rgba(255,255,255,.25) 0%,rgba(255,255,255,.05) 40%,transparent 70%);filter:blur(25px);pointer-events:none;transform:rotate(-25deg)}'
+      + '.sc-clk-s-img{width:70cqw;height:70cqw;object-fit:contain;filter:drop-shadow(0 30px 60px rgba(0,0,0,.95)) drop-shadow(0 0 30px rgba(255,255,255,.25));animation:clkSpin 6s ease-in-out infinite alternate}'
+      + '.sc-clk-s-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center;animation:clkTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-clk-s-sub{font-size:5cqw;font-weight:600;color:#ffffff}'
+      + '.sc-clk-s-title{font-size:18cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 10px 40px rgba(0,0,0,.95)}'
+      + '@keyframes clkSpin{0%{transform:rotateX(15deg) rotateY(10deg) scale(0.96)}100%{transform:rotateX(-10deg) rotateY(-15deg) scale(1.04)}}'
+      + '@keyframes clkTextPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
+    html: function (o) {
+      var sub = getP(o, "sub", o.lines[0] || "Main Text 6");
+      var title = getP(o, "title", o.lines[1] || "Text 5");
+      return '<div class="sc-clk-standalone">'
+        + '<div class="sc-clk-s-beam"></div>'
+        + '<img src="/assets/analog_wall_clock_3d.png" class="sc-clk-s-img" alt="3D Wall Clock" />'
+        + '<div class="sc-clk-s-text">'
+        + '<div class="sc-clk-s-sub">' + esc(sub) + '</div>'
+        + '<div class="sc-clk-s-title">' + esc(title) + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* ============================================================
+     AUTOAE FLAGSHIP SIGNATURE SERIES (8 Ultra-Premium Templates)
+     ============================================================ */
+
+  /* AutoAE.1 Founder Halftone Poster */
+  T["autoae-founder-halftone"] = {
+    name: "Founder Halftone Poster", cat: "docu", dark: true, accent: "#3b82f6",
+    desc: "AutoAE signature Mark Zuckerberg style monochrome halftone cutout poster with vintage sunburst rays and bold typography",
+    css: '.sc-ae-zuck{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 5cqw;background:#090a0f;overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:1000px}'
+      + '.sc-ae-rays{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.05) 0deg 15deg,transparent 15deg 30deg);animation:aeSpinRays 40s linear infinite;pointer-events:none}'
+      + '.sc-ae-halftone{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.15) 1.5px,transparent 1.5px);background-size:12px 12px;opacity:.4;pointer-events:none}'
+      + '.sc-ae-crops{position:absolute;inset:3cqh 3cqw;border:1px dashed rgba(255,255,255,.15);pointer-events:none}'
+      + '.sc-ae-topbar{display:flex;justify-content:space-between;align-items:center;font-family:ui-monospace,monospace;font-size:2.8cqw;color:#94a3b8;letter-spacing:.25em;z-index:5}'
+      + '.sc-ae-cutout-stage{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:center;z-index:3;margin:1cqh 0}'
+      + '.sc-ae-avatar-glow{position:absolute;width:60cqw;height:60cqw;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.35) 0%,transparent 70%);filter:blur(30px);bottom:5cqh}'
+      + '.sc-ae-portrait-card{position:relative;width:72cqw;height:52cqh;border-radius:4cqw;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 30px 60px rgba(0,0,0,.9)) drop-shadow(0 0 35px rgba(59,130,246,.4));animation:aePortraitPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-ae-portrait-img{width:100%;height:100%;object-fit:contain}'
+      + '.sc-ae-bottom-card{position:relative;z-index:5;text-align:center;animation:aeTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-ae-tagline{font-size:4.2cqw;letter-spacing:.3em;color:#94a3b8;font-weight:700;text-transform:uppercase}'
+      + '.sc-ae-main-hero{font-family:Impact,sans-serif;font-size:12.5cqw;letter-spacing:.04em;line-height:1;color:#fff;text-shadow:0 0 35px rgba(59,130,246,.7);margin-top:.4cqh;text-transform:uppercase}'
+      + '@keyframes aeSpinRays{to{transform:rotate(360deg)}}'
+      + '@keyframes aePortraitPop{0%,12%{transform:scale(.88) translateY(4cqh);opacity:0}25%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}'
+      + '@keyframes aeTextPop{0%,18%{transform:translateY(3cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
+    html: function (o) {
+      var topTag = getP(o, "topTag", "// ARCHIVE 2004 · HARVARD");
+      var sub = getP(o, "sub", o.lines[0] || "STARTED");
+      var hero = getP(o, "hero", o.lines[1] || "FACEBOOK");
+      return '<div class="sc-ae-zuck">'
+        + '<div class="sc-ae-rays"></div>'
+        + '<div class="sc-ae-halftone"></div>'
+        + '<div class="sc-ae-crops"></div>'
+        + '<div class="sc-ae-topbar"><span>' + esc(topTag) + '</span><span>CASE FILE #01</span></div>'
+        + '<div class="sc-ae-cutout-stage">'
+        + '<div class="sc-ae-avatar-glow"></div>'
+        + '<div class="sc-ae-portrait-card">'
+        + '<img src="/assets/zuck_portrait_halftone.png" class="sc-ae-portrait-img" alt="Founder Portrait" />'
+        + '</div>'
+        + '</div>'
+        + '<div class="sc-ae-bottom-card">'
+        + '<div class="sc-ae-tagline">' + esc(sub) + '</div>'
+        + '<div class="sc-ae-main-hero">' + esc(hero) + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE.2 Stand Out in Crowded Market */
+  T["autoae-neon-spheres"] = {
+    name: "Crowded Market Spheres", cat: "social", dark: true, accent: "#22c55e",
+    desc: "AutoAE signature multi-layer 3D glossy spheres with intense neon green & magenta subsurface rim glow",
+    css: '.sc-sph-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 6cqw;background:radial-gradient(ellipse at 50% 60%,#11121c 0%,#050508 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:900px}'
+      + '.sc-sph-title{font-size:7.4cqw;font-weight:900;letter-spacing:-.03em;line-height:1.2;text-align:center;color:#fff;text-shadow:0 0 25px rgba(255,255,255,.3);animation:sphTitlePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-sph-stage{position:relative;width:100%;height:52cqh;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d}'
+      + '.sc-sph-3d-img{width:90cqw;height:90cqw;object-fit:contain;animation:sphFloat 4s ease-in-out infinite alternate}'
+      + '.sc-sph-footer{display:flex;justify-content:center;font-size:3.2cqw;letter-spacing:.25em;text-transform:uppercase;color:#94a3b8;font-family:monospace}'
+      + '@keyframes sphFloat{0%{transform:translateY(0) scale(0.98)}100%{transform:translateY(-2cqh) scale(1.02)}}'
+      + '@keyframes sphTitlePop{0%,12%{transform:translateY(-2cqh);opacity:0}25%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(1cqh);opacity:0}}',
+    html: function (o) {
+      var hook = getP(o, "hook", o.lines[0] || "Stand out in the crowded market?");
+      var footer = getP(o, "footer", o.lines[1] || "// RETENTION RULE #01");
+      return '<div class="sc-sph-wrap">'
+        + '<div class="sc-sph-title">' + esc(hook) + '</div>'
+        + '<div class="sc-sph-stage">'
+        + '<img src="/assets/neon_spheres_3d.png" class="sc-sph-3d-img" alt="3D Neon Spheres" />'
+        + '</div>'
+        + '<div class="sc-sph-footer">' + esc(footer) + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE.3 3D Metallic Energy Drink */
+  T["autoae-product-can"] = {
+    name: "3D Metallic Product Showcase", cat: "ui", dark: false, accent: "#0284c7",
+    desc: "AutoAE signature 3D metallic drink can tilted with technical barcode, blueprint curve and editorial typography",
+    css: '.sc-can-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:6cqh 6cqw;background:#f1f5f9;color:#0f172a;overflow:hidden;font-family:Inter,sans-serif;perspective:900px}'
+      + '.sc-can-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px);background-size:6cqw 6cqw;pointer-events:none}'
+      + '.sc-can-barcode{font-family:monospace;font-size:3.2cqw;letter-spacing:.35em;color:#475569;border-top:3px solid #0f172a;border-bottom:1px solid #0f172a;padding:.6cqh 0;text-align:center;width:48cqw}'
+      + '.sc-can-stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d}'
+      + '.sc-can-swoosh{position:absolute;width:100%;height:100%;pointer-events:none}'
+      + '.sc-can-3d-img{width:68cqw;height:48cqh;object-fit:contain;filter:drop-shadow(0 30px 60px rgba(0,0,0,.45));animation:canFloat 6s ease-in-out infinite alternate}'
+      + '.sc-can-footer{display:flex;justify-content:space-between;align-items:flex-end;z-index:5}'
+      + '.sc-can-title{font-size:9cqw;font-weight:900;line-height:1;letter-spacing:-.03em;color:#0f172a}'
+      + '.sc-can-sub{font-size:3.6cqw;color:#64748b;font-style:italic;font-family:Georgia,serif}'
+      + '@keyframes canFloat{0%{transform:rotate(0deg) translateY(0)}100%{transform:rotate(-4deg) translateY(-2cqh)}}',
+    html: function (o) {
+      var t1 = getP(o, "t1", o.lines[0] || "ENERGY");
+      var t2 = getP(o, "t2", o.lines[1] || "IN A CAN");
+      return '<div class="sc-can-wrap">'
+        + '<div class="sc-can-grid"></div>'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;z-index:5;">'
+        + '<div class="sc-can-barcode">|||| | ||||| ||||</div>'
+        + '<span style="font-family:monospace;font-size:3cqw;font-weight:700;color:#64748b">SKU #2026-X</span>'
+        + '</div>'
+        + '<div class="sc-can-stage">'
+        + '<svg class="sc-can-swoosh" viewBox="0 0 300 300">'
+        + '<path d="M 20 280 Q 80 40 280 60" fill="none" stroke="#0284c7" stroke-width="8" stroke-linecap="round" opacity="0.8"/>'
+        + '</svg>'
+        + '<img src="/assets/redbull_can_3d.png" class="sc-can-3d-img" alt="3D Metallic Energy Drink Can" />'
+        + '</div>'
+        + '<div class="sc-can-footer">'
+        + '<div><div class="sc-can-sub">Premium Motion Graphic</div><div class="sc-can-title">' + esc(t1) + '</div><div class="sc-can-title" style="color:#0284c7">' + esc(t2) + '</div></div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE.4 Founder 4-Step Breakdown */
+  T["autoae-founder-steps"] = {
+    name: "Founder 4-Step Breakdown", cat: "docu", dark: true, accent: "#f59e0b",
+    desc: "AutoAE signature Elon Musk / executive reading newspaper cutout with animated 1-2-3-4 step pills",
+    css: '.sc-step-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:6cqh 6cqw;background:#0d0f17;overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-step-head{border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:1.5cqh}'
+      + '.sc-step-sub{font-size:3.2cqw;letter-spacing:.25em;text-transform:uppercase;color:#f59e0b;font-weight:700}'
+      + '.sc-step-title{font-size:7.2cqw;font-weight:900;color:#fff;margin-top:.4cqh;letter-spacing:-.02em}'
+      + '.sc-step-pills{display:flex;gap:2.5cqw;margin:2.5cqh 0}'
+      + '.sc-step-badge{width:11cqw;height:11cqw;border-radius:2.5cqw;display:grid;place-items:center;font-size:5.5cqw;font-weight:900;background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.15);animation:stepGlow 2s ease-in-out infinite alternate}'
+      + '.sc-step-b1{background:#f59e0b;color:#000;border-color:#fbbf24;box-shadow:0 0 25px rgba(245,158,11,.6)}'
+      + '.sc-step-stage{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:space-between;gap:2cqw}'
+      + '.sc-step-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:3cqw;padding:4.5cqw;flex:1;backdrop-filter:blur(20px);box-shadow:0 20px 50px rgba(0,0,0,.8);margin-bottom:2cqh}'
+      + '.sc-step-desc{font-size:3.6cqw;color:#e2e8f0;line-height:1.45;font-weight:500}'
+      + '.sc-step-founder-img{width:48cqw;height:48cqh;object-fit:contain;filter:drop-shadow(0 25px 50px rgba(0,0,0,.95)) drop-shadow(0 0 25px rgba(245,158,11,.2))}'
+      + '@keyframes stepGlow{0%{transform:scale(1)}100%{transform:scale(1.08)}}',
+    html: function (o) {
+      var title = getP(o, "title", o.lines[0] || "4-STEP FRAMEWORK");
+      var stepTxt = getP(o, "stepTxt", o.lines[1] || "First-principles thinking to engineer impossible products.");
+      return '<div class="sc-step-wrap">'
+        + '<div class="sc-step-head">'
+        + '<div class="sc-step-sub">// HOW FOUNDERS SCALE</div>'
+        + '<div class="sc-step-title">' + esc(title) + '</div>'
+        + '</div>'
+        + '<div class="sc-step-pills">'
+        + '<div class="sc-step-badge sc-step-b1">1</div>'
+        + '<div class="sc-step-badge">2</div>'
+        + '<div class="sc-step-badge">3</div>'
+        + '<div class="sc-step-badge">4</div>'
+        + '</div>'
+        + '<div class="sc-step-stage">'
+        + '<div class="sc-step-card"><div style="font-size:4.2cqw;font-weight:800;color:#f59e0b;margin-bottom:1cqh">STEP 1: ZERO TO ONE</div><div class="sc-step-desc">' + esc(stepTxt) + '</div></div>'
+        + '<img src="/assets/elon_newspaper_cutout.png" class="sc-step-founder-img" alt="Founder Cutout" />'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE.5 Vintage Retro CRT Story Monitor */
+  T["autoae-retro-crt"] = {
+    name: "Vintage CRT Story Monitor", cat: "docu", dark: true, accent: "#38bdf8",
+    desc: "AutoAE signature vintage 1980s television CRT monitor with curved phosphor scanlines and glowing storytelling narrative",
+    css: '.sc-crt-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#0a0a0c 100%);overflow:hidden;font-family:ui-monospace,monospace;color:#fff}'
+      + '.sc-crt-box{position:relative;width:88cqw;height:54cqh;display:flex;align-items:center;justify-content:center;animation:tvShake 6s ease-in-out infinite alternate}'
+      + '.sc-crt-frame-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;pointer-events:none}'
+      + '.sc-crt-screen-content{position:absolute;left:10%;top:15%;width:48%;height:68%;display:flex;align-items:center;justify-content:center;text-align:center;padding:2cqw;z-index:5;overflow:hidden}'
+      + '.sc-crt-text{font-size:5.8cqw;font-weight:900;color:#38bdf8;text-shadow:0 0 20px #38bdf8;font-family:Georgia,serif;font-style:italic}'
+      + '.sc-crt-sub{margin-top:3cqh;font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;text-align:center;color:#a1a1aa}'
+      + '@keyframes tvShake{0%{transform:rotate(-1deg) scale(1)}100%{transform:rotate(1deg) scale(1.02)}}',
+    html: function (o) {
+      var story = getP(o, "story", o.lines[0] || "Telling story...");
+      var sub = getP(o, "sub", o.lines[1] || "HOW IT ALL BEGAN // 1998");
+      return '<div class="sc-crt-wrap">'
+        + '<div class="sc-crt-box">'
+        + '<img src="/assets/retro_crt_frame.png" class="sc-crt-frame-img" alt="Vintage CRT Television" />'
+        + '<div class="sc-crt-screen-content">'
+        + '<div class="sc-crt-text">' + esc(story) + '</div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="sc-crt-sub">' + esc(sub) + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE.6 Infinity Metrics Energy Loop */
+  T["autoae-infinity-loop"] = {
+    name: "Infinity Comparison Loop", cat: "charts", dark: true, accent: "#00f0ff",
+    desc: "AutoAE signature dual-energy infinity curve comparing two continuous core principles",
+    css: '.sc-inf-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#091326 0%,#020612 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-inf-title{font-size:7.2cqw;font-weight:900;text-align:center;letter-spacing:-.03em;color:#fff;text-shadow:0 0 25px rgba(0,240,255,.4)}'
+      + '.sc-inf-stage{position:relative;width:100%;height:44cqh;display:grid;place-items:center}'
+      + '.sc-inf-svg{width:100%;height:100%;overflow:visible}'
+      + '.sc-inf-path{fill:none;stroke:#00f0ff;stroke-width:6;stroke-linecap:round;filter:drop-shadow(0 0 15px #00f0ff);stroke-dasharray:700;stroke-dashoffset:700;animation:infDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-inf-labels{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 4cqw;pointer-events:none}'
+      + '.sc-inf-pill{padding:1.5cqh 4cqw;border-radius:999px;font-size:3.8cqw;font-weight:800;backdrop-filter:blur(16px);animation:infPillPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-inf-p1{background:rgba(0,240,255,.15);border:1px solid #00f0ff;color:#a5f3fc;box-shadow:0 0 20px rgba(0,240,255,.4)}'
+      + '.sc-inf-p2{background:rgba(244,63,94,.15);border:1px solid #f43f5e;color:#fecdd3;box-shadow:0 0 20px rgba(244,63,94,.4)}'
+      + '.sc-inf-foot{text-align:center;font-size:3.4cqw;color:#94a3b8;font-family:monospace;letter-spacing:.2em}'
+      + '@keyframes infDraw{0%,15%{stroke-dashoffset:700}40%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:700}}'
+      + '@keyframes infPillPop{0%,18%{transform:scale(.85);opacity:0}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
+    html: function (o) {
+      var t1 = getP(o, "t1", o.lines[0] || "Creative Flow");
+      var t2 = getP(o, "t2", o.lines[1] || "Viral Scale");
+      return '<div class="sc-inf-wrap">'
+        + '<div class="sc-inf-title">CONTINUOUS SYNERGY</div>'
+        + '<div class="sc-inf-stage">'
+        + '<svg class="sc-inf-svg" viewBox="0 0 300 150">'
+        + '<path class="sc-inf-path" d="M 150 75 C 100 0, 20 0, 20 75 C 20 150, 100 150, 150 75 C 200 0, 280 0, 280 75 C 280 150, 200 150, 150 75 Z"/>'
+        + '</svg>'
+        + '<div class="sc-inf-labels">'
+        + '<div class="sc-inf-pill sc-inf-p1">' + esc(t1) + '</div>'
+        + '<div class="sc-inf-pill sc-inf-p2">' + esc(t2) + '</div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="sc-inf-foot">// INFINITY RETENTION LOOP</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE.7 Exponential S-Curve Surge */
+  T["autoae-scurve-growth"] = {
+    name: "Exponential S-Curve Surge", cat: "charts", dark: true, accent: "#38bdf8",
+    desc: "AutoAE signature sigmoid S-curve revenue progression with $900 to $6,000 milestone dots",
+    css: '.sc-scurve-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#09182b 0%,#020814 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-scurve-head{display:flex;justify-content:space-between;align-items:flex-start}'
+      + '.sc-scurve-title{font-size:6.8cqw;font-weight:900;letter-spacing:-.03em;color:#fff}'
+      + '.sc-scurve-badge{padding:.8cqh 2.8cqw;border-radius:999px;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.35);color:#38bdf8;font-size:3.6cqw;font-weight:800}'
+      + '.sc-scurve-box{position:relative;width:100%;height:44cqh;border-bottom:1px solid rgba(255,255,255,.15);border-left:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}'
+      + '.sc-scurve-svg{width:100%;height:100%;overflow:visible}'
+      + '.sc-scurve-path{fill:none;stroke:#38bdf8;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 0 12px #38bdf8);stroke-dasharray:600;stroke-dashoffset:600;animation:scurveDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-scurve-dot{fill:#fff;stroke:#38bdf8;stroke-width:3;animation:dotPulse 1.5s ease-in-out infinite alternate}'
+      + '.sc-scurve-foot{display:flex;justify-content:space-between;font-family:"Space Grotesk",sans-serif;font-size:4cqw;font-weight:800;color:#94a3b8}'
+      + '@keyframes scurveDraw{0%,15%{stroke-dashoffset:600}40%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:600}}'
+      + '@keyframes dotPulse{0%{r:4}100%{r:7}}',
+    html: function (o) {
+      var startVal = getP(o, "startVal", o.lines[0] || "$900");
+      var endVal = getP(o, "endVal", o.lines[1] || "$6,000");
+      return '<div class="sc-scurve-wrap">'
+        + '<div class="sc-scurve-head">'
+        + '<div class="sc-scurve-title">S-CURVE EXPANSION</div>'
+        + '<div class="sc-scurve-badge">▲ 6.6X SURGE</div>'
+        + '</div>'
+        + '<div class="sc-scurve-box">'
+        + '<svg class="sc-scurve-svg" viewBox="0 0 300 200">'
+        + '<path class="sc-scurve-path" d="M 20 180 C 100 180, 120 20, 280 20"/>'
+        + '<circle class="sc-scurve-dot" cx="20" cy="180" r="5"/>'
+        + '<circle class="sc-scurve-dot" cx="280" cy="20" r="6" fill="#38bdf8"/>'
+        + '</svg>'
+        + '</div>'
+        + '<div class="sc-scurve-foot">'
+        + '<span>START // ' + esc(startVal) + '</span>'
+        + '<span style="color:#38bdf8">SCALE // ' + esc(endVal) + '</span>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* AutoAE.8 The News Paper Breaking News */
+  T["autoae-newspaper-breaking"] = {
+    name: "The News Paper Breaking News", cat: "paper", dark: false, accent: "#dc2626",
+    desc: "AutoAE signature authentic multi-column archival newspaper with stamped photo crop and breaking news headline",
+    css: '.sc-news-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 5cqw;background:#e5dfd5;color:#1c1917;overflow:hidden;font-family:Georgia,serif;box-shadow:inset 0 0 15cqw rgba(0,0,0,.15)}'
+      + '.sc-news-mast{text-align:center;border-bottom:3px double #1c1917;padding-bottom:1cqh}'
+      + '.sc-news-name{font-size:8.5cqw;font-weight:900;letter-spacing:-.03em;text-transform:uppercase;line-height:1}'
+      + '.sc-news-date{font-family:ui-monospace,monospace;font-size:2.6cqw;color:#57534e;letter-spacing:.2em;margin-top:.4cqh}'
+      + '.sc-news-banner{background:#1c1917;color:#fff;font-family:Impact,sans-serif;font-size:8.8cqw;letter-spacing:.04em;text-align:center;padding:1cqh 0;margin:1.5cqh 0;box-shadow:0 4px 12px rgba(0,0,0,.3);animation:newsBannerPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-news-columns{display:flex;gap:3cqw;flex:1}'
+      + '.sc-news-col{flex:1;font-size:2.8cqw;line-height:1.5;color:#44403c;text-align:justify}'
+      + '.sc-news-photo{width:100%;height:16cqh;background:#1c1917;border-radius:2px;overflow:hidden;margin-bottom:1cqh;border:1px solid #78716c}'
+      + '@keyframes newsBannerPop{0%,15%{transform:scale(.92);opacity:0}28%{transform:scale(1);opacity:1}45%{transform:scale(1.015);opacity:1}65%{transform:scale(.995);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
+    html: function (o) {
+      var headline = getP(o, "headline", o.lines[0] || "BREAKING NEWS!");
+      var lead = getP(o, "lead", o.lines[1] || "The historic breakthrough that disrupted the entire global market.");
+      return '<div class="sc-news-wrap">'
+        + '<div class="sc-news-mast">'
+        + '<div class="sc-news-name">The News Paper</div>'
+        + '<div class="sc-news-date">THE NEWSPAPER // VOL. 18, 1995 · SPECIAL EDITION</div>'
+        + '</div>'
+        + '<div class="sc-news-banner">' + esc(headline) + '</div>'
+        + '<div class="sc-news-columns">'
+        + '<div class="sc-news-col">'
+        + '<div class="sc-news-photo"><img src="/assets/archival_suspect.jpg" style="width:100%;height:100%;object-fit:cover;" alt="News Still"/></div>'
+        + '<b>SPECIAL REPORT:</b> ' + esc(lead)
+        + '</div>'
+        + '<div class="sc-news-col">'
+        + 'Investigation reveals unprecedented acceleration in consumer adoption, completely redefining digital video creation for modern creators worldwide.'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -560,7 +1055,7 @@ window.SC_TPL2 = (function () {
   T["docu-polaroid-pin"] = {
     name: "Polaroid Photo Drop", cat: "docu", dark: true, accent: "#dc2626",
     desc: "Photorealistic vintage Polaroid instant photo dropping onto surface with 3D metal pushpin",
-    css: '.sc-pol-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-pol-card{position:relative;width:72cqw;background:#ffffff;padding:4cqw 4cqw 6cqw;border-radius:1.5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);transform:rotate(4deg);animation:polDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-pol-pin{position:absolute;top:-2.5cqw;left:50%;transform:translateX(-50%);width:5cqw;height:5cqw;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff6b6b,#dc2626);box-shadow:0 2cqw 4cqw rgba(0,0,0,.9);z-index:4}.sc-pol-imgbox{width:100%;height:52cqw;background:#18181b;border-radius:1cqw;overflow:hidden}.sc-pol-imgbox img{width:100%;height:100%;object-fit:cover}.sc-pol-caption{font-family:Georgia,serif;font-style:italic;font-size:4.2cqw;color:#18181b;margin-top:2cqh;text-align:center;font-weight:700}@keyframes polDrop{0%,10%{transform:translateY(-8cqh) rotate(10deg) scale(1.08);opacity:0}22%,92%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}100%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}}',
+    css: '.sc-pol-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-pol-card{position:relative;width:72cqw;background:#ffffff;padding:4cqw 4cqw 6cqw;border-radius:1.5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);transform:rotate(4deg);animation:polDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-pol-pin{position:absolute;top:-2.5cqw;left:50%;transform:translateX(-50%);width:5cqw;height:5cqw;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff6b6b,#dc2626);box-shadow:0 2cqw 4cqw rgba(0,0,0,.9);z-index:4}.sc-pol-imgbox{width:100%;height:52cqw;background:#18181b;border-radius:1cqw;overflow:hidden}.sc-pol-imgbox img{width:100%;height:100%;object-fit:cover}.sc-pol-caption{font-family:Georgia,serif;font-style:italic;font-size:4.2cqw;color:#18181b;margin-top:2cqh;text-align:center;font-weight:700}@keyframes polDrop{0%,10%{transform:translateY(-8cqh) rotate(10deg) scale(1.08);opacity:0}22%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}45%{transform:translateY(-.4cqh) rotate(4.9deg) scale(1.01);opacity:1}68%{transform:translateY(.25cqh) rotate(3.2deg) scale(.995);opacity:1}92%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}100%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}}',
     html: function (o) {
       var caption = getP(o, "caption", o.lines[0] || "Zurich, May 1998");
       return '<div class="sc-pol-wrap">'
@@ -1000,14 +1495,26 @@ window.SC_TPL2 = (function () {
   /* 1.9 Cinematic Timeline Milestone */
   T["docu-timeline"] = {
     name: "Timeline Milestone", cat: "docu", dark: true, accent: "#f59e0b",
-    desc: "Historical epoch ticker sliding along a glowing vertical documentary timeline rail",
-    css: '.sc-time-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#09090b;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-time-line{position:absolute;top:0;bottom:0;width:3px;background:linear-gradient(180deg,transparent 0%,#f59e0b 50%,transparent 100%);box-shadow:0 0 10px rgba(245,158,11,.6)}.sc-time-card{position:relative;z-index:2;width:84cqw;background:#18181b;border:1px solid rgba(245,158,11,.3);border-radius:4cqw;padding:6cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);text-align:center;animation:timePop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-time-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.3em;color:#a1a1aa;text-transform:uppercase;margin-bottom:1cqh}.sc-time-year{font-size:18cqw;font-weight:900;color:#f59e0b;line-height:1;margin:1cqh 0;text-shadow:0 0 25px rgba(245,158,11,.5)}.sc-time-sub{font-size:5.6cqw;font-weight:800;color:#fff;margin-top:1cqh}.sc-time-desc{font-size:3.4cqw;color:#94a3b8;margin-top:.8cqh}@keyframes timePop{0%,15%{transform:scale(.95);opacity:1}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}',
+    desc: "Historical epoch ticker sliding along a glowing vertical documentary timeline rail with archival cutout portrait",
+    css: '.sc-time-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:6cqh 6cqw;background:#09090b;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:-apple-system,BlinkMacSystemFont,sans-serif}'
+      + '.sc-time-line{position:absolute;top:0;bottom:0;width:3px;background:linear-gradient(180deg,transparent 0%,#f59e0b 50%,transparent 100%);box-shadow:0 0 10px rgba(245,158,11,.6)}'
+      + '.sc-time-stage{position:relative;width:72cqw;height:42cqh;display:flex;align-items:flex-end;justify-content:center}'
+      + '.sc-time-img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 20px 40px rgba(0,0,0,.9)) drop-shadow(0 0 30px rgba(245,158,11,.3))}'
+      + '.sc-time-card{position:relative;z-index:2;width:86cqw;background:linear-gradient(180deg,#18181b 0%,#09090b 100%);border:1px solid rgba(245,158,11,.3);border-radius:4cqw;padding:4cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);text-align:center;animation:timePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-time-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.3em;color:#a1a1aa;text-transform:uppercase;margin-bottom:.6cqh}'
+      + '.sc-time-year{font-size:14cqw;font-weight:900;color:#f59e0b;line-height:1;margin:.5cqh 0;text-shadow:0 0 25px rgba(245,158,11,.5)}'
+      + '.sc-time-sub{font-size:5.2cqw;font-weight:800;color:#fff;margin-top:.6cqh}'
+      + '.sc-time-desc{font-size:3.4cqw;color:#94a3b8;margin-top:.6cqh}'
+      + '@keyframes timePop{0%,15%{transform:scale(.95);opacity:0}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}',
     html: function (o) {
-      var year = getP(o, "year", o.lines[0] || "2008");
-      var sub = getP(o, "sub", o.lines[1] || "The Housing Crisis");
-      var desc = getP(o, "desc", o.lines[2] || "Where it all began");
+      var year = getP(o, "year", o.lines[0] || "1905");
+      var sub = getP(o, "sub", o.lines[1] || "Annus Mirabilis Papers");
+      var desc = getP(o, "desc", o.lines[2] || "The foundation of modern physics");
       return '<div class="sc-time-wrap">'
         + '<div class="sc-time-line"></div>'
+        + '<div class="sc-time-stage">'
+        + '<img src="/assets/einstein_photo_cutout.png" class="sc-time-img" alt="Historical Timeline Portrait" />'
+        + '</div>'
         + '<div class="sc-time-card">'
         + '<div class="sc-time-tag">HISTORICAL EPOCH</div>'
         + '<div class="sc-time-year">' + esc(year) + '</div>'
@@ -1088,7 +1595,7 @@ window.SC_TPL2 = (function () {
   T["docu-folder"] = {
     name: "Greek Sculpture Spotlight", cat: "docu", dark: true, accent: "#ffffff",
     desc: "Classical marble Greek philosopher bust bathed in dramatic volumetric chiaroscuro spotlight beam with cinematic typography",
-    css: '.sc-statue-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:8cqh 6cqw;background:#050507;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-statue-beam{position:absolute;top:-10cqh;left:-10cqw;width:120cqw;height:120cqw;background:radial-gradient(ellipse at top left,rgba(255,255,255,.22) 0%,rgba(255,255,255,.06) 40%,transparent 70%);transform:rotate(-15deg);pointer-events:none;filter:blur(2cqw)}.sc-statue-stage{position:relative;width:74cqw;height:50cqh;border-radius:4cqw;overflow:hidden;box-shadow:0 4cqw 12cqw rgba(0,0,0,.9),0 0 4cqw rgba(255,255,255,.05);animation:statueZoom var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-statue-img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:contrast(1.15) brightness(1.05)}.sc-statue-body{text-align:center;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;margin-top:1.5cqh}.sc-statue-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.35em;color:rgba(255,255,255,.45);text-transform:uppercase;margin-bottom:1cqh}.sc-statue-title{font-size:9.2cqw;font-weight:400;letter-spacing:.12em;color:#f8fafc;line-height:1;margin:0;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.8)}.sc-statue-sub{font-size:3.6cqw;letter-spacing:.25em;color:#94a3b8;margin-top:1cqh;text-transform:uppercase}@keyframes statueZoom{0%,15%{transform:scale(.96);opacity:1}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
+    css: '.sc-statue-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:8cqh 6cqw;background:#050507;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-statue-beam{position:absolute;top:-10cqh;left:-10cqw;width:120cqw;height:120cqw;background:radial-gradient(ellipse at top left,rgba(255,255,255,.22) 0%,rgba(255,255,255,.06) 40%,transparent 70%);transform:rotate(-15deg);pointer-events:none;filter:blur(2cqw)}.sc-statue-stage{position:relative;width:74cqw;height:50cqh;border-radius:4cqw;overflow:hidden;box-shadow:0 4cqw 12cqw rgba(0,0,0,.9),0 0 4cqw rgba(255,255,255,.05);animation:statueZoom var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-statue-img{width:100%;height:100%;object-fit:cover;object-position:center top;filter:contrast(1.15) brightness(1.05)}.sc-statue-body{text-align:center;position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;margin-top:1.5cqh}.sc-statue-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.35em;color:rgba(255,255,255,.45);text-transform:uppercase;margin-bottom:1cqh}.sc-statue-title{font-size:9.2cqw;font-weight:400;letter-spacing:.12em;color:#f8fafc;line-height:1;margin:0;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.8)}.sc-statue-sub{font-size:3.6cqw;letter-spacing:.25em;color:#94a3b8;margin-top:1cqh;text-transform:uppercase}@keyframes statueZoom{0%,15%{transform:scale(.96);opacity:1}30%{transform:scale(1);opacity:1}55%{transform:scale(1.012) translateY(-.5cqh);opacity:1}75%{transform:scale(1.004) translateY(.3cqh);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
       var tag = getP(o, "tag", o.lines[0] || "ARCHIVE // 340 BC");
       var title = getP(o, "title", o.lines[1] || "EFFORTLESS MOTION");
@@ -1223,7 +1730,7 @@ window.SC_TPL2 = (function () {
   T["paper-torn-rip"] = {
     name: "Torn Paper on Cutting Mat", cat: "paper", dark: true, accent: "#d32f2f",
     desc: "Procedural torn paper cutout slamming onto studio green grid cutting mat with deckle edges and heavy drop shadow",
-    css: '.sc-mat-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background-color:#0b2314;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:4.5cqw 4.5cqw;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.9);font-family:Impact,Montserrat,sans-serif}.sc-mat-grid{position:absolute;inset:0;border:1px solid rgba(255,255,255,.14);margin:4cqw;pointer-events:none}.sc-torn-paper{position:relative;width:82cqw;padding:7cqw 6cqw;background:#d32f2f;color:#fff;text-align:center;clip-path:polygon(0% 4%, 4% 0%, 10% 3%, 16% 0%, 22% 4%, 28% 1%, 34% 5%, 40% 0%, 46% 3%, 52% 0%, 58% 4%, 64% 1%, 70% 5%, 76% 0%, 82% 3%, 88% 1%, 94% 4%, 100% 0%, 98% 25%, 100% 50%, 97% 75%, 100% 100%, 95% 97%, 89% 100%, 83% 96%, 77% 100%, 71% 95%, 65% 99%, 59% 96%, 53% 100%, 47% 95%, 41% 99%, 35% 96%, 29% 100%, 23% 95%, 17% 99%, 11% 96%, 5% 100%, 0% 97%, 2% 75%, 0% 50%, 3% 25%);box-shadow:0 4cqw 12cqw rgba(0,0,0,.85);animation:paperSlam var(--D) cubic-bezier(0.175,0.885,0.32,1.275) infinite}.sc-paper-tag{display:inline-block;font-family:ui-monospace,monospace;font-size:3cqw;letter-spacing:.25em;font-weight:800;opacity:.9;margin-bottom:1cqh;background:rgba(0,0,0,.3);padding:.4cqh 2cqw;border-radius:1cqw}.sc-paper-heading{font-size:8.4cqw;line-height:1.05;font-weight:900;margin:1cqh 0 0 0;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 .4cqw 1cqw rgba(0,0,0,.4)}@keyframes paperSlam{0%,10%{transform:scale(1.4) rotate(-8deg);opacity:0}22%,92%{transform:scale(1) rotate(-2deg);opacity:1}100%{transform:scale(1) rotate(-2deg);opacity:1}}',
+    css: '.sc-mat-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background-color:#0b2314;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:4.5cqw 4.5cqw;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.9);font-family:Impact,Montserrat,sans-serif}.sc-mat-grid{position:absolute;inset:0;border:1px solid rgba(255,255,255,.14);margin:4cqw;pointer-events:none}.sc-torn-paper{position:relative;width:82cqw;padding:7cqw 6cqw;background:#d32f2f;color:#fff;text-align:center;clip-path:polygon(0% 4%, 4% 0%, 10% 3%, 16% 0%, 22% 4%, 28% 1%, 34% 5%, 40% 0%, 46% 3%, 52% 0%, 58% 4%, 64% 1%, 70% 5%, 76% 0%, 82% 3%, 88% 1%, 94% 4%, 100% 0%, 98% 25%, 100% 50%, 97% 75%, 100% 100%, 95% 97%, 89% 100%, 83% 96%, 77% 100%, 71% 95%, 65% 99%, 59% 96%, 53% 100%, 47% 95%, 41% 99%, 35% 96%, 29% 100%, 23% 95%, 17% 99%, 11% 96%, 5% 100%, 0% 97%, 2% 75%, 0% 50%, 3% 25%);box-shadow:0 4cqw 12cqw rgba(0,0,0,.85);animation:paperSlam var(--D) cubic-bezier(0.175,0.885,0.32,1.275) infinite}.sc-paper-tag{display:inline-block;font-family:ui-monospace,monospace;font-size:3cqw;letter-spacing:.25em;font-weight:800;opacity:.9;margin-bottom:1cqh;background:rgba(0,0,0,.3);padding:.4cqh 2cqw;border-radius:1cqw}.sc-paper-heading{font-size:8.4cqw;line-height:1.05;font-weight:900;margin:1cqh 0 0 0;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 .4cqw 1cqw rgba(0,0,0,.4)}@keyframes paperSlam{0%,10%{transform:scale(1.4) rotate(-8deg);opacity:0}22%{transform:scale(1) rotate(-2deg);opacity:1}45%{transform:scale(1.015) rotate(-1.2deg);opacity:1}68%{transform:scale(.99) rotate(-2.6deg);opacity:1}92%{transform:scale(1) rotate(-2deg);opacity:1}100%{transform:scale(1) rotate(-2deg);opacity:1}}',
     html: function (o) {
       var tag = getP(o, "tag", o.lines[0] || "CONFIDENTIAL");
       var heading = getP(o, "heading", o.lines[1] || "UNCOVER THE TRUTH");
@@ -1437,7 +1944,7 @@ window.SC_TPL2 = (function () {
   T["paper-sticker"] = {
     name: "Holo Sticker Peel", cat: "paper", dark: true, accent: "#ec4899",
     desc: "Metallic rainbow iridescent holographic vinyl badge sticker with 3D corner peel flap and slap-down bounce",
-    css: '.sc-stk-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e112a 0%,#09050d 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-stk-badge{position:relative;width:68cqw;height:68cqw;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#eab308,#06b6d4,#a855f7,#f43f5e);padding:1.5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9),0 0 6cqw rgba(236,72,153,.3);animation:stkSlap var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-stk-inner{width:100%;height:100%;border-radius:50%;background:#09090b;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:6cqw;border:2px solid rgba(255,255,255,.2)}.sc-stk-icon{font-size:12cqw;filter:drop-shadow(0 0 2cqw #ec4899);margin-bottom:.5cqh}.sc-stk-title{font-size:8cqw;font-weight:900;letter-spacing:.05em;margin:0;text-transform:uppercase;color:#fff;text-shadow:0 0 12px rgba(255,255,255,.4)}.sc-stk-sub{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.3em;color:#f472b6;margin-top:1cqh;text-transform:uppercase}.sc-stk-peel{position:absolute;bottom:0;right:0;width:18cqw;height:18cqw;background:linear-gradient(135deg,transparent 50%,#e2e8f0 50%);border-bottom-right-radius:50%;filter:drop-shadow(-4px -4px 6px rgba(0,0,0,.6))}@keyframes stkSlap{0%,10%{transform:scale(1.4) rotate(-12deg);opacity:0}22%,92%{transform:scale(1) rotate(0deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}',
+    css: '.sc-stk-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e112a 0%,#09050d 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-stk-badge{position:relative;width:68cqw;height:68cqw;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#eab308,#06b6d4,#a855f7,#f43f5e);padding:1.5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9),0 0 6cqw rgba(236,72,153,.3);animation:stkSlap var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-stk-inner{width:100%;height:100%;border-radius:50%;background:#09090b;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:6cqw;border:2px solid rgba(255,255,255,.2)}.sc-stk-icon{font-size:12cqw;filter:drop-shadow(0 0 2cqw #ec4899);margin-bottom:.5cqh}.sc-stk-title{font-size:8cqw;font-weight:900;letter-spacing:.05em;margin:0;text-transform:uppercase;color:#fff;text-shadow:0 0 12px rgba(255,255,255,.4)}.sc-stk-sub{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.3em;color:#f472b6;margin-top:1cqh;text-transform:uppercase}.sc-stk-peel{position:absolute;bottom:0;right:0;width:18cqw;height:18cqw;background:linear-gradient(135deg,transparent 50%,#e2e8f0 50%);border-bottom-right-radius:50%;filter:drop-shadow(-4px -4px 6px rgba(0,0,0,.6))}@keyframes stkSlap{0%,10%{transform:scale(1.4) rotate(-12deg);opacity:0}22%{transform:scale(1) rotate(0deg);opacity:1}45%{transform:scale(1.02) rotate(1.4deg);opacity:1}68%{transform:scale(.99) rotate(-1.4deg);opacity:1}92%{transform:scale(1) rotate(0deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}',
     html: function (o) {
       var icon = getP(o, "icon", "⚡");
       var title = getP(o, "title", o.lines[0] || "VIRAL CLUB");
@@ -1549,7 +2056,7 @@ window.SC_TPL2 = (function () {
   T["paper-notebook"] = {
     name: "Kraft Legal Pad", cat: "paper", dark: true, accent: "#ef4444",
     desc: "Authentic yellow legal pad with red double left margin rule, blue lines, and animated handwritten checklist points",
-    css: '.sc-pad-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1b18 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-pad-sheet{position:relative;width:84cqw;background:#fef9c3;background-image:repeating-linear-gradient(180deg,transparent 0px,transparent 3.8cqh,#bae6fd 3.8cqh,#bae6fd 3.9cqh);color:#1c1917;border-radius:2cqw;padding:5cqh 5cqw 4cqh 12cqw;border-left:4px double #ef4444;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:padDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-pad-staple{position:absolute;top:0;left:0;right:0;height:3.5cqh;background:#1c1917;border-top-left-radius:2cqw;border-top-right-radius:2cqw;display:flex;align-items:center;justify-content:space-around;padding:0 10cqw}.sc-staple-bar{width:8cqw;height:3px;background:#94a3b8;border-radius:1px}.sc-pad-title{font-size:6.4cqw;font-weight:900;margin:0 0 2cqh 0;line-height:1.2;color:#1c1917}.sc-pad-item{display:flex;align-items:center;gap:2cqw;font-size:3.8cqw;font-weight:700;color:#334155;margin-bottom:1.2cqh}.sc-pad-chk{color:#16a34a;font-size:4.5cqw;font-weight:900}@keyframes padDrop{0%,10%{transform:translateY(-4cqh);opacity:0}22%,92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
+    css: '.sc-pad-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1b18 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-pad-sheet{position:relative;width:84cqw;background:#fef9c3;background-image:repeating-linear-gradient(180deg,transparent 0px,transparent 3.8cqh,#bae6fd 3.8cqh,#bae6fd 3.9cqh);color:#1c1917;border-radius:2cqw;padding:5cqh 5cqw 4cqh 12cqw;border-left:4px double #ef4444;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:padDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-pad-staple{position:absolute;top:0;left:0;right:0;height:3.5cqh;background:#1c1917;border-top-left-radius:2cqw;border-top-right-radius:2cqw;display:flex;align-items:center;justify-content:space-around;padding:0 10cqw}.sc-staple-bar{width:8cqw;height:3px;background:#94a3b8;border-radius:1px}.sc-pad-title{font-size:6.4cqw;font-weight:900;margin:0 0 2cqh 0;line-height:1.2;color:#1c1917}.sc-pad-item{display:flex;align-items:center;gap:2cqw;font-size:3.8cqw;font-weight:700;color:#334155;margin-bottom:1.2cqh}.sc-pad-chk{color:#16a34a;font-size:4.5cqw;font-weight:900}@keyframes padDrop{0%,10%{transform:translateY(-4cqh);opacity:0}22%{transform:translateY(0);opacity:1}45%{transform:translateY(-.5cqh);opacity:1}68%{transform:translateY(.3cqh);opacity:1}92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
     html: function (o) {
       var title = getP(o, "title", o.lines[0] || "Rule #1: The Hook");
       var item1 = getP(o, "item1", o.lines[1] || "First 3 seconds dictate 90% views");
@@ -1648,7 +2155,7 @@ window.SC_TPL2 = (function () {
   T["paper-postit"] = {
     name: "Post-It Note", cat: "paper", dark: true, accent: "#facc15",
     desc: "Bright yellow 3M Post-It sticky note with 3D peel shadow, red pushpin, and Sharpie marker reminder typography",
-    css: '.sc-post-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1c14 0%,#0a0907 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,Montserrat,sans-serif}.sc-post-card{position:relative;width:76cqw;height:76cqw;background:linear-gradient(135deg,#fef08a 0%,#fde047 100%);color:#713f12;padding:8cqw 7cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85),0 1cqw 3cqw rgba(0,0,0,.3);transform:rotate(3.5deg);display:flex;flex-direction:column;justify-content:space-between;animation:postFlutter var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-post-pin{position:absolute;top:-2cqw;left:50%;transform:translateX(-50%);width:5cqw;height:5cqw;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff6b6b,#dc2626);box-shadow:0 2cqw 4cqw rgba(0,0,0,.9);z-index:4}.sc-post-title{font-size:8cqw;font-weight:900;line-height:1.1;color:#713f12;margin:1cqh 0 0 0;text-transform:uppercase}.sc-post-body{font-family:Georgia,serif;font-size:5.2cqw;font-weight:800;color:#1c1917;line-height:1.3;margin:0}.sc-post-foot{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.2em;color:#854d0e;text-transform:uppercase}@keyframes postFlutter{0%,10%{transform:scale(.9) rotate(8deg);opacity:0}22%,92%{transform:scale(1) rotate(3.5deg);opacity:1}100%{transform:scale(1) rotate(3.5deg);opacity:1}}',
+    css: '.sc-post-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1c14 0%,#0a0907 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,Montserrat,sans-serif}.sc-post-card{position:relative;width:76cqw;height:76cqw;background:linear-gradient(135deg,#fef08a 0%,#fde047 100%);color:#713f12;padding:8cqw 7cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85),0 1cqw 3cqw rgba(0,0,0,.3);transform:rotate(3.5deg);display:flex;flex-direction:column;justify-content:space-between;animation:postFlutter var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-post-pin{position:absolute;top:-2cqw;left:50%;transform:translateX(-50%);width:5cqw;height:5cqw;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff6b6b,#dc2626);box-shadow:0 2cqw 4cqw rgba(0,0,0,.9);z-index:4}.sc-post-title{font-size:8cqw;font-weight:900;line-height:1.1;color:#713f12;margin:1cqh 0 0 0;text-transform:uppercase}.sc-post-body{font-family:Georgia,serif;font-size:5.2cqw;font-weight:800;color:#1c1917;line-height:1.3;margin:0}.sc-post-foot{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.2em;color:#854d0e;text-transform:uppercase}@keyframes postFlutter{0%,10%{transform:scale(.9) rotate(8deg);opacity:0}22%{transform:scale(1) rotate(3.5deg);opacity:1}45%{transform:scale(1.015) rotate(4.6deg);opacity:1}68%{transform:scale(.995) rotate(2.6deg);opacity:1}92%{transform:scale(1) rotate(3.5deg);opacity:1}100%{transform:scale(1) rotate(3.5deg);opacity:1}}',
     html: function (o) {
       var title = getP(o, "title", o.lines[0] || "REMEMBER:");
       var body = getP(o, "body", o.lines[1] || "Story > Equipment Every Single Time");
@@ -1753,7 +2260,7 @@ window.SC_TPL2 = (function () {
   T["paper-cardboard"] = {
     name: "Cardboard Stencil", cat: "paper", dark: true, accent: "#ffffff",
     desc: "Authentic corrugated brown kraft cardboard with industrial spray-painted white stencil typography, barcode, and cargo icons",
-    css: '.sc-box-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#2b1911;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,monospace,sans-serif}.sc-box-card{position:relative;width:86cqw;background:#78350f;background-image:repeating-linear-gradient(90deg,transparent 0px,transparent 1.5cqw,rgba(0,0,0,.12) 1.5cqw,rgba(0,0,0,.12) 3cqw);border:2px solid #572608;border-radius:3cqw;padding:8cqw 6cqw;text-align:center;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);color:#fff;animation:boxZoom var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-box-tape{position:absolute;top:0;bottom:0;left:50%;width:8cqw;transform:translateX(-50%);background:rgba(217,119,6,.25);border-left:1px dashed rgba(255,255,255,.15);border-right:1px dashed rgba(255,255,255,.15);pointer-events:none}.sc-box-kicker{font-family:ui-monospace,monospace;font-size:3cqw;letter-spacing:.3em;color:#fde68a;margin-bottom:1.5cqh;text-transform:uppercase}.sc-box-title{font-size:12cqw;font-weight:900;letter-spacing:.15em;text-transform:uppercase;margin:0;line-height:1;border-top:3px dashed rgba(255,255,255,.4);border-bottom:3px dashed rgba(255,255,255,.4);padding:1.5cqh 0;text-shadow:0 0 10px rgba(255,255,255,.3)}.sc-box-sub{font-size:3.6cqw;color:#fcd34d;letter-spacing:.1em;margin-top:2cqh;font-weight:700}.sc-box-icons{font-size:6cqw;margin-top:1.5cqh;letter-spacing:.5em;opacity:.85}@keyframes boxZoom{0%,10%{transform:scale(.92);opacity:0}22%,92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
+    css: '.sc-box-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#2b1911;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,monospace,sans-serif}.sc-box-card{position:relative;width:86cqw;background:#78350f;background-image:repeating-linear-gradient(90deg,transparent 0px,transparent 1.5cqw,rgba(0,0,0,.12) 1.5cqw,rgba(0,0,0,.12) 3cqw);border:2px solid #572608;border-radius:3cqw;padding:8cqw 6cqw;text-align:center;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);color:#fff;animation:boxZoom var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-box-tape{position:absolute;top:0;bottom:0;left:50%;width:8cqw;transform:translateX(-50%);background:rgba(217,119,6,.25);border-left:1px dashed rgba(255,255,255,.15);border-right:1px dashed rgba(255,255,255,.15);pointer-events:none}.sc-box-kicker{font-family:ui-monospace,monospace;font-size:3cqw;letter-spacing:.3em;color:#fde68a;margin-bottom:1.5cqh;text-transform:uppercase}.sc-box-title{font-size:12cqw;font-weight:900;letter-spacing:.15em;text-transform:uppercase;margin:0;line-height:1;border-top:3px dashed rgba(255,255,255,.4);border-bottom:3px dashed rgba(255,255,255,.4);padding:1.5cqh 0;text-shadow:0 0 10px rgba(255,255,255,.3)}.sc-box-sub{font-size:3.6cqw;color:#fcd34d;letter-spacing:.1em;margin-top:2cqh;font-weight:700}.sc-box-icons{font-size:6cqw;margin-top:1.5cqh;letter-spacing:.5em;opacity:.85}@keyframes boxZoom{0%,10%{transform:scale(.92);opacity:0}22%{transform:scale(1);opacity:1}45%{transform:scale(1.012);opacity:1}68%{transform:scale(.994);opacity:1}92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
     html: function (o) {
       var kicker = getP(o, "kicker", "HEAVY CARGO // PRIORITY");
       var title = getP(o, "title", o.lines[0] || "FRAGILE");
@@ -1847,7 +2354,7 @@ window.SC_TPL2 = (function () {
   T["paper-binder"] = {
     name: "Binder Clip Stack", cat: "paper", dark: true, accent: "#94a3b8",
     desc: "Archival index dossier clamped by 3D steel binder clip with metallic glint and structured strategic summary",
-    css: '.sc-bnd-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e293b 0%,#0a0f1d 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-bnd-card{position:relative;width:84cqw;background:#ffffff;color:#0f172a;padding:8cqw 6cqw 6cqw 6cqw;border-radius:2cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:bndSlide var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-bnd-clip{position:absolute;top:-3.5cqw;left:50%;transform:translateX(-50%);width:18cqw;height:7cqw;background:#334155;border-radius:1cqw;box-shadow:0 1cqw 3cqw #000;border:2px solid #64748b;z-index:5}.sc-bnd-wire{position:absolute;top:-2cqw;left:50%;transform:translateX(-50%);width:10cqw;height:4cqw;border:3px solid #cbd5e1;border-bottom:none;border-radius:2cqw 2cqw 0 0}.sc-bnd-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.25em;color:#64748b;text-transform:uppercase;margin-bottom:1.5cqh}.sc-bnd-title{font-size:7.2cqw;font-weight:900;color:#0f172a;margin:0 0 1.5cqh 0;line-height:1.15}.sc-bnd-desc{font-size:3.8cqw;color:#475569;line-height:1.5;margin:0}@keyframes bndSlide{0%,10%{transform:translateY(-3cqh);opacity:0}22%,92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
+    css: '.sc-bnd-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e293b 0%,#0a0f1d 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-bnd-card{position:relative;width:84cqw;background:#ffffff;color:#0f172a;padding:8cqw 6cqw 6cqw 6cqw;border-radius:2cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:bndSlide var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-bnd-clip{position:absolute;top:-3.5cqw;left:50%;transform:translateX(-50%);width:18cqw;height:7cqw;background:#334155;border-radius:1cqw;box-shadow:0 1cqw 3cqw #000;border:2px solid #64748b;z-index:5}.sc-bnd-wire{position:absolute;top:-2cqw;left:50%;transform:translateX(-50%);width:10cqw;height:4cqw;border:3px solid #cbd5e1;border-bottom:none;border-radius:2cqw 2cqw 0 0}.sc-bnd-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.25em;color:#64748b;text-transform:uppercase;margin-bottom:1.5cqh}.sc-bnd-title{font-size:7.2cqw;font-weight:900;color:#0f172a;margin:0 0 1.5cqh 0;line-height:1.15}.sc-bnd-desc{font-size:3.8cqw;color:#475569;line-height:1.5;margin:0}@keyframes bndSlide{0%,10%{transform:translateY(-3cqh);opacity:0}22%{transform:translateY(0);opacity:1}45%{transform:translateY(-.4cqh);opacity:1}68%{transform:translateY(.25cqh);opacity:1}92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
     html: function (o) {
       var tag = getP(o, "tag", o.lines[0] || "INDEX ARCHIVE // #01");
       var title = getP(o, "title", o.lines[1] || "Viral Content Blueprint");
@@ -1960,7 +2467,7 @@ window.SC_TPL2 = (function () {
   T["paper-receipt"] = {
     name: "Receipt Zigzag Tear", cat: "paper", dark: true, accent: "#000000",
     desc: "Authentic thermal POS supermarket register receipt with zigzag serrated torn edge and itemized metrics breakdown",
-    css: '.sc-rec-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#18181b 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:ui-monospace,monospace}.sc-rec-slip{position:relative;width:82cqw;background:#ffffff;color:#000000;padding:6cqw 6cqw 8cqw 6cqw;border-radius:2px;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);clip-path:polygon(0 0, 100% 0, 100% 94%, 95% 97%, 90% 94%, 85% 97%, 80% 94%, 75% 97%, 70% 94%, 65% 97%, 60% 94%, 55% 97%, 50% 94%, 45% 97%, 40% 94%, 35% 97%, 30% 94%, 25% 97%, 20% 94%, 15% 97%, 10% 94%, 5% 97%, 0 94%);animation:recRoll var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-rec-store{font-size:3cqw;letter-spacing:.2em;text-align:center;font-weight:700;margin-bottom:.5cqh}.sc-rec-head{font-size:5.8cqw;font-weight:900;text-align:center;border-bottom:1px dashed #71717a;padding-bottom:1.5cqh;margin:0 0 2cqh 0}.sc-rec-row{display:flex;justify-content:space-between;font-size:3.6cqw;margin-bottom:1.2cqh;font-weight:600}.sc-rec-tot{display:flex;justify-content:space-between;font-size:4.5cqw;font-weight:900;border-top:2px solid #000;padding-top:1.5cqh;margin-top:2cqh}.sc-rec-bar{text-align:center;font-size:3cqw;letter-spacing:.4em;margin-top:2cqh;color:#71717a}@keyframes recRoll{0%,10%{transform:translateY(-5cqh);opacity:0}22%,92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
+    css: '.sc-rec-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#18181b 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:ui-monospace,monospace}.sc-rec-slip{position:relative;width:82cqw;background:#ffffff;color:#000000;padding:6cqw 6cqw 8cqw 6cqw;border-radius:2px;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);clip-path:polygon(0 0, 100% 0, 100% 94%, 95% 97%, 90% 94%, 85% 97%, 80% 94%, 75% 97%, 70% 94%, 65% 97%, 60% 94%, 55% 97%, 50% 94%, 45% 97%, 40% 94%, 35% 97%, 30% 94%, 25% 97%, 20% 94%, 15% 97%, 10% 94%, 5% 97%, 0 94%);animation:recRoll var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-rec-store{font-size:3cqw;letter-spacing:.2em;text-align:center;font-weight:700;margin-bottom:.5cqh}.sc-rec-head{font-size:5.8cqw;font-weight:900;text-align:center;border-bottom:1px dashed #71717a;padding-bottom:1.5cqh;margin:0 0 2cqh 0}.sc-rec-row{display:flex;justify-content:space-between;font-size:3.6cqw;margin-bottom:1.2cqh;font-weight:600}.sc-rec-tot{display:flex;justify-content:space-between;font-size:4.5cqw;font-weight:900;border-top:2px solid #000;padding-top:1.5cqh;margin-top:2cqh}.sc-rec-bar{text-align:center;font-size:3cqw;letter-spacing:.4em;margin-top:2cqh;color:#71717a}@keyframes recRoll{0%,10%{transform:translateY(-5cqh);opacity:0}22%{transform:translateY(0);opacity:1}45%{transform:translateY(-.4cqh);opacity:1}68%{transform:translateY(.3cqh);opacity:1}92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
     html: function (o) {
       var store = getP(o, "store", "SHORTSCRAFT POS // 9021");
       var title = getP(o, "title", o.lines[0] || "RECEIPT #2026");
@@ -2061,7 +2568,7 @@ window.SC_TPL2 = (function () {
   T["paper-double-pol"] = {
     name: "Washi Tape Polaroids", cat: "paper", dark: true, accent: "#eab308",
     desc: "Overlapping instant photos taped together with textured washi tape and handwritten production diary caption",
-    css: '.sc-dpol-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1e24 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-dpol-stack{position:relative;width:82cqw;height:56cqw}.sc-dp1{position:absolute;left:0;top:0;width:48cqw;background:#ffffff;padding:2.5cqw 2.5cqw 5cqw;transform:rotate(-8deg);box-shadow:0 3cqw 10cqw rgba(0,0,0,.8);border-radius:1cqw;animation:polDrop1 var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-dp2{position:absolute;right:0;bottom:0;width:48cqw;background:#ffffff;padding:2.5cqw 2.5cqw 5cqw;transform:rotate(7deg);box-shadow:0 3cqw 10cqw rgba(0,0,0,.8);border-radius:1cqw;animation:polDrop2 var(--D) cubic-bezier(.16,1,.3,1) infinite;animation-delay:.1s}.sc-dp-img{width:100%;height:30cqw;border-radius:1cqw;overflow:hidden;background:#18181b}.sc-dp-img img{width:100%;height:100%;object-fit:cover}.sc-dp-washi{position:absolute;top:-2.5cqw;left:34%;width:34%;height:5cqw;background:rgba(234,179,8,.75);backdrop-filter:blur(2px);box-shadow:0 1px 4px rgba(0,0,0,.3);transform:rotate(10deg);z-index:4}.sc-dpol-cap{font-size:5.8cqw;font-weight:900;color:#ffffff;margin-top:4cqh;text-align:center;letter-spacing:.05em}@keyframes polDrop1{0%,10%{transform:scale(.85) rotate(-14deg);opacity:0}22%,92%{transform:scale(1) rotate(-8deg);opacity:1}100%{transform:scale(1) rotate(-8deg);opacity:1}}@keyframes polDrop2{0%,10%{transform:scale(.85) rotate(14deg);opacity:0}22%,92%{transform:scale(1) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(7deg);opacity:1}}',
+    css: '.sc-dpol-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1e24 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-dpol-stack{position:relative;width:82cqw;height:56cqw}.sc-dp1{position:absolute;left:0;top:0;width:48cqw;background:#ffffff;padding:2.5cqw 2.5cqw 5cqw;transform:rotate(-8deg);box-shadow:0 3cqw 10cqw rgba(0,0,0,.8);border-radius:1cqw;animation:polDrop1 var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-dp2{position:absolute;right:0;bottom:0;width:48cqw;background:#ffffff;padding:2.5cqw 2.5cqw 5cqw;transform:rotate(7deg);box-shadow:0 3cqw 10cqw rgba(0,0,0,.8);border-radius:1cqw;animation:polDrop2 var(--D) cubic-bezier(.16,1,.3,1) infinite;animation-delay:.1s}.sc-dp-img{width:100%;height:30cqw;border-radius:1cqw;overflow:hidden;background:#18181b}.sc-dp-img img{width:100%;height:100%;object-fit:cover}.sc-dp-washi{position:absolute;top:-2.5cqw;left:34%;width:34%;height:5cqw;background:rgba(234,179,8,.75);backdrop-filter:blur(2px);box-shadow:0 1px 4px rgba(0,0,0,.3);transform:rotate(10deg);z-index:4}.sc-dpol-cap{font-size:5.8cqw;font-weight:900;color:#ffffff;margin-top:4cqh;text-align:center;letter-spacing:.05em}@keyframes polDrop1{0%,10%{transform:scale(.85) rotate(-14deg);opacity:0}22%{transform:scale(1) rotate(-8deg);opacity:1}45%{transform:scale(1.015) rotate(-6.8deg);opacity:1}68%{transform:scale(.995) rotate(-9deg);opacity:1}92%{transform:scale(1) rotate(-8deg);opacity:1}100%{transform:scale(1) rotate(-8deg);opacity:1}}@keyframes polDrop2{0%,10%{transform:scale(.85) rotate(14deg);opacity:0}22%{transform:scale(1) rotate(7deg);opacity:1}45%{transform:scale(1.015) rotate(5.9deg);opacity:1}68%{transform:scale(.995) rotate(8.1deg);opacity:1}92%{transform:scale(1) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(7deg);opacity:1}}',
     html: function (o) {
       var caption = getP(o, "caption", o.lines[0] || "Production Diary");
       return '<div class="sc-dpol-wrap">'
@@ -2163,7 +2670,7 @@ window.SC_TPL2 = (function () {
   T["paper-collage"] = {
     name: "Cutout Scrapbook", cat: "paper", dark: true, accent: "#f59e0b",
     desc: "Multi-layered stop-motion scrapbook collage where each letter of the hook keyword is on an individual rotated cutout slip",
-    css: '.sc-col-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-col-row{display:flex;gap:2cqw;margin-bottom:2cqh}.sc-col-tile{background:#ffffff;color:#000000;padding:2cqw 3.8cqw;font-size:10cqw;font-weight:900;transform:rotate(-4deg);box-shadow:0 2cqw 6cqw rgba(0,0,0,.8);border-radius:1cqw}.sc-col-t1{background:#ef4444;color:#fff;transform:rotate(-6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-col-t2{background:#f59e0b;color:#000;transform:rotate(5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.05s}.sc-col-t3{background:#3b82f6;color:#fff;transform:rotate(-4deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.1s}.sc-col-t4{background:#22c55e;color:#000;transform:rotate(6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.15s}.sc-col-t5{background:#a855f7;color:#fff;transform:rotate(-5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.2s}.sc-col-sub{font-family:ui-monospace,monospace;font-size:3.6cqw;letter-spacing:.25em;color:#fcd34d;font-weight:800;margin-top:2cqh;text-transform:uppercase}@keyframes tilePop{0%,10%{transform:scale(.7);opacity:0}22%,92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
+    css: '.sc-col-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-col-row{display:flex;gap:2cqw;margin-bottom:2cqh}.sc-col-tile{background:#ffffff;color:#000000;padding:2cqw 3.8cqw;font-size:10cqw;font-weight:900;transform:rotate(-4deg);box-shadow:0 2cqw 6cqw rgba(0,0,0,.8);border-radius:1cqw}.sc-col-t1{background:#ef4444;color:#fff;transform:rotate(-6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-col-t2{background:#f59e0b;color:#000;transform:rotate(5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.05s}.sc-col-t3{background:#3b82f6;color:#fff;transform:rotate(-4deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.1s}.sc-col-t4{background:#22c55e;color:#000;transform:rotate(6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.15s}.sc-col-t5{background:#a855f7;color:#fff;transform:rotate(-5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.2s}.sc-col-sub{font-family:ui-monospace,monospace;font-size:3.6cqw;letter-spacing:.25em;color:#fcd34d;font-weight:800;margin-top:2cqh;text-transform:uppercase}@keyframes tilePop{0%,10%{transform:scale(.7);opacity:0}22%{transform:scale(1);opacity:1}45%{transform:scale(1.015);opacity:1}68%{transform:scale(.992);opacity:1}92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
     html: function (o) {
       var word = getP(o, "word", o.lines[0] || "VIRAL");
       var sub = getP(o, "sub", o.lines[1] || "STOP-MOTION FORMULA");
@@ -2244,6 +2751,60 @@ window.SC_TPL2 = (function () {
 }`
   };
 
+  /* 2.11 Minimalist Executive Motion (AI Deconstructed from user video) */
+  T["paper-executive-noir"] = {
+    name: "Minimalist Executive Motion", cat: "paper", dark: false, accent: "#141414",
+    desc: "Clean studio paper canvas with floating liquid shadow blobs, stylized silhouette executive mascot, and kinetic impact typography",
+    css: '.sc-exec-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8cqh 6cqw 6cqh;background:#f5f5f3;background-image:radial-gradient(circle at 50% 50%,rgba(0,0,0,.15) 1.5px,transparent 1.5px);background-size:24px 24px;overflow:hidden;font-family:"Space Grotesk",sans-serif;color:#141414}'
+      + '.sc-exec-blob-tl{position:absolute;top:-12cqh;left:-10cqw;width:48cqw;height:38cqh;background:#0d0d11;border-radius:40% 60% 70% 30% / 40% 50% 60% 50%;filter:drop-shadow(0 20px 35px rgba(0,0,0,.45));animation:execBlobFloat 6s ease-in-out infinite alternate}'
+      + '.sc-exec-blob-br{position:absolute;bottom:-12cqh;right:-10cqw;width:48cqw;height:38cqh;background:#0d0d11;border-radius:60% 40% 30% 70% / 50% 60% 40% 50%;filter:drop-shadow(0 -20px 35px rgba(0,0,0,.45));animation:execBlobFloat 7s ease-in-out infinite alternate-reverse}'
+      + '.sc-exec-hook{position:relative;z-index:2;font-size:7.5cqw;font-weight:600;color:#2a2a2e;text-align:center;line-height:1.2;animation:execSnapIn var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-exec-mascot-box{position:relative;z-index:2;flex:1;display:flex;align-items:center;justify-content:center;width:100%;animation:execIdleSway 5s ease-in-out infinite alternate}'
+      + '.sc-exec-mascot-svg{width:68cqw;height:42cqh;filter:drop-shadow(0 14px 25px rgba(0,0,0,.18))}'
+      + '.sc-exec-bottom{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:1.5cqh;text-align:center;width:100%}'
+      + '.sc-exec-punch{font-family:Inter,sans-serif;font-size:10.5cqw;font-weight:900;color:#0e0e12;letter-spacing:-.03em;line-height:1.05;text-transform:lowercase;animation:execSnapIn var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-exec-watermark{font-size:3.6cqw;font-weight:700;letter-spacing:.08em;color:#a8a7a2;opacity:.85}'
+      + '@keyframes execSnapIn{0%,10%{transform:scale(0.88) translateY(2cqh);opacity:0}22%,92%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}'
+      + '@keyframes execIdleSway{0%{transform:rotate(-1deg) translateY(0)}100%{transform:rotate(1deg) translateY(-1cqh)}}'
+      + '@keyframes execBlobFloat{0%{transform:translate(0,0) rotate(0deg)}100%{transform:translate(2cqw,-1.5cqh) rotate(8deg)}}',
+    html: function (o) {
+      var hook = getP(o, "hook", o.lines[0] || "Selling isn't about");
+      var punch = getP(o, "punch", o.lines[1] || "how much you say");
+      var mark = getP(o, "mark", o.lines[2] || "insiderforce.io");
+      return '<div class="sc-exec-wrap">'
+        + '<div class="sc-exec-blob-tl"></div>'
+        + '<div class="sc-exec-blob-br"></div>'
+        + '<div class="sc-exec-hook">' + esc(hook) + '</div>'
+        + '<div class="sc-exec-mascot-box">'
+        + '<svg class="sc-exec-mascot-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">'
+        + '<circle cx="200" cy="200" r="140" fill="rgba(0,0,0,0.03)" stroke="rgba(0,0,0,0.08)" stroke-dasharray="4 4" />'
+        + '<!-- Metaphor Arms & Devices -->'
+        + '<path d="M140 180 Q100 140 80 160" stroke="#141414" stroke-width="12" stroke-linecap="round" fill="none"/>'
+        + '<rect x="60" y="145" width="30" height="20" rx="3" fill="#2a2e38"/>'
+        + '<path d="M260 180 Q300 140 320 160" stroke="#141414" stroke-width="12" stroke-linecap="round" fill="none"/>'
+        + '<rect x="310" y="145" width="22" height="34" rx="4" fill="#2a2e38"/>'
+        + '<path d="M160 150 Q130 90 150 70" stroke="#141414" stroke-width="10" stroke-linecap="round" fill="none"/>'
+        + '<circle cx="150" cy="65" r="14" fill="#facc15"/>'
+        + '<path d="M240 150 Q270 90 250 70" stroke="#141414" stroke-width="10" stroke-linecap="round" fill="none"/>'
+        + '<path d="M245 75 L255 60 L265 75 Z" fill="#2a2e38"/>'
+        + '<!-- Executive Body Silhouette -->'
+        + '<path d="M160 210 L140 330 L175 330 L185 240 L200 270 L215 240 L225 330 L260 330 L240 210 Z" fill="#0d0d11"/>'
+        + '<path d="M160 210 L200 190 L240 210 L225 290 L175 290 Z" fill="#1b1c24"/>'
+        + '<path d="M190 190 L200 235 L210 190 Z" fill="#ffffff"/>'
+        + '<polygon points="196,200 204,200 202,232 198,232" fill="#d97706"/>'
+        + '<!-- Head Silhouette with faceted shading -->'
+        + '<path d="M185 140 L200 110 L218 135 L210 175 L188 175 Z" fill="#0d0d11"/>'
+        + '<path d="M185 140 L200 110 L204 175 L188 175 Z" fill="#22242f"/>'
+        + '</svg>'
+        + '</div>'
+        + '<div class="sc-exec-bottom">'
+        + '<div class="sc-exec-punch">' + esc(punch) + '</div>'
+        + '<div class="sc-exec-watermark">' + esc(mark) + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
   /* ============================================================
      CATEGORY 3: KINETIC TEXT & HOOKS (10 templates)
      ============================================================ */
@@ -2272,7 +2833,7 @@ window.SC_TPL2 = (function () {
   T["text-word-punch"] = {
     name: "Word Punch Scale", cat: "text", dark: true, accent: "#38bdf8",
     desc: "High-impact scale punch kinetic typography with rebound shake",
-    css: '.tx-pch{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.tx-pch .punch{font-size:16cqw;font-weight:900;letter-spacing:-.05em;color:#fff;text-transform:uppercase;animation:txPunch var(--D) cubic-bezier(.12,.9,.15,1) infinite}@keyframes txPunch{0%,15%{transform:scale(3);opacity:0;filter:blur(2cqw)}25%{transform:scale(0.9);opacity:1;filter:blur(0)}32%,85%{transform:scale(1);opacity:1}100%{transform:scale(0.8);opacity:0}}',
+    css: '.tx-pch{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.tx-pch .punch{font-size:11cqw;font-weight:900;letter-spacing:-.03em;color:#fff;text-transform:uppercase;width:100%;max-width:100%;word-break:break-word;line-height:1.05;animation:txPunch var(--D) cubic-bezier(.12,.9,.15,1) infinite}@keyframes txPunch{0%,15%{transform:scale(3);opacity:0;filter:blur(2cqw)}25%{transform:scale(0.9);opacity:1;filter:blur(0)}32%,85%{transform:scale(1);opacity:1}100%{transform:scale(0.8);opacity:0}}',
     html: function (o) {
       return '<div class="tx-pch"><div style="font-size:3.4cqw;letter-spacing:.2em;color:var(--ac);margin-bottom:2cqh">' + esc(o.lines[0] || "HOOK OF THE DAY") + '</div><div class="punch">' + esc(o.lines[1] || "UNSTOPPABLE") + '</div><div style="font-size:4cqw;color:var(--dim);margin-top:2cqh">' + esc(o.lines[2] || "Build your momentum") + '</div></div>';
     }
@@ -2282,7 +2843,7 @@ window.SC_TPL2 = (function () {
   T["text-subtitle-pill"] = {
     name: "Subtitles Pill Badge", cat: "text", dark: true, accent: "#22c55e",
     desc: "TikTok / Reels magnetic black pill badge with synchronized word highlight",
-    css: '.tx-pill{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}.tx-pill .badge{background:rgba(0,0,0,.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);padding:3cqw 6cqw;border-radius:99px;font-size:5.4cqw;font-weight:800;color:#fff;box-shadow:0 2cqw 6cqw rgba(0,0,0,.6)}.tx-pill .active{color:var(--ac);text-shadow:0 0 1.5cqw var(--ac)}',
+    css: '.tx-pill{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}.tx-pill .badge{background:rgba(0,0,0,.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);padding:3cqw 6cqw;border-radius:99px;font-size:5.4cqw;font-weight:800;color:#fff;box-shadow:0 2cqw 6cqw rgba(0,0,0,.6);opacity:0;transform:scale(.85);animation:pillPop var(--D) var(--sp) infinite}.tx-pill .active{color:var(--ac);text-shadow:0 0 1.5cqw var(--ac);display:inline-block;animation:activeGlow calc(var(--D) / 3) ease-in-out infinite alternate}@keyframes pillPop{0%,8%{transform:scale(.85);opacity:0}24%,100%{transform:scale(1);opacity:1}}@keyframes activeGlow{0%{text-shadow:0 0 1cqw var(--ac);transform:scale(1)}100%{text-shadow:0 0 3cqw var(--ac);transform:scale(1.06)}}',
     html: function (o) {
       return '<div class="tx-pill"><div class="badge">Create <span class="active">' + esc(o.lines[0] || "insane videos") + '</span> in seconds</div></div>';
     }
@@ -2747,7 +3308,7 @@ window.SC_TPL2 = (function () {
   T["maps-route"] = {
     name: "Expedition Waypoint Route", cat: "maps", dark: true, accent: "#f59e0b",
     desc: "Historical expedition path advancing through numbered campsite checkpoints",
-    css: '.mp-rt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#181512;color:#fff;overflow:hidden}.mp-rt .hdr{background:#29221d;border:1px solid #44372e;border-radius:2cqw;padding:2cqw 4cqw;display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#fde68a}.mp-rt .stage{flex:1;position:relative;display:grid;place-items:center}.mp-rt svg{width:100%;height:38cqh}.mp-rt .route-line{fill:none;stroke:#f59e0b;stroke-width:6;stroke-dasharray:300;stroke-dashoffset:300;animation:mpDrawRoute var(--D) var(--sp) infinite}.mp-rt .log-card{background:#231d18;border:1px solid #44372e;border-radius:3cqw;padding:4cqw;text-align:center}.mp-rt h2{font-family:Georgia,serif;font-size:6.8cqw;font-weight:900;color:#fff;margin:0}@keyframes mpDrawRoute{0%,15%{stroke-dashoffset:300}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:300}}',
+    css: '.mp-rt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#181512;color:#fff;overflow:hidden}.mp-rt .hdr{background:#29221d;border:1px solid #44372e;border-radius:2cqw;padding:2cqw 4cqw;display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#fde68a}.mp-rt .stage{flex:1;position:relative;display:grid;place-items:center}.mp-rt svg{width:100%;height:38cqh}.mp-rt .route-line{fill:none;stroke:#f59e0b;stroke-width:6;stroke-dasharray:300;stroke-dashoffset:300;animation:mpDrawRoute var(--D) var(--sp) infinite}.mp-rt .summit-dot{animation:mpSummitPulse 1.4s ease-in-out infinite}@keyframes mpSummitPulse{0%,100%{r:9;opacity:1}50%{r:11;opacity:.65}}.mp-rt .log-card{background:#231d18;border:1px solid #44372e;border-radius:3cqw;padding:4cqw;text-align:center}.mp-rt h2{font-family:Georgia,serif;font-size:6.8cqw;font-weight:900;color:#fff;margin:0}@keyframes mpDrawRoute{0%,15%{stroke-dashoffset:300}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:300}}',
     html: function (o) {
       return '<div class="mp-rt">'
         + '<div class="hdr"><span>EXPEDITION TIMELINE</span><span>DAY 14 REEL</span></div>'
@@ -2756,7 +3317,7 @@ window.SC_TPL2 = (function () {
         + '<path d="M30,170 Q100,160 140,110 T260,40" class="route-line"/>'
         + '<circle cx="30" cy="170" r="7" fill="#f59e0b"/>'
         + '<circle cx="140" cy="110" r="7" fill="#f59e0b"/>'
-        + '<circle cx="260" cy="40" r="9" fill="#ef4444"/>'
+        + '<circle class="summit-dot" cx="260" cy="40" r="9" fill="#ef4444"/>'
         + '<text x="45" y="175" fill="#aaa" font-size="10" font-family="monospace">Base Camp</text>'
         + '<text x="155" y="115" fill="#aaa" font-size="10" font-family="monospace">Ridge Pass</text>'
         + '<text x="210" y="35" fill="#fca5a5" font-size="10" font-family="monospace" font-weight="bold">Summit</text>'
@@ -2799,7 +3360,15 @@ window.SC_TPL2 = (function () {
   T["maps-transit"] = {
     name: "City Blueprint Breakdown", cat: "maps", dark: true, accent: "#38bdf8",
     desc: "Architectural city block blueprint with highlighted target sector and coordinates",
-    css: '.mp-trn{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#0c1a2e;color:#fff;overflow:hidden}.mp-trn .hdr{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);border-radius:2cqw;padding:2cqw 4cqw;display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#38bdf8}.mp-trn .stage{flex:1;position:relative;display:grid;place-items:center}.mp-trn svg{width:100%;height:38cqh}.mp-trn .foot-card{background:#081324;border:1px solid rgba(56,189,248,.25);border-radius:3cqw;padding:4cqw;text-align:center}.mp-trn h2{font-size:6.8cqw;font-weight:900;color:#fff;margin:0}',
+    css: '.mp-trn{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#091d36 0%,#030914 100%);color:#fff;overflow:hidden;font-family:Inter,sans-serif}'
+      + '.mp-trn .hdr{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);border-radius:2cqw;padding:2cqw 4cqw;display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#38bdf8}'
+      + '.mp-trn .stage{flex:1;position:relative;display:grid;place-items:center;margin:1cqh 0}'
+      + '.mp-trn svg{width:100%;height:38cqh;border-radius:2.5cqw;background:#051224;border:1px solid rgba(56,189,248,.2);box-shadow:0 0 30px rgba(56,189,248,.15)}'
+      + '.mp-trn .laser-line{stroke:#38bdf8;stroke-width:2;filter:drop-shadow(0 0 8px #38bdf8);animation:laserScan var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.mp-trn .foot-card{background:#081324;border:1px solid rgba(56,189,248,.35);border-radius:3cqw;padding:4cqw;text-align:center;box-shadow:0 4cqw 12cqw rgba(0,0,0,.8);animation:trnCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.mp-trn h2{font-size:6.8cqw;font-weight:900;color:#fff;margin:0}'
+      + '@keyframes laserScan{0%,10%{transform:translateY(-100px);opacity:0}20%{opacity:1}85%{transform:translateY(160px);opacity:1}100%{opacity:0}}'
+      + '@keyframes trnCardPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
       return '<div class="mp-trn">'
         + '<div class="hdr"><span>ARCHITECTURAL SECTOR</span><span>GRID #104</span></div>'
@@ -2811,6 +3380,7 @@ window.SC_TPL2 = (function () {
         + '<rect x="60" y="45" width="70" height="35" fill="rgba(56,189,248,0.06)" stroke="rgba(56,189,248,0.3)"/>'
         + '<rect x="160" y="45" width="90" height="35" fill="rgba(245,158,11,0.25)" stroke="#f59e0b" stroke-width="2"/>'
         + '<rect x="60" y="105" width="190" height="35" fill="rgba(56,189,248,0.06)" stroke="rgba(56,189,248,0.3)"/>'
+        + '<line class="laser-line" x1="0" y1="20" x2="300" y2="20"/>'
         + '<text x="175" y="67" fill="#fde68a" font-size="9" font-family="monospace" font-weight="bold">TARGET BLOCK</text>'
         + '</svg>'
         + '</div>'
@@ -2826,7 +3396,15 @@ window.SC_TPL2 = (function () {
   T["maps-topo"] = {
     name: "National Geographic Summit", cat: "maps", dark: true, accent: "#10b981",
     desc: "Documentary elevation contour isolines with alpine altitude markers and peak flag",
-    css: '.mp-top{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#05140d;color:#fff;overflow:hidden}.mp-top .top-bar{display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#6ee7b7}.mp-top .stage{flex:1;position:relative;display:grid;place-items:center}.mp-top svg{width:100%;height:38cqh;stroke:var(--ac);fill:none;opacity:.85}.mp-top .summit-card{background:#062317;border:1px solid rgba(16,185,129,.3);border-radius:3cqw;padding:4cqw;text-align:center}.mp-top h2{font-family:Georgia,serif;font-size:7.2cqw;font-weight:900;color:#fff;margin:0}',
+    css: '.mp-top{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#0b2318 0%,#030a06 100%);color:#fff;overflow:hidden;font-family:Inter,sans-serif}'
+      + '.mp-top .top-bar{display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#6ee7b7;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:2cqw;padding:2cqw 4cqw}'
+      + '.mp-top .stage{flex:1;position:relative;display:grid;place-items:center;margin:1cqh 0}'
+      + '.mp-top svg{width:100%;height:38cqh;stroke:var(--ac);fill:none;border-radius:2.5cqw;background:#05170e;border:1px solid rgba(16,185,129,.2);box-shadow:0 0 30px rgba(16,185,129,.15)}'
+      + '.mp-top .contour-pulse{animation:topoPulse var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.mp-top .summit-card{background:#062317;border:1px solid rgba(16,185,129,.35);border-radius:3cqw;padding:4cqw;text-align:center;box-shadow:0 4cqw 12cqw rgba(0,0,0,.8);animation:topCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.mp-top h2{font-family:Georgia,serif;font-size:7.2cqw;font-weight:900;color:#fff;margin:0}'
+      + '@keyframes topoPulse{0%,15%{transform:scale(0.85);opacity:0}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}'
+      + '@keyframes topCardPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
       return '<div class="mp-top">'
         + '<div class="top-bar"><span>NAT GEO ELEVATION CHART</span><span>CONTOUR: 500M</span></div>'
@@ -2834,9 +3412,9 @@ window.SC_TPL2 = (function () {
         + '<svg viewBox="0 0 300 200">'
         + '<ellipse cx="150" cy="100" rx="130" ry="75" stroke-width="1.5" stroke="rgba(16,185,129,0.3)"/>'
         + '<ellipse cx="150" cy="100" rx="95" ry="55" stroke-width="2" stroke="rgba(16,185,129,0.6)"/>'
-        + '<ellipse cx="150" cy="100" rx="60" ry="35" stroke-width="2.5" stroke="#10b981"/>'
-        + '<ellipse cx="150" cy="100" rx="25" ry="15" stroke-width="3" stroke="#34d399"/>'
-        + '<polygon points="150,85 158,95 142,95" fill="#facc15"/>'
+        + '<ellipse class="contour-pulse" cx="150" cy="100" rx="60" ry="35" stroke-width="2.5" stroke="#10b981"/>'
+        + '<ellipse class="contour-pulse" cx="150" cy="100" rx="25" ry="15" stroke-width="3" stroke="#34d399"/>'
+        + '<polygon points="150,85 158,95 142,95" fill="#facc15" filter="drop-shadow(0 0 6px #facc15)"/>'
         + '</svg>'
         + '</div>'
         + '<div class="summit-card">'
@@ -2851,21 +3429,29 @@ window.SC_TPL2 = (function () {
   T["maps-trade-route"] = {
     name: "Maritime Trade Chokepoint", cat: "maps", dark: true, accent: "#38bdf8",
     desc: "Strategic strait waterway with cargo ship traffic, bathymetry and trade impact metrics",
-    css: '.mp-sea{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#031326;color:#fff;overflow:hidden}.mp-sea .top-bar{display:flex;justify-content:space-between;font-size:2.8cqw;font-family:monospace;color:#38bdf8}.mp-sea .stage{flex:1;position:relative;display:grid;place-items:center}.mp-sea svg{width:100%;height:38cqh}.mp-sea .ship-path{stroke:#38bdf8;stroke-width:3;stroke-dasharray:6 6;fill:none;animation:mpDash 1.5s linear infinite}.mp-sea .card{background:#081c36;border:1px solid rgba(56,189,248,.2);border-radius:3cqw;padding:4cqw;text-align:center}.mp-sea h2{font-size:7cqw;font-weight:900;color:#fff;margin:0}',
+    css: '.mp-sea{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#092344 0%,#020b17 100%);color:#fff;overflow:hidden;font-family:Inter,sans-serif}'
+      + '.mp-sea .top-bar{display:flex;justify-content:space-between;font-size:2.8cqw;font-family:monospace;color:#38bdf8;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.25);border-radius:2cqw;padding:2cqw 4cqw}'
+      + '.mp-sea .stage{flex:1;position:relative;display:grid;place-items:center;margin:1cqh 0}'
+      + '.mp-sea svg{width:100%;height:38cqh;border-radius:2.5cqw;background:#041429;border:1px solid rgba(56,189,248,.2);box-shadow:0 0 30px rgba(56,189,248,.15)}'
+      + '.mp-sea .ship-path{stroke:#38bdf8;stroke-width:3;stroke-dasharray:6 6;fill:none;animation:seaDash 1.5s linear infinite}'
+      + '.mp-sea .card{background:#081c36;border:1px solid rgba(56,189,248,.35);border-radius:3cqw;padding:4cqw;text-align:center;box-shadow:0 4cqw 12cqw rgba(0,0,0,.8);animation:seaCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.mp-sea h2{font-size:7cqw;font-weight:900;color:#fff;margin:0}'
+      + '@keyframes seaDash{to{stroke-dashoffset:-24}}'
+      + '@keyframes seaCardPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
       return '<div class="mp-sea">'
         + '<div class="top-bar"><span>GLOBAL TRADE CHOKEPOINT</span><span>AIS RADAR ACTIVE</span></div>'
         + '<div class="stage">'
         + '<svg viewBox="0 0 300 200">'
-        + '<path d="M0,40 Q80,70 140,50 T300,30 L300,0 L0,0 Z" fill="rgba(255,255,255,0.08)"/>'
-        + '<path d="M0,160 Q100,130 160,150 T300,170 L300,200 L0,200 Z" fill="rgba(255,255,255,0.08)"/>'
-        + '<path d="M20,100 Q150,110 280,95" class="ship-path"/>'
-        + '<circle cx="160" cy="104" r="6" fill="#38bdf8"/>'
+        + '<path d="M0,40 Q100,60 140,20 T300,10 L300,0 L0,0 Z" fill="rgba(255,255,255,0.06)"/>'
+        + '<path d="M0,160 Q120,130 180,180 T300,150 L300,200 L0,200 Z" fill="rgba(255,255,255,0.06)"/>'
+        + '<path class="ship-path" d="M20,100 Q150,110 280,85"/>'
+        + '<circle cx="150" cy="105" r="5" fill="#38bdf8" filter="drop-shadow(0 0 8px #38bdf8)"/>'
         + '</svg>'
         + '</div>'
         + '<div class="card">'
         + '<h2>' + esc(o.lines[0] || "Strait of Malacca") + '</h2>'
-        + '<div style="font-size:3.4cqw;color:#94a3b8;margin-top:.8cqh">' + esc(o.lines[1] || "$1.2 Trillion Annual Trade // 12% of Global Cargo") + '</div>'
+        + '<div style="font-size:3.4cqw;color:#94a3b8;font-family:monospace;margin-top:.8cqh">' + esc(o.lines[1] || "30% OF GLOBAL MARITIME TRADE") + '</div>'
         + '</div>'
         + '</div>';
     }
@@ -2878,20 +3464,80 @@ window.SC_TPL2 = (function () {
   /* 5.1 Candlestick Trading Surge */
   T["money-candlestick"] = {
     name: "Trading Candlestick", cat: "money", dark: true, accent: "#22c55e",
-    desc: "Green and red stock trading candlestick chart drawing breakout surge",
-    css: '.mn-cnd{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw;background:#090d16}.mn-cnd .chart{display:flex;align-items:flex-end;gap:3cqw;height:34cqh;border-bottom:1px solid var(--hair);padding-bottom:1cqh}.mn-cnd .candle{flex:1;position:relative;background:#22c55e;border-radius:1px}.mn-cnd .candle::before{content:"";position:absolute;left:50%;top:-3cqh;bottom:-3cqh;width:2px;background:#22c55e;transform:translateX(-50%)}.mn-cnd .c-red{background:#ef4444}.mn-cnd .c-red::before{background:#ef4444}',
+    desc: "Green and red stock trading candlestick chart drawing breakout surge with glowing EMA line",
+    css: '.sc-trade-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 7cqw;background:radial-gradient(ellipse at 50% 40%,#0e1726 0%,#060911 100%);overflow:hidden;font-family:"Space Grotesk",sans-serif;color:#fff}'
+      + '.sc-trade-head{display:flex;justify-content:space-between;align-items:flex-start;z-index:2}'
+      + '.sc-trade-ticker{font-size:4.2cqw;font-weight:700;color:var(--dim);letter-spacing:.08em}'
+      + '.sc-trade-gain{display:inline-flex;align-items:center;gap:1.5cqw;padding:.8cqh 2.5cqw;border-radius:999px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);font-size:4.8cqw;font-weight:900;color:#22c55e;box-shadow:0 0 20px rgba(34,197,94,.3);animation:tradeGainPulse 2s ease-in-out infinite}'
+      + '.sc-trade-chart-box{position:relative;width:100%;height:44cqh;display:flex;align-items:flex-end;gap:3.5cqw;padding:0 2cqw 2cqh;border-bottom:1px solid rgba(255,255,255,.12);background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:6cqw 6cqw}'
+      + '.sc-trade-svg-line{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}'
+      + '.sc-trade-ema-path{fill:none;stroke:#38bdf8;stroke-width:4;stroke-linecap:round;filter:drop-shadow(0 0 10px #38bdf8);stroke-dasharray:600;stroke-dashoffset:600;animation:tradeEmaDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-trade-bar{flex:1;position:relative;border-radius:3px;box-shadow:0 0 16px rgba(34,197,94,.35);animation:tradeBarRise var(--D) cubic-bezier(.16,1,.3,1) infinite;transform-origin:bottom}'
+      + '.sc-trade-bar::before{content:"";position:absolute;left:50%;top:-3cqh;bottom:-3cqh;width:2px;background:inherit;transform:translateX(-50%);opacity:.85}'
+      + '.sc-trade-b-green{background:#22c55e;color:#22c55e}'
+      + '.sc-trade-b-red{background:#ef4444;color:#ef4444;box-shadow:0 0 16px rgba(239,68,68,.35)}'
+      + '.sc-trade-foot{display:flex;justify-content:space-between;align-items:center;font-size:3.4cqw;color:var(--dim);border-top:1px solid rgba(255,255,255,.06);padding-top:1.5cqh}'
+      + '@keyframes tradeBarRise{0%,12%{transform:scaleY(0);opacity:0}25%,85%{transform:scaleY(1);opacity:1}100%{transform:scaleY(0.95);opacity:0}}'
+      + '@keyframes tradeEmaDraw{0%,18%{stroke-dashoffset:600}40%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:600}}'
+      + '@keyframes tradeGainPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05);box-shadow:0 0 28px rgba(34,197,94,.5)}}',
     html: function (o) {
-      return '<div class="mn-cnd"><div style="display:flex;justify-content:space-between;margin-bottom:2cqh"><span style="font-size:4cqw;color:var(--dim)">NASDAQ: NVDA</span><b style="font-size:6cqw;color:#22c55e">+14.8% ↗</b></div><div class="chart"><div class="candle" style="height:35%"></div><div class="candle c-red" style="height:45%"></div><div class="candle" style="height:60%"></div><div class="candle" style="height:90%"></div></div></div>';
+      var ticker = getP(o, "ticker", o.lines[0] || "NASDAQ: NVDA");
+      var gain = getP(o, "gain", "+14.8% ↗");
+      var cap = getP(o, "cap", o.lines[1] || "MARKET CAP // $3.2T");
+      return '<div class="sc-trade-wrap">'
+        + '<div class="sc-trade-head">'
+        + '<div class="sc-trade-ticker">' + esc(ticker) + '</div>'
+        + '<div class="sc-trade-gain">' + esc(gain) + '</div>'
+        + '</div>'
+        + '<div class="sc-trade-chart-box">'
+        + '<svg class="sc-trade-svg-line" viewBox="0 0 300 200">'
+        + '<path class="sc-trade-ema-path" d="M 15 160 Q 90 140 160 90 T 285 25" />'
+        + '</svg>'
+        + '<div class="sc-trade-bar sc-trade-b-green" style="height:32%;animation-delay:.05s;"></div>'
+        + '<div class="sc-trade-bar sc-trade-b-red" style="height:48%;animation-delay:.12s;"></div>'
+        + '<div class="sc-trade-bar sc-trade-b-green" style="height:64%;animation-delay:.18s;"></div>'
+        + '<div class="sc-trade-bar sc-trade-b-green" style="height:92%;animation-delay:.25s;"></div>'
+        + '</div>'
+        + '<div class="sc-trade-foot">'
+        + '<span>VOL 42.8M</span>'
+        + '<span>' + esc(cap) + '</span>'
+        + '</div>'
+        + '</div>';
     }
   };
 
-  /* 5.2 Cash Stack */
+  /* 5.2 3D Isometric Cash Stack */
   T["money-cash-stack"] = {
     name: "3D Cash Stack", cat: "money", dark: true, accent: "#34d17a",
     desc: "3D isometric currency bills floating and stacking with banknote details",
-    css: '.cs{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqh}.cs .total{font-size:14cqw;font-weight:900;color:#fff;line-height:1}',
+    css: '.sc-cash-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#0c2014 0%,#040a06 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:900px}'
+      + '.sc-cash-stage{position:relative;width:68cqw;height:32cqh;transform-style:preserve-3d;transform:rotateX(30deg) rotateZ(-12deg);animation:cashFloat 5s ease-in-out infinite alternate}'
+      + '.sc-cash-bill{position:absolute;width:100%;height:18cqh;border-radius:2.5cqw;background:linear-gradient(135deg,#1f6b3e 0%,#0f4023 100%);border:2px solid #34d17a;box-shadow:0 12px 30px rgba(0,0,0,.7),0 0 20px rgba(52,209,122,.2);display:flex;align-items:center;justify-content:space-between;padding:3cqw 4cqw;animation:billSlam var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-cash-b1{bottom:0cqh;animation-delay:.05s}'
+      + '.sc-cash-b2{bottom:4cqh;animation-delay:.15s}'
+      + '.sc-cash-b3{bottom:8cqh;animation-delay:.25s}'
+      + '.sc-cash-circle{width:9cqw;height:9cqw;border-radius:50%;border:2px dashed #a7f3d0;display:grid;place-items:center;font-size:4.5cqw;font-weight:900;color:#34d17a}'
+      + '.sc-cash-val{font-family:"Space Grotesk",sans-serif;font-size:5.5cqw;font-weight:900;color:#f0fdf4}'
+      + '.sc-cash-info{margin-top:4cqh;text-align:center;z-index:5}'
+      + '.sc-cash-total{font-size:13cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;text-shadow:0 0 35px rgba(52,209,122,.5);animation:cashTotalPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-cash-sub{font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;color:#86efac;font-weight:700;margin-top:1cqh}'
+      + '@keyframes cashFloat{0%{transform:rotateX(28deg) rotateZ(-10deg) translateY(0)}100%{transform:rotateX(34deg) rotateZ(-14deg) translateY(-1.5cqh)}}'
+      + '@keyframes billSlam{0%,10%{transform:translateY(-8cqh) scale(.8);opacity:0}22%,88%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(0);opacity:0}}'
+      + '@keyframes cashTotalPop{0%,18%{transform:scale(.85);opacity:0}28%,88%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}',
     html: function (o) {
-      return '<div class="cs"><div style="font-size:12cqw">💵</div><div class="total">' + esc(o.lines[0] || "$50,000") + '</div><div style="font-size:3.6cqw;color:var(--dim);letter-spacing:.2em;text-transform:uppercase">' + esc(o.lines[1] || "Monthly Revenue") + '</div></div>';
+      var total = getP(o, "total", o.lines[0] || "$50,000");
+      var sub = getP(o, "sub", o.lines[1] || "Monthly Revenue");
+      return '<div class="sc-cash-wrap">'
+        + '<div class="sc-cash-stage">'
+        + '<div class="sc-cash-bill sc-cash-b1"><div class="sc-cash-circle">$</div><div class="sc-cash-val">100</div></div>'
+        + '<div class="sc-cash-bill sc-cash-b2"><div class="sc-cash-circle">$</div><div class="sc-cash-val">100</div></div>'
+        + '<div class="sc-cash-bill sc-cash-b3"><div class="sc-cash-circle">$</div><div class="sc-cash-val">100</div></div>'
+        + '</div>'
+        + '<div class="sc-cash-info">'
+        + '<div class="sc-cash-total">' + esc(total) + '</div>'
+        + '<div class="sc-cash-sub">' + esc(sub) + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3016,10 +3662,24 @@ window.SC_TPL2 = (function () {
   /* 5.4 Crypto Bitcoin Flip */
   T["money-crypto-surge"] = {
     name: "Bitcoin Gold Ticker", cat: "money", dark: true, accent: "#f59e0b",
-    desc: "Floating 3D gold Bitcoin coin spinning with price breakout",
-    css: '.ct{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.ct .coin{font-size:18cqw;animation:ctSpin 3s ease-in-out infinite}@keyframes ctSpin{0%,100%{transform:rotateY(0)}50%{transform:rotateY(180deg)}}',
+    desc: "Floating 3D gold Bitcoin coin spinning with price breakout and particle glow",
+    css: '.sc-btc-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#261504 0%,#0a0501 100%);overflow:hidden;font-family:"Space Grotesk",sans-serif;color:#fff;perspective:900px}'
+      + '.sc-btc-3d-img{width:36cqw;height:36cqw;object-fit:contain;filter:drop-shadow(0 0 35px rgba(245,158,11,.6)) drop-shadow(0 15px 30px rgba(0,0,0,.8));animation:btcSpin 5s ease-in-out infinite alternate}'
+      + '.sc-btc-card{margin-top:3.5cqh;text-align:center;animation:btcCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-btc-price{font-size:14cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;text-shadow:0 0 30px rgba(245,158,11,.4)}'
+      + '.sc-btc-badge{display:inline-flex;align-items:center;gap:1.5cqw;padding:.8cqh 3cqw;border-radius:999px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);font-size:3.8cqw;font-weight:800;color:#22c55e;margin-top:1.5cqh;box-shadow:0 0 16px rgba(34,197,94,.3)}'
+      + '@keyframes btcSpin{0%{transform:rotateY(-15deg) rotateX(10deg) scale(0.96)}100%{transform:rotateY(25deg) rotateX(-10deg) scale(1.04)}}'
+      + '@keyframes btcCardPop{0%,15%{transform:translateY(3cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-2cqh);opacity:0}}',
     html: function (o) {
-      return '<div class="ct"><div class="coin">₿</div><div style="font-size:12cqw;font-weight:900;color:#fff;margin:1cqh 0">' + esc(o.lines[0] || "$98,400") + '</div><div style="font-size:4.2cqw;font-weight:800;color:#10b981">' + esc(o.lines[1] || "▲ +8.4% Surge") + '</div></div>';
+      var price = getP(o, "price", o.lines[0] || "$98,400");
+      var gain = getP(o, "gain", o.lines[1] || "▲ +8.4% 24H BREAKOUT");
+      return '<div class="sc-btc-wrap">'
+        + '<img src="/assets/bitcoin_gold_3d.png" class="sc-btc-3d-img" alt="3D Gold Bitcoin" />'
+        + '<div class="sc-btc-card">'
+        + '<div class="sc-btc-price">' + esc(price) + '</div>'
+        + '<div class="sc-btc-badge">' + esc(gain) + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3027,19 +3687,50 @@ window.SC_TPL2 = (function () {
   T["money-gold-vault"] = {
     name: "Gold Bullion Stack", cat: "money", dark: true, accent: "#ffd700",
     desc: "Golden bullion bars stacking in bank vault with metallic glint",
-    css: '.mn-gld{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}',
+    css: '.sc-gold-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#241b06 0%,#0a0802 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:900px}'
+      + '.sc-gold-stage{position:relative;width:68cqw;height:28cqh;display:flex;align-items:center;justify-content:center;animation:goldFloat 5s ease-in-out infinite alternate}'
+      + '.sc-gold-3d-img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 20px 40px rgba(0,0,0,.9)) drop-shadow(0 0 35px rgba(234,179,8,.5))}'
+      + '.sc-gold-info{margin-top:2cqh;text-align:center;z-index:5}'
+      + '.sc-gold-title{font-size:12cqw;font-weight:900;color:#ffd700;letter-spacing:-.03em;line-height:1;text-shadow:0 0 30px rgba(255,215,0,.5);animation:goldTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-gold-sub{font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;color:#fde047;font-weight:700;margin-top:.8cqh}'
+      + '@keyframes goldFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-6deg) translateY(-1.5cqh)}}'
+      + '@keyframes goldTextPop{0%,18%{transform:scale(.9);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}',
     html: function (o) {
-      return '<div class="mn-gld"><div style="font-size:16cqw">🏆</div><div style="font-size:11cqw;font-weight:900;color:#ffd700;margin:1cqh 0">' + esc(o.lines[0] || "1,000 OUNCES") + '</div><div style="font-size:3.6cqw;color:var(--dim)">' + esc(o.lines[1] || "Federal Reserve Vault Asset") + '</div></div>';
+      var title = getP(o, "title", o.lines[0] || "1,000 OUNCES");
+      var sub = getP(o, "sub", o.lines[1] || "Federal Reserve Bullion Asset");
+      return '<div class="sc-gold-wrap">'
+        + '<div class="sc-gold-stage">'
+        + '<img src="/assets/gold_bullion_3d.png" class="sc-gold-3d-img" alt="3D Gold Bullion" />'
+        + '</div>'
+        + '<div class="sc-gold-info">'
+        + '<div class="sc-gold-title">' + esc(title) + '</div>'
+        + '<div class="sc-gold-sub">' + esc(sub) + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
   /* 5.6 Wealth Burn Meter */
   T["money-burn"] = {
     name: "Inflation Burn Meter", cat: "money", dark: true, accent: "#ef4444",
-    desc: "Inflation pressure meter burning with flame indicators",
-    css: '.mn-brn{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}',
+    desc: "Inflation pressure meter burning with flame indicators and warning strobe",
+    css: '.sc-burn-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#2b0808 0%,#090202 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-burn-icon{font-size:18cqw;filter:drop-shadow(0 0 30px #ef4444);animation:flamePulse 1.2s ease-in-out infinite alternate}'
+      + '.sc-burn-info{margin-top:2.5cqh;text-align:center;animation:burnTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-burn-val{font-family:"Space Grotesk",sans-serif;font-size:13cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#ef4444;text-shadow:0 0 35px rgba(239,68,68,.6)}'
+      + '.sc-burn-sub{font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;color:#fca5a5;font-weight:700;margin-top:.8cqh}'
+      + '@keyframes flamePulse{0%{transform:scale(0.92) rotate(-3deg)}100%{transform:scale(1.1) rotate(3deg)}}'
+      + '@keyframes burnTextPop{0%,15%{transform:scale(.9);opacity:0}26%,85%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}',
     html: function (o) {
-      return '<div class="mn-brn"><div style="font-size:14cqw">🔥</div><div style="font-size:12cqw;font-weight:900;color:#ef4444;margin:1cqh 0">' + esc(o.lines[0] || "-$24,000/DAY") + '</div><div style="font-size:3.6cqw;color:var(--dim)">' + esc(o.lines[1] || "Cash Burn Rate") + '</div></div>';
+      var val = getP(o, "val", o.lines[0] || "-$24,000/DAY");
+      var sub = getP(o, "sub", o.lines[1] || "Daily Cash Burn Rate");
+      return '<div class="sc-burn-wrap">'
+        + '<div class="sc-burn-icon">🔥</div>'
+        + '<div class="sc-burn-info">'
+        + '<div class="sc-burn-val">' + esc(val) + '</div>'
+        + '<div class="sc-burn-sub">' + esc(sub) + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3047,9 +3738,24 @@ window.SC_TPL2 = (function () {
   T["money-receipt"] = {
     name: "Thermal Receipt Print", cat: "money", dark: true, accent: "#ffffff",
     desc: "Digital thermal receipt printing out with line items and barcode",
-    css: '.dr{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}.dr .slip{background:#fff;color:#000;border-radius:2px;padding:6cqw;width:82%;box-shadow:0 2cqw 6cqw rgba(0,0,0,.5)}',
+    css: '.sc-rec-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:#09090b;overflow:hidden;font-family:ui-monospace,monospace}'
+      + '.sc-rec-slip{width:84cqw;background:#fff;color:#09090b;border-radius:2px;padding:6cqw;box-shadow:0 20px 50px rgba(0,0,0,.9);animation:receiptSlide var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-rec-title{font-size:5cqw;font-weight:900;text-align:center;letter-spacing:.1em;border-bottom:2px dashed #a1a1aa;padding-bottom:1.5cqh;margin-bottom:2cqh}'
+      + '.sc-rec-row{display:flex;justify-content:space-between;font-size:3.8cqw;font-weight:700;margin-bottom:1cqh}'
+      + '.sc-rec-bar{font-size:2.8cqw;letter-spacing:.35em;text-align:center;border-top:2px solid #000;border-bottom:4px solid #000;padding:.8cqh 0;margin-top:2cqh}'
+      + '@keyframes receiptSlide{0%,12%{transform:translateY(-10cqh);opacity:0}25%{transform:translateY(0);opacity:1}50%{transform:translateY(-.4cqh);opacity:1}70%{transform:translateY(.3cqh);opacity:1}85%{transform:translateY(0);opacity:1}100%{transform:translateY(4cqh);opacity:0}}',
     html: function (o) {
-      return '<div class="dr"><div class="slip"><div style="font-weight:900;font-size:4.6cqw;text-align:center;margin-bottom:2cqh">' + esc(o.lines[0] || "INVOICE PAID") + '</div><div style="font-size:3.6cqw;display:flex;justify-content:space-between"><span>ShortsCraft Pro:</span> <b>$2.50</b></div></div></div>';
+      var header = getP(o, "header", o.lines[0] || "INVOICE PAID");
+      var item = getP(o, "item", "ShortsCraft Pro Plan");
+      var price = getP(o, "price", "$99.00");
+      return '<div class="sc-rec-wrap">'
+        + '<div class="sc-rec-slip">'
+        + '<div class="sc-rec-title">' + esc(header) + '</div>'
+        + '<div class="sc-rec-row"><span>' + esc(item) + '</span><b>' + esc(price) + '</b></div>'
+        + '<div class="sc-rec-row" style="color:#71717a"><span>TAX // VAT (0%)</span><span>$0.00</span></div>'
+        + '<div class="sc-rec-bar">|||| | ||||| |||| | |||</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3057,9 +3763,23 @@ window.SC_TPL2 = (function () {
   T["money-wallet-unlock"] = {
     name: "Net Worth Unlock", cat: "money", dark: true, accent: "#38bdf8",
     desc: "Secured biometric padlock unlocking into high net-worth wallet balance",
-    css: '.wu{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}',
+    css: '.sc-lock-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#091c36 0%,#020b17 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-lock-icon{font-size:18cqw;animation:lockPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-lock-info{margin-top:2.5cqh;text-align:center;animation:lockTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-lock-val{font-family:"Space Grotesk",sans-serif;font-size:13cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;text-shadow:0 0 35px rgba(56,189,248,.5)}'
+      + '.sc-lock-sub{font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;color:#7dd3fc;font-weight:700;margin-top:.8cqh}'
+      + '@keyframes lockPop{0%,12%{transform:scale(.7) rotate(-15deg);opacity:0}24%,85%{transform:scale(1) rotate(0);opacity:1}100%{transform:scale(1.05);opacity:0}}'
+      + '@keyframes lockTextPop{0%,18%{transform:translateY(2cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
     html: function (o) {
-      return '<div class="wu"><div style="font-size:14cqw">🔓</div><div style="font-size:12cqw;font-weight:900;color:#fff;margin:1cqh 0">' + esc(o.lines[0] || "$1,250,000") + '</div><div style="font-size:3.6cqw;color:var(--ac);text-transform:uppercase;letter-spacing:.2em">' + esc(o.lines[1] || "Liquid Net Worth") + '</div></div>';
+      var val = getP(o, "val", o.lines[0] || "$1,250,000");
+      var sub = getP(o, "sub", o.lines[1] || "Liquid Net Worth Unlocked");
+      return '<div class="sc-lock-wrap">'
+        + '<div class="sc-lock-icon">🔓</div>'
+        + '<div class="sc-lock-info">'
+        + '<div class="sc-lock-val">' + esc(val) + '</div>'
+        + '<div class="sc-lock-sub">' + esc(sub) + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3067,9 +3787,24 @@ window.SC_TPL2 = (function () {
   T["money-sale-slash"] = {
     name: "50% Off Price Slash", cat: "money", dark: true, accent: "#ef4444",
     desc: "Original retail price crossed out with bold red line and discount badge",
-    css: '.ss-sale{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.ss-sale .old{position:relative;font-size:8cqw;font-weight:700;color:var(--dim);display:inline-block}.ss-sale .old::after{content:"";position:absolute;left:-5%;right:-5%;top:50%;height:4px;background:var(--ac);transform:rotate(-10deg)}',
+    css: '.sc-slash-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#260808 0%,#090202 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-slash-old{position:relative;font-size:9cqw;font-weight:700;color:var(--dim);display:inline-block;animation:oldPricePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-slash-old::after{content:"";position:absolute;left:-8%;right:-8%;top:50%;height:4px;background:#ef4444;transform:rotate(-12deg);box-shadow:0 0 10px #ef4444;animation:lineDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-slash-new{font-family:"Space Grotesk",sans-serif;font-size:16cqw;font-weight:900;color:#fff;line-height:1;margin:2cqh 0;text-shadow:0 0 35px rgba(239,68,68,.5);animation:newPricePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-slash-badge{background:#ef4444;color:#fff;padding:1.5cqh 5cqw;border-radius:999px;font-size:4.2cqw;font-weight:900;letter-spacing:.08em;box-shadow:0 0 25px rgba(239,68,68,.6);animation:badgePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '@keyframes oldPricePop{0%,10%{transform:scale(.8);opacity:0}20%,85%{transform:scale(1);opacity:1}100%{opacity:0}}'
+      + '@keyframes lineDraw{0%,20%{transform:scaleX(0) rotate(-12deg)}30%,85%{transform:scaleX(1) rotate(-12deg)}100%{transform:scaleX(0) rotate(-12deg)}}'
+      + '@keyframes newPricePop{0%,22%{transform:scale(1.4);opacity:0}32%,85%{transform:scale(1);opacity:1}100%{opacity:0}}'
+      + '@keyframes badgePop{0%,28%{transform:scale(0);opacity:0}38%,85%{transform:scale(1);opacity:1}100%{opacity:0}}',
     html: function (o) {
-      return '<div class="ss-sale"><div class="old">' + esc(o.lines[0] || "$99/mo") + '</div><div style="font-size:16cqw;font-weight:900;color:#fff;margin:2cqh 0">' + esc(o.lines[1] || "$5/mo") + '</div><div style="background:var(--ac);color:#fff;padding:2cqw 6cqw;border-radius:99px;font-size:4cqw;font-weight:800">' + esc(o.lines[2] || "50% OFF NEW USER") + '</div></div>';
+      var oldPrice = getP(o, "oldPrice", o.lines[0] || "$99/mo");
+      var newPrice = getP(o, "newPrice", o.lines[1] || "$9/mo");
+      var badge = getP(o, "badge", o.lines[2] || "90% OFF LAUNCH SALE");
+      return '<div class="sc-slash-wrap">'
+        + '<div class="sc-slash-old">' + esc(oldPrice) + '</div>'
+        + '<div class="sc-slash-new">' + esc(newPrice) + '</div>'
+        + '<div class="sc-slash-badge">' + esc(badge) + '</div>'
+        + '</div>';
     }
   };
 
@@ -3077,9 +3812,25 @@ window.SC_TPL2 = (function () {
   T["money-atm"] = {
     name: "ATM Cash Dispenser", cat: "money", dark: true, accent: "#10b981",
     desc: "Cash banknotes smoothly sliding out of high-tech ATM slot",
-    css: '.atm{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}',
+    css: '.sc-atm-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#092416 0%,#020b06 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-atm-slot{width:75cqw;height:5cqh;border-radius:99px;background:#05140b;border:2px solid #10b981;box-shadow:0 0 25px rgba(16,185,129,.4),inset 0 0 10px rgba(0,0,0,.8);position:relative;margin-bottom:2cqh}'
+      + '.sc-atm-bill{width:68cqw;height:14cqh;border-radius:2cqw;background:linear-gradient(135deg,#10b981 0%,#047857 100%);border:2px solid #6ee7b7;box-shadow:0 15px 35px rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk",sans-serif;font-size:6.5cqw;font-weight:900;color:#fff;animation:atmDispense var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-atm-info{margin-top:3.5cqh;text-align:center;animation:atmTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-atm-title{font-size:7.2cqw;font-weight:900;color:#fff;letter-spacing:-.02em}'
+      + '.sc-atm-sub{font-size:3.6cqw;color:#6ee7b7;font-weight:700;margin-top:.6cqh}'
+      + '@keyframes atmDispense{0%,12%{transform:translateY(-8cqh) scale(.8);opacity:0}26%,85%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(4cqh);opacity:0}}'
+      + '@keyframes atmTextPop{0%,18%{transform:translateY(2cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
     html: function (o) {
-      return '<div class="atm"><div style="font-size:14cqw">🏧</div><div style="font-size:8cqw;font-weight:900;color:#fff;margin-top:2cqh">' + esc(o.lines[0] || "Cash Dispensed") + '</div><div style="font-size:3.6cqw;color:#10b981">' + esc(o.lines[1] || "$10,000 Clean Payout") + '</div></div>';
+      var val = getP(o, "val", o.lines[0] || "$10,000 PAYOUT");
+      var sub = getP(o, "sub", o.lines[1] || "Instant Automated Transfer");
+      return '<div class="sc-atm-wrap">'
+        + '<div class="sc-atm-slot"></div>'
+        + '<div class="sc-atm-bill">' + esc(val) + '</div>'
+        + '<div class="sc-atm-info">'
+        + '<div class="sc-atm-title">CASH DISPENSED</div>'
+        + '<div class="sc-atm-sub">' + esc(sub) + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3091,13 +3842,26 @@ window.SC_TPL2 = (function () {
   T["ui-ios-notify"] = {
     name: "iOS Push Notification", cat: "ui", dark: true, accent: "#5b8cff",
     desc: "Floating frosted glass iOS push notification banner with app icon",
-    css: '.no{position:absolute;inset:0;padding:12cqh 6cqw 0}.no .card{display:flex;gap:3.4cqw;align-items:flex-start;padding:4cqw;border-radius:5cqw;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(20px);box-shadow:0 2cqw 6cqw rgba(0,0,0,.6)}.no .app-ico{width:10cqw;height:10cqw;background:var(--ac);border-radius:2.5cqw;display:grid;place-items:center;font-size:5cqw;overflow:hidden;flex-shrink:0}',
+    css: '.sc-notify-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:12cqh 6cqw 0;background:radial-gradient(ellipse at 50% 30%,#18152e 0%,#08080f 100%);overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:#fff}'
+      + '.sc-notify-time{font-size:18cqw;font-weight:200;text-align:center;margin-bottom:5cqh;opacity:.9}'
+      + '.sc-notify-card{display:flex;gap:3.5cqw;align-items:flex-start;padding:4.5cqw;border-radius:5cqw;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(24px);box-shadow:0 20px 50px rgba(0,0,0,.7),0 0 25px rgba(121,82,255,.2);width:100%;animation:notifyDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-notify-ico{width:11cqw;height:11cqw;background:linear-gradient(135deg,#7952ff,#00d2ff);border-radius:2.8cqw;display:grid;place-items:center;font-size:5.5cqw;flex-shrink:0;box-shadow:0 4px 12px rgba(121,82,255,.4)}'
+      + '@keyframes notifyDrop{0%,12%{transform:translateY(-6cqh) scale(.92);opacity:0}24%,85%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-2cqh);opacity:0}}',
     html: function (o) {
       var app = getP(o, "app", o.lines[0] || "SHORTSCRAFT");
       var icon = getP(o, "icon", "⚡");
       var time = getP(o, "time", "now");
       var body = getP(o, "body", o.lines[1] || "Your 4K Short is ready to post 🚀");
-      return '<div class="no"><div style="font-size:16cqw;font-weight:200;text-align:center;margin-bottom:6cqh">9:41</div><div class="card"><div class="app-ico">' + renderAvatar(icon, "⚡") + '</div><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:2.8cqw;font-weight:700;color:#aaa"><span>' + esc(app) + '</span><span>' + esc(time) + '</span></div><div style="font-size:3.8cqw;font-weight:700;color:#fff;margin-top:.5cqh">' + esc(body) + '</div></div></div></div>';
+      return '<div class="sc-notify-wrap">'
+        + '<div class="sc-notify-time">9:41</div>'
+        + '<div class="sc-notify-card">'
+        + '<div class="sc-notify-ico">' + renderAvatar(icon, "⚡") + '</div>'
+        + '<div style="flex:1">'
+        + '<div style="display:flex;justify-content:space-between;font-size:2.8cqw;font-weight:700;color:rgba(255,255,255,.6)"><span>' + esc(app) + '</span><span>' + esc(time) + '</span></div>'
+        + '<div style="font-size:4cqw;font-weight:700;color:#fff;margin-top:.6cqh">' + esc(body) + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3105,9 +3869,28 @@ window.SC_TPL2 = (function () {
   T["ui-safari-scroll"] = {
     name: "Safari Window 3D", cat: "ui", dark: true, accent: "#38bdf8",
     desc: "macOS Safari browser window with URL bar, tabs, and hero webpage scroll",
-    css: '.sbw{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:6cqw}.sbw .win{background:#18181b;border:1px solid var(--hair);border-radius:3cqw;overflow:hidden;box-shadow:0 3cqw 8cqw rgba(0,0,0,.8)}.sbw .top{display:flex;align-items:center;gap:2cqw;padding:2.4cqw 3.6cqw;background:#27272a}',
+    css: '.sc-safari-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:6cqw;background:radial-gradient(ellipse at 50% 50%,#091a33 0%,#030914 100%);overflow:hidden;font-family:Inter,sans-serif;perspective:900px}'
+      + '.sc-safari-win{background:#111827;border:1px solid rgba(255,255,255,.15);border-radius:4cqw;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.9),0 0 30px rgba(56,189,248,.2);transform-style:preserve-3d;transform:rotateX(12deg) rotateY(-8deg);animation:safariFloat 6s ease-in-out infinite alternate}'
+      + '.sc-safari-top{display:flex;align-items:center;gap:2cqw;padding:2.5cqw 4cqw;background:#1f2937;border-bottom:1px solid rgba(255,255,255,.08)}'
+      + '.sc-safari-dot{width:2.4cqw;height:2.4cqw;border-radius:50%}'
+      + '.sc-safari-body{padding:8cqw 6cqw;text-align:center;background:linear-gradient(180deg,#111827 0%,#0b0f19 100%)}'
+      + '.sc-safari-title{font-size:7.2cqw;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1.15}'
+      + '@keyframes safariFloat{0%{transform:rotateX(10deg) rotateY(-6deg)}100%{transform:rotateX(15deg) rotateY(-10deg) translateY(-1.5cqh)}}',
     html: function (o) {
-      return '<div class="sbw"><div class="win"><div class="top"><div style="width:2cqw;height:2cqw;border-radius:50%;background:#ef4444"></div><div style="width:2cqw;height:2cqw;border-radius:50%;background:#f59e0b"></div><div style="width:2cqw;height:2cqw;border-radius:50%;background:#10b981"></div><div style="flex:1;background:#18181b;border-radius:99px;font-size:2.6cqw;color:var(--dim);text-align:center;padding:1cqw">https://shortscraft.online</div></div><div style="padding:8cqw;text-align:center"><h3 style="font-size:6.4cqw;font-weight:900;color:#fff">' + esc(o.lines[0] || "AI Motion Graphics Studio") + '</h3></div></div></div>';
+      return '<div class="sc-safari-wrap">'
+        + '<div class="sc-safari-win">'
+        + '<div class="sc-safari-top">'
+        + '<div class="sc-safari-dot" style="background:#ef4444"></div>'
+        + '<div class="sc-safari-dot" style="background:#f59e0b"></div>'
+        + '<div class="sc-safari-dot" style="background:#10b981"></div>'
+        + '<div style="flex:1;background:#111827;border-radius:99px;font-size:2.6cqw;color:var(--dim);text-align:center;padding:1cqw;border:1px solid rgba(255,255,255,.08)">https://shortscraft.online</div>'
+        + '</div>'
+        + '<div class="sc-safari-body">'
+        + '<div class="sc-safari-title">' + esc(o.lines[0] || "AI Motion Graphics Studio") + '</div>'
+        + '<div style="font-size:3.6cqw;color:#38bdf8;font-weight:700;margin-top:1.5cqh">' + esc(o.lines[1] || "Create Viral Animations in 60s") + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3115,7 +3898,7 @@ window.SC_TPL2 = (function () {
   T["ui-google-search"] = {
     name: "Google Search Suggest", cat: "ui", dark: false, accent: "#4285f4",
     desc: "Google search bar typing query with instant autocomplete dropdown",
-    css: '.ui-sch{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw;background:#ffffff;color:#202124}.ui-sch .bar{display:flex;align-items:center;gap:3cqw;border:1px solid #dfe1e5;border-radius:99px;padding:3.2cqw 6cqw;box-shadow:0 1px 6px rgba(32,33,36,.28)}.ui-sch .drop{border:1px solid #dfe1e5;border-radius:3cqw;padding:4cqw;margin-top:2cqh;box-shadow:0 4px 12px rgba(0,0,0,.1)}',
+    css: '.ui-sch{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw;background:#ffffff;color:#202124}.ui-sch .bar{display:flex;align-items:center;gap:3cqw;border:1px solid #dfe1e5;border-radius:99px;padding:3.2cqw 6cqw;box-shadow:0 1px 6px rgba(32,33,36,.28);opacity:0;transform:translateY(-1cqh);animation:schBarIn var(--D) var(--sp) infinite}.ui-sch .bar b{position:relative;padding-right:1cqw}.ui-sch .bar b::after{content:"";position:absolute;right:-.4cqw;top:.3cqh;width:.5cqw;height:4.2cqw;background:#4285f4;animation:schCaret calc(var(--D) / 8) steps(1) infinite}.ui-sch .drop{border:1px solid #dfe1e5;border-radius:3cqw;padding:4cqw;margin-top:2cqh;box-shadow:0 4px 12px rgba(0,0,0,.1);opacity:0;transform:translateY(-1cqh);animation:schDropIn var(--D) var(--sp) infinite}@keyframes schBarIn{0%,5%{opacity:0;transform:translateY(-1cqh)}20%,100%{opacity:1;transform:translateY(0)}}@keyframes schCaret{0%,50%{opacity:1}50.01%,100%{opacity:0}}@keyframes schDropIn{0%,32%{opacity:0;transform:translateY(-1cqh)}48%,100%{opacity:1;transform:translateY(0)}}',
     html: function (o) {
       return '<div class="ui-sch"><div class="bar"><span style="font-size:4cqw">🔍</span><b style="font-size:4cqw">' + esc(o.lines[0] || "how to make viral motion graphics") + '</b></div><div class="drop"><div style="font-size:3.4cqw;padding:1.5cqw 0">↳ <b>shortscraft.online</b> (best AI generator)</div></div></div>';
     }
@@ -3125,12 +3908,12 @@ window.SC_TPL2 = (function () {
   T["ui-imessage"] = {
     name: "iMessage Chat Thread", cat: "ui", dark: true, accent: "#3b82f6",
     desc: "Interactive chat message bubbles typing with 3-dot animation and reply",
-    css: '.im{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw 6cqw}.im .bubble{max-width:75%;padding:3.2cqw 4.6cqw;border-radius:4.4cqw;font-size:3.8cqw;line-height:1.4;margin-bottom:2cqh}.im .in{background:rgba(255,255,255,.14);color:#fff;border-bottom-left-radius:1cqw;align-self:flex-start}.im .out{background:var(--ac);color:#fff;border-bottom-right-radius:1cqw;align-self:flex-end}',
+    css: '.im{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw 6cqw}.im .bubble{max-width:75%;padding:3.2cqw 4.6cqw;border-radius:4.4cqw;font-size:3.8cqw;line-height:1.4;margin-bottom:2cqh;opacity:0;transform:translateY(1cqh) scale(.9)}.im .in{background:rgba(255,255,255,.14);color:#fff;border-bottom-left-radius:1cqw;align-self:flex-start;animation:imIn var(--D) var(--sp) infinite}.im .out{background:var(--ac);color:#fff;border-bottom-right-radius:1cqw;align-self:flex-end;animation:imOut var(--D) var(--sp) infinite}.im .dots{display:inline-flex;gap:.8cqw;padding:2.6cqw 3.6cqw;background:rgba(255,255,255,.14);border-radius:4.4cqw;border-bottom-left-radius:1cqw;align-self:flex-start;margin-bottom:2cqh;opacity:0;animation:imDots var(--D) linear infinite}.im .dots span{width:1.6cqw;height:1.6cqw;border-radius:50%;background:rgba(255,255,255,.7);display:inline-block;animation:imDotBounce .9s ease-in-out infinite}.im .dots span:nth-child(2){animation-delay:.15s}.im .dots span:nth-child(3){animation-delay:.3s}@keyframes imDotBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-.7cqh)}}@keyframes imIn{0%,4%{opacity:0;transform:translateY(1cqh) scale(.9)}16%,100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes imDots{0%,20%{opacity:0}26%,54%{opacity:1}60%,100%{opacity:0}}@keyframes imOut{0%,58%{opacity:0;transform:translateY(1cqh) scale(.9)}72%,100%{opacity:1;transform:translateY(0) scale(1)}}',
     html: function (o) {
       var inMsg = getP(o, "inMsg", o.lines[0] || "How did you get 1M views?!");
       var outMsg = getP(o, "outMsg", o.lines[1] || "Used ShortsCraft motion graphics! ⚡");
       var bubbleColor = getP(o, "bubbleColor", "#3b82f6");
-      return '<div class="im"><div class="bubble in">' + esc(inMsg) + '</div><div class="bubble out" style="background:' + esc(bubbleColor) + '">' + esc(outMsg) + '</div></div>';
+      return '<div class="im"><div class="bubble in">' + esc(inMsg) + '</div><div class="dots"><span></span><span></span><span></span></div><div class="bubble out" style="background:' + esc(bubbleColor) + '">' + esc(outMsg) + '</div></div>';
     }
   };
 
@@ -3265,11 +4048,50 @@ window.SC_TPL2 = (function () {
 
   /* 6.7 Phone Mockup Scroll */
   T["ui-phone-mockup"] = {
-    name: "Smartphone 9:16 Feed", cat: "ui", dark: true, accent: "#5b8cff",
-    desc: "Realistic iPhone frame with smooth feed scrolling and dynamic island",
-    css: '.ps{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}',
+    name: "Smartphone 9:16 Feed", cat: "ui", dark: true, accent: "#7952ff",
+    desc: "Realistic 3D titanium iPhone frame with Dynamic Island and smooth feed animations",
+    css: '.sc-phone-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4cqw;background:radial-gradient(ellipse at 50% 50%,#18152e 0%,#08080f 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:1000px}'
+      + '.sc-phone-glow{position:absolute;width:65cqw;height:65cqh;border-radius:50%;background:radial-gradient(circle,rgba(121,82,255,.35) 0%,transparent 70%);filter:blur(35px);pointer-events:none}'
+      + '.sc-phone-device{position:relative;width:62cqw;height:78cqh;border-radius:9cqw;background:#0d0d14;border:4px solid #3b3952;box-shadow:0 30px 80px rgba(0,0,0,.9),0 0 35px rgba(121,82,255,.25),inset 0 0 4px rgba(255,255,255,.2);display:flex;flex-direction:column;align-items:center;padding:2.5cqw;transform-style:preserve-3d;transform:rotateX(14deg) rotateY(-10deg) rotateZ(2deg);animation:phoneFloat 6s ease-in-out infinite alternate}'
+      + '.sc-phone-screen{width:100%;height:100%;border-radius:7cqw;background:#000;overflow:hidden;display:flex;flex-direction:column;position:relative;border:1px solid rgba(255,255,255,.08)}'
+      + '.sc-phone-island{position:absolute;top:1.8cqh;left:50%;transform:translateX(-50%);width:24cqw;height:3.8cqh;border-radius:99px;background:#000;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:space-between;padding:0 2.5cqw;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,.8)}'
+      + '.sc-island-dot{width:1.8cqw;height:1.8cqw;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}'
+      + '.sc-island-wave{display:flex;gap:2px;align-items:center;height:1.8cqh}'
+      + '.sc-island-wave span{width:2px;height:100%;background:#7952ff;border-radius:1px;animation:islandWave .8s ease-in-out infinite alternate}'
+      + '.sc-phone-content{padding:7cqh 4cqw 3cqw;display:flex;flex-direction:column;justify-content:space-between;height:100%}'
+      + '.sc-phone-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:4cqw;padding:4cqw;backdrop-filter:blur(16px);animation:phoneCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-phone-title{font-size:5cqw;font-weight:900;line-height:1.2;color:#fff;margin-bottom:1.5cqh}'
+      + '.sc-phone-author{display:flex;align-items:center;gap:2.5cqw;font-size:3.4cqw;color:var(--dim)}'
+      + '.sc-phone-av{width:7cqw;height:7cqw;border-radius:50%;background:linear-gradient(135deg,#7952ff,#00d2ff);display:grid;place-items:center;font-size:3.5cqw;font-weight:900;color:#fff}'
+      + '.sc-phone-actions{display:flex;gap:3cqw;margin-top:2cqh}'
+      + '.sc-phone-btn{padding:.8cqh 3cqw;border-radius:99px;background:rgba(255,255,255,.08);font-size:3cqw;font-weight:700;color:#e2e8f0;display:flex;align-items:center;gap:1.5cqw}'
+      + '@keyframes phoneFloat{0%{transform:rotateX(12deg) rotateY(-8deg) translateY(0)}100%{transform:rotateX(16deg) rotateY(-12deg) translateY(-2cqh)}}'
+      + '@keyframes islandWave{0%{height:30%}100%{height:100%}}'
+      + '@keyframes phoneCardPop{0%,15%{transform:translateY(4cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-2cqh);opacity:0}}',
     html: function (o) {
-      return '<div class="ps"><div style="width:58cqw;height:104cqw;border-radius:8cqw;background:#000;border:3px solid rgba(255,255,255,.2);display:flex;flex-direction:column;align-items:center;padding:4cqw;box-shadow:0 3cqw 8cqw rgba(0,0,0,.8)"><div style="width:18cqw;height:4.6cqw;border-radius:99px;background:#000;border:1px solid #333;margin-bottom:4cqh"></div><div style="font-size:6cqw;font-weight:900;color:#fff;text-align:center">' + esc(o.lines[0] || "ShortsCraft") + '</div></div></div>';
+      var title = getP(o, "title", o.lines[0] || "How to 10X Retention");
+      var author = getP(o, "author", "@creator_pro");
+      return '<div class="sc-phone-wrap">'
+        + '<div class="sc-phone-glow"></div>'
+        + '<div class="sc-phone-device">'
+        + '<div class="sc-phone-screen">'
+        + '<div class="sc-phone-island">'
+        + '<div class="sc-island-dot"></div>'
+        + '<div class="sc-island-wave"><span></span><span style="animation-delay:.2s"></span><span style="animation-delay:.4s"></span></div>'
+        + '</div>'
+        + '<div class="sc-phone-content">'
+        + '<div class="sc-phone-card">'
+        + '<div class="sc-phone-title">' + esc(title) + '</div>'
+        + '<div class="sc-phone-author"><div class="sc-phone-av">✦</div><span>' + esc(author) + '</span></div>'
+        + '<div class="sc-phone-actions">'
+        + '<span class="sc-phone-btn">❤️ 42.8K</span>'
+        + '<span class="sc-phone-btn">💬 1.2K</span>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3475,9 +4297,9 @@ window.SC_TPL2 = (function () {
   T["ui-otp"] = {
     name: "OTP Passcode Security", cat: "ui", dark: true, accent: "#22c55e",
     desc: "4-digit security OTP PIN boxes auto-populating and turning verified green",
-    css: '.otp{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}',
+    css: '.otp{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}.otp h3{opacity:0;transform:translateY(.6cqh);animation:otpTitle var(--D) var(--sp) infinite}.otp .row{display:flex;gap:3cqw}.otp .box{opacity:0;transform:translateY(1cqh) scale(.6);animation:otpBox var(--D) var(--ov) infinite,otpGlow calc(var(--D) / 4) ease-in-out infinite alternate}.otp .box:nth-child(2){animation-delay:90ms,90ms}.otp .box:nth-child(3){animation-delay:180ms,180ms}.otp .box:nth-child(4){animation-delay:270ms,270ms}@keyframes otpTitle{0%,4%{opacity:0;transform:translateY(.6cqh)}18%,100%{opacity:1;transform:translateY(0)}}@keyframes otpBox{0%{opacity:0;transform:translateY(1cqh) scale(.6)}55%{opacity:1;transform:translateY(0) scale(1.15)}68%,100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes otpGlow{0%{box-shadow:0 0 0 rgba(34,197,94,0)}100%{box-shadow:0 0 2.2cqw rgba(34,197,94,.6)}}',
     html: function (o) {
-      return '<div class="otp"><h3 style="font-size:5.6cqw;font-weight:800;color:#fff;margin-bottom:3cqh">' + esc(o.lines[0] || "Security Code Verified") + '</h3><div style="display:flex;gap:3cqw"><div style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">9</div><div style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">4</div><div style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">2</div><div style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">0</div></div></div>';
+      return '<div class="otp"><h3 style="font-size:5.6cqw;font-weight:800;color:#fff;margin-bottom:3cqh">' + esc(o.lines[0] || "Security Code Verified") + '</h3><div class="row"><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">9</div><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">4</div><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">2</div><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">0</div></div></div>';
     }
   };
 
@@ -3485,9 +4307,9 @@ window.SC_TPL2 = (function () {
   T["ui-store-badges"] = {
     name: "5-Star Rating Badges", cat: "ui", dark: true, accent: "#ffd700",
     desc: "Official App Store & Google Play badges with glowing 5-star rating",
-    css: '.asb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}',
+    css: '.asb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.asb .stars{display:flex;gap:.6cqw;margin-bottom:2cqh}.asb .stars span{font-size:7cqw;color:#ffd700;opacity:0;transform:scale(0) rotate(-90deg);display:inline-block;animation:starPop var(--D) var(--ov) infinite}.asb .stars span:nth-child(2){animation-delay:90ms}.asb .stars span:nth-child(3){animation-delay:180ms}.asb .stars span:nth-child(4){animation-delay:270ms}.asb .stars span:nth-child(5){animation-delay:360ms}.asb h2{opacity:0;transform:translateY(1cqh);animation:asbH2 var(--D) var(--sp) infinite,asbGlow calc(var(--D) / 3) ease-in-out infinite alternate}@keyframes starPop{0%{opacity:0;transform:scale(0) rotate(-90deg)}60%{opacity:1;transform:scale(1.3) rotate(8deg)}75%,100%{opacity:1;transform:scale(1) rotate(0)}}@keyframes asbH2{0%,40%{opacity:0;transform:translateY(1cqh)}56%,100%{opacity:1;transform:translateY(0)}}@keyframes asbGlow{0%{text-shadow:0 0 0 rgba(255,215,0,0)}100%{text-shadow:0 0 2cqw rgba(255,215,0,.55)}}',
     html: function (o) {
-      return '<div class="asb"><div style="font-size:7cqw;color:#ffd700;margin-bottom:2cqh">★★★★★</div><h2 style="font-size:8cqw;font-weight:900;color:#fff">' + esc(o.lines[0] || "5.0 Rated by 100K+ Creators") + '</h2></div>';
+      return '<div class="asb"><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><h2 style="font-size:8cqw;font-weight:900;color:#fff">' + esc(o.lines[0] || "5.0 Rated by 100K+ Creators") + '</h2></div>';
     }
   };
 
@@ -3499,7 +4321,7 @@ window.SC_TPL2 = (function () {
   T["social-tweet-card"] = {
     name: "Viral Tweet / X Card", cat: "social", dark: true, accent: "#1d9bf0",
     desc: "Dark mode X / Twitter viral post card with avatar, badge, and metrics",
-    css: '.sc-twt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw}.sc-twt .card{border-radius:4cqw;padding:6cqw;box-shadow:0 3cqw 8cqw rgba(0,0,0,.8);transition:background .2s}.sc-twt .head{display:flex;gap:3cqw;align-items:center;margin-bottom:2cqh}.sc-twt .av{width:11cqw;height:11cqw;border-radius:50%;background:#1d9bf0;display:grid;place-items:center;font-size:5cqw;color:#fff;font-weight:900;overflow:hidden;flex-shrink:0}.sc-twt .txt{font-size:4.4cqw;line-height:1.4;margin-bottom:3cqh;word-break:break-word}.sc-twt .stats{display:flex;justify-content:space-between;font-size:3.2cqw;color:#71767b;border-top:1px solid rgba(255,255,255,.1);padding-top:2cqh}',
+    css: '.sc-twt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw}.sc-twt .card{border-radius:4cqw;padding:6cqw;box-shadow:0 3cqw 8cqw rgba(0,0,0,.8);transition:background .2s;opacity:0;transform:translateY(2cqh) scale(.94);animation:twtIn var(--D) var(--sp) infinite}.sc-twt .head{display:flex;gap:3cqw;align-items:center;margin-bottom:2cqh}.sc-twt .av{width:11cqw;height:11cqw;border-radius:50%;background:#1d9bf0;display:grid;place-items:center;font-size:5cqw;color:#fff;font-weight:900;overflow:hidden;flex-shrink:0;animation:twtAvPulse calc(var(--D) / 3) ease-in-out infinite alternate}.sc-twt .txt{font-size:4.4cqw;line-height:1.4;margin-bottom:3cqh;word-break:break-word}.sc-twt .stats{display:flex;justify-content:space-between;font-size:3.2cqw;color:#71767b;border-top:1px solid rgba(255,255,255,.1);padding-top:2cqh}.sc-twt .stats span{opacity:0;animation:twtS1 var(--D) var(--sp) infinite}.sc-twt .stats span:nth-child(2){animation-name:twtS2}.sc-twt .stats span:nth-child(3){animation-name:twtS3}@keyframes twtIn{0%,6%{opacity:0;transform:translateY(2cqh) scale(.94)}22%,100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes twtAvPulse{0%{box-shadow:0 0 0 rgba(29,155,240,0)}100%{box-shadow:0 0 1.6cqw rgba(29,155,240,.7)}}@keyframes twtS1{0%,26%{opacity:0}34%,100%{opacity:1}}@keyframes twtS2{0%,32%{opacity:0}40%,100%{opacity:1}}@keyframes twtS3{0%,38%{opacity:0}46%,100%{opacity:1}}',
     html: function (o) {
       var name = getP(o, "name", o.lines[0] || "Creator Insights");
       var handle = getP(o, "handle", "@creatorgrowth");
@@ -3539,30 +4361,55 @@ window.SC_TPL2 = (function () {
   T["social-like-burst"] = {
     name: "Like Heart Burst", cat: "social", dark: true, accent: "#ff3b5c",
     desc: "Heart burst like button with radial particle spark explosion and counter",
-    css: '.lk{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqh}.lk .heart{font-size:16cqw;animation:lkP 1.4s infinite alternate}@keyframes lkP{0%{transform:scale(0.9)}100%{transform:scale(1.2)}}',
+    css: '.sc-like-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#260814 0%,#090306 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-like-stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center}'
+      + '.sc-like-ring{position:absolute;width:28cqw;height:28cqw;border-radius:50%;border:2px solid #ff3b5c;animation:likeShockwave var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-like-heart{font-size:22cqw;filter:drop-shadow(0 0 30px rgba(255,59,92,.8));animation:likeHeartPop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}'
+      + '.sc-like-info{margin-top:3cqh;text-align:center;animation:likeTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-like-num{font-family:"Space Grotesk",sans-serif;font-size:13.5cqw;font-weight:900;letter-spacing:-.03em;color:#fff;text-shadow:0 0 25px rgba(255,59,92,.5)}'
+      + '.sc-like-sub{font-size:3.4cqw;letter-spacing:.22em;text-transform:uppercase;color:#fda4af;font-weight:700;margin-top:.8cqh}'
+      + '@keyframes likeHeartPop{0%,12%{transform:scale(0);opacity:0}24%{transform:scale(1.25);opacity:1}32%,85%{transform:scale(1);opacity:1}100%{transform:scale(0.85);opacity:0}}'
+      + '@keyframes likeShockwave{0%,18%{transform:scale(.3);opacity:0}28%{transform:scale(1.8);opacity:1}38%,85%{transform:scale(2.2);opacity:0}100%{opacity:0}}'
+      + '@keyframes likeTextPop{0%,20%{transform:translateY(2cqh);opacity:0}32%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
     html: function (o) {
       var count = getP(o, "count", o.lines[0] || "1,248,000");
-      var label = getP(o, "label", "Likes & Shares");
+      var label = getP(o, "label", o.lines[1] || "Likes & Shares");
       var icon = getP(o, "icon", "❤️");
-      return '<div class="lk"><div class="heart">' + esc(icon) + '</div><div style="font-size:14cqw;font-weight:900;color:#fff">' + esc(count) + '</div><div style="font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)">' + esc(label) + '</div></div>';
+      return '<div class="sc-like-wrap">'
+        + '<div class="sc-like-stage">'
+        + '<div class="sc-like-ring"></div>'
+        + '<div class="sc-like-heart">' + esc(icon) + '</div>'
+        + '<div class="sc-like-info">'
+        + '<div class="sc-like-num">' + esc(count) + '</div>'
+        + '<div class="sc-like-sub">' + esc(label) + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
   /* 7.3 Subscribe & Bell Ring */
   T["social-sub-bell"] = {
     name: "YouTube Subscribe Bell", cat: "social", dark: true, accent: "#ff0000",
-    desc: "YouTube Subscribe button turning to Subscribed with ringing bell",
-    css: '.sb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8cqw;gap:3cqh}',
+    desc: "YouTube Subscribe button turning to Subscribed with ringing bell and spark burst",
+    css: '.sc-sub-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#240909 0%,#090303 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-sub-cta{font-size:7.2cqw;font-weight:900;text-align:center;letter-spacing:-.03em;line-height:1.2;margin-bottom:3.5cqh;animation:subCtaDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-sub-pill{position:relative;padding:3.8cqw 7cqw;border-radius:999px;background:#ff0000;color:#fff;font-size:4.8cqw;font-weight:800;display:flex;align-items:center;gap:3cqw;box-shadow:0 12px 35px rgba(255,0,0,.45),0 0 20px rgba(255,0,0,.3);cursor:pointer;animation:subBtnTransform var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-sub-av{width:6.8cqw;height:6.8cqw;border-radius:50%;background:#fff;color:#ff0000;display:grid;place-items:center;font-size:3.6cqw;font-weight:900}'
+      + '.sc-sub-bell{font-size:5.4cqw;animation:bellRinging 1.5s ease-in-out infinite}'
+      + '@keyframes subCtaDrop{0%,12%{transform:translateY(-2cqh);opacity:0}24%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(1cqh);opacity:0}}'
+      + '@keyframes subBtnTransform{0%,16%{transform:scale(.85);opacity:0}28%{transform:scale(1.08);background:#ff0000;box-shadow:0 0 40px rgba(255,0,0,.8)}45%,85%{transform:scale(1);background:#27272a;box-shadow:0 4px 18px rgba(0,0,0,.6)}100%{transform:scale(.95);opacity:0}}'
+      + '@keyframes bellRinging{0%,100%{transform:rotate(0)}20%{transform:rotate(-18deg)}40%{transform:rotate(18deg)}60%{transform:rotate(-12deg)}80%{transform:rotate(12deg)}}',
     html: function (o) {
       var cta = getP(o, "cta", o.lines[0] || "Join 500,000+ Creators");
       var btnText = getP(o, "btnText", "Subscribe");
-      var btnColor = getP(o, "btnColor", "#ff0000");
       var avatar = getP(o, "avatar", "▶");
-      return '<div class="sb">'
-        + '<div style="font-size:6.4cqw;font-weight:900;color:#fff;text-align:center">' + esc(cta) + '</div>'
-        + '<div style="background:' + esc(btnColor) + ';color:#fff;padding:3.6cqw 8cqw;border-radius:99px;font-size:5cqw;font-weight:900;display:flex;align-items:center;gap:3cqw;box-shadow:0 2cqw 6cqw rgba(0,0,0,.6)">'
-        + '<span style="width:6cqw;height:6cqw;border-radius:50%;overflow:hidden;display:inline-block;vertical-align:middle">' + renderAvatar(avatar, "▶") + '</span>'
-        + '<span>' + esc(btnText) + '</span><span>🔔</span>'
+      return '<div class="sc-sub-wrap">'
+        + '<div class="sc-sub-cta">' + esc(cta) + '</div>'
+        + '<div class="sc-sub-pill">'
+        + '<div class="sc-sub-av">' + renderAvatar(avatar, "▶") + '</div>'
+        + '<span>' + esc(btnText) + '</span>'
+        + '<span class="sc-sub-bell">🔔</span>'
         + '</div>'
         + '</div>';
     }
@@ -3571,14 +4418,30 @@ window.SC_TPL2 = (function () {
   /* 7.4 Live Comment Stream */
   T["social-comment-stream"] = {
     name: "Live Chat Bubble Stream", cat: "social", dark: true, accent: "#38bdf8",
-    desc: "Streaming live chat comment bubbles floating up like TikTok live",
-    css: '.cb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:8cqw 6cqw}.cb .msg{background:rgba(0,0,0,.7);backdrop-filter:blur(12px);border:1px solid var(--hair);border-radius:99px;padding:2.6cqw 4.6cqw;margin-bottom:2cqh;font-size:3.6cqw;color:#fff}',
+    desc: "Streaming live chat comment bubbles floating up like TikTok live with avatar badges",
+    css: '.sc-stream-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:8cqh 6cqw;background:radial-gradient(ellipse at 50% 100%,#18152e 0%,#08080f 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-stream-item{display:flex;align-items:center;gap:3cqw;background:rgba(255,255,255,.08);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:2cqw 4cqw;margin-bottom:2cqh;box-shadow:0 8px 25px rgba(0,0,0,.6);animation:streamFloatUp var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-stream-i1{animation-delay:.05s}'
+      + '.sc-stream-i2{animation-delay:.18s}'
+      + '.sc-stream-av{width:7.5cqw;height:7.5cqw;border-radius:50%;background:linear-gradient(135deg,#7952ff,#00d2ff);display:grid;place-items:center;font-size:3.8cqw;font-weight:900}'
+      + '.sc-stream-user{font-size:3.4cqw;font-weight:800;color:#7dd3fc;margin-right:1.5cqw}'
+      + '.sc-stream-txt{font-size:3.4cqw;color:#fff;font-weight:600}'
+      + '@keyframes streamFloatUp{0%,10%{transform:translateY(6cqh) scale(.85);opacity:0}24%{transform:translateY(0) scale(1);opacity:1}48%{transform:translateY(-.3cqh) scale(1.01);opacity:1}68%{transform:translateY(.25cqh) scale(.995);opacity:1}85%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-6cqh) scale(.9);opacity:0}}',
     html: function (o) {
-      var comment1User = getP(o, "comment1User", "@alex");
+      var comment1User = getP(o, "comment1User", "@alex_motion");
       var comment1Text = getP(o, "comment1Text", o.lines[0] || "How did you animate this?! 🔥");
-      var comment2User = getP(o, "comment2User", "@sam");
+      var comment2User = getP(o, "comment2User", "@sam_creator");
       var comment2Text = getP(o, "comment2Text", o.lines[1] || "ShortsCraft AI is insane! 🚀");
-      return '<div class="cb"><div class="msg"><b>' + esc(comment1User) + ':</b> ' + esc(comment1Text) + '</div><div class="msg"><b>' + esc(comment2User) + ':</b> ' + esc(comment2Text) + '</div></div>';
+      return '<div class="sc-stream-wrap">'
+        + '<div class="sc-stream-item sc-stream-i1">'
+        + '<div class="sc-stream-av">✦</div>'
+        + '<div><span class="sc-stream-user">' + esc(comment1User) + '</span><span class="sc-stream-txt">' + esc(comment1Text) + '</span></div>'
+        + '</div>'
+        + '<div class="sc-stream-item sc-stream-i2">'
+        + '<div class="sc-stream-av" style="background:linear-gradient(135deg,#ff3b5c,#ff8800)">★</div>'
+        + '<div><span class="sc-stream-user">' + esc(comment2User) + '</span><span class="sc-stream-txt">' + esc(comment2Text) + '</span></div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3749,9 +4612,9 @@ window.SC_TPL2 = (function () {
   T["social-story-progress"] = {
     name: "Instagram Story Timer", cat: "social", dark: true, accent: "#ffffff",
     desc: "Segmented Instagram story progress bars with creator avatar",
-    css: '.stb{position:absolute;inset:0;padding:6cqh 5cqw;display:flex;flex-direction:column}',
+    css: '.stb{position:absolute;inset:0;padding:6cqh 5cqw;display:flex;flex-direction:column}.stb .segs{display:flex;gap:1.5cqw}.stb .seg{flex:1;height:2px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden;position:relative}.stb .seg.done{background:#fff}.stb .seg.active .fill{position:absolute;inset:0;background:#fff;width:0;animation:stbFill var(--D) linear infinite}.stb .av{width:8cqw;height:8cqw;border-radius:50%;background:#e11d48;animation:stbAv calc(var(--D) / 3) ease-in-out infinite alternate}.stb h2{opacity:0;transform:scale(.92);animation:stbH2 var(--D) var(--sp) infinite}@keyframes stbFill{0%,4%{width:0}96%,100%{width:100%}}@keyframes stbAv{0%{box-shadow:0 0 0 rgba(225,29,72,0)}100%{box-shadow:0 0 1.6cqw rgba(225,29,72,.8)}}@keyframes stbH2{0%,14%{opacity:0;transform:scale(.92)}30%,100%{opacity:1;transform:scale(1)}}',
     html: function (o) {
-      return '<div class="stb"><div style="display:flex;gap:1.5cqw"><div style="flex:1;height:2px;background:#fff"></div><div style="flex:1;height:2px;background:rgba(255,255,255,.3)"></div><div style="flex:1;height:2px;background:rgba(255,255,255,.3)"></div></div><div style="display:flex;align-items:center;gap:3cqw;margin-top:2cqh"><div style="width:8cqw;height:8cqw;border-radius:50%;background:#e11d48"></div><b style="font-size:3.6cqw;color:#fff">' + esc(o.lines[0] || "shortscraft.ai") + '</b></div><div style="flex:1;display:grid;place-items:center"><h2 style="font-size:9cqw;font-weight:900;color:#fff;text-align:center">' + esc(o.lines[1] || "Behind The Viral Edit") + '</h2></div></div>';
+      return '<div class="stb"><div class="segs"><div class="seg done"></div><div class="seg active"><div class="fill"></div></div><div class="seg"></div></div><div style="display:flex;align-items:center;gap:3cqw;margin-top:2cqh"><div class="av"></div><b style="font-size:3.6cqw;color:#fff">' + esc(o.lines[0] || "shortscraft.ai") + '</b></div><div style="flex:1;display:grid;place-items:center"><h2 style="font-size:9cqw;font-weight:900;color:#fff;text-align:center">' + esc(o.lines[1] || "Behind The Viral Edit") + '</h2></div></div>';
     }
   };
 
@@ -3759,7 +4622,7 @@ window.SC_TPL2 = (function () {
   T["social-verified-badge"] = {
     name: "Instagram Profile Card", cat: "social", dark: true, accent: "#0095f6",
     desc: "Realistic Apple iOS Instagram creator profile sheet with verified badge, live follower counters, and interactive buttons",
-    css: '.sc-ig-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-ig-card{width:86cqw;background:#ffffff;color:#000000;border-radius:5cqw;padding:6cqw 5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:igPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-ig-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3cqh}.sc-ig-av{width:18cqw;height:18cqw;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);padding:3px;display:grid;place-items:center}.sc-ig-avinner{width:100%;height:100%;border-radius:50%;background:#18181b;display:grid;place-items:center;overflow:hidden;font-size:8cqw;color:#fff}.sc-ig-stats{display:flex;gap:4.5cqw;text-align:center}.sc-ig-statval{font-size:4.6cqw;font-weight:800;line-height:1.2}.sc-ig-statlbl{font-size:2.8cqw;color:#71717a}.sc-ig-bio{margin-bottom:3cqh}.sc-ig-name{font-size:4.2cqw;font-weight:800;display:flex;align-items:center;gap:1.5cqw}.sc-ig-bluecheck{width:3.8cqw;height:3.8cqw;border-radius:50%;background:#0095f6;color:#fff;display:inline-grid;place-items:center;font-size:2.4cqw;font-weight:900}.sc-ig-sub{font-size:3.2cqw;color:#52525b;margin-top:.4cqh;line-height:1.4}.sc-ig-btns{display:flex;gap:2cqw}.sc-ig-btn{flex:1;height:4.6cqh;border-radius:2cqw;display:grid;place-items:center;font-size:3.6cqw;font-weight:700;border:none;cursor:pointer}.sc-ig-btn-pri{background:#0095f6;color:#fff}.sc-ig-btn-sec{background:#ef4444;color:#fff}@keyframes igPop{0%,15%{transform:scale(.88) translateY(3cqh);opacity:0}30%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}',
+    css: '.sc-ig-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-ig-card{width:86cqw;background:#ffffff;color:#000000;border-radius:5cqw;padding:6cqw 5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:igPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-ig-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3cqh}.sc-ig-av{width:18cqw;height:18cqw;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);padding:3px;display:grid;place-items:center}.sc-ig-avinner{width:100%;height:100%;border-radius:50%;background:#18181b;display:grid;place-items:center;overflow:hidden;font-size:8cqw;color:#fff}.sc-ig-stats{display:flex;gap:4.5cqw;text-align:center}.sc-ig-statval{font-size:4.6cqw;font-weight:800;line-height:1.2}.sc-ig-statlbl{font-size:2.8cqw;color:#71717a}.sc-ig-bio{margin-bottom:3cqh}.sc-ig-name{font-size:4.2cqw;font-weight:800;display:flex;align-items:center;gap:1.5cqw}.sc-ig-bluecheck{width:3.8cqw;height:3.8cqw;border-radius:50%;background:#0095f6;color:#fff;display:inline-grid;place-items:center;font-size:2.4cqw;font-weight:900}.sc-ig-sub{font-size:3.2cqw;color:#52525b;margin-top:.4cqh;line-height:1.4}.sc-ig-btns{display:flex;gap:2cqw}.sc-ig-btn{flex:1;height:4.6cqh;border-radius:2cqw;display:grid;place-items:center;font-size:3.6cqw;font-weight:700;border:none;cursor:pointer}.sc-ig-btn-pri{background:#0095f6;color:#fff}.sc-ig-btn-sec{background:#ef4444;color:#fff}@keyframes igPop{0%,15%{transform:scale(.88) translateY(3cqh);opacity:0}30%{transform:scale(1) translateY(0);opacity:1}55%{transform:scale(1.012) translateY(-.5cqh);opacity:1}75%{transform:scale(.997) translateY(.3cqh);opacity:1}85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
       var handle = getP(o, "handle", o.lines[0] || "artzenmedia");
       var bio = getP(o, "bio", o.lines[1] || "Helping you make better content · Editing tips / tutorials");
@@ -3930,10 +4793,25 @@ window.SC_TPL2 = (function () {
   /* 7.8 Interactive Poll Card */
   T["social-poll"] = {
     name: "2-Choice Poll Card", cat: "social", dark: true, accent: "#6366f1",
-    desc: "2-choice voting poll card with animated percentage reveal",
-    css: '.pv{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw}',
+    desc: "2-choice voting poll card with animated percentage reveal and glowing winner pill",
+    css: '.sc-poll-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#18152e 0%,#08080f 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-poll-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(20px);border-radius:5cqw;padding:6cqw;box-shadow:0 25px 60px rgba(0,0,0,.8);animation:pollCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-poll-title{font-size:5.8cqw;font-weight:900;text-align:center;margin-bottom:3.5cqh;line-height:1.2}'
+      + '.sc-poll-opt{position:relative;padding:3.2cqw 5cqw;border-radius:3cqw;font-size:4cqw;font-weight:800;display:flex;justify-content:space-between;align-items:center;margin-bottom:2cqw;overflow:hidden}'
+      + '.sc-poll-win{background:rgba(99,102,241,.25);border:1px solid #6366f1;color:#fff;box-shadow:0 0 25px rgba(99,102,241,.4)}'
+      + '.sc-poll-lose{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#94a3b8}'
+      + '@keyframes pollCardPop{0%,12%{transform:scale(.9);opacity:0}24%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
-      return '<div class="pv"><div style="background:rgba(255,255,255,.07);border:1px solid var(--hair);border-radius:5cqw;padding:6cqw"><h3 style="font-size:5.6cqw;font-weight:900;color:#fff;text-align:center;margin-bottom:3cqh">' + esc(o.lines[0] || "Which style gets more retention?") + '</h3><div style="background:var(--ac);color:#fff;padding:3.2cqw 5cqw;border-radius:3cqw;font-size:4cqw;font-weight:800;display:flex;justify-content:space-between;margin-bottom:2cqw"><span>Motion Graphics</span><span>86%</span></div><div style="background:rgba(255,255,255,.1);color:#aaa;padding:3.2cqw 5cqw;border-radius:3cqw;font-size:4cqw;font-weight:700;display:flex;justify-content:space-between"><span>Static Text</span><span>14%</span></div></div></div>';
+      var question = getP(o, "question", o.lines[0] || "Which style gets more retention?");
+      var opt1 = getP(o, "opt1", "Motion Graphics");
+      var opt2 = getP(o, "opt2", "Static Talking Head");
+      return '<div class="sc-poll-wrap">'
+        + '<div class="sc-poll-card">'
+        + '<h3 class="sc-poll-title">' + esc(question) + '</h3>'
+        + '<div class="sc-poll-opt sc-poll-win"><span>' + esc(opt1) + ' ✓</span><b>86%</b></div>'
+        + '<div class="sc-poll-opt sc-poll-lose"><span>' + esc(opt2) + '</span><b>14%</b></div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3941,9 +4819,23 @@ window.SC_TPL2 = (function () {
   T["social-share"] = {
     name: "Viral Share Sheet", cat: "social", dark: true, accent: "#38bdf8",
     desc: "Floating share modal with AirDrop and social platform icons",
-    css: '.vs{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}',
+    css: '.sc-share-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#091a33 0%,#030914 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-share-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(24px);border-radius:5cqw;padding:6cqw;text-align:center;width:88%;box-shadow:0 25px 60px rgba(0,0,0,.85);animation:sharePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-share-title{font-size:6.2cqw;font-weight:900;color:#fff;margin-bottom:2cqh}'
+      + '.sc-share-icons{display:flex;justify-content:center;gap:4cqw;font-size:9cqw;margin-top:2cqh}'
+      + '.sc-share-btn{width:16cqw;height:16cqw;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;box-shadow:0 4px 15px rgba(0,0,0,.4)}'
+      + '@keyframes sharePop{0%,12%{transform:translateY(4cqh) scale(.92);opacity:0}24%,85%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-2cqh);opacity:0}}',
     html: function (o) {
-      return '<div class="vs"><div style="background:rgba(255,255,255,.08);border:1px solid var(--hair);border-radius:5cqw;padding:6cqw;text-align:center;width:86%"><h3 style="font-size:5.8cqw;font-weight:900;color:#fff">' + esc(o.lines[0] || "Share Video") + '</h3><div style="display:flex;justify-content:center;gap:4cqw;font-size:8cqw;margin-top:2cqh"><span>📱</span><span>💬</span><span>🔗</span></div></div></div>';
+      return '<div class="sc-share-wrap">'
+        + '<div class="sc-share-card">'
+        + '<div class="sc-share-title">' + esc(o.lines[0] || "Share Video") + '</div>'
+        + '<div class="sc-share-icons">'
+        + '<div class="sc-share-btn">📱</div>'
+        + '<div class="sc-share-btn">💬</div>'
+        + '<div class="sc-share-btn">🔗</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -3951,9 +4843,19 @@ window.SC_TPL2 = (function () {
   T["social-live"] = {
     name: "LIVE Stream Badge", cat: "social", dark: true, accent: "#ef4444",
     desc: "Glowing pulsing red LIVE broadcast tag with viewer counter",
-    css: '.ls{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}',
+    css: '.sc-live-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center;background:radial-gradient(ellipse at 50% 50%,#260808 0%,#090202 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-live-badge{background:#ef4444;color:#fff;padding:1.5cqh 5cqw;border-radius:999px;font-size:4cqw;font-weight:900;letter-spacing:.08em;box-shadow:0 0 30px #ef4444;animation:liveStrobe 1.5s ease-in-out infinite alternate}'
+      + '.sc-live-title{font-size:9.5cqw;font-weight:900;letter-spacing:-.03em;color:#fff;margin:3cqh 0 1cqh;text-shadow:0 0 35px rgba(239,68,68,.5);animation:liveTitlePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-live-views{font-family:"Space Grotesk",sans-serif;font-size:4.5cqw;font-weight:800;color:#fca5a5;animation:liveViewsPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '@keyframes liveStrobe{0%{box-shadow:0 0 20px rgba(239,68,68,.6)}100%{box-shadow:0 0 45px rgba(239,68,68,1);transform:scale(1.05)}}'
+      + '@keyframes liveTitlePop{0%,12%{transform:scale(.9);opacity:0}24%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}'
+      + '@keyframes liveViewsPop{0%,16%{transform:translateY(2cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
     html: function (o) {
-      return '<div class="ls"><div style="background:#ef4444;color:#fff;padding:2cqw 5cqw;border-radius:99px;font-size:4cqw;font-weight:900;box-shadow:0 0 3cqw #ef4444">● LIVE STREAM</div><h2 style="font-size:9cqw;font-weight:900;color:#fff;margin:3cqh 0 1cqh">' + esc(o.lines[0] || "Editing Masterclass") + '</h2><div style="font-size:4cqw;color:var(--dim)">' + esc(o.lines[1] || "64,200 viewers") + '</div></div>';
+      return '<div class="sc-live-wrap">'
+        + '<div class="sc-live-badge">● LIVE STREAM</div>'
+        + '<div class="sc-live-title">' + esc(o.lines[0] || "Editing Masterclass") + '</div>'
+        + '<div class="sc-live-views">👁️ ' + esc(o.lines[1] || "64,200 Viewers") + '</div>'
+        + '</div>';
     }
   };
 
@@ -3964,20 +4866,63 @@ window.SC_TPL2 = (function () {
   /* 8.1 3D Bar Race */
   T["charts-bar-race"] = {
     name: "3D Bar Chart Grow", cat: "charts", dark: true, accent: "#5b8cff",
-    desc: "Multi-column bar chart rising with staggered spring heights & values",
-    css: '.br{position:absolute;inset:0;padding:14cqh 8cqw 12cqh;display:flex;flex-direction:column;justify-content:space-between}.br .bars{display:flex;align-items:flex-end;gap:3.2cqw;height:44cqh;border-bottom:1px solid var(--hair)}',
+    desc: "Multi-column 3D isometric bar chart rising with staggered spring heights & values",
+    css: '.sc-barrace-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 7cqw;background:radial-gradient(ellipse at 50% 40%,#111827 0%,#030712 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:900px}'
+      + '.sc-barrace-head{text-align:center;z-index:2}'
+      + '.sc-barrace-tag{font-size:3.4cqw;letter-spacing:.2em;text-transform:uppercase;color:#94a3b8;font-weight:700}'
+      + '.sc-barrace-title{font-size:6.8cqw;font-weight:900;letter-spacing:-.03em;color:#fff;margin-top:.6cqh;text-shadow:0 0 25px rgba(91,140,255,.4)}'
+      + '.sc-barrace-stage{position:relative;width:100%;height:46cqh;display:flex;align-items:flex-end;justify-content:center;gap:4cqw;border-bottom:2px solid rgba(255,255,255,.15);padding:0 2cqw 2cqh;transform-style:preserve-3d;transform:rotateX(18deg)}'
+      + '.sc-bar-col{flex:1;position:relative;border-radius:2.5cqw 2.5cqw 0 0;box-shadow:0 10px 30px rgba(0,0,0,.8);animation:barGrow var(--D) cubic-bezier(.16,1,.3,1) infinite;transform-origin:bottom;display:flex;justify-content:center}'
+      + '.sc-bar-b1{background:linear-gradient(180deg,#64748b 0%,#334155 100%);animation-delay:.05s}'
+      + '.sc-bar-b2{background:linear-gradient(180deg,#38bdf8 0%,#0284c7 100%);box-shadow:0 0 25px rgba(56,189,248,.35);animation-delay:.15s}'
+      + '.sc-bar-b3{background:linear-gradient(180deg,#7952ff 0%,#4338ca 100%);box-shadow:0 0 35px rgba(121,82,255,.5);animation-delay:.25s}'
+      + '.sc-bar-val{position:absolute;top:-4cqh;font-family:"Space Grotesk",sans-serif;font-size:4.2cqw;font-weight:900;color:#fff;background:rgba(0,0,0,.75);padding:.4cqh 1.8cqw;border-radius:1cqw;border:1px solid rgba(255,255,255,.15);white-space:nowrap}'
+      + '@keyframes barGrow{0%,12%{transform:scaleY(0);opacity:0}26%,85%{transform:scaleY(1);opacity:1}100%{transform:scaleY(0.92);opacity:0}}',
     html: function (o) {
-      return '<div class="br"><div class="bars"><div style="flex:1;height:45%;background:rgba(255,255,255,.2);border-radius:2cqw 2cqw 0 0"></div><div style="flex:1;height:70%;background:rgba(255,255,255,.4);border-radius:2cqw 2cqw 0 0"></div><div style="flex:1;height:95%;background:var(--ac);border-radius:2cqw 2cqw 0 0"></div></div><div style="font-size:6.4cqw;font-weight:900;color:#fff;text-align:center;margin-top:2cqh">' + esc(o.lines[0] || "300% Growth Surge") + '</div></div>';
+      var tag = getP(o, "tag", "PERFORMANCE BENCHMARK");
+      var title = getP(o, "title", o.lines[0] || "+320% Retention Surge");
+      return '<div class="sc-barrace-wrap">'
+        + '<div class="sc-barrace-head">'
+        + '<div class="sc-barrace-tag">' + esc(tag) + '</div>'
+        + '<div class="sc-barrace-title">' + esc(title) + '</div>'
+        + '</div>'
+        + '<div class="sc-barrace-stage">'
+        + '<div class="sc-bar-col sc-bar-b1" style="height:38%"><span class="sc-bar-val">1.2X</span></div>'
+        + '<div class="sc-bar-col sc-bar-b2" style="height:65%"><span class="sc-bar-val">2.8X</span></div>'
+        + '<div class="sc-bar-col sc-bar-b3" style="height:95%"><span class="sc-bar-val">4.5X</span></div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
   /* 8.2 Circular Progress Ring */
   T["charts-ring"] = {
     name: "Progress Ring 83%", cat: "charts", dark: true, accent: "#34d17a",
-    desc: "Circular SVG ring progress sweep with central large percentage",
-    css: '.rcg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}',
+    desc: "Circular SVG ring progress sweep with central large percentage and cybernetic glow",
+    css: '.sc-ring-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#092015 0%,#030a06 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-ring-stage{position:relative;width:56cqw;height:56cqw;display:grid;place-items:center}'
+      + '.sc-ring-svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}'
+      + '.sc-ring-track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:14}'
+      + '.sc-ring-bar{fill:none;stroke:#34d17a;stroke-width:14;stroke-linecap:round;filter:drop-shadow(0 0 16px rgba(52,209,122,.7));stroke-dasharray:440;stroke-dashoffset:440;animation:ringSweep var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}'
+      + '.sc-ring-pct{font-family:"Space Grotesk",sans-serif;font-size:12cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;text-shadow:0 0 25px rgba(52,209,122,.5)}'
+      + '.sc-ring-label{font-size:3.6cqw;font-weight:700;color:#86efac;letter-spacing:.08em;margin-top:.8cqh}'
+      + '@keyframes ringSweep{0%,15%{stroke-dashoffset:440}35%,85%{stroke-dashoffset:75}100%{stroke-dashoffset:440}}',
     html: function (o) {
-      return '<div class="rcg"><svg viewBox="0 0 160 160" style="width:54cqw;height:54cqw;transform:rotate(-90deg)"><circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="14"/><circle cx="80" cy="80" r="70" fill="none" stroke="var(--ac)" stroke-width="14" stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="75"/></svg><div style="font-size:12cqw;font-weight:900;color:#fff;margin-top:2cqh">' + esc(o.lines[0] || "83% Retention") + '</div></div>';
+      var pct = getP(o, "pct", o.lines[0] || "83%");
+      var label = getP(o, "label", o.lines[1] || "Average Retention");
+      return '<div class="sc-ring-wrap">'
+        + '<div class="sc-ring-stage">'
+        + '<svg class="sc-ring-svg" viewBox="0 0 160 160">'
+        + '<circle class="sc-ring-track" cx="80" cy="80" r="70" />'
+        + '<circle class="sc-ring-bar" cx="80" cy="80" r="70" />'
+        + '</svg>'
+        + '<div class="sc-ring-center">'
+        + '<div class="sc-ring-pct">' + esc(pct) + '</div>'
+        + '<div class="sc-ring-label">' + esc(label) + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -4112,40 +5057,111 @@ window.SC_TPL2 = (function () {
   /* 8.4 3-Slice Donut Metric */
   T["charts-donut"] = {
     name: "Donut Traffic Split", cat: "charts", dark: true, accent: "#f59e0b",
-    desc: "3-slice circular donut breakdown with colored legend pills",
-    css: '.dm{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}',
+    desc: "3-slice 3D circular donut breakdown with colored legend pills and percentage tags",
+    css: '.sc-donut-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 40%,#181429 0%,#080612 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:900px}'
+      + '.sc-donut-stage{position:relative;width:54cqw;height:54cqw;display:grid;place-items:center;transform-style:preserve-3d;transform:rotateX(18deg);animation:donutFloat 5s ease-in-out infinite alternate}'
+      + '.sc-donut-svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}'
+      + '.sc-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}'
+      + '.sc-donut-num{font-family:"Space Grotesk",sans-serif;font-size:9.5cqw;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 20px rgba(245,158,11,.4)}'
+      + '.sc-donut-lbl{font-size:2.8cqw;letter-spacing:.2em;text-transform:uppercase;color:#94a3b8;margin-top:.4cqh}'
+      + '.sc-donut-legend{width:100%;display:flex;flex-direction:column;gap:1.5cqh;z-index:3}'
+      + '.sc-donut-pill{display:flex;justify-content:space-between;align-items:center;padding:1.8cqh 4cqw;border-radius:2.5cqw;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(16px);animation:donutPillPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-donut-p1{animation-delay:.05s}'
+      + '.sc-donut-p2{animation-delay:.15s}'
+      + '@keyframes donutFloat{0%{transform:rotateX(14deg)}100%{transform:rotateX(22deg) translateY(-1cqh)}}'
+      + '@keyframes donutPillPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
-      return '<div class="dm"><svg viewBox="0 0 140 140" style="width:46cqw;height:46cqw;transform:rotate(-90deg);margin-bottom:3cqh"><circle cx="70" cy="70" r="50" fill="none" stroke="#3b82f6" stroke-width="20" stroke-dasharray="180 300"/><circle cx="70" cy="70" r="50" fill="none" stroke="#10b981" stroke-width="20" stroke-dasharray="100 300" stroke-dashoffset="-180"/><circle cx="70" cy="70" r="50" fill="none" stroke="#f59e0b" stroke-width="20" stroke-dasharray="80 300" stroke-dashoffset="-280"/></svg><div style="font-size:5.6cqw;font-weight:900;color:#fff">' + esc(o.lines[0] || "Audience Breakdown") + '</div></div>';
+      var title = getP(o, "title", o.lines[0] || "Audience Breakdown");
+      var sub = getP(o, "sub", "Traffic Channels");
+      return '<div class="sc-donut-wrap">'
+        + '<div style="text-align:center"><div style="font-size:3cqw;letter-spacing:.25em;text-transform:uppercase;color:#94a3b8;font-weight:700">' + esc(sub) + '</div><div style="font-size:6.4cqw;font-weight:900;color:#fff;margin-top:.4cqh">' + esc(title) + '</div></div>'
+        + '<div class="sc-donut-stage">'
+        + '<svg class="sc-donut-svg" viewBox="0 0 140 140">'
+        + '<circle cx="70" cy="70" r="50" fill="none" stroke="#7952ff" stroke-width="20" stroke-dasharray="180 300" filter="drop-shadow(0 0 8px rgba(121,82,255,.6))"/>'
+        + '<circle cx="70" cy="70" r="50" fill="none" stroke="#38bdf8" stroke-width="20" stroke-dasharray="80 300" stroke-dashoffset="-180"/>'
+        + '<circle cx="70" cy="70" r="50" fill="none" stroke="#f59e0b" stroke-width="20" stroke-dasharray="40 300" stroke-dashoffset="-260"/>'
+        + '</svg>'
+        + '<div class="sc-donut-center"><div class="sc-donut-num">100%</div><div class="sc-donut-lbl">VERIFIED</div></div>'
+        + '</div>'
+        + '<div class="sc-donut-legend">'
+        + '<div class="sc-donut-pill sc-donut-p1"><span style="display:flex;align-items:center;gap:2cqw"><span style="width:3cqw;height:3cqw;border-radius:50%;background:#7952ff"></span><b>YouTube Shorts</b></span><b>60%</b></div>'
+        + '<div class="sc-donut-pill sc-donut-p2"><span style="display:flex;align-items:center;gap:2cqw"><span style="width:3cqw;height:3cqw;border-radius:50%;background:#38bdf8"></span><b>Instagram Reels</b></span><b>28%</b></div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
   /* 8.5 Area Sparkline Wave */
   T["charts-area-wave"] = {
     name: "Area Sparkline Wave", cat: "charts", dark: true, accent: "#8b5cf6",
-    desc: "Gradient-filled area wave chart undulating with glowing baseline",
-    css: '.aw{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw}',
+    desc: "Gradient-filled area wave chart undulating with glowing baseline and live peak badge",
+    css: '.sc-wave-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 7cqw;background:radial-gradient(ellipse at 50% 40%,#1a1033 0%,#080414 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-wave-head{display:flex;justify-content:space-between;align-items:flex-start}'
+      + '.sc-wave-title{font-size:7.2cqw;font-weight:900;letter-spacing:-.03em;color:#fff;line-height:1.15;text-shadow:0 0 25px rgba(139,92,246,.5)}'
+      + '.sc-wave-badge{padding:.8cqh 2.8cqw;border-radius:999px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#c4b5fd;font-size:3.6cqw;font-weight:800;white-space:nowrap}'
+      + '.sc-wave-box{position:relative;width:100%;height:38cqh;display:grid;place-items:center}'
+      + '.sc-wave-box svg{width:100%;height:100%;overflow:visible}'
+      + '.sc-wave-curve{fill:none;stroke:#8b5cf6;stroke-width:4;filter:drop-shadow(0 0 12px #8b5cf6);stroke-dasharray:500;stroke-dashoffset:500;animation:waveDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '@keyframes waveDraw{0%,12%{stroke-dashoffset:500}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:500}}',
     html: function (o) {
-      return '<div class="aw"><h3 style="font-size:7.4cqw;font-weight:900;color:#fff">' + esc(o.lines[0] || "User Engagement Surge") + '</h3><svg viewBox="0 0 300 150" style="width:100%;height:30cqh"><defs><linearGradient id="awG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.6"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs><path d="M0,150 L0,90 Q50,40 100,80 T200,50 T300,20 L300,150 Z" fill="url(#awG)" stroke="#8b5cf6" stroke-width="3"/></svg></div>';
+      return '<div class="sc-wave-wrap">'
+        + '<div class="sc-wave-head">'
+        + '<div class="sc-wave-title">' + esc(o.lines[0] || "User Engagement Surge") + '</div>'
+        + '<div class="sc-wave-badge">▲ +420%</div>'
+        + '</div>'
+        + '<div class="sc-wave-box">'
+        + '<svg viewBox="0 0 300 150">'
+        + '<defs><linearGradient id="awG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.6"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs>'
+        + '<path d="M0,150 L0,90 Q50,40 100,80 T200,50 T300,20 L300,150 Z" fill="url(#awG)"/>'
+        + '<path class="sc-wave-curve" d="M0,90 Q50,40 100,80 T200,50 T300,20"/>'
+        + '</svg>'
+        + '</div>'
+        + '<div style="display:flex;justify-content:space-between;font-size:3.2cqw;color:#94a3b8;border-top:1px solid rgba(255,255,255,.08);padding-top:1.5cqh"><span>WEEK 1</span><span>WEEK 2</span><span>PEAK VIRALITY</span></div>'
+        + '</div>';
     }
   };
 
   /* 8.6 Big KPI Milestone */
   T["charts-kpi-counter"] = {
     name: "Big KPI Milestone", cat: "charts", dark: true, accent: "#ffffff",
-    desc: "Gigantic KPI metric counter spinning from zero to target number",
-    css: '.sm{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}',
+    desc: "Gigantic KPI metric counter spinning from zero to target number with particle glow",
+    css: '.sc-kpi-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#18182b 0%,#090912 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-kpi-tag{font-family:"Space Grotesk",sans-serif;font-size:3.4cqw;letter-spacing:.3em;color:#94a3b8;text-transform:uppercase;margin-bottom:2cqh;font-weight:700}'
+      + '.sc-kpi-val{font-family:"Space Grotesk",sans-serif;font-size:18cqw;font-weight:900;letter-spacing:-.04em;line-height:.9;color:#fff;text-shadow:0 0 45px rgba(255,255,255,.6),0 10px 25px rgba(0,0,0,.8);animation:kpiPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-kpi-sub{font-size:4.8cqw;color:#38bdf8;font-weight:800;margin-top:2.5cqh;letter-spacing:.02em}'
+      + '@keyframes kpiPop{0%,12%{transform:scale(.85);opacity:0}24%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}',
     html: function (o) {
-      return '<div class="sm"><div style="font-size:3.4cqw;letter-spacing:.3em;color:var(--dim);margin-bottom:2cqh">ANNUAL MILESTONE</div><div style="font-size:18cqw;font-weight:900;color:#fff;line-height:.9">' + esc(o.lines[0] || "$10,000,000") + '</div><div style="font-size:4.6cqw;color:var(--ac);font-weight:700;margin-top:2cqh">' + esc(o.lines[1] || "ARR in record time") + '</div></div>';
+      return '<div class="sc-kpi-wrap">'
+        + '<div class="sc-kpi-tag">ANNUAL RECORD MILESTONE</div>'
+        + '<div class="sc-kpi-val">' + esc(o.lines[0] || "$10,000,000") + '</div>'
+        + '<div class="sc-kpi-sub">' + esc(o.lines[1] || "ARR in Record Time") + '</div>'
+        + '</div>';
     }
   };
 
   /* 8.7 Versus Battle Bars */
   T["charts-versus-bars"] = {
     name: "A/B Versus Battle", cat: "charts", dark: true, accent: "#ec4899",
-    desc: "Two competing progress metric bars clashing with percentage bars",
-    css: '.vb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw}',
+    desc: "Two competing progress metric bars clashing with percentage bars and duel glow",
+    css: '.sc-vs-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#260a1d 0%,#090207 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-vs-title{font-size:7.2cqw;font-weight:900;color:#fff;text-align:center;margin-bottom:4cqh;letter-spacing:-.03em}'
+      + '.sc-vs-barbox{margin-bottom:3cqh;animation:vsBarPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-vs-label{display:flex;justify-content:space-between;font-size:3.8cqw;font-weight:800;color:#fff;margin-bottom:1cqh}'
+      + '.sc-vs-track{height:4cqw;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;padding:2px}'
+      + '.sc-vs-fill{height:100%;border-radius:999px;box-shadow:0 0 16px currentColor}'
+      + '@keyframes vsBarPop{0%,12%{transform:scale(.92);opacity:0}24%{transform:scale(1);opacity:1}50%{transform:scale(1.015) translateY(-.4cqh);opacity:1}72%{transform:scale(.996) translateY(.25cqh);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
-      return '<div class="vb"><h3 style="font-size:7cqw;font-weight:900;color:#fff;text-align:center;margin-bottom:4cqh">' + esc(o.lines[0] || "Shorts vs Long Form") + '</h3><div style="margin-bottom:2cqh"><div style="display:flex;justify-content:space-between;font-size:3.6cqw;color:#fff;margin-bottom:1cqh"><span>Motion Shorts</span><b>84%</b></div><div style="height:3cqw;background:rgba(255,255,255,.1);border-radius:99px"><div style="height:100%;width:84%;background:#3b82f6;border-radius:99px"></div></div></div></div>';
+      return '<div class="sc-vs-wrap">'
+        + '<h3 class="sc-vs-title">' + esc(o.lines[0] || "Shorts vs Long Form") + '</h3>'
+        + '<div class="sc-vs-barbox">'
+        + '<div class="sc-vs-label"><span>Motion Graphic Shorts</span><b style="color:#38bdf8">86%</b></div>'
+        + '<div class="sc-vs-track"><div class="sc-vs-fill" style="width:86%;background:#38bdf8;color:#38bdf8"></div></div>'
+        + '</div>'
+        + '<div class="sc-vs-barbox">'
+        + '<div class="sc-vs-label"><span>Static Talking Head</span><b style="color:#ec4899">14%</b></div>'
+        + '<div class="sc-vs-track"><div class="sc-vs-fill" style="width:14%;background:#ec4899;color:#ec4899"></div></div>'
+        + '</div>'
+        + '</div>';
     }
   };
 
@@ -4180,20 +5196,56 @@ window.SC_TPL2 = (function () {
   /* 8.9 Activity Matrix */
   T["charts-activity-matrix"] = {
     name: "Streak Activity Heatmap", cat: "charts", dark: true, accent: "#22c55e",
-    desc: "7x5 matrix of activity squares illuminating in sequential wave",
-    css: '.ah{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}',
+    desc: "7x5 matrix of activity squares illuminating in sequential spring wave with glowing intensity",
+    css: '.sc-heat-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#092416 0%,#020b06 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-heat-head{text-align:center}'
+      + '.sc-heat-tag{font-size:3cqw;letter-spacing:.25em;text-transform:uppercase;color:#86efac;font-weight:700}'
+      + '.sc-heat-title{font-size:6.6cqw;font-weight:900;letter-spacing:-.03em;color:#fff;margin-top:.4cqh;text-shadow:0 0 25px rgba(34,197,94,.4)}'
+      + '.sc-heat-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2.5cqw;width:74cqw;padding:4cqw;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:4cqw;box-shadow:0 20px 50px rgba(0,0,0,.8)}'
+      + '.sc-heat-cell{width:8cqw;height:8cqw;border-radius:2cqw;background:rgba(255,255,255,.06);animation:cellGlow var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-heat-c1{background:#15803d;box-shadow:0 0 8px rgba(21,128,61,.5)}'
+      + '.sc-heat-c2{background:#22c55e;box-shadow:0 0 16px rgba(34,197,94,.7)}'
+      + '.sc-heat-c3{background:#4ade80;box-shadow:0 0 22px rgba(74,222,128,.9)}'
+      + '.sc-heat-badge{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);padding:1cqh 4cqw;border-radius:999px;font-size:3.6cqw;font-weight:800;color:#86efac}'
+      + '@keyframes cellGlow{0%,15%{transform:scale(.8);opacity:.4}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(.8);opacity:.4}}',
     html: function (o) {
-      return '<div class="ah"><h3 style="font-size:6.4cqw;font-weight:900;color:#fff;margin-bottom:3cqh">' + esc(o.lines[0] || "365-Day Daily Post Streak") + '</h3><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2cqw;width:70cqw"><div style="width:7cqw;height:7cqw;border-radius:1.5cqw;background:#22c55e"></div><div style="width:7cqw;height:7cqw;border-radius:1.5cqw;background:#22c55e"></div><div style="width:7cqw;height:7cqw;border-radius:1.5cqw;background:#22c55e"></div><div style="width:7cqw;height:7cqw;border-radius:1.5cqw;background:#15803d"></div><div style="width:7cqw;height:7cqw;border-radius:1.5cqw;background:#22c55e"></div><div style="width:7cqw;height:7cqw;border-radius:1.5cqw;background:#22c55e"></div><div style="width:7cqw;height:7cqw;border-radius:1.5cqw;background:#22c55e"></div></div></div>';
+      return '<div class="sc-heat-wrap">'
+        + '<div class="sc-heat-head">'
+        + '<div class="sc-heat-tag">CONSISTENCY SCORE</div>'
+        + '<div class="sc-heat-title">' + esc(o.lines[0] || "365-Day Daily Post Streak") + '</div>'
+        + '</div>'
+        + '<div class="sc-heat-grid">'
+        + '<div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c3"></div>'
+        + '<div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div>'
+        + '<div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div>'
+        + '</div>'
+        + '<div class="sc-heat-badge">🔥 100% Top 1% Creator Retention</div>'
+        + '</div>';
     }
   };
 
   /* 8.10 Conversion Funnel */
   T["charts-funnel"] = {
     name: "Conversion Funnel", cat: "charts", dark: true, accent: "#38bdf8",
-    desc: "3-tier customer conversion funnel with drop-off analytics",
-    css: '.cf{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}',
+    desc: "3-tier customer conversion funnel with drop-off analytics and glowing neon tiers",
+    css: '.sc-funnel-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#091d36 0%,#020b17 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
+      + '.sc-funnel-title{font-size:6.8cqw;font-weight:900;letter-spacing:-.03em;color:#fff;text-shadow:0 0 25px rgba(56,189,248,.4);text-align:center}'
+      + '.sc-funnel-stages{width:100%;display:flex;flex-direction:column;align-items:center;gap:1.8cqh}'
+      + '.sc-funnel-bar{border-radius:2.5cqw;padding:2.2cqh 4.5cqw;font-weight:800;font-size:3.8cqw;display:flex;justify-content:space-between;align-items:center;box-shadow:0 15px 35px rgba(0,0,0,.7);animation:funnelPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-funnel-b1{width:90%;background:linear-gradient(135deg,#38bdf8 0%,#0284c7 100%);color:#fff;box-shadow:0 0 25px rgba(56,189,248,.4);animation-delay:.05s}'
+      + '.sc-funnel-b2{width:70%;background:linear-gradient(135deg,#7952ff 0%,#4338ca 100%);color:#fff;box-shadow:0 0 25px rgba(121,82,255,.4);animation-delay:.15s}'
+      + '.sc-funnel-b3{width:50%;background:linear-gradient(135deg,#10b981 0%,#047857 100%);color:#fff;box-shadow:0 0 25px rgba(16,185,129,.4);animation-delay:.25s}'
+      + '@keyframes funnelPop{0%,12%{transform:scale(.9);opacity:0}25%{transform:scale(1);opacity:1}45%{transform:scale(1.012);opacity:1}65%{transform:scale(.996);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
-      return '<div class="cf"><h3 style="font-size:6.4cqw;font-weight:900;color:#fff;margin-bottom:3cqh">' + esc(o.lines[0] || "Audience Conversion") + '</h3><div style="width:88%;background:var(--ac);color:#000;padding:2.6cqw 4cqw;border-radius:2cqw;font-weight:800;font-size:3.8cqw;display:flex;justify-content:space-between;margin-bottom:2cqw"><span>1. Impressions</span><span>1,000,000</span></div><div style="width:68%;background:rgba(56,189,248,.6);color:#fff;padding:2.6cqw 4cqw;border-radius:2cqw;font-weight:800;font-size:3.8cqw;display:flex;justify-content:space-between;margin-bottom:2cqw"><span>2. Clicks</span><span>420,000</span></div><div style="width:48%;background:rgba(56,189,248,.3);color:#fff;padding:2.6cqw 4cqw;border-radius:2cqw;font-weight:800;font-size:3.8cqw;display:flex;justify-content:space-between"><span>3. Converts</span><span>180,000</span></div></div>';
+      return '<div class="sc-funnel-wrap">'
+        + '<h3 class="sc-funnel-title">' + esc(o.lines[0] || "Audience Conversion") + '</h3>'
+        + '<div class="sc-funnel-stages">'
+        + '<div class="sc-funnel-bar sc-funnel-b1"><span>1. Impressions</span><b>1,000,000</b></div>'
+        + '<div class="sc-funnel-bar sc-funnel-b2"><span>2. Clicks (42%)</span><b>420,000</b></div>'
+        + '<div class="sc-funnel-bar sc-funnel-b3"><span>3. Converts (18%)</span><b>180,000</b></div>'
+        + '</div>'
+        + '<div style="font-size:3.4cqw;color:#94a3b8;font-family:monospace">ROI // 18X REVENUE MULTIPLIER</div>'
+        + '</div>';
     }
   };
 
@@ -4201,6 +5253,23 @@ window.SC_TPL2 = (function () {
   var DEMO = {
     "blank":                  ["Blank Canvas", "Choose a template or generate with AI.", ""],
     
+    // AutoAE Exact 4-Scene Master & Modular Scenes
+    "autoae-exact-master":       ["Main Text 1", "Text 1", "Text 3", "Text 5"],
+    "autoae-chatgpt-prompt":     ["Main Text 1", "", ""],
+    "autoae-wireframe-stream":   ["Main Text 3", "Text 1", "Text 2"],
+    "autoae-blue-evidence":      ["Main Text 4", "Text 3", ""],
+    "autoae-volumetric-clock":   ["Main Text 6", "Text 5", ""],
+
+    // AutoAE Flagship Signature
+    "autoae-founder-halftone": ["STARTED", "FACEBOOK", "// ARCHIVE 2004"],
+    "autoae-neon-spheres":    ["Stand out in the crowded market?", "// RETENTION RULE #01", ""],
+    "autoae-product-can":     ["ENERGY", "IN A CAN", ""],
+    "autoae-founder-steps":   ["4-STEP FRAMEWORK", "First-principles thinking to engineer impossible products.", ""],
+    "autoae-retro-crt":       ["Telling story...", "HOW IT ALL BEGAN // 1998", ""],
+    "autoae-infinity-loop":   ["Creative Flow", "Viral Scale", ""],
+    "autoae-scurve-growth":   ["$900", "$6,000", ""],
+    "autoae-newspaper-breaking": ["BREAKING NEWS!", "The historic breakthrough that disrupted the entire global market.", ""],
+
     // Docu
     "docu-confidential":      ["RESTRICTED", "TOP SECRET", ""],
     "docu-red-string":        ["Suspect Alpha", "Shell Company", ""],
@@ -4918,8 +5987,15 @@ window.SC_TPL2 = (function () {
     var demo = DEMO[id] || [];
     var lines = [];
     for (var i = 0; i < 3; i++) {
+      // Precedence: explicit lines → edited props → demo copy.
+      // The props step is what makes the editor's content fields work: they
+      // write props.line0/1/2, while most templates read o.lines[i]. Without
+      // this bridge, typing in the editor changed nothing on screen.
       var v = given[i];
-      lines.push(v != null && String(v).trim() !== "" ? String(v) : (demo[i] || ""));
+      var fromProps = p["line" + i];
+      if (v != null && String(v).trim() !== "") lines.push(String(v));
+      else if (fromProps != null && String(fromProps).trim() !== "") lines.push(String(fromProps));
+      else lines.push(demo[i] || "");
     }
 
     var res = {

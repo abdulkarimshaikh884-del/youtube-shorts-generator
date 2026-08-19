@@ -769,7 +769,13 @@
           ev.stopPropagation();
           var val = opt.dataset.val;
           tier.value = val;
-          if (qVal) qVal.textContent = val === "mini" ? "Free (5 credits)" : (val === "pro" ? "Pro (10 credits)" : "Pro Max (15 credits)");
+          // The credit cost is the same for every tier — the tier picks the
+          // model, not the price. Read it from the option's own label so this
+          // can never drift from what the server actually charges.
+          var costTxt = (opt.querySelector("span") || {}).textContent || "";
+          var costNum = (costTxt.match(/(\d+)\s*credits?/i) || [])[1] || "5";
+          var tierName = val === "mini" ? "Free" : (val === "pro" ? "Pro" : "Pro Max");
+          if (qVal) qVal.textContent = tierName + " (" + costNum + " credits)";
           if (qBtn) qBtn.setAttribute("aria-label", "Model tier: " + (val === "mini" ? "Free" : val));
 
           Array.prototype.forEach.call(qMenu.querySelectorAll(".sh-csel-opt"), function (o) {

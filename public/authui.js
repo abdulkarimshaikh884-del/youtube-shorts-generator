@@ -20,9 +20,35 @@
   function paint(user) {
     all('[data-auth="in"]').forEach(function (el) { show(el, !!user); });
     all('[data-auth="out"]').forEach(function (el) { show(el, !user); });
+
+    var uname = user ? (String(user.email).split("@")[0] || "creator") : "Account";
+    var dname = user ? (user.displayName || (uname.charAt(0).toUpperCase() + uname.slice(1))) : "Account";
+    var handle = user ? (user.handle || ("@" + uname)) : "@creator";
+    var initials = user ? (dname.slice(0, 2).toUpperCase()) : "CR";
+
     all("[data-auth-email]").forEach(function (el) {
-      el.textContent = user ? String(user.email).split("@")[0] : "Account";
+      el.textContent = uname;
       if (user) el.title = user.email;
+    });
+
+    all("[data-user-name]").forEach(function (el) {
+      el.textContent = dname;
+    });
+
+    all("[data-user-handle]").forEach(function (el) {
+      el.textContent = handle;
+    });
+
+    all("[data-user-email]").forEach(function (el) {
+      el.textContent = user ? user.email : "";
+    });
+
+    all("[data-user-avatar]").forEach(function (el) {
+      el.textContent = initials;
+    });
+
+    all("[data-user-plan]").forEach(function (el) {
+      el.textContent = "✦ " + ((user && user.plan) || "Free Plan");
     });
 
     var box = $("#accountBox"), guest = $("#accountGuest");
@@ -30,26 +56,46 @@
       show(box, !!user);
       show(guest, !user);
       if (user) {
-        var uname = String(user.email).split("@")[0] || "creator";
-        var dname = user.displayName || (uname.charAt(0).toUpperCase() + uname.slice(1));
-        var handle = user.handle || ("@" + uname);
         var bio = user.bio || "Designing viral YouTube Shorts, Instagram Reels & AI kinetic typography motion graphics.";
 
         if ($("#accEmail")) $("#accEmail").textContent = user.email;
         if ($("#crDisplayName")) $("#crDisplayName").textContent = dname;
         if ($("#crHandle")) $("#crHandle").textContent = handle;
-        if ($("#crAvatarChar")) $("#crAvatarChar").textContent = dname.charAt(0).toUpperCase() || uname.charAt(0).toUpperCase();
+        if ($("#crAvatarChar")) $("#crAvatarChar").textContent = initials;
         if ($("#crBio")) $("#crBio").textContent = bio;
         if ($("#crStarsCount")) $("#crStarsCount").textContent = user.stars || 48;
 
+        // A social link with nothing behind it is worse than no link at all —
+        // hide it until the creator has actually filled it in.
         if ($("#crYtLink")) {
           if (user.youtube) {
             $("#crYtLink").href = user.youtube.startsWith("http") ? user.youtube : "https://youtube.com/" + (user.youtube.startsWith("@") ? "" : "@") + user.youtube;
+            $("#crYtLink").hidden = false;
+          } else {
+            $("#crYtLink").hidden = true;
           }
         }
         if ($("#crIgLink")) {
           if (user.instagram) {
             $("#crIgLink").href = user.instagram.startsWith("http") ? user.instagram : "https://instagram.com/" + user.instagram.replace(/^@/, "");
+            $("#crIgLink").hidden = false;
+          } else {
+            $("#crIgLink").hidden = true;
+          }
+        }
+
+        // Say when a paid plan runs out, or that it never does.
+        if ($("#accPlanTerm")) {
+          var termEl = $("#accPlanTerm");
+          if (!user.plan || user.plan === "free") {
+            termEl.textContent = "";
+          } else if (user.planLifetime) {
+            termEl.textContent = "Lifetime — never expires";
+          } else if (user.planUntil) {
+            var until = new Date(user.planUntil);
+            termEl.textContent = isNaN(until) ? "" : "Renews on " + until.toLocaleDateString();
+          } else {
+            termEl.textContent = "";
           }
         }
 
@@ -73,17 +119,64 @@
 
   function setupEditProfile() {
     var modal = $("#editProfileModal");
-    var openBtn = $("#openEditProfileBtn");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "editProfileModal";
+      modal.className = "sh-modal-backdrop";
+      modal.setAttribute("hidden", "");
+      modal.innerHTML = '<div class="sh-upload-card" style="max-width:520px;" role="dialog" aria-labelledby="editProfTitle" aria-modal="true">'
+        + '<div class="sh-mhead">'
+        + '<div class="sh-mtitle-box">'
+        + '<span class="sh-eyebrow">✦ Creator Profile Setup</span>'
+        + '<h3 id="editProfTitle">Setup Your Creator Profile</h3>'
+        + '</div>'
+        + '<button type="button" class="sh-mclose" id="closeEditProfileBtn" aria-label="Close modal">✕</button>'
+        + '</div>'
+        + '<form id="editProfileForm" class="sh-mbody">'
+        + '<label class="sh-mlabel">'
+        + '<span>Display Name</span>'
+        + '<input type="text" id="editDisplayName" class="sh-minput" placeholder="e.g. Karim Abdul" required maxlength="50" />'
+        + '</label>'
+        + '<label class="sh-mlabel">'
+        + '<span>Creator Handle (@username)</span>'
+        + '<input type="text" id="editHandle" class="sh-minput" placeholder="e.g. @karim_creates" required maxlength="30" />'
+        + '</label>'
+        + '<label class="sh-mlabel">'
+        + '<span>Bio / Description</span>'
+        + '<textarea id="editBio" class="sh-minput" rows="2" placeholder="Tell other creators about the style of templates you build..."></textarea>'
+        + '</label>'
+        + '<div style="display:flex;gap:12px;">'
+        + '<label class="sh-mlabel" style="flex:1;">'
+        + '<span>YouTube Channel / Handle</span>'
+        + '<input type="text" id="editYoutube" class="sh-minput" placeholder="https://youtube.com/@channel" />'
+        + '</label>'
+        + '<label class="sh-mlabel" style="flex:1;">'
+        + '<span>Instagram Profile</span>'
+        + '<input type="text" id="editInstagram" class="sh-minput" placeholder="https://instagram.com/profile" />'
+        + '</label>'
+        + '</div>'
+        + '<div id="editProfileNote" class="sh-mnote"></div>'
+        + '<div class="sh-mfoot" style="margin-top:14px;">'
+        + '<button type="button" class="sh-mbtn cancel" id="cancelProfileModalBtn">Cancel</button>'
+        + '<button type="submit" class="sh-mbtn primary" id="saveProfileBtn">✦ Save Profile</button>'
+        + '</div>'
+        + '</form>'
+        + '</div>';
+      document.body.appendChild(modal);
+    }
+
+    var openBtns = all("#openEditProfileBtn, #openEditProfileBtn2, #popoverProfileBtn");
     var closeBtn = $("#closeEditProfileBtn");
     var cancelBtn = $("#cancelProfileModalBtn");
     var form = $("#editProfileForm");
     var note = $("#editProfileNote");
     var saveBtn = $("#saveProfileBtn");
 
-    if (!modal || !openBtn) return;
-
     function openModal() {
-      if (!currentUser) return;
+      if (!currentUser) {
+        location.href = "/login?next=" + encodeURIComponent(location.pathname);
+        return;
+      }
       var uname = String(currentUser.email).split("@")[0] || "creator";
       if ($("#editDisplayName")) $("#editDisplayName").value = currentUser.displayName || uname.charAt(0).toUpperCase() + uname.slice(1);
       if ($("#editHandle")) $("#editHandle").value = currentUser.handle || ("@" + uname);
@@ -98,7 +191,13 @@
       show(modal, false);
     }
 
-    openBtn.addEventListener("click", openModal);
+    openBtns.forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        openModal();
+      });
+    });
+
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
     if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
 
@@ -206,7 +305,7 @@
           var card = document.createElement("article");
           card.className = "cr-cre-card";
 
-          var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl || "type-cascade")
+          var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl || "text-cascade")
             + "&accent=" + encodeURIComponent(t.accent || "#ffffff")
             + "&font=" + encodeURIComponent(t.font || "inter")
             + "&dur=" + encodeURIComponent(t.dur || 4600)
@@ -303,15 +402,15 @@
       modal.id = "uploadTemplateModal";
       modal.className = "sh-modal-backdrop";
       modal.setAttribute("hidden", "");
-      modal.innerHTML = '<div class="sh-upload-card" role="dialog" aria-labelledby="upModalTitle" aria-modal="true">'
+      modal.innerHTML = '<div class="sh-upload-card" style="max-width:840px;" role="dialog" aria-labelledby="upModalTitle" aria-modal="true">'
         + '<div class="sh-mhead">'
         + '<div class="sh-mtitle-box">'
-        + '<span class="sh-eyebrow">✦ Creator Publishing</span>'
+        + '<span class="sh-eyebrow">✦ Creator Publishing &amp; AI Engine</span>'
         + '<h3 id="upModalTitle">Upload &amp; Publish Template</h3>'
         + '</div>'
         + '<button type="button" class="sh-mclose" id="closeUploadModalBtn" aria-label="Close modal">✕</button>'
         + '</div>'
-        + '<form id="uploadTemplateForm" class="sh-mbody">'
+        + '<form id="uploadTemplateForm" class="sh-mbody" style="padding-top:0;">'
         + '<div class="sh-up-grid">'
         + '<div class="sh-up-form">'
         + '<label class="sh-mlabel">'
@@ -325,9 +424,9 @@
         + '<label class="sh-mlabel">'
         + '<span>Category</span>'
         + '<select id="upCat" class="sh-minput" required>'
+        + '<option value="paper">Paper &amp; Cutout</option>'
         + '<option value="text">Kinetic Text &amp; Hooks</option>'
         + '<option value="docu">Documentary &amp; Retro</option>'
-        + '<option value="paper">Paper &amp; Cutout</option>'
         + '<option value="maps">Maps &amp; Radar</option>'
         + '<option value="money">Finance &amp; Economy</option>'
         + '<option value="ui">UI &amp; Devices</option>'
@@ -348,7 +447,7 @@
         + '<div style="display:flex;gap:12px;align-items:center;margin-top:4px;">'
         + '<label class="sh-mlabel" style="flex:1;">'
         + '<span>Accent Color</span>'
-        + '<input type="color" id="upAccent" value="#ffffff" class="sh-mcol" />'
+        + '<input type="color" id="upAccent" value="#141414" class="sh-mcol" />'
         + '</label>'
         + '<label class="sh-mlabel" style="flex:1;">'
         + '<span>Aspect Ratio</span>'
@@ -378,7 +477,7 @@
       document.body.appendChild(modal);
     }
 
-    var openBtns = all(".sh-tupload-btn, #topbarUploadBtn, #openUploadModalBtn");
+    var openBtns = all(".sh-tupload-btn, #topbarUploadBtn, #openUploadModalBtn, #popoverUploadBtn, .js-open-upload");
     var closeBtn = $("#closeUploadModalBtn");
     var cancelBtn = $("#cancelUploadBtn");
     var form = $("#uploadTemplateForm");
@@ -396,7 +495,7 @@
     var submitBtn = $("#submitUploadBtn");
 
     function populateTpls() {
-      if (!tplSelect || tplSelect.children.length > 0) return;
+      if (tplSelect.children.length > 0) return;
       var e = window.SC_TPL2;
       if (e && typeof e.list === "function") {
         e.list().forEach(function (t) {
@@ -412,7 +511,7 @@
       if (!prevFrame) return;
       var e = window.SC_TPL2;
       if (!e || typeof e.build !== "function") return;
-      var tplId = tplSelect.value || "type-cascade";
+      var tplId = tplSelect.value || "text-cascade";
       var lines = [line1.value, line2.value, line3.value];
       var aspect = aspectSelect.value || "9:16";
       var accent = accentInput.value || "#ffffff";
@@ -436,10 +535,10 @@
       }
       populateTpls();
       if (!titleInput.value) {
-        titleInput.value = "My Viral Motion Graphic";
-        line1.value = "THE ULTIMATE";
-        line2.value = "SHORT CUT";
-        line3.value = "TO 1M VIEWS";
+        titleInput.value = "Minimalist Executive Storyboard";
+        line1.value = "Selling isn't about";
+        line2.value = "how much you say";
+        line3.value = "insiderforce.io";
       }
       if (note) note.textContent = "";
       updatePreview();
@@ -491,7 +590,7 @@
         note.textContent = "Uploading template to library...";
 
         var payload = {
-          tpl: tplSelect.value || "type-cascade",
+          tpl: tplSelect.value || "text-cascade",
           title: titleInput.value.trim(),
           category: catSelect.value,
           description: descInput.value.trim(),
@@ -535,10 +634,31 @@
     }
   }
 
+  function setupUserTrigger() {
+    var trigger = $("#sidebarUserTrigger");
+    if (!trigger) return;
+    var wrap = trigger.closest(".sh-user-trigger-wrap");
+    if (!wrap) return;
+
+    trigger.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      var active = wrap.classList.toggle("active");
+      trigger.setAttribute("aria-expanded", active ? "true" : "false");
+    });
+
+    document.addEventListener("click", function (ev) {
+      if (!wrap.contains(ev.target)) {
+        wrap.classList.remove("active");
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
   function init() {
-    all("#logoutBtn, #accLogout").forEach(function (b) {
+    all("#logoutBtn, #accLogout, #popoverLogoutBtn").forEach(function (b) {
       b.addEventListener("click", logout);
     });
+    setupUserTrigger();
     fetch("/api/auth/me", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
       .then(function (j) {

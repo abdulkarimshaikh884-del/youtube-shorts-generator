@@ -65,14 +65,23 @@ function checkPoison(text, where) {
    phone home or pull a font/tracker. */
 function cleanCss(css) {
   if (typeof css !== "string") throw new BadScene("css missing");
-  css = css.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/<[^>]*>/g, " ").trim();
+  css = css.replace(/\/\*[\s\S]*?\*\//g, " ").trim();
   if (!css) throw new BadScene("css empty");
   if (css.length > MAX_CSS) throw new BadScene(`css too large (${css.length} > ${MAX_CSS})`);
+
+  // Refuse angle brackets outright instead of stripping them. Stylesheets never
+  // need them, and a "</style><script>" breakout must be rejected, not quietly
+  // cleaned — stripping invites bypasses through nesting like "<<script>".
+  // This check runs BEFORE any tag removal, or checkPoison would never see it.
+  if (/[<>]/.test(css)) throw new BadScene("css contains an angle bracket");
   checkPoison(css, "css");
 
-  const urls = css.match(/url\s*\(([^)]*)\)/gi) || [];
+  // Only url(var(--img)) is permitted. Match the whole call including the
+  // nested var(...) parens — a plain [^)]* stops at var's own ")" and would
+  // reject the one form we actually allow.
+  const urls = css.match(/url\s*\([^()]*(?:\([^()]*\)[^()]*)*\)/gi) || [];
   for (const u of urls) {
-    if (!/url\s*\(\s*var\(\s*--img\s*\)\s*\)/i.test(u)) {
+    if (!/^url\s*\(\s*var\(\s*--img\s*\)\s*\)$/i.test(u.trim())) {
       throw new BadScene(`css uses ${u.slice(0, 40)} — only url(var(--img)) is allowed`);
     }
   }

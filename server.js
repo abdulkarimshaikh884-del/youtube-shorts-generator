@@ -227,6 +227,11 @@ app.post("/api/community-templates/:id/like", (req, res) => {
   res.json(result);
 });
 
+// AI Video-to-Template ("deconstruct a video into a template") is not a real
+// feature yet - it had no analysis behind it and its ffprobe path took a raw
+// client-supplied file path into a shell command (command injection). Removed
+// until real video analysis is built; the UI tab for it is hidden (authui.js).
+
 // ── Comments & Discussions API ──────────────────────────────
 const comments = require("./comments");
 
@@ -615,18 +620,59 @@ Strict requirements:
   }
 });
 
+/* Pro Max launches as a lifetime deal for the first credits.LIFETIME_SLOTS
+   buyers. Once those seats are taken the same price buys a year instead.
+   The decision is made here, server-side, at the moment of purchase. */
+function planTermFor(planId) {
+  const plan = credits.PLANS[planId];
+  if (!plan) return "month";
+  if (plan.term !== "lifetime") return plan.term;
+  const taken = auth.countLifetime(planId);
+  return taken < credits.LIFETIME_SLOTS ? "lifetime" : (plan.fallbackTerm || "year");
+}
+
+// ── Launch offer status (how many lifetime seats are left) ──
+app.get("/api/offer", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const taken = auth.countLifetime("promax");
+  const total = credits.LIFETIME_SLOTS;
+  const left = Math.max(0, total - taken);
+  res.json({
+    success: true,
+    plan: "promax",
+    price: credits.PLANS.promax.price,
+    total, taken, left,
+    lifetimeAvailable: left > 0,
+    term: left > 0 ? "lifetime" : (credits.PLANS.promax.fallbackTerm || "year")
+  });
+});
+
 // ── Razorpay: create order ──────────────────────────────────
 app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
   try {
+    // Who and what first — "log in to upgrade" is actionable, "not configured"
+    // is not, so the user-fixable problems are reported before ours.
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: "Please log in before upgrading." });
+    }
+
+    // Which plan is being bought. The price comes from our own PLANS table,
+    // never from the client, so the amount cannot be tampered with.
+    const planId = String(req.body?.plan || "pro");
+    const plan = credits.PLANS[planId];
+    if (!plan || plan.price <= 0) {
+      return res.status(400).json({ success: false, error: "Choose a paid plan." });
+    }
+
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     if (!keyId || !keySecret) {
-      return res.status(503).json({ success: false, error: "Payment service not configured." });
+      return res.status(503).json({ success: false, error: "Payments are not switched on yet. Please try again shortly." });
     }
 
-    const amountInr = Number(process.env.PRO_PRICE_INR || 99);
-    const amountPaise = amountInr * 100;
-    const userId = String(req.body?.userId || "guest").slice(0, 80);
+    const term = planTermFor(planId);
+    const amountPaise = plan.price * 100;
+    const userId = req.user.id;
 
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
     const r = await fetch("https://api.razorpay.com/v1/orders", {
@@ -639,7 +685,7 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
         amount: amountPaise,
         currency: "INR",
         receipt: `sc_${Date.now()}_${userId.slice(0, 12)}`,
-        notes: { product: "ShortsCraft Pro", userId },
+        notes: { product: `ShortsCraft ${plan.label}`, userId, plan: planId, term },
       }),
     });
 
@@ -649,7 +695,10 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
       return res.status(502).json({ success: false, error: "Could not create payment order." });
     }
     const order = await r.json();
-    res.json({ success: true, orderId: order.id, amount: order.amount, currency: order.currency, keyId });
+    res.json({
+      success: true, orderId: order.id, amount: order.amount,
+      currency: order.currency, keyId, plan: planId, term
+    });
   } catch (err) {
     console.error("[razorpay/order]", err.message);
     res.status(500).json({ success: false, error: "Payment order failed." });
@@ -671,10 +720,31 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    const valid = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(razorpay_signature));
+    // timingSafeEqual throws on a length mismatch, so check that first —
+    // a wrong-length signature is simply invalid, not a server error.
+    const got = Buffer.from(String(razorpay_signature));
+    const want = Buffer.from(expected);
+    const valid = got.length === want.length && crypto.timingSafeEqual(got, want);
     if (!valid) return res.status(400).json({ success: false, error: "Invalid payment signature." });
 
-    res.json({ success: true, paymentId: razorpay_payment_id, orderId: razorpay_order_id });
+    // The signature is genuine, so the money is real — now actually deliver the
+    // plan. Without this the user pays and receives nothing.
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: "Please log in to activate your plan." });
+    }
+    const planId = credits.PLANS[String(req.body?.plan || "")] ? String(req.body.plan) : "pro";
+    const term = planTermFor(planId);
+
+    auth.changePlan(req.user.id, planId, term);
+    credits.setPlan(req, planId);
+
+    res.json({
+      success: true,
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+      plan: planId,
+      term
+    });
   } catch (err) {
     console.error("[razorpay/verify]", err.message);
     res.status(500).json({ success: false, error: "Verification failed." });
@@ -1181,6 +1251,11 @@ const PAGES = {
   "/account": "account.html",
   "/template": "template.html",
   "/creator": "creator.html",
+
+  // The SEO Tools workspace itself. It must be registered here as well as the
+  // keyword URLs below — without it /seo-tools 404s even though the footer,
+  // the pricing CTA and the /generator redirect all point at it.
+  "/seo-tools": "seo-tools.html",
 
   // Legacy SEO tool URLs now open the new SEO Tools workspace.
   "/youtube-shorts-script-generator": "seo-tools.html",

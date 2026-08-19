@@ -22,7 +22,7 @@
 <link rel="icon" href="/favicon.ico?v=circle2026" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=circle2026">
 <link rel="manifest" href="/site.webmanifest?v=power2026">
-<link rel="stylesheet" href="/editor.css?v=4">
+<link rel="stylesheet" href="/editor.css?v=5">
 </head>
 <body class="ed-body">
 
@@ -133,9 +133,12 @@
     <!-- CENTRE: stage + playback -->
     <section class="ed-col ed-center">
       <div class="ed-stagewrap">
-        <div class="ed-frame" id="edFrame" style="--arw:9;--arh:16">
-          <iframe class="ed-lay" data-i="0" id="animationPlayer" title="Template preview" style="border:none;width:100%;height:100%;" src="/player.html"></iframe>
-        </div>
+        <!-- Layers are created by editor.js (renderClip), one sandboxed iframe
+             per clip carrying the template's own CSS document. A pre-placed
+             #animationPlayer here would short-circuit that path into the React
+             player, which only 28 of the 95 templates have code for — the rest
+             rendered static. -->
+        <div class="ed-frame" id="edFrame" style="--arw:9;--arh:16"></div>
       </div>
 
       <!-- ── TIMELINE ──────────────────────────────────────
@@ -323,7 +326,7 @@
   </div>
 </div>
 
-<script src="/templates-v2.js?v=8" defer></script>
+<script src="/templates-v2.js?v=9" defer></script>
 <script src="/editor.js?v=8" defer></script>
 </body>
 </html>

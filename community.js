@@ -7,7 +7,23 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 
-const FILE = process.env.COMMUNITY_FILE || path.join(__dirname, ".community.json");const SEED_TEMPLATES = [
+const FILE = process.env.COMMUNITY_FILE || path.join(__dirname, ".community.json");
+
+function loadValidTplIds() {
+  try {
+    const src = fs.readFileSync(path.join(__dirname, "public", "templates-v2.js"), "utf8");
+    const ids = new Set();
+    const re = /T\["([\w-]+)"\]\s*=/g;
+    let m;
+    while ((m = re.exec(src))) ids.add(m[1]);
+    return ids;
+  } catch (e) {
+    return new Set();
+  }
+}
+const VALID_TPL_IDS = loadValidTplIds();
+
+const SEED_TEMPLATES = [
   {
     "id": "comm_paper_torn",
     "title": "Torn Paper on Cutting Mat",
@@ -74,11 +90,11 @@ const FILE = process.env.COMMUNITY_FILE || path.join(__dirname, ".community.json
   },
   {
     "id": "comm_crypto_card",
-    "title": "Titanium Card & Crypto Surge",
-    "description": "Floating titanium card swipe with glowing chart spikes and net revenue counter",
+    "title": "Bitcoin Gold Ticker",
+    "description": "Floating 3D gold Bitcoin coin spinning with price breakout and particle glow",
     "category": "money",
-    "tpl": "money-titanium-card",
-    "lines": ["BLACK CARD", "Unlimited Growth", "4.8% Cashback"],
+    "tpl": "money-crypto-surge",
+    "lines": ["$98,400", "▲ +8.4% 24H BREAKOUT"],
     "accent": "#a855f7",
     "font": "grotesk",
     "dur": 4600,
@@ -171,8 +187,14 @@ function get(id) {
 }
 
 function publish(data, user) {
+  if (!user || !user.id) {
+    return { error: "You must be logged in to publish a template." };
+  }
   if (!data || !data.title || !data.tpl) {
     return { error: "Template title and type are required." };
+  }
+  if (!VALID_TPL_IDS.has(data.tpl)) {
+    return { error: "Unknown template type." };
   }
 
   const db = load();
@@ -234,11 +256,14 @@ function listByAuthor(userId, userHandle) {
 }
 
 function remove(id, user) {
+  if (!user || !user.id) {
+    return { error: "You must be logged in to delete a template." };
+  }
   const db = load();
   const idx = (db.templates || []).findIndex(t => t.id === id);
   if (idx === -1) return { error: "Template not found" };
   const t = db.templates[idx];
-  if (user && t.authorId && t.authorId !== user.id) {
+  if (t.authorId !== user.id) {
     return { error: "Unauthorized to delete this template" };
   }
   db.templates.splice(idx, 1);

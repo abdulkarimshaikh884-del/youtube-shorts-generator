@@ -7,7 +7,25 @@ const fs = require("fs");
 const path = require("path");
 
 const OUT = path.join(__dirname, "public");
-const V = "20260808";
+const V = "20260819";
+
+const { LIFETIME_SLOTS } = require("./credits");
+
+/* Counted from the engine itself so the marketing copy can never claim a
+   template count the site does not actually ship. */
+const TPL_COUNT = (function () {
+  try {
+    const src = fs.readFileSync(path.join(OUT, "templates-v2.js"), "utf8");
+    const ids = new Set();
+    const re = /T\["([\w-]+)"\]\s*=/g;
+    let m;
+    while ((m = re.exec(src))) ids.add(m[1]);
+    ids.delete("blank");
+    return ids.size;
+  } catch (e) {
+    return 90;
+  }
+})();
 
 const NAV = [
   { href: "/#templates", label: "Templates", key: "templates",
@@ -131,6 +149,101 @@ ${nav}
         <span>${P.free.perDay} credits every day. Export ${C.export}, AI scene ${C.animate}.</span>
         <a href="/pricing">Upgrade to Pro · ₹99/mo — Upgrade ↗</a>
       </div>
+
+      <div class="sh-user-box" id="sidebarUserBox">
+        <div class="sh-user-trigger-wrap" data-auth="in" hidden>
+          <div class="sh-user-popover" id="sidebarUserPopover">
+            <div class="sh-upop-head">
+              <div class="sh-upop-av" data-user-avatar>KA</div>
+              <div class="sh-upop-info">
+                <span class="sh-upop-name" data-user-name>Account</span>
+                <span class="sh-upop-handle" data-user-handle>@creator</span>
+                <span class="sh-upop-email" data-user-email></span>
+              </div>
+            </div>
+
+            <div class="sh-upop-badge-row">
+              <span class="sh-upop-plan-pill" data-user-plan>✦ Free Plan</span>
+              <span class="sh-upop-credits-pill">⚡ 10 Credits</span>
+            </div>
+
+            <div class="sh-upop-menu">
+              <button type="button" class="sh-upop-item" id="popoverProfileBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>My Profile &amp; Setup</b>
+                  <span>Setup bio, avatar &amp; links</span>
+                </div>
+              </button>
+
+              <button type="button" class="sh-upop-item highlight" id="popoverUploadBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Upload / Publish Template</b>
+                  <span>Share your custom animation</span>
+                </div>
+                <span class="sh-upop-hot-tag">NEW</span>
+              </button>
+
+              <a href="/account#creations" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>My Uploads</b>
+                  <span>Published community templates</span>
+                </div>
+              </a>
+
+              <a href="/account#drafts" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Drafts &amp; Projects</b>
+                  <span>Saved work in progress</span>
+                </div>
+              </a>
+
+              <a href="/account#settings" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Settings</b>
+                  <span>Account &amp; preferences</span>
+                </div>
+              </a>
+
+              <a href="/pricing" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Subscription &amp; Plans</b>
+                  <span>Credits, 4K rendering</span>
+                </div>
+              </a>
+
+              <a href="/contact" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Help &amp; Tutorials</b>
+                  <span>Guides, FAQs &amp; Support</span>
+                </div>
+              </a>
+            </div>
+
+            <div class="sh-upop-foot">
+              <button type="button" class="sh-upop-logout" id="popoverLogoutBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
+            <div class="sh-user-trigger-av" data-user-avatar>KA</div>
+            <div class="sh-user-trigger-info">
+              <span class="sh-user-trigger-name" data-user-name>Account</span>
+              <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
+            </div>
+            <span class="sh-user-trigger-arrow">▲</span>
+          </button>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -226,10 +339,16 @@ const pricing = {
   route: "/pricing",
   active: "pricing",
   title: "Pricing — ShortsCraft",
-  desc: `ShortsCraft pricing: Free with ${P.free.perDay} credits a day, Pro at ₹99 with ${P.pro.perDay} a day, Pro Max at ₹199 with ${P.promax.perDay} a day. Exporting a template costs ${C.export} credit, a custom AI animation costs ${C.animate}.`,
+  desc: `ShortsCraft pricing: Free with ${P.free.perDay} credits a day, Pro at ₹${P.pro.price}/month with ${P.pro.perDay} a day, Pro Max at ₹${P.promax.price} with ${P.promax.perDay} a day — lifetime for the first 100 members. Exporting a template costs ${C.export} credit, a custom AI animation costs ${C.animate}.`,
   body: `    <main class="pg">
 ${pageHead("Pricing", "Three plans. One currency: credits.",
     `Everything you do that costs us money costs credits — exporting a template is ${C.export} credit, generating a brand-new animation from your prompt is ${C.animate}. Credits refill every day.`)}
+
+      <div class="pg-offer" id="offerBanner" hidden>
+        <span class="pg-offer-tag">Launch offer</span>
+        <p><b>Pro Max is a one-time ₹${P.promax.price} for lifetime access</b> — for the first ${LIFETIME_SLOTS} members only.
+        <span id="offerLeft"></span></p>
+      </div>
 
       <div class="pg-plans pg-plans3">
         <article class="pg-plan">
@@ -237,7 +356,7 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
           <div class="pg-amt">₹0</div>
           <p class="pg-planline"><b>${P.free.perDay} credits every day</b> — enough for ${P.free.perDay} template exports, or ${Math.floor(P.free.perDay / C.animate)} AI animations.</p>
           <ul>
-            <li>All 12 motion templates</li>
+            <li>All ${TPL_COUNT} motion templates</li>
             <li>Custom AI animations from your prompt</li>
             <li>Attach an image to animate</li>
             <li>MP4 export up to 1080p</li>
@@ -257,13 +376,13 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
             <li>1440p export</li>
             <li>Cancel any time</li>
           </ul>
-          <a href="/contact" class="pg-bw">Upgrade to Pro</a>
+          <button type="button" class="pg-bw pg-buy" data-plan="pro">Upgrade to Pro · ₹${P.pro.price}</button>
         </article>
 
-        <article class="pg-plan">
+        <article class="pg-plan pg-max">
           <span class="pg-tier">${P.promax.label}</span>
-          <div class="pg-amt">₹${P.promax.price}<small>/month</small></div>
-          <p class="pg-planline"><b>${P.promax.perDay} credits every day</b> — for teams and daily publishers.</p>
+          <div class="pg-amt">₹${P.promax.price}<small id="maxTerm">one-time</small></div>
+          <p class="pg-planline" id="maxLine"><b>${P.promax.perDay} credits every day</b> — for teams and daily publishers.</p>
           <ul>
             <li>Everything in Pro</li>
             <li>${P.promax.perDay} credits per day</li>
@@ -271,9 +390,10 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
             <li>The Pro AI model for scene generation</li>
             <li>First access to new templates</li>
           </ul>
-          <a href="/contact" class="pg-bo">Upgrade to Pro Max</a>
+          <button type="button" class="pg-bo pg-buy" data-plan="promax">Get Pro Max · ₹${P.promax.price}</button>
         </article>
       </div>
+      <p class="pg-note pg-center" id="buyNote" role="status"></p>
       <p class="pg-fine pg-center">Payments are processed by Razorpay — UPI, cards, netbanking and wallets. Credits reset daily at 00:00 UTC and do not stack up.</p>
 
       <section class="pg-sec">
@@ -306,7 +426,8 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
           <a href="/seo-tools" class="pg-bo">Explore SEO Tools</a>
         </div>
       </section>
-    </main>`
+    </main>`,
+  scripts: `<script src="/checkout.js?v=${V}" defer></script>`
 };
 
 /* ── ABOUT ────────────────────────────────────────────────── */
@@ -670,28 +791,83 @@ const account = {
       </section>
 
       <section class="pg-sec" id="accountBox" hidden>
+
+        <!-- Creator profile. The fields are painted by authui.js and edited
+             through the same modal the sidebar opens, so there is one profile
+             editor on the site rather than two that can disagree. -->
+        <div class="pg-prof" id="profile">
+          <div class="pg-prof-av" id="crAvatarChar">KA</div>
+          <div class="pg-prof-main">
+            <h2 class="pg-prof-name" id="crDisplayName">Creator</h2>
+            <p class="pg-prof-handle" id="crHandle">@creator</p>
+            <p class="pg-prof-bio" id="crBio"></p>
+            <div class="pg-prof-links">
+              <a id="crYtLink" href="/account" target="_blank" rel="noopener">YouTube</a>
+              <a id="crIgLink" href="/account" target="_blank" rel="noopener">Instagram</a>
+              <span class="pg-prof-stars">★ <b id="crStarsCount">48</b></span>
+            </div>
+          </div>
+          <button type="button" class="pg-bo pg-prof-edit" id="openEditProfileBtn">Edit profile</button>
+        </div>
+
         <div class="pg-grid">
           <article class="pg-card"><h3>Email</h3><p id="accEmail">—</p></article>
-          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p></article>
+          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p><p class="pg-cardsub" id="accPlanTerm"></p></article>
           <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
           <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
         </div>
         <div class="pg-row" style="margin-top:20px">
           <a href="/editor" class="pg-bw">Open the Editor</a>
           <a href="/pricing" class="pg-bo">Change plan</a>
-          <button type="button" class="pg-bo" id="accLogout">Log out</button>
         </div>
 
-        <div style="margin-top:38px;padding-top:28px;border-top:1px solid var(--line);">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <h2 style="font-family:var(--display);font-size:20px;font-weight:700;margin:0;">Your Community Templates</h2>
-            <a href="/editor" class="pg-bo" style="font-size:12.5px;height:34px;padding:0 14px;">+ Create New</a>
+        <div class="pg-accsec" id="creations">
+          <div class="pg-accsec-head">
+            <h2>Your published templates</h2>
+            <button type="button" class="pg-bo pg-accsec-btn js-open-upload">+ Publish a template</button>
           </div>
           <div class="pg-grid" id="accTplGrid">
             <article class="pg-card">
-              <h3>Create & Publish Templates</h3>
-              <p>Design animated motion pieces in the Studio editor and click "Publish Template" in the top bar to share with creators worldwide.</p>
-              <a href="/editor" style="display:inline-block;margin-top:10px;font-weight:650;">Open Studio Editor →</a>
+              <h3>Nothing published yet</h3>
+              <p>Build a scene in the Studio, then publish it so other creators can use it. Your name and handle travel with it.</p>
+              <a href="/editor" class="pg-cardlink">Open Studio Editor →</a>
+            </article>
+          </div>
+        </div>
+
+        <div class="pg-accsec" id="drafts">
+          <div class="pg-accsec-head">
+            <h2>Drafts &amp; projects</h2>
+            <a href="/editor" class="pg-bo pg-accsec-btn">+ New project</a>
+          </div>
+          <div class="pg-grid" id="accDraftGrid">
+            <article class="pg-card">
+              <h3>Your work in progress lives in the Studio</h3>
+              <p>The editor keeps your current timeline in this browser, so you can close the tab and pick it up again. Publish a scene to keep it on your account for good.</p>
+              <a href="/editor" class="pg-cardlink">Continue in the Studio →</a>
+            </article>
+          </div>
+        </div>
+
+        <div class="pg-accsec" id="settings">
+          <div class="pg-accsec-head">
+            <h2>Settings</h2>
+          </div>
+          <div class="pg-grid">
+            <article class="pg-card">
+              <h3>Profile</h3>
+              <p>Your display name, handle, bio and social links appear on every template you publish.</p>
+              <button type="button" class="pg-cardlink pg-linkbtn" id="openEditProfileBtn2">Edit profile →</button>
+            </article>
+            <article class="pg-card">
+              <h3>Plan &amp; billing</h3>
+              <p>Compare plans, upgrade, or check what your credits buy.</p>
+              <a href="/pricing" class="pg-cardlink">View plans →</a>
+            </article>
+            <article class="pg-card">
+              <h3>Sign out</h3>
+              <p>Log out of ShortsCraft on this device. Your templates and plan stay on your account.</p>
+              <button type="button" class="pg-cardlink pg-linkbtn pg-danger" id="accLogout">Log out →</button>
             </article>
           </div>
         </div>
@@ -738,20 +914,20 @@ const indexPage = {
             <input type="hidden" name="quality" id="qualitySelect" value="mini">
             <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Model tier: Free">
               <span class="sh-csel-sparkle">✦</span>
-              <span class="sh-csel-val" id="qualityVal">Free (5 credits)</span>
+              <span class="sh-csel-val" id="qualityVal">Free (${C.animate} credits)</span>
               <svg class="sh-csel-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="sh-csel-menu" id="qualityMenu" role="listbox" hidden>
               <div class="sh-csel-opt selected" role="option" data-val="mini" aria-selected="true">
-                <div class="sh-csel-opt-main"><b>✦ Free</b><span>Fast standard generation · 5 credits</span></div>
+                <div class="sh-csel-opt-main"><b>✦ Free</b><span>Fast standard generation · ${C.animate} credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
               <div class="sh-csel-opt" role="option" data-val="pro" aria-selected="false">
-                <div class="sh-csel-opt-main"><b>✦ Pro</b><span>Priority speed & detailed motion · 10 credits</span></div>
+                <div class="sh-csel-opt-main"><b>✦ Pro</b><span>Priority speed & detailed motion · ${C.animate} credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
               <div class="sh-csel-opt" role="option" data-val="max" aria-selected="false">
-                <div class="sh-csel-opt-main"><b>✦ Pro Max</b><span>Max fidelity & complex layouts · 15 credits</span></div>
+                <div class="sh-csel-opt-main"><b>✦ Pro Max</b><span>Max fidelity & complex layouts · ${C.animate} credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
             </div>
@@ -778,7 +954,7 @@ const indexPage = {
       <section class="sh-workflow-sec">
         <div class="sh-section-head">
           <span class="sh-eyebrow">✦ 3-Step Motion Engine</span>
-          <h2>How ShortsCraft Works</h2>
+          <h2>How the AI Motion Graphics Video Generator Works</h2>
           <p>Create thumb-stopping kinetic motion graphics and animated text reels in 3 frictionless steps.</p>
         </div>
         <div class="sh-workflow-grid">
@@ -847,7 +1023,7 @@ const indexPage = {
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=4" defer></script><script src="/shell.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=9" defer></script><script src="/shell.js?v=9" defer></script>`
 };
 
 const templatePage = {
@@ -871,7 +1047,7 @@ const templatePage = {
         <div class="sh-modal-right">
           <div>
             <span class="sh-m-cat" id="detailCat">✦ DOCUMENTARY</span>
-            <h2 class="sh-m-title" id="detailTitle">Template Title</h2>
+            <h1 class="sh-m-title" id="detailTitle">Template Title</h1>
             <p class="sh-m-desc" id="detailDesc">Loading template details...</p>
             <div class="sh-m-specs">
               <span class="sh-m-spec">Duration: <b id="detailDur">4.6s</b></span>
@@ -903,7 +1079,7 @@ const templatePage = {
         </div>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=4"></script><script src="/template-detail.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=9"></script><script src="/template-detail.js?v=4" defer></script>`
 };
 
 const creatorPage = {
@@ -947,7 +1123,7 @@ const creatorPage = {
         </section>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=4"></script><script src="/creator-profile.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=9"></script><script src="/creator-profile.js?v=4" defer></script>`
 };
 
 /* ── write ────────────────────────────────────────────────── */

@@ -20,10 +20,17 @@ const crypto = require("crypto");
 const FILE = process.env.CREDITS_FILE || path.join(__dirname, ".credits.json");
 const COOKIE = "sc_uid";
 
+/* Prices are in whole rupees. `inr` is the display string, `price` the number
+   Razorpay is charged (x100 for paise). `term` is what the payment buys:
+     month    — renews monthly
+     lifetime — never expires, but only for the first LIFETIME_SLOTS buyers;
+                after those are gone Pro Max falls back to `year`. */
+const LIFETIME_SLOTS = 100;
+
 const PLANS = {
-  free:    { id: "free",    label: "Free",    perDay: 10,  price: 0,  usd: "$0", inr: "$0" },
-  pro:     { id: "pro",     label: "Pro",     perDay: 100, price: 5,  usd: "$5", inr: "$5", discountUsd: "$2.50", discountPct: 50 },
-  promax:  { id: "promax",  label: "Pro Max", perDay: 300, price: 10, usd: "$10", inr: "$10" }
+  free:   { id: "free",   label: "Free",    perDay: 10,  price: 0,   inr: "₹0",   term: "forever" },
+  pro:    { id: "pro",    label: "Pro",     perDay: 100, price: 99,  inr: "₹99",  term: "month" },
+  promax: { id: "promax", label: "Pro Max", perDay: 300, price: 499, inr: "₹499", term: "lifetime", fallbackTerm: "year" }
 };
 
 /* ── what things cost ───────────────────────────────────── */
@@ -198,4 +205,4 @@ function setPlan(req, planId) {
   return true;
 }
 
-module.exports = { middleware, state, charge, refund, setPlan, PLANS, COST, COOKIE };
+module.exports = { middleware, state, charge, refund, setPlan, PLANS, COST, COOKIE, LIFETIME_SLOTS };

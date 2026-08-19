@@ -95,8 +95,19 @@
         props: c.props || {}, accent: c.accent, aspect: state.aspect, dur: c.dur, font: c.font
       });
     }
+    /* The Properties fields write props.line0/1/2, but c.lines still holds the
+       text the clip started with. build() maps lines over props, so passing the
+       stale array would undo every edit the moment it re-rendered. Fold the
+       edited props back into lines first — one place, rather than syncing at
+       all eight field handlers. */
+    var pr = c.props || {};
+    var lines = (c.lines || []).slice();
+    for (var i = 0; i < 3; i++) {
+      if (pr["line" + i] != null) lines[i] = pr["line" + i];
+    }
+
     return engine().build(c.tpl, {
-      props: c.props || {}, lines: c.lines, accent: c.accent, aspect: state.aspect, dur: c.dur, font: c.font
+      props: pr, lines: lines, accent: c.accent, aspect: state.aspect, dur: c.dur, font: c.font
     });
   }
   function clipName(c) {
@@ -575,7 +586,7 @@
   }
 
   var FIELD_EXTRAS = {
-    "type-cascade": {
+    "text-cascade": {
       hints: ["Top intro phrase before hook", "Main impact keyword (large font)", "Accent color payoff line"],
       presets: [
         ["The truth about", "Consistency", "beats motivation"],
@@ -592,7 +603,7 @@
         ["Creator Tip", "Hook in 2s", "Double your retention"]
       ]
     },
-    "toggle-ui": {
+    "ui-toggle": {
       hints: ["Label when switch is OFF", "Label when switch is ON", "Feature explanation caption"],
       presets: [
         ["OFF", "ON", "Turn your idea into a Short"],
@@ -1478,18 +1489,21 @@
     // timeline scrubber
     var seekEl = $("#edSeek");
     if (seekEl) {
-      seekEl.addEventListener("input", function () {
-        scrubbing = true;
-        var ratio = Number(seekEl.value) / 1000;
-        var ms = ratio * total();
-        seekGlobal(ms);
-      });
-      seekEl.addEventListener("change", function () {
-        scrubbing = false;
-        var ratio = Number(seekEl.value) / 1000;
-        var ms = ratio * total();
-        seekGlobal(ms);
-      });
+      /* `scrubbing` suspends tick()'s own redraw so playback cannot fight a
+         drag in progress. It is owned by the POINTER, not by "input" — an
+         arrow-key seek fires input with no pointerup to clear the flag, which
+         would freeze the playhead until the slider lost focus. Every input
+         moves the head itself, so the line follows the drag either way. */
+      var seekTo = function () {
+        var ms = (Number(seekEl.value) / 1000) * total();
+        var landed = seekGlobal(ms);
+        moveHead(landed);
+        $("#edNow").textContent = fmt(landed);
+      };
+      seekEl.addEventListener("pointerdown", function () { scrubbing = true; });
+      window.addEventListener("pointerup", function () { scrubbing = false; });
+      seekEl.addEventListener("input", seekTo);
+      seekEl.addEventListener("change", function () { scrubbing = false; seekTo(); });
     }
 
     /* ── AI composer ─────────────────────────────────────── */
@@ -1625,7 +1639,7 @@
     });
 
     // Default to a high-energy starter template if opened directly
-    var activeTpl = (tpl && meta[tpl] && tpl !== "blank") ? tpl : "type-cascade";
+    var activeTpl = (tpl && meta[tpl] && tpl !== "blank") ? tpl : "text-cascade";
     state.clips = [newClip(activeTpl)];
     state.sel = 0;
     mounted = 0;
@@ -1761,7 +1775,7 @@
         category: $("#pubCategory").value,
         description: $("#pubDesc").value.trim(),
         authorHandle: $("#pubAuthor").value.trim() || "creator",
-        tpl: c.tpl || "type-cascade",
+        tpl: c.tpl || "text-cascade",
         lines: c.lines || [],
         accent: c.accent || "#ffffff",
         font: c.font || "inter",

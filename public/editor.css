@@ -588,6 +588,12 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   .ed-top{gap:8px;padding:0 10px}
   .ed-export{padding:0 14px}
   .ed-credits{padding:0 9px}
+  /* "Publish Template" is the widest control in the bar and squeezed the
+     project name down to ~39px. Collapse it to its + icon; the full action is
+     still one tap away and unchanged on wider screens. */
+  .ed-pub-btn{padding:0 10px;font-size:0;gap:0}
+  .ed-pub-btn svg{width:18px;height:18px}
+  .ed-name{min-width:96px}
 }
 
 @media (prefers-reduced-motion:reduce){

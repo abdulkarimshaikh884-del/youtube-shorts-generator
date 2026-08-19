@@ -24,8 +24,8 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=20260808">
-<link rel="stylesheet" href="/page.css?v=20260808">
+<link rel="stylesheet" href="/shell.css?v=20260819">
+<link rel="stylesheet" href="/page.css?v=20260819">
 </head>
 <body class="sh-body">
 
@@ -75,6 +75,101 @@
         <b>Free plan</b>
         <span>10 credits every day. Export 1, AI scene 5.</span>
         <a href="/pricing">Upgrade to Pro · ₹99/mo — Upgrade ↗</a>
+      </div>
+
+      <div class="sh-user-box" id="sidebarUserBox">
+        <div class="sh-user-trigger-wrap" data-auth="in" hidden>
+          <div class="sh-user-popover" id="sidebarUserPopover">
+            <div class="sh-upop-head">
+              <div class="sh-upop-av" data-user-avatar>KA</div>
+              <div class="sh-upop-info">
+                <span class="sh-upop-name" data-user-name>Account</span>
+                <span class="sh-upop-handle" data-user-handle>@creator</span>
+                <span class="sh-upop-email" data-user-email></span>
+              </div>
+            </div>
+
+            <div class="sh-upop-badge-row">
+              <span class="sh-upop-plan-pill" data-user-plan>✦ Free Plan</span>
+              <span class="sh-upop-credits-pill">⚡ 10 Credits</span>
+            </div>
+
+            <div class="sh-upop-menu">
+              <button type="button" class="sh-upop-item" id="popoverProfileBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>My Profile &amp; Setup</b>
+                  <span>Setup bio, avatar &amp; links</span>
+                </div>
+              </button>
+
+              <button type="button" class="sh-upop-item highlight" id="popoverUploadBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Upload / Publish Template</b>
+                  <span>Share your custom animation</span>
+                </div>
+                <span class="sh-upop-hot-tag">NEW</span>
+              </button>
+
+              <a href="/account#creations" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>My Uploads</b>
+                  <span>Published community templates</span>
+                </div>
+              </a>
+
+              <a href="/account#drafts" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Drafts &amp; Projects</b>
+                  <span>Saved work in progress</span>
+                </div>
+              </a>
+
+              <a href="/account#settings" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Settings</b>
+                  <span>Account &amp; preferences</span>
+                </div>
+              </a>
+
+              <a href="/pricing" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Subscription &amp; Plans</b>
+                  <span>Credits, 4K rendering</span>
+                </div>
+              </a>
+
+              <a href="/contact" class="sh-upop-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Help &amp; Tutorials</b>
+                  <span>Guides, FAQs &amp; Support</span>
+                </div>
+              </a>
+            </div>
+
+            <div class="sh-upop-foot">
+              <button type="button" class="sh-upop-logout" id="popoverLogoutBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
+            <div class="sh-user-trigger-av" data-user-avatar>KA</div>
+            <div class="sh-user-trigger-info">
+              <span class="sh-user-trigger-name" data-user-name>Account</span>
+              <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
+            </div>
+            <span class="sh-user-trigger-arrow">▲</span>
+          </button>
+        </div>
       </div>
     </div>
   </aside>
@@ -183,7 +278,7 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=20260808" defer></script>
-<script src="/page.js?v=20260808" defer></script>
+<script src="/authui.js?v=20260819" defer></script>
+<script src="/page.js?v=20260819" defer></script>
 </body>
 </html>

@@ -140,7 +140,9 @@ function publicUser(u) {
   return u ? {
     id: u.id,
     email: u.email,
-    plan: u.plan || "free",
+    plan: effectivePlan(u),
+    planUntil: u.planUntil || null,
+    planLifetime: u.planLifetime === true,
     createdAt: u.createdAt,
     displayName: u.displayName || "",
     handle: u.handle || "",
@@ -216,11 +218,46 @@ function logOut(req, res) {
   setCookie(res, "", 0);
 }
 
-function changePlan(userId, planId) {
+/* A paid plan can expire. `planUntil === null` means it never does (the
+   lifetime Pro Max offer). Anything past its date reads as "free" everywhere,
+   so an expired plan cannot keep granting credits. */
+function effectivePlan(u) {
+  if (!u || !u.plan || u.plan === "free") return "free";
+  if (u.planUntil && Date.parse(u.planUntil) <= Date.now()) return "free";
+  return u.plan;
+}
+
+/* How many lifetime Pro Max seats have actually been handed out. Counted from
+   the user records themselves rather than a separate tally, so the number
+   cannot drift out of sync with reality. */
+function countLifetime(planId) {
+  const db = load();
+  let n = 0;
+  for (const id of Object.keys(db.users || {})) {
+    const u = db.users[id];
+    if (u && u.plan === planId && u.planLifetime === true) n++;
+  }
+  return n;
+}
+
+/* term: "month" | "year" | "lifetime" | "forever" */
+function changePlan(userId, planId, term) {
   const db = load();
   const u = db.users[userId];
   if (!u) return false;
+
   u.plan = planId;
+  u.planSince = new Date().toISOString();
+
+  if (planId === "free" || term === "lifetime" || term === "forever") {
+    u.planUntil = null;
+    u.planLifetime = planId !== "free" && (term === "lifetime" || term === "forever");
+  } else {
+    const days = term === "year" ? 365 : 30;
+    u.planUntil = new Date(Date.now() + days * 864e5).toISOString();
+    u.planLifetime = false;
+  }
+
   save();
   return true;
 }
@@ -254,6 +291,6 @@ function giveStar(userId) {
 function count() { return Object.keys(load().users).length; }
 
 module.exports = {
-  middleware, signUp, logIn, logOut, changePlan, updateProfile, giveStar, count,
+  middleware, signUp, logIn, logOut, changePlan, countLifetime, effectivePlan, updateProfile, giveStar, count,
   COOKIE, MIN_PASSWORD, publicUser
 };
