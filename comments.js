@@ -5,7 +5,9 @@
 const fs = require("fs");
 const path = require("path");
 
-const COMMENTS_FILE = path.join(__dirname, ".comments.json");
+// Overridable so the container can point it at the mounted volume — writing
+// inside the image would lose every comment on each redeploy.
+const COMMENTS_FILE = process.env.COMMENTS_FILE || path.join(__dirname, ".comments.json");
 
 const SEED_COMMENTS = {
   "docu-red-string": [

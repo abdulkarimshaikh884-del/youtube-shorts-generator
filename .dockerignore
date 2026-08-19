@@ -1,0 +1,22 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+
+# secrets and local state — these must never be baked into the image
+.env
+.env.*
+.users.json
+.credits.json
+.waitlist.json
+.community.json
+.comments.json
+
+# local-only tooling and output
+audit_results
+shots
+diag_*.js
+verify_*.js
+remotion
+*.md
+!README.md

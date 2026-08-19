@@ -1,0 +1,60 @@
+# Render blueprint — connect the repo on render.com and it reads this file.
+#
+# Docker, not the native Node runtime, because exports need ffmpeg and Chromium
+# (see Dockerfile). The disk is what keeps accounts, credits and the launch
+# waitlist alive across deploys; without it every restart starts from empty.
+services:
+  - type: web
+    name: shortscraft
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter          # exports are CPU-heavy; free instances sleep and time out
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    disk:
+      name: shortscraft-data
+      mountPath: /data
+      sizeGB: 1
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+
+      # State on the mounted disk
+      - key: USERS_FILE
+        value: /data/users.json
+      - key: CREDITS_FILE
+        value: /data/credits.json
+      - key: WAITLIST_FILE
+        value: /data/waitlist.json
+      - key: COMMUNITY_FILE
+        value: /data/community.json
+      - key: COMMENTS_FILE
+        value: /data/comments.json
+
+      # Signing secret for the anonymous-credit cookie. Generated once by
+      # Render and then held constant — changing it resets everyone's balance.
+      - key: CREDITS_SECRET
+        generateValue: true
+
+      # Set these in the Render dashboard, not here — they are secrets.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # Payments stay off until these exist; the pricing page collects
+      # reservations in the meantime and flips itself over once they are set.
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+      # Optional: shown on the pricing page as when payments open, e.g. "9 September"
+      - key: PAYMENTS_OPEN_DATE
+        sync: false

@@ -860,6 +860,12 @@ async function getBrowser() {
   if (_browser && _browser.connected) return _browser;
   _browser = await puppeteer.launch({
     headless: "new",
+    // In the container we render with the system Chromium rather than a second
+    // copy downloaded by puppeteer. Stated explicitly so a missing binary fails
+    // loudly here instead of somewhere inside the export.
+    ...(process.env.PUPPETEER_EXECUTABLE_PATH
+      ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
+      : {}),
     args: ["--no-sandbox", "--disable-dev-shm-usage", "--font-render-hinting=none"]
   });
   return _browser;
