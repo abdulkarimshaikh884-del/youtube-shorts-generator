@@ -1,0 +1,472 @@
+[
+ {
+  "id": "autoae-exact-master",
+  "cat": "ui",
+  "name": "AutoAE 4-Scene Masterpiece"
+ },
+ {
+  "id": "autoae-chatgpt-prompt",
+  "cat": "ui",
+  "name": "ChatGPT 3D Prompt Box"
+ },
+ {
+  "id": "autoae-wireframe-stream",
+  "cat": "ui",
+  "name": "Wireframe Search Stream"
+ },
+ {
+  "id": "autoae-blue-evidence",
+  "cat": "docu",
+  "name": "3D Blue Evidence Board"
+ },
+ {
+  "id": "autoae-volumetric-clock",
+  "cat": "docu",
+  "name": "3D Clock in Light Beam"
+ },
+ {
+  "id": "autoae-founder-halftone",
+  "cat": "docu",
+  "name": "Founder Halftone Poster"
+ },
+ {
+  "id": "autoae-neon-spheres",
+  "cat": "social",
+  "name": "Crowded Market Spheres"
+ },
+ {
+  "id": "autoae-product-can",
+  "cat": "ui",
+  "name": "3D Metallic Product Showcase"
+ },
+ {
+  "id": "autoae-founder-steps",
+  "cat": "docu",
+  "name": "Founder 4-Step Breakdown"
+ },
+ {
+  "id": "autoae-retro-crt",
+  "cat": "docu",
+  "name": "Vintage CRT Story Monitor"
+ },
+ {
+  "id": "autoae-infinity-loop",
+  "cat": "charts",
+  "name": "Infinity Comparison Loop"
+ },
+ {
+  "id": "autoae-scurve-growth",
+  "cat": "charts",
+  "name": "Exponential S-Curve Surge"
+ },
+ {
+  "id": "autoae-newspaper-breaking",
+  "cat": "paper",
+  "name": "The News Paper Breaking News"
+ },
+ {
+  "id": "docu-confidential",
+  "cat": "docu",
+  "name": "Classified Stamp"
+ },
+ {
+  "id": "docu-red-string",
+  "cat": "docu",
+  "name": "Red String Board"
+ },
+ {
+  "id": "docu-highlighter",
+  "cat": "docu",
+  "name": "Doc Highlighter"
+ },
+ {
+  "id": "docu-redacted",
+  "cat": "docu",
+  "name": "Redacted Tape"
+ },
+ {
+  "id": "docu-polaroid-pin",
+  "cat": "docu",
+  "name": "Polaroid Photo Drop"
+ },
+ {
+  "id": "docu-magnifying",
+  "cat": "docu",
+  "name": "Crime Board Target Clue"
+ },
+ {
+  "id": "docu-newspaper",
+  "cat": "docu",
+  "name": "Monarch Character Poster"
+ },
+ {
+  "id": "docu-microfilm",
+  "cat": "docu",
+  "name": "Microfilm Scanner"
+ },
+ {
+  "id": "docu-timeline",
+  "cat": "docu",
+  "name": "Timeline Milestone"
+ },
+ {
+  "id": "docu-folder",
+  "cat": "docu",
+  "name": "Greek Sculpture Spotlight"
+ },
+ {
+  "id": "paper-torn-rip",
+  "cat": "paper",
+  "name": "Torn Paper on Cutting Mat"
+ },
+ {
+  "id": "paper-tape-strip",
+  "cat": "paper",
+  "name": "Tape Strip Reveal"
+ },
+ {
+  "id": "paper-sticker",
+  "cat": "paper",
+  "name": "Holo Sticker Peel"
+ },
+ {
+  "id": "paper-notebook",
+  "cat": "paper",
+  "name": "Kraft Legal Pad"
+ },
+ {
+  "id": "paper-postit",
+  "cat": "paper",
+  "name": "Post-It Note"
+ },
+ {
+  "id": "paper-cardboard",
+  "cat": "paper",
+  "name": "Cardboard Stencil"
+ },
+ {
+  "id": "paper-binder",
+  "cat": "paper",
+  "name": "Binder Clip Stack"
+ },
+ {
+  "id": "paper-receipt",
+  "cat": "paper",
+  "name": "Receipt Zigzag Tear"
+ },
+ {
+  "id": "paper-double-pol",
+  "cat": "paper",
+  "name": "Washi Tape Polaroids"
+ },
+ {
+  "id": "paper-collage",
+  "cat": "paper",
+  "name": "Cutout Scrapbook"
+ },
+ {
+  "id": "paper-executive-noir",
+  "cat": "paper",
+  "name": "Minimalist Executive Motion"
+ },
+ {
+  "id": "text-highlight-box",
+  "cat": "text",
+  "name": "Marker Highlight Box"
+ },
+ {
+  "id": "text-scribble",
+  "cat": "text",
+  "name": "Scribble Arrow Hook"
+ },
+ {
+  "id": "text-word-punch",
+  "cat": "text",
+  "name": "Word Punch Scale"
+ },
+ {
+  "id": "text-subtitle-pill",
+  "cat": "text",
+  "name": "Subtitles Pill Badge"
+ },
+ {
+  "id": "text-cascade",
+  "cat": "text",
+  "name": "Type Cascade Up"
+ },
+ {
+  "id": "text-terminal",
+  "cat": "text",
+  "name": "Terminal Typing"
+ },
+ {
+  "id": "text-glitch",
+  "cat": "text",
+  "name": "Kinetic Floating Pills"
+ },
+ {
+  "id": "text-editorial",
+  "cat": "text",
+  "name": "Editorial Barcode Poster"
+ },
+ {
+  "id": "text-skew",
+  "cat": "text",
+  "name": "Netflix Cinema Ribbon"
+ },
+ {
+  "id": "text-split",
+  "cat": "text",
+  "name": "Cyber Matrix Logo Code"
+ },
+ {
+  "id": "maps-gps-pin",
+  "cat": "maps",
+  "name": "Investigative Pin & Corkboard"
+ },
+ {
+  "id": "maps-flight-path",
+  "cat": "maps",
+  "name": "Documentary Flight Route"
+ },
+ {
+  "id": "maps-radar-sweep",
+  "cat": "maps",
+  "name": "Cold War Archival Radar"
+ },
+ {
+  "id": "maps-border",
+  "cat": "maps",
+  "name": "Geopolitical Conflict Zone"
+ },
+ {
+  "id": "maps-satellite",
+  "cat": "maps",
+  "name": "CIA Recon Satellite Dossier"
+ },
+ {
+  "id": "maps-route",
+  "cat": "maps",
+  "name": "Expedition Waypoint Route"
+ },
+ {
+  "id": "maps-compass",
+  "cat": "maps",
+  "name": "Vintage Compass Rose"
+ },
+ {
+  "id": "maps-transit",
+  "cat": "maps",
+  "name": "City Blueprint Breakdown"
+ },
+ {
+  "id": "maps-topo",
+  "cat": "maps",
+  "name": "National Geographic Summit"
+ },
+ {
+  "id": "maps-trade-route",
+  "cat": "maps",
+  "name": "Maritime Trade Chokepoint"
+ },
+ {
+  "id": "money-candlestick",
+  "cat": "money",
+  "name": "Trading Candlestick"
+ },
+ {
+  "id": "money-cash-stack",
+  "cat": "money",
+  "name": "3D Cash Stack"
+ },
+ {
+  "id": "money-titanium-card",
+  "cat": "money",
+  "name": "Tech Giant Stat Card"
+ },
+ {
+  "id": "money-crypto-surge",
+  "cat": "money",
+  "name": "Bitcoin Gold Ticker"
+ },
+ {
+  "id": "money-gold-vault",
+  "cat": "money",
+  "name": "Gold Bullion Stack"
+ },
+ {
+  "id": "money-burn",
+  "cat": "money",
+  "name": "Inflation Burn Meter"
+ },
+ {
+  "id": "money-receipt",
+  "cat": "money",
+  "name": "Thermal Receipt Print"
+ },
+ {
+  "id": "money-wallet-unlock",
+  "cat": "money",
+  "name": "Net Worth Unlock"
+ },
+ {
+  "id": "money-sale-slash",
+  "cat": "money",
+  "name": "50% Off Price Slash"
+ },
+ {
+  "id": "money-atm",
+  "cat": "money",
+  "name": "ATM Cash Dispenser"
+ },
+ {
+  "id": "ui-ios-notify",
+  "cat": "ui",
+  "name": "iOS Push Notification"
+ },
+ {
+  "id": "ui-safari-scroll",
+  "cat": "ui",
+  "name": "Safari Window 3D"
+ },
+ {
+  "id": "ui-google-search",
+  "cat": "ui",
+  "name": "Google Search Suggest"
+ },
+ {
+  "id": "ui-imessage",
+  "cat": "ui",
+  "name": "iMessage Chat Thread"
+ },
+ {
+  "id": "ui-toggle",
+  "cat": "ui",
+  "name": "Glow Toggle"
+ },
+ {
+  "id": "ui-slider",
+  "cat": "ui",
+  "name": "Liquid Morphing Fluid Blob"
+ },
+ {
+  "id": "ui-phone-mockup",
+  "cat": "ui",
+  "name": "Smartphone 9:16 Feed"
+ },
+ {
+  "id": "ui-tabs",
+  "cat": "ui",
+  "name": "Apple iOS App List"
+ },
+ {
+  "id": "ui-otp",
+  "cat": "ui",
+  "name": "OTP Passcode Security"
+ },
+ {
+  "id": "ui-store-badges",
+  "cat": "ui",
+  "name": "5-Star Rating Badges"
+ },
+ {
+  "id": "social-tweet-card",
+  "cat": "social",
+  "name": "Viral Tweet / X Card"
+ },
+ {
+  "id": "social-like-burst",
+  "cat": "social",
+  "name": "Like Heart Burst"
+ },
+ {
+  "id": "social-sub-bell",
+  "cat": "social",
+  "name": "YouTube Subscribe Bell"
+ },
+ {
+  "id": "social-comment-stream",
+  "cat": "social",
+  "name": "Live Chat Bubble Stream"
+ },
+ {
+  "id": "social-views-counter",
+  "cat": "social",
+  "name": "Spotify Vinyl Player"
+ },
+ {
+  "id": "social-story-progress",
+  "cat": "social",
+  "name": "Instagram Story Timer"
+ },
+ {
+  "id": "social-verified-badge",
+  "cat": "social",
+  "name": "Instagram Profile Card"
+ },
+ {
+  "id": "social-poll",
+  "cat": "social",
+  "name": "2-Choice Poll Card"
+ },
+ {
+  "id": "social-share",
+  "cat": "social",
+  "name": "Viral Share Sheet"
+ },
+ {
+  "id": "social-live",
+  "cat": "social",
+  "name": "LIVE Stream Badge"
+ },
+ {
+  "id": "charts-bar-race",
+  "cat": "charts",
+  "name": "3D Bar Chart Grow"
+ },
+ {
+  "id": "charts-ring",
+  "cat": "charts",
+  "name": "Progress Ring 83%"
+ },
+ {
+  "id": "charts-stock-trend",
+  "cat": "charts",
+  "name": "Growth Chart"
+ },
+ {
+  "id": "charts-donut",
+  "cat": "charts",
+  "name": "Donut Traffic Split"
+ },
+ {
+  "id": "charts-area-wave",
+  "cat": "charts",
+  "name": "Area Sparkline Wave"
+ },
+ {
+  "id": "charts-kpi-counter",
+  "cat": "charts",
+  "name": "Big KPI Milestone"
+ },
+ {
+  "id": "charts-versus-bars",
+  "cat": "charts",
+  "name": "A/B Versus Battle"
+ },
+ {
+  "id": "charts-speedometer",
+  "cat": "charts",
+  "name": "Apple 30s Activity Timer"
+ },
+ {
+  "id": "charts-activity-matrix",
+  "cat": "charts",
+  "name": "Streak Activity Heatmap"
+ },
+ {
+  "id": "charts-funnel",
+  "cat": "charts",
+  "name": "Conversion Funnel"
+ }
+]

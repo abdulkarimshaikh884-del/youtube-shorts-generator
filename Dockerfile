@@ -36,15 +36,9 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-# State lives on a mounted volume, not in the image — every module already
-# takes its path from an environment variable, so nothing in the code changes.
-ENV USERS_FILE=/data/users.json \
-    CREDITS_FILE=/data/credits.json \
-    WAITLIST_FILE=/data/waitlist.json \
-    COMMUNITY_FILE=/data/community.json \
-    COMMENTS_FILE=/data/comments.json
-
-RUN mkdir -p /data
+# No volume: accounts, credits, the waitlist, community templates and comments
+# are all in Supabase Postgres, reached via DATABASE_URL. The container holds
+# nothing that must survive a restart.
 
 EXPOSE 3000
 CMD ["node", "server.js"]

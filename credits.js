@@ -1,23 +1,23 @@
 /* ============================================================
-   credits.js — server-side credit ledger.
+   credits.js — server-side credit ledger, backed by Postgres.
 
    Why server-side: the old UI kept a credit count in the browser, which any
    user can reset by clearing storage. Charging happens here, next to the work
    that costs money (an AI call or a CPU-heavy render).
 
-   Identity: there is no auth yet, so each visitor gets a signed anonymous id in
-   an HttpOnly cookie. The signature stops someone minting a fresh id by hand;
-   clearing cookies still gets a new allowance, which is the honest limit of an
-   anonymous system and is why the daily grant is small.
+   Identity: a signed-in visitor is billed against their account; everyone
+   else gets a signed anonymous id in an HttpOnly cookie. The signature stops
+   someone minting a fresh id by hand; clearing cookies still gets a new
+   allowance, which is the honest limit of an anonymous system and is why the
+   daily grant is small.
 
-   Storage: a single JSON file written atomically. Good for one instance, which
-   is what we run. Swap `load`/`save` for Supabase when accounts land.
+   Storage: public.credits in Supabase, one row per identity. Was a single
+   JSON file, which meant a redeploy on a host with an ephemeral filesystem
+   wiped every balance — Postgres survives that.
    ============================================================ */
-const fs = require("fs");
-const path = require("path");
 const crypto = require("crypto");
+const db = require("./db");
 
-const FILE = process.env.CREDITS_FILE || path.join(__dirname, ".credits.json");
 const COOKIE = "sc_uid";
 
 /* Prices are in whole rupees. `inr` is the display string, `price` the number
@@ -59,71 +59,47 @@ function validId(token) {
   return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(want)) ? token : null;
 }
 
-/* ── store ────────────────────────────────────────────────── */
-let cache = null;
-let cacheMtime = 0;
-
-/* The file is the single source of truth, so the cache is dropped whenever
-   something else writes it — a second instance, `node --watch` restarting, or a
-   test setting up a balance. Statting a small file per request is cheap. */
-function load() {
-  let mtime = 0;
-  try { mtime = fs.statSync(FILE).mtimeMs; } catch (e) { mtime = 0; }
-  if (cache && mtime === cacheMtime) return cache;
-  try {
-    cache = JSON.parse(fs.readFileSync(FILE, "utf8"));
-    if (!cache || typeof cache !== "object") cache = {};
-  } catch (e) {
-    cache = {};
-  }
-  cacheMtime = mtime;
-  return cache;
-}
-
-let writeTimer = null;
-function save() {
-  clearTimeout(writeTimer);
-  // debounce: a burst of charges should not mean a burst of fsyncs
-  writeTimer = setTimeout(() => {
-    try {
-      const tmp = FILE + ".tmp";
-      fs.writeFileSync(tmp, JSON.stringify(cache), "utf8");
-      fs.renameSync(tmp, FILE);
-      cacheMtime = fs.statSync(FILE).mtimeMs;   // our own write is not a change
-    } catch (e) {
-      console.warn("[credits] could not persist:", e.message);
-    }
-  }, 250);
-}
-
 const today = () => new Date().toISOString().slice(0, 10);
 
-/* One row per identity per day. `planHint` comes from the signed-in account,
-   which is the source of truth for the plan — so an upgrade takes effect at once
-   (fresh grant) rather than at midnight. */
-function record(key, planHint) {
-  const db = load();
-  let rec = db[key];
+/* Returns the current row for `key`, resetting it first if the day has
+   rolled over or the account's plan changed (an upgrade takes effect at
+   once — fresh grant — rather than waiting for midnight). `planHint` comes
+   from the signed-in account, which is the source of truth for the plan. */
+async function ensureRecord(key, planHint) {
   const day = today();
+  const { rows } = await db.query(`select * from public.credits where key = $1`, [key]);
+  let rec = rows[0] || null;
+
   const wanted = PLANS[planHint] ? planHint : (rec && PLANS[rec.plan] ? rec.plan : "free");
 
   if (!rec || rec.day !== day || rec.plan !== wanted) {
-    rec = {
-      day,
-      plan: wanted,
-      left: PLANS[wanted].perDay,
-      spent: 0,
-      since: (rec && rec.since) || day
-    };
-    db[key] = rec;
-    save();
+    const perDay = PLANS[wanted].perDay;
+    const since = rec ? rec.since : day;
+    const { rows: upserted } = await db.query(
+      `insert into public.credits (key, day, plan, left_credits, spent, since)
+       values ($1, $2, $3, $4, 0, $5)
+       on conflict (key) do update
+         set day = excluded.day, plan = excluded.plan,
+             left_credits = excluded.left_credits, spent = 0
+       returning *`,
+      [key, day, wanted, perDay, since]
+    );
+    rec = upserted[0];
   }
   return rec;
 }
 
 /* ── public API ───────────────────────────────────────────── */
 
-/* Attaches req.credits = {key, plan, rec}.
+/* Attaches req.credits = {key, token, signedIn}.
+
+   Deliberately does NO database work: it only resolves which identity would be
+   billed. Most requests never spend a credit, and the database is a few
+   hundred milliseconds away, so touching the ledger on every request made the
+   whole API pay for a row almost nothing reads. state(), charge() and refund()
+   each call ensureRecord() themselves, so the row is created the first time it
+   actually matters.
+
    Runs AFTER auth.middleware: a signed-in visitor is billed against their
    account, everyone else against a signed anonymous cookie. */
 function middleware(req, res, next) {
@@ -142,25 +118,19 @@ function middleware(req, res, next) {
   }
 
   const user = req.user || null;
-  const key = user ? "u:" + user.id : token;
-  const rec = record(key, user ? user.plan : null);
-
   req.credits = {
-    key,
+    key: user ? "u:" + user.id : token,
     token,
-    signedIn: !!user,
-    get left() { return rec.left; },
-    plan: PLANS[rec.plan] || PLANS.free,
-    rec
+    signedIn: !!user
   };
   next();
 }
 
-function state(req) {
-  const rec = record(req.credits.key, req.user ? req.user.plan : null);
+async function state(req) {
+  const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
   const plan = PLANS[rec.plan] || PLANS.free;
   return {
-    left: rec.left,
+    left: rec.left_credits,
     perDay: plan.perDay,
     spentToday: rec.spent,
     plan: plan.id,
@@ -172,36 +142,49 @@ function state(req) {
   };
 }
 
-/* Charge before doing the work. Returns {ok, left} or {ok:false, need, left}. */
-function charge(req, kind) {
+/* Charge before doing the work. Returns {ok, left} or {ok:false, need, left}.
+   The decrement is one atomic UPDATE guarded by left_credits >= cost, so two
+   concurrent requests cannot both succeed past a balance that only covers one. */
+async function charge(req, kind) {
   const cost = COST[kind];
   if (!cost) throw new Error("Unknown charge kind: " + kind);
-  const rec = record(req.credits.key, req.user ? req.user.plan : null);
-  if (rec.left < cost) return { ok: false, need: cost, left: rec.left };
-  rec.left -= cost;
-  rec.spent += cost;
-  save();
-  return { ok: true, left: rec.left, charged: cost };
+
+  const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
+  const { rows } = await db.query(
+    `update public.credits
+        set left_credits = left_credits - $2, spent = spent + $2
+      where key = $1 and left_credits >= $2
+      returning left_credits`,
+    [req.credits.key, cost]
+  );
+  if (!rows[0]) return { ok: false, need: cost, left: rec.left_credits };
+  return { ok: true, left: rows[0].left_credits, charged: cost };
 }
 
 /* Give it back when the work failed — nobody pays for our 500. */
-function refund(req, kind) {
+async function refund(req, kind) {
   const cost = COST[kind] || 0;
-  const rec = record(req.credits.key, req.user ? req.user.plan : null);
+  const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
   const plan = PLANS[rec.plan] || PLANS.free;
-  rec.left = Math.min(plan.perDay, rec.left + cost);
-  rec.spent = Math.max(0, rec.spent - cost);
-  save();
-  return rec.left;
+  const { rows } = await db.query(
+    `update public.credits
+        set left_credits = least($2, left_credits + $3), spent = greatest(0, spent - $3)
+      where key = $1
+      returning left_credits`,
+    [req.credits.key, plan.perDay, cost]
+  );
+  return rows[0] ? rows[0].left_credits : rec.left_credits;
 }
 
-/* Used by the (future) payment webhook. */
-function setPlan(req, planId) {
+/* Called right after a payment is verified, to grant the new plan's daily
+   allowance immediately. */
+async function setPlan(req, planId) {
   if (!PLANS[planId]) return false;
-  const rec = record(req.credits.key, planId);
-  rec.plan = planId;
-  rec.left = PLANS[planId].perDay;
-  save();
+  await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
+  await db.query(
+    `update public.credits set plan = $2, left_credits = $3 where key = $1`,
+    [req.credits.key, planId, PLANS[planId].perDay]
+  );
   return true;
 }
 

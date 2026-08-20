@@ -672,7 +672,10 @@ body.sh-body #navMobile{
   border-bottom:1px solid var(--sh-line);
   background:var(--sh-bg1);
 }
-body.sh-body #navMobile a{padding:11px 12px;border-radius:10px;font-size:15px;color:var(--sh-ink2)}
+body.sh-body #navMobile a,
+body.sh-body #navMobile #navMobileLogout{padding:11px 12px;border-radius:10px;font-size:15px;color:var(--sh-ink2)}
+body.sh-body #navMobile #navMobileLogout{background:none;border:0;text-align:left;font-family:inherit;font-weight:inherit;cursor:pointer;width:100%}
+body.sh-body #navMobile #navMobileLogout:hover{background:var(--sh-bg3);color:#fff}
 body.sh-body #navMobile a:hover{background:var(--sh-bg3);color:#fff}
 body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-weight:650;text-align:center;margin-top:6px}
 
@@ -1324,6 +1327,14 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
     max-height:92vh;
     overflow-y:auto;
   }
+  /* A "1fr" track is minmax(auto, 1fr), and `auto` floors the track at the
+     item's min-content width. The two panes carry unbreakable content, so on a
+     390px phone the single column resolved to 846px and pushed the preview,
+     the CTA and half the nav clean off the screen. min-width:0 lets the track
+     shrink to the card, which is what 1fr was meant to do here. */
+  .sh-modal-card > *{
+    min-width:0;
+  }
 }
 
 .sh-modal-left{
@@ -1787,6 +1798,15 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   .sh-main{width:100vw;max-width:100vw;margin-left:0}
   body.sh-body #navBurger{display:flex}
   body.sh-body #navMobile:not([hidden]){display:flex}
+  /* The burger appeared but the desktop links were never dismissed, so both
+     navigations rendered at once in a 60px flex row: on a 390px phone that put
+     "Community" at x=-151 and squeezed "Upgrade" down to two letters. Every
+     one of these links already has an entry in #navMobile. */
+  .sh-topbar > .sh-tlink,
+  .sh-topbar > .sh-tfill,
+  .sh-topbar > .sh-tline,
+  .sh-topbar > .sh-tsep{display:none}
+  .sh-topbar{justify-content:flex-start;padding:0 16px}
 }
 
 /* ── Dynamic Upload / AI Deconstruct & Profile Setup Modals ── */

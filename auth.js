@@ -1,66 +1,28 @@
 /* ============================================================
-   auth.js — email + password accounts, with no external service.
+   auth.js — email + password accounts, backed by Postgres.
 
-   Why not Supabase: SUPABASE_URL / SUPABASE_ANON_KEY are not configured in this
-   environment, so an auth flow built on it would be dead on arrival exactly the
-   way the Groq-powered features are. This uses only node's crypto and the same
-   file-backed store pattern as credits.js, so Log in / Sign up actually work
-   today. Swap `load`/`save` for a database when there is one.
+   Was file-backed JSON; now reads/writes public.users and public.sessions in
+   Supabase via db.js, because a JSON file on disk does not survive a redeploy.
+   The exported function signatures are unchanged, so server.js needed no edits.
 
-   Security choices, on purpose:
+   Security choices, unchanged from the file-backed version:
    • scrypt (N=16384) with a 16-byte per-user salt. No plaintext, no fast hash.
    • timingSafeEqual for both password and session comparisons.
-   • Session token = random 32 bytes, stored HASHED. A stolen store cannot be
+   • Session token = random 32 bytes, stored HASHED. A stolen table cannot be
      replayed as a live session.
-   • Cookie is HttpOnly + SameSite=Lax + Secure in production, so script cannot
-     read it and it does not ride along on cross-site POSTs.
+   • Cookie is HttpOnly + SameSite=Lax + Secure in production.
    • Login errors never say whether the email exists (no user enumeration).
    • Rate limited by the caller, and the work factor makes guessing expensive.
    ============================================================ */
-const fs = require("fs");
-const path = require("path");
 const crypto = require("crypto");
+const db = require("./db");
 
-const FILE = process.env.USERS_FILE || path.join(__dirname, ".users.json");
 const COOKIE = "sc_sid";
 const SESSION_DAYS = 30;
 
 const SCRYPT = { N: 16384, r: 8, p: 1, keylen: 64 };
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 200;
-
-/* ── store ────────────────────────────────────────────────── */
-let cache = null;
-let cacheMtime = 0;
-
-function load() {
-  let mtime = 0;
-  try { mtime = fs.statSync(FILE).mtimeMs; } catch (e) { mtime = 0; }
-  if (cache && mtime === cacheMtime) return cache;
-  try {
-    cache = JSON.parse(fs.readFileSync(FILE, "utf8"));
-    if (!cache || typeof cache !== "object") cache = {};
-  } catch (e) {
-    cache = {};
-  }
-  if (!cache.users) cache.users = {};        // id -> user
-  if (!cache.byEmail) cache.byEmail = {};    // email -> id
-  if (!cache.sessions) cache.sessions = {};  // tokenHash -> {id, exp}
-  cacheMtime = mtime;
-  return cache;
-}
-
-function save() {
-  const db = load();
-  try {
-    const tmp = FILE + ".tmp";
-    fs.writeFileSync(tmp, JSON.stringify(db), "utf8");
-    fs.renameSync(tmp, FILE);
-    cacheMtime = fs.statSync(FILE).mtimeMs;
-  } catch (e) {
-    console.warn("[auth] could not persist:", e.message);
-  }
-}
 
 /* ── helpers ──────────────────────────────────────────────── */
 const normEmail = (e) => String(e || "").trim().toLowerCase();
@@ -90,15 +52,6 @@ function verifyPassword(password, stored) {
   }
 }
 
-function pruneSessions(db) {
-  const now = Date.now();
-  let changed = false;
-  for (const [h, s] of Object.entries(db.sessions)) {
-    if (!s || s.exp < now) { delete db.sessions[h]; changed = true; }
-  }
-  return changed;
-}
-
 function setCookie(res, token, maxAgeSec) {
   const bits = [
     `${COOKIE}=${token}`, "Path=/", `Max-Age=${maxAgeSec}`,
@@ -117,53 +70,69 @@ function readCookie(req, name) {
   return raw ? decodeURIComponent(raw.slice(name.length + 1)) : null;
 }
 
+/* Row from public.users -> the shape every route already expects. */
+function publicUser(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    email: row.email,
+    plan: effectivePlanFromRow(row),
+    planUntil: row.plan_until ? new Date(row.plan_until).toISOString() : null,
+    planLifetime: row.plan_lifetime === true,
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : null,
+    displayName: row.display_name || "",
+    handle: row.handle || "",
+    bio: row.bio || "",
+    youtube: row.youtube || "",
+    instagram: row.instagram || "",
+    stars: Number(row.stars) || 48
+  };
+}
+
+function effectivePlanFromRow(row) {
+  if (!row || !row.plan || row.plan === "free") return "free";
+  if (row.plan_until && new Date(row.plan_until).getTime() <= Date.now()) return "free";
+  return row.plan;
+}
+
 /* ── public API ───────────────────────────────────────────── */
 
-/* Attaches req.user = {id, email, plan, createdAt} | null */
-function middleware(req, res, next) {
-  const token = readCookie(req, COOKIE);
+/* Attaches req.user = {id, email, plan, ...} | null */
+async function middleware(req, res, next) {
   req.user = null;
+  const token = readCookie(req, COOKIE);
   if (token && /^[A-Za-z0-9_-]{20,64}$/.test(token)) {
-    const db = load();
-    const s = db.sessions[sha(token)];
-    if (s && s.exp > Date.now()) {
-      const u = db.users[s.id];
-      if (u) {
-        req.user = publicUser(u);
-      }
+    try {
+      const { rows } = await db.query(
+        `select u.* from public.sessions s
+           join public.users u on u.id = s.user_id
+          where s.token_hash = $1 and s.expires_at > now()`,
+        [sha(token)]
+      );
+      if (rows[0]) req.user = publicUser(rows[0]);
+    } catch (e) {
+      console.error("[auth] session lookup failed:", e.message);
     }
   }
   next();
 }
 
-function publicUser(u) {
-  return u ? {
-    id: u.id,
-    email: u.email,
-    plan: effectivePlan(u),
-    planUntil: u.planUntil || null,
-    planLifetime: u.planLifetime === true,
-    createdAt: u.createdAt,
-    displayName: u.displayName || "",
-    handle: u.handle || "",
-    bio: u.bio || "",
-    youtube: u.youtube || "",
-    instagram: u.instagram || "",
-    stars: Number(u.stars) || 48
-  } : null;
-}
+async function startSession(res, userId) {
+  // Sessions past their expiry are dead weight; sweep opportunistically on
+  // every new login rather than running a scheduled job for one small table.
+  await db.query(`delete from public.sessions where expires_at < now()`);
 
-function startSession(res, id) {
-  const db = load();
-  pruneSessions(db);
   const token = crypto.randomBytes(24).toString("base64url");
-  db.sessions[sha(token)] = { id, exp: Date.now() + SESSION_DAYS * 864e5 };
-  save();
+  const expiresAt = new Date(Date.now() + SESSION_DAYS * 864e5);
+  await db.query(
+    `insert into public.sessions (token_hash, user_id, expires_at) values ($1, $2, $3)`,
+    [sha(token), userId, expiresAt]
+  );
   setCookie(res, token, SESSION_DAYS * 86400);
   return token;
 }
 
-function signUp(res, email, password) {
+async function signUp(res, email, password) {
   email = normEmail(email);
   if (!validEmail(email)) return { error: "That email address does not look right." };
   if (typeof password !== "string" || password.length < MIN_PASSWORD) {
@@ -172,123 +141,130 @@ function signUp(res, email, password) {
   if (password.length > MAX_PASSWORD) return { error: "That password is too long." };
   if (/^\s|\s$/.test(password)) return { error: "The password cannot start or end with a space." };
 
-  const db = load();
-  if (db.byEmail[email]) {
+  const { rows: existing } = await db.query(
+    `select 1 from public.users where lower(email) = $1 limit 1`, [email]
+  );
+  if (existing.length) {
     // Signup is the one place we must admit the address is taken, or the user
     // can never work out why nothing happens. Login stays ambiguous.
     return { error: "There is already an account with that email. Log in instead." };
   }
 
-  const id = "u_" + crypto.randomBytes(8).toString("base64url");
-  db.users[id] = {
-    id, email,
-    pass: hashPassword(password),
-    plan: "free",
-    createdAt: new Date().toISOString()
-  };
-  db.byEmail[email] = id;
-  save();
-  startSession(res, id);
-  return { user: publicUser(db.users[id]) };
+  const { rows } = await db.query(
+    `insert into public.users (email, password_hash, plan)
+     values ($1, $2, 'free') returning *`,
+    [email, hashPassword(password)]
+  );
+  const user = rows[0];
+  await startSession(res, user.id);
+  return { user: publicUser(user) };
 }
 
-function logIn(res, email, password) {
+async function logIn(res, email, password) {
   email = normEmail(email);
-  const db = load();
-  const id = db.byEmail[email];
-  const u = id ? db.users[id] : null;
+  const { rows } = await db.query(
+    `select * from public.users where lower(email) = $1 limit 1`, [email]
+  );
+  const u = rows[0] || null;
 
   // Always run a hash so a missing account and a wrong password take the same
   // time — otherwise the response time leaks which emails are registered.
-  const stored = u ? u.pass : hashPassword("decoy-password-for-timing");
+  const stored = u ? u.password_hash : hashPassword("decoy-password-for-timing");
   const good = verifyPassword(String(password || ""), stored);
 
   if (!u || !good) return { error: "Wrong email or password." };
-  startSession(res, u.id);
+  await startSession(res, u.id);
   return { user: publicUser(u) };
 }
 
-function logOut(req, res) {
+async function logOut(req, res) {
   const token = readCookie(req, COOKIE);
   if (token) {
-    const db = load();
-    delete db.sessions[sha(token)];
-    save();
+    await db.query(`delete from public.sessions where token_hash = $1`, [sha(token)]);
   }
   setCookie(res, "", 0);
 }
 
-/* A paid plan can expire. `planUntil === null` means it never does (the
-   lifetime Pro Max offer). Anything past its date reads as "free" everywhere,
-   so an expired plan cannot keep granting credits. */
-function effectivePlan(u) {
-  if (!u || !u.plan || u.plan === "free") return "free";
-  if (u.planUntil && Date.parse(u.planUntil) <= Date.now()) return "free";
-  return u.plan;
+/* A paid plan can expire. plan_until = null means it never does (the lifetime
+   Pro Max offer). Anything past its date reads as "free" everywhere, so an
+   expired plan cannot keep granting credits. */
+function effectivePlan(user) {
+  return effectivePlanFromRow({
+    plan: user && user.plan,
+    plan_until: user && (user.planUntil || user.plan_until)
+  });
 }
 
 /* How many lifetime Pro Max seats have actually been handed out. Counted from
-   the user records themselves rather than a separate tally, so the number
-   cannot drift out of sync with reality. */
-function countLifetime(planId) {
-  const db = load();
-  let n = 0;
-  for (const id of Object.keys(db.users || {})) {
-    const u = db.users[id];
-    if (u && u.plan === planId && u.planLifetime === true) n++;
-  }
-  return n;
+   the user rows themselves rather than a separate tally, so the number cannot
+   drift out of sync with reality. */
+async function countLifetime(planId) {
+  const { rows } = await db.query(
+    `select count(*)::int as n from public.users where plan = $1 and plan_lifetime = true`,
+    [planId]
+  );
+  return rows[0].n;
 }
 
 /* term: "month" | "year" | "lifetime" | "forever" */
-function changePlan(userId, planId, term) {
-  const db = load();
-  const u = db.users[userId];
-  if (!u) return false;
-
-  u.plan = planId;
-  u.planSince = new Date().toISOString();
-
-  if (planId === "free" || term === "lifetime" || term === "forever") {
-    u.planUntil = null;
-    u.planLifetime = planId !== "free" && (term === "lifetime" || term === "forever");
-  } else {
+async function changePlan(userId, planId, term) {
+  const isLifetime = planId !== "free" && (term === "lifetime" || term === "forever");
+  let planUntil = null;
+  if (planId !== "free" && !isLifetime) {
     const days = term === "year" ? 365 : 30;
-    u.planUntil = new Date(Date.now() + days * 864e5).toISOString();
-    u.planLifetime = false;
+    planUntil = new Date(Date.now() + days * 864e5);
   }
-
-  save();
-  return true;
+  const { rowCount } = await db.query(
+    `update public.users
+        set plan = $2, plan_since = now(), plan_until = $3, plan_lifetime = $4
+      where id = $1`,
+    [userId, planId, planUntil, isLifetime]
+  );
+  return rowCount > 0;
 }
 
-function updateProfile(userId, data) {
-  const db = load();
-  const u = db.users[userId];
-  if (!u) return { error: "User not found." };
-  if (typeof data.displayName === "string") u.displayName = data.displayName.trim().slice(0, 50);
+async function updateProfile(userId, data) {
+  const fields = [];
+  const values = [userId];
+  const push = (col, val) => { values.push(val); fields.push(`${col} = $${values.length}`); };
+
+  if (typeof data.displayName === "string") push("display_name", data.displayName.trim().slice(0, 50));
   if (typeof data.handle === "string") {
-    let h = data.handle.trim().replace(/^@+/, "");
-    u.handle = h ? "@" + h.slice(0, 30) : "";
+    const h = data.handle.trim().replace(/^@+/, "");
+    push("handle", h ? "@" + h.slice(0, 30) : "");
   }
-  if (typeof data.bio === "string") u.bio = data.bio.trim().slice(0, 200);
-  if (typeof data.youtube === "string") u.youtube = data.youtube.trim().slice(0, 150);
-  if (typeof data.instagram === "string") u.instagram = data.instagram.trim().slice(0, 150);
-  save();
-  return { success: true, user: publicUser(u) };
+  if (typeof data.bio === "string") push("bio", data.bio.trim().slice(0, 200));
+  if (typeof data.youtube === "string") push("youtube", data.youtube.trim().slice(0, 150));
+  if (typeof data.instagram === "string") push("instagram", data.instagram.trim().slice(0, 150));
+
+  if (!fields.length) {
+    const { rows } = await db.query(`select * from public.users where id = $1`, [userId]);
+    if (!rows[0]) return { error: "User not found." };
+    return { success: true, user: publicUser(rows[0]) };
+  }
+
+  const { rows } = await db.query(
+    `update public.users set ${fields.join(", ")} where id = $1 returning *`,
+    values
+  );
+  if (!rows[0]) return { error: "User not found." };
+  return { success: true, user: publicUser(rows[0]) };
 }
 
-function giveStar(userId) {
-  const db = load();
-  const u = db.users[userId];
-  if (!u) return { error: "User not found." };
-  u.stars = (Number(u.stars) || 48) + 1;
-  save();
-  return { success: true, stars: u.stars };
+async function giveStar(userId) {
+  const { rows } = await db.query(
+    `update public.users set stars = coalesce(stars, 48) + 1 where id = $1 returning stars`,
+    [userId]
+  );
+  if (!rows[0]) return { error: "User not found." };
+  return { success: true, stars: rows[0].stars };
 }
 
 /* how many accounts exist — used by the verifier and for a sanity log line */
-function count() { return Object.keys(load().users).length; }
+async function count() {
+  const { rows } = await db.query(`select count(*)::int as n from public.users`);
+  return rows[0].n;
+}
 
 module.exports = {
   middleware, signUp, logIn, logOut, changePlan, countLifetime, effectivePlan, updateProfile, giveStar, count,

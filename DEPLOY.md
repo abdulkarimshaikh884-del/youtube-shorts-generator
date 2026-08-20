@@ -1,88 +1,121 @@
 # Deploying ShortsCraft
 
-## Why Docker and why a disk
+## What the hosting has to provide
 
-Two things decide the hosting shape:
+**1. Chromium and ffmpeg.** `/api/export` renders frames with Chromium and pipes
+them into ffmpeg. Neither exists on a stock Node host, so the app ships as a
+container that installs both (see `Dockerfile`). It also installs a sans, a
+serif, a mono and a colour-emoji font — without those, exported videos render
+text and emoji as blank boxes.
 
-1. **Exports shell out.** `/api/export` renders frames with Chromium and pipes
-   them into `ffmpeg`. Neither exists on a stock Node host, so the app ships as
-   a container that installs both (see `Dockerfile`). It also installs a sans,
-   a serif, a mono and a colour-emoji font — without those, exported videos
-   render text and emoji as blank boxes.
+**2. A `DATABASE_URL`.** Accounts, credit balances, the launch waitlist,
+community templates and comments live in Supabase Postgres. They used to be
+JSON files on disk, which meant a redeploy on a host with an ephemeral
+filesystem wiped every signup. Nothing is stored in the container now, so no
+volume is needed and a restart cannot lose anything.
 
-2. **State is on disk.** Accounts, credit balances, the launch waitlist,
-   community templates and comments are JSON files. On a host with an ephemeral
-   filesystem they are wiped on every deploy and every restart. Every module
-   already takes its path from an environment variable, so the fix is a mounted
-   volume plus the `*_FILE` variables — no code change.
+---
 
-**If you deploy without a persistent disk you will lose every signup and every
-waitlist email on the next deploy.** That is the one thing not to skip.
+## Supabase
+
+The schema is already applied to the `youtube-shorts-tool` project
+(`mqsimdmogbycrbizrrsm`): tables `users`, `sessions`, `credits`, `waitlist`,
+`community_templates`, `template_comments`.
+
+The app connects as a dedicated role, **`shortscraft_app`**, not as `postgres`:
+
+* It has `SELECT/INSERT/UPDATE/DELETE` on exactly those six tables and nothing
+  on Supabase's own auth or storage schemas.
+* RLS is enabled on all six with **no policies**, which locks the anon and
+  publishable keys out of them entirely. Only this role reaches the data, and
+  it is granted `BYPASSRLS` because our Express API is the only client — the
+  browser never gets database credentials. Authorization stays in the
+  application code that already enforced it.
+
+The connection string is in `.env` locally and must be set as a secret in the
+host's dashboard. It contains the role password, so it is never committed.
 
 ---
 
 ## Render (the blueprint is already written)
 
-1. Push this repo to GitHub.
+1. Push to GitHub.
 2. render.com → **New → Blueprint** → pick the repo. It reads `render.yaml`:
-   Docker runtime, a 1 GB disk mounted at `/data`, health check on
-   `/api/health`, and all the `*_FILE` variables pointed at the disk.
-3. Set the secrets in the Render dashboard (they are `sync: false` in the
-   blueprint, so Render will prompt):
+   Docker runtime, health check on `/api/health`, Singapore region.
+3. Set the secrets Render prompts for (`sync: false` in the blueprint):
 
    | Variable | Needed for | Without it |
    |---|---|---|
-   | `GROQ_API_KEY` | AI animations, SEO tools | those routes answer 503 |
+   | `DATABASE_URL` | everything with state | the app refuses to start |
+   | `GROQ_API_KEY` / `NVIDIA_API_KEY` | AI animations, SEO tools | those routes answer 503 |
    | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | payments | pricing page stays in reserve mode |
    | `PAYMENTS_OPEN_DATE` | optional | the "opens on …" line is omitted |
 
-   `CREDITS_SECRET` is generated once by Render. Do not change it later —
-   it signs the anonymous-credit cookie, so rotating it resets balances.
+   `CREDITS_SECRET` is generated once by Render. Do not change it later — it
+   signs the anonymous-credit cookie, so rotating it resets guest balances.
 
-4. Deploy. First build is slow (it installs Chromium and ffmpeg); later builds
-   reuse the layer.
+4. Deploy. The first build is slow (it installs Chromium and ffmpeg); later
+   builds reuse the layer.
+
+### Region
+`region: singapore`, deliberately. The Supabase project is in Tokyo
+(`ap-northeast-1`). From Singapore a query is ~70ms; from Render's default
+Oregon it is ~200ms, and the credit ledger is read on every billable request.
+**If you move the app, move it near the database.**
 
 ### Plan
-`render.yaml` asks for **starter**, not free. Free instances sleep after
-inactivity and have a short request timeout — a 1080p export is roughly 13
-seconds of solid CPU and will be cut off. Free also has no disks, which brings
-back the data-loss problem above.
+`plan: starter`, not free. Free instances sleep after inactivity and have a
+short request timeout — a 1080p export is ~25 seconds of solid CPU and would be
+cut off.
+
+---
+
+## Limits worth knowing
+
+* **Exports are capped at 450 frames** (`EXPORT_LIMITS.maxFrames`). Rendering
+  costs roughly 0.1s of CPU per frame and exports are serialised, so 450 keeps
+  the worst case near 45s — inside the ~100s timeout proxies put in front of a
+  web service. 12s at 30fps fits; 12s at 60fps is refused with a message
+  telling the user to lower the frame rate.
+* **Credits are only touched when spent.** The middleware resolves who would be
+  billed without querying; `state`/`charge`/`refund` hit the database. Page
+  loads cost no queries.
 
 ---
 
 ## Turning payments on later
 
 The gateway needs an 18+ account holder. Until then the pricing page collects
-reservations instead of charging, and says so.
+reservations instead of charging, and says so plainly.
 
-When the account exists, add `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` and
+When the account exists, set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` and
 redeploy. The same page turns itself into real checkout — nothing to edit. The
-people on the waitlist are in `/data/waitlist.json`; email them, because the
-first 100 Pro Max buyers get the lifetime price and that offer is what the list
-was built for.
+waitlist is in the `waitlist` table:
+
+```sql
+select email, plan, created_at from public.waitlist order by id;
+```
+
+Email them, because the first 100 Pro Max buyers get the lifetime price and
+that offer is what the list was built for.
 
 ---
 
 ## Other hosts
 
-Anything that runs a Dockerfile with a volume works. The contract is:
-
-* mount a volume and point `USERS_FILE`, `CREDITS_FILE`, `WAITLIST_FILE`,
-  `COMMUNITY_FILE` and `COMMENTS_FILE` inside it
-* set `PORT` (defaults to 3000)
-* give it at least ~1 GB RAM — Chromium plus ffmpeg during an export
-
-`fly.io` and Railway both fit. Vercel and Netlify do not: they are serverless,
-so there is no persistent disk and no long-running process for a 13-second
-render.
+Anything that runs a Dockerfile works — there is no volume to arrange any more.
+The contract is: set `DATABASE_URL`, set `PORT` (defaults to 3000), and give it
+about 1 GB of RAM for Chromium plus ffmpeg during an export. fly.io and Railway
+both fit. Vercel and Netlify do not: serverless has no long-running process for
+a 25-second render.
 
 ---
 
 ## After the first deploy, check these
 
 ```bash
-curl -s https://YOUR-URL/api/health          # 200
-curl -s https://YOUR-URL/api/offer           # paymentsLive:false, reserved:0
+curl -s https://YOUR-URL/api/health
+curl -s https://YOUR-URL/api/offer
 curl -s -o /tmp/t.mp4 -w '%{http_code} %{size_download}\n' \
   -X POST https://YOUR-URL/api/export \
   -H 'Content-Type: application/json' \
@@ -90,5 +123,5 @@ curl -s -o /tmp/t.mp4 -w '%{http_code} %{size_download}\n' \
 ```
 
 The export is the one that proves the container is right — a real MP4 means
-Chromium, ffmpeg and the fonts are all in place. Then redeploy once and sign up
-again to confirm the disk kept your account.
+Chromium, ffmpeg and the fonts are all in place. Then sign up, redeploy, and log
+in again: the account surviving proves `DATABASE_URL` is wired correctly.

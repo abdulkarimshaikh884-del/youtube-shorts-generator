@@ -655,7 +655,7 @@
   }
 
   function init() {
-    all("#logoutBtn, #accLogout, #popoverLogoutBtn").forEach(function (b) {
+    all("#logoutBtn, #accLogout, #popoverLogoutBtn, #navMobileLogout").forEach(function (b) {
       b.addEventListener("click", logout);
     });
     setupUserTrigger();

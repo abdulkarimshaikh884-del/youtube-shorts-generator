@@ -12,10 +12,10 @@ services:
     healthCheckPath: /api/health
     autoDeploy: true
 
-    disk:
-      name: shortscraft-data
-      mountPath: /data
-      sizeGB: 1
+    # The Supabase project lives in ap-northeast-1 (Tokyo). Singapore is the
+    # closest Render region, so every query is ~70ms away instead of ~200ms
+    # from Oregon. Put the app near its database.
+    region: singapore
 
     envVars:
       - key: NODE_ENV
@@ -23,17 +23,11 @@ services:
       - key: PORT
         value: 3000
 
-      # State on the mounted disk
-      - key: USERS_FILE
-        value: /data/users.json
-      - key: CREDITS_FILE
-        value: /data/credits.json
-      - key: WAITLIST_FILE
-        value: /data/waitlist.json
-      - key: COMMUNITY_FILE
-        value: /data/community.json
-      - key: COMMENTS_FILE
-        value: /data/comments.json
+      # Accounts, credits, the waitlist, community templates and comments all
+      # live in Supabase Postgres, so no disk is needed and a redeploy cannot
+      # lose them. Set this in the dashboard — it contains the role password.
+      - key: DATABASE_URL
+        sync: false
 
       # Signing secret for the anonymous-credit cookie. Generated once by
       # Render and then held constant — changing it resets everyone's balance.

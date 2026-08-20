@@ -178,10 +178,10 @@ window.SC_TPL2 = (function () {
       + '@keyframes evFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-8deg) translateY(-1.5cqh)}}'
       + '@keyframes clkSpin{0%{transform:rotateX(15deg) rotateY(10deg) scale(0.96)}100%{transform:rotateX(-10deg) rotateY(-15deg) scale(1.04)}}',
     html: function (o) {
-      var t1 = getP(o, "t1", o.lines[0] || "Main Text 1");
-      var t2 = getP(o, "t2", o.lines[1] || "Text 1");
-      var t3 = getP(o, "t3", o.lines[2] || "Text 3");
-      var t5 = getP(o, "t5", o.lines[3] || "Text 5");
+      var t1 = getP(o, "t1", o.lines[0] || "Write me a viral Shorts hook");
+      var t2 = getP(o, "t2", o.lines[1] || "Auto-Built");
+      var t3 = getP(o, "t3", o.lines[2] || "The Evidence");
+      var t5 = getP(o, "t5", o.lines[3] || "First 3 Seconds");
       return '<div class="sc-master-wrap">'
         /* Scene 1 */
         + '<div class="sc-master-scene sc-m-s1">'
@@ -198,11 +198,11 @@ window.SC_TPL2 = (function () {
 
         /* Scene 2 */
         + '<div class="sc-master-scene sc-m-s2">'
-        + '<div class="sc-wf-bg">Text 2</div>'
-        + '<div class="sc-wf-pill" style="top:18%;left:8%;transform:rotate(-12deg);">Main Text 2<br/><small>Subtext</small></div>'
-        + '<div class="sc-wf-pill" style="bottom:20%;right:6%;transform:rotate(-6deg);">Main Text 2<br/><small>Subtext</small></div>'
+        + '<div class="sc-wf-bg">SCRIPT</div>'
+        + '<div class="sc-wf-pill" style="top:18%;left:8%;transform:rotate(-12deg);">Hook Line<br/><small>0:00 — 0:03</small></div>'
+        + '<div class="sc-wf-pill" style="bottom:20%;right:6%;transform:rotate(-6deg);">Payoff Beat<br/><small>0:12 — 0:15</small></div>'
         + '<div class="sc-wf-hero">'
-        + '<div class="sc-wf-sub">Main Text 3</div>'
+        + '<div class="sc-wf-sub">FROM PROMPT TO SCENE</div>'
         + '<div class="sc-wf-title">' + esc(t2) + '</div>'
         + '</div>'
         + '</div>'
@@ -212,7 +212,7 @@ window.SC_TPL2 = (function () {
         + '<div class="sc-ev-light"></div>'
         + '<img src="/assets/investigation_photo_board_3d.png" class="sc-ev-board" alt="Investigation Photo Board" />'
         + '<div class="sc-ev-text-overlay">'
-        + '<div class="sc-ev-sub">Main Text 4</div>'
+        + '<div class="sc-ev-sub">// CASE FILE 004</div>'
         + '<div class="sc-ev-title">' + esc(t3) + '</div>'
         + '</div>'
         + '</div>'
@@ -222,7 +222,7 @@ window.SC_TPL2 = (function () {
         + '<div class="sc-clk-beam"></div>'
         + '<img src="/assets/analog_wall_clock_3d.png" class="sc-clk-img" alt="3D Wall Clock" />'
         + '<div class="sc-clk-text-box">'
-        + '<div class="sc-clk-sub">Main Text 6</div>'
+        + '<div class="sc-clk-sub">// RETENTION WINDOW</div>'
         + '<div class="sc-clk-title">' + esc(t5) + '</div>'
         + '</div>'
         + '</div>'
@@ -242,7 +242,7 @@ window.SC_TPL2 = (function () {
       + '.sc-cg-single-btn{padding:1cqh 3cqw;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-size:3.4cqw;font-weight:600;color:#e5e7eb;display:flex;align-items:center;gap:1.5cqw;background:rgba(255,255,255,.06)}'
       + '@keyframes cgPop{0%,12%{transform:perspective(1000px) rotateX(20deg) translateY(6cqh);opacity:0}25%{transform:perspective(1000px) rotateX(0deg) translateY(0);opacity:1}45%{transform:perspective(1000px) rotateX(2deg) translateY(-.4cqh);opacity:1}65%{transform:perspective(1000px) rotateX(-1.5deg) translateY(.3cqh);opacity:1}85%{transform:perspective(1000px) rotateX(0deg) translateY(0);opacity:1}100%{transform:perspective(1000px) rotateX(-10deg) translateY(-3cqh);opacity:0}}',
     html: function (o) {
-      var query = getP(o, "query", o.lines[0] || "Main Text 1");
+      var query = getP(o, "query", o.lines[0] || "Write me a viral Shorts hook");
       return '<div class="sc-cg-standalone">'
         + '<div class="sc-cg-single-brand">ChatGPT</div>'
         + '<div class="sc-cg-single-pill">'
@@ -270,12 +270,12 @@ window.SC_TPL2 = (function () {
       + '@keyframes wfPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}'
       + '@keyframes wfSpin{0%{transform:scale(1.25) rotate(-10deg)}100%{transform:scale(1.35) rotate(-6deg)}}',
     html: function (o) {
-      var sub = getP(o, "sub", o.lines[0] || "Main Text 3");
-      var title = getP(o, "title", o.lines[1] || "Text 1");
+      var sub = getP(o, "sub", o.lines[0] || "FROM PROMPT TO SCENE");
+      var title = getP(o, "title", o.lines[1] || "Auto-Built");
       return '<div class="sc-wf-standalone">'
-        + '<div class="sc-wf-s-bg">Text 2</div>'
-        + '<div class="sc-wf-s-pill" style="top:16%;left:6%;transform:rotate(-12deg);">Main Text 2<br/><small>Subtext</small></div>'
-        + '<div class="sc-wf-s-pill" style="bottom:18%;right:6%;transform:rotate(-6deg);">Main Text 2<br/><small>Subtext</small></div>'
+        + '<div class="sc-wf-s-bg">SCRIPT</div>'
+        + '<div class="sc-wf-s-pill" style="top:16%;left:6%;transform:rotate(-12deg);">Hook Line<br/><small>0:00 — 0:03</small></div>'
+        + '<div class="sc-wf-s-pill" style="bottom:18%;right:6%;transform:rotate(-6deg);">Payoff Beat<br/><small>0:12 — 0:15</small></div>'
         + '<div class="sc-wf-s-hero">'
         + '<div class="sc-wf-s-sub">' + esc(sub) + '</div>'
         + '<div class="sc-wf-s-title">' + esc(title) + '</div>'
@@ -297,8 +297,8 @@ window.SC_TPL2 = (function () {
       + '@keyframes evFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-8deg) translateY(-1.5cqh)}}'
       + '@keyframes evTextPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.06);opacity:0}}',
     html: function (o) {
-      var sub = getP(o, "sub", o.lines[0] || "Main Text 4");
-      var title = getP(o, "title", o.lines[1] || "Text 3");
+      var sub = getP(o, "sub", o.lines[0] || "// CASE FILE 004");
+      var title = getP(o, "title", o.lines[1] || "The Evidence");
       return '<div class="sc-ev-standalone">'
         + '<div class="sc-ev-s-light"></div>'
         + '<img src="/assets/investigation_photo_board_3d.png" class="sc-ev-s-board" alt="Investigation Photo Board" />'
@@ -323,8 +323,8 @@ window.SC_TPL2 = (function () {
       + '@keyframes clkSpin{0%{transform:rotateX(15deg) rotateY(10deg) scale(0.96)}100%{transform:rotateX(-10deg) rotateY(-15deg) scale(1.04)}}'
       + '@keyframes clkTextPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
-      var sub = getP(o, "sub", o.lines[0] || "Main Text 6");
-      var title = getP(o, "title", o.lines[1] || "Text 5");
+      var sub = getP(o, "sub", o.lines[0] || "// RETENTION WINDOW");
+      var title = getP(o, "title", o.lines[1] || "First 3 Seconds");
       return '<div class="sc-clk-standalone">'
         + '<div class="sc-clk-s-beam"></div>'
         + '<img src="/assets/analog_wall_clock_3d.png" class="sc-clk-s-img" alt="3D Wall Clock" />'
@@ -2670,14 +2670,19 @@ window.SC_TPL2 = (function () {
   T["paper-collage"] = {
     name: "Cutout Scrapbook", cat: "paper", dark: true, accent: "#f59e0b",
     desc: "Multi-layered stop-motion scrapbook collage where each letter of the hook keyword is on an individual rotated cutout slip",
-    css: '.sc-col-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-col-row{display:flex;gap:2cqw;margin-bottom:2cqh}.sc-col-tile{background:#ffffff;color:#000000;padding:2cqw 3.8cqw;font-size:10cqw;font-weight:900;transform:rotate(-4deg);box-shadow:0 2cqw 6cqw rgba(0,0,0,.8);border-radius:1cqw}.sc-col-t1{background:#ef4444;color:#fff;transform:rotate(-6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-col-t2{background:#f59e0b;color:#000;transform:rotate(5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.05s}.sc-col-t3{background:#3b82f6;color:#fff;transform:rotate(-4deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.1s}.sc-col-t4{background:#22c55e;color:#000;transform:rotate(6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.15s}.sc-col-t5{background:#a855f7;color:#fff;transform:rotate(-5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.2s}.sc-col-sub{font-family:ui-monospace,monospace;font-size:3.6cqw;letter-spacing:.25em;color:#fcd34d;font-weight:800;margin-top:2cqh;text-transform:uppercase}@keyframes tilePop{0%,10%{transform:scale(.7);opacity:0}22%{transform:scale(1);opacity:1}45%{transform:scale(1.015);opacity:1}68%{transform:scale(.992);opacity:1}92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
+    css: '.sc-col-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-col-row{display:flex;flex-wrap:wrap;justify-content:center;gap:.2em;margin-bottom:2cqh;max-width:100%}.sc-col-tile{background:#ffffff;color:#000000;padding:.2em .38em;font-size:10cqw;font-weight:900;transform:rotate(-4deg);box-shadow:0 2cqw 6cqw rgba(0,0,0,.8);border-radius:1cqw}.sc-col-t1{background:#ef4444;color:#fff;transform:rotate(-6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-col-t2{background:#f59e0b;color:#000;transform:rotate(5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.05s}.sc-col-t3{background:#3b82f6;color:#fff;transform:rotate(-4deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.1s}.sc-col-t4{background:#22c55e;color:#000;transform:rotate(6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.15s}.sc-col-t5{background:#a855f7;color:#fff;transform:rotate(-5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.2s}.sc-col-sub{font-family:ui-monospace,monospace;font-size:3.6cqw;letter-spacing:.25em;color:#fcd34d;font-weight:800;margin-top:2cqh;text-transform:uppercase}@keyframes tilePop{0%,10%{transform:scale(.7);opacity:0}22%{transform:scale(1);opacity:1}45%{transform:scale(1.015);opacity:1}68%{transform:scale(.992);opacity:1}92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
     html: function (o) {
       var word = getP(o, "word", o.lines[0] || "VIRAL");
       var sub = getP(o, "sub", o.lines[1] || "STOP-MOTION FORMULA");
+      /* One tile per letter, so the row's width is driven entirely by how long
+         the word is. At the fixed 10cqw the tiles ran off both edges as soon as
+         the word passed five characters. 55 is the usable row width divided by
+         a tile's own width in font-size units (glyph + padding + gap). */
       var chars = word.split("");
+      var fs = Math.min(10, 55 / Math.max(chars.length, 1));
       var tilesHtml = chars.map(function (c, i) {
         var cls = "sc-col-t" + ((i % 5) + 1);
-        return '<span class="sc-col-tile ' + cls + '">' + esc(c) + '</span>';
+        return '<span class="sc-col-tile ' + cls + '" style="font-size:' + fs.toFixed(2) + 'cqw">' + esc(c) + '</span>';
       }).join("");
       return '<div class="sc-col-wrap">'
         + '<div class="sc-col-row">' + tilesHtml + '</div>'
@@ -5131,9 +5136,15 @@ window.SC_TPL2 = (function () {
       + '.sc-kpi-sub{font-size:4.8cqw;color:#38bdf8;font-weight:800;margin-top:2.5cqh;letter-spacing:.02em}'
       + '@keyframes kpiPop{0%,12%{transform:scale(.85);opacity:0}24%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}',
     html: function (o) {
+      var val = o.lines[0] || "$10,000,000";
+      /* 18cqw is sized for a short figure like "1.2M". The default copy is
+         eleven characters wide and ran 25px off both edges of a 9:16 frame, so
+         the headline number scales down once it stops fitting. 150 is the
+         usable width in cqw divided by this face's average advance. */
+      var fs = Math.min(18, 150 / Math.max(String(val).length, 1));
       return '<div class="sc-kpi-wrap">'
         + '<div class="sc-kpi-tag">ANNUAL RECORD MILESTONE</div>'
-        + '<div class="sc-kpi-val">' + esc(o.lines[0] || "$10,000,000") + '</div>'
+        + '<div class="sc-kpi-val" style="font-size:' + fs.toFixed(2) + 'cqw">' + esc(val) + '</div>'
         + '<div class="sc-kpi-sub">' + esc(o.lines[1] || "ARR in Record Time") + '</div>'
         + '</div>';
     }
@@ -5231,10 +5242,10 @@ window.SC_TPL2 = (function () {
     css: '.sc-funnel-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#091d36 0%,#020b17 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
       + '.sc-funnel-title{font-size:6.8cqw;font-weight:900;letter-spacing:-.03em;color:#fff;text-shadow:0 0 25px rgba(56,189,248,.4);text-align:center}'
       + '.sc-funnel-stages{width:100%;display:flex;flex-direction:column;align-items:center;gap:1.8cqh}'
-      + '.sc-funnel-bar{border-radius:2.5cqw;padding:2.2cqh 4.5cqw;font-weight:800;font-size:3.8cqw;display:flex;justify-content:space-between;align-items:center;box-shadow:0 15px 35px rgba(0,0,0,.7);animation:funnelPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sc-funnel-bar{border-radius:2.5cqw;padding:2.2cqh 4cqw;font-weight:800;font-size:3.8cqw;display:flex;justify-content:space-between;align-items:center;gap:2cqw;white-space:nowrap;box-shadow:0 15px 35px rgba(0,0,0,.7);animation:funnelPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
       + '.sc-funnel-b1{width:90%;background:linear-gradient(135deg,#38bdf8 0%,#0284c7 100%);color:#fff;box-shadow:0 0 25px rgba(56,189,248,.4);animation-delay:.05s}'
-      + '.sc-funnel-b2{width:70%;background:linear-gradient(135deg,#7952ff 0%,#4338ca 100%);color:#fff;box-shadow:0 0 25px rgba(121,82,255,.4);animation-delay:.15s}'
-      + '.sc-funnel-b3{width:50%;background:linear-gradient(135deg,#10b981 0%,#047857 100%);color:#fff;box-shadow:0 0 25px rgba(16,185,129,.4);animation-delay:.25s}'
+      + '.sc-funnel-b2{width:70%;font-size:3.3cqw;background:linear-gradient(135deg,#7952ff 0%,#4338ca 100%);color:#fff;box-shadow:0 0 25px rgba(121,82,255,.4);animation-delay:.15s}'
+      + '.sc-funnel-b3{width:50%;font-size:2.7cqw;background:linear-gradient(135deg,#10b981 0%,#047857 100%);color:#fff;box-shadow:0 0 25px rgba(16,185,129,.4);animation-delay:.25s}'
       + '@keyframes funnelPop{0%,12%{transform:scale(.9);opacity:0}25%{transform:scale(1);opacity:1}45%{transform:scale(1.012);opacity:1}65%{transform:scale(.996);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
       return '<div class="sc-funnel-wrap">'
@@ -5254,11 +5265,11 @@ window.SC_TPL2 = (function () {
     "blank":                  ["Blank Canvas", "Choose a template or generate with AI.", ""],
     
     // AutoAE Exact 4-Scene Master & Modular Scenes
-    "autoae-exact-master":       ["Main Text 1", "Text 1", "Text 3", "Text 5"],
-    "autoae-chatgpt-prompt":     ["Main Text 1", "", ""],
-    "autoae-wireframe-stream":   ["Main Text 3", "Text 1", "Text 2"],
-    "autoae-blue-evidence":      ["Main Text 4", "Text 3", ""],
-    "autoae-volumetric-clock":   ["Main Text 6", "Text 5", ""],
+    "autoae-exact-master":       ["Write me a viral Shorts hook", "Auto-Built", "The Evidence", "First 3 Seconds"],
+    "autoae-chatgpt-prompt":     ["Write me a viral Shorts hook", "", ""],
+    "autoae-wireframe-stream":   ["FROM PROMPT TO SCENE", "Auto-Built", "SCRIPT"],
+    "autoae-blue-evidence":      ["// CASE FILE 004", "The Evidence", ""],
+    "autoae-volumetric-clock":   ["// RETENTION WINDOW", "First 3 Seconds", ""],
 
     // AutoAE Flagship Signature
     "autoae-founder-halftone": ["STARTED", "FACEBOOK", "// ARCHIVE 2004"],
@@ -5292,7 +5303,7 @@ window.SC_TPL2 = (function () {
     "paper-binder":           ["INDEX #01", "Framework for viral storytelling", ""],
     "paper-receipt":          ["RECEIPT #2026", "", ""],
     "paper-double-pol":       ["Production Diary", "", ""],
-    "paper-collage":          ["Stop-Motion Style", "", ""],
+    "paper-collage":          ["MOTION", "STOP-MOTION FORMULA", ""],
 
     // Text & Hooks
     "text-highlight-box":     ["THE SECRET FORMULA", "complex editing", ""],
@@ -5319,7 +5330,7 @@ window.SC_TPL2 = (function () {
     "maps-geo-card":          ["Tokyo, Japan", "35.6762° N // 24°C Sunny", ""],
 
     // Money
-    "money-candlestick":      ["NASDAQ: NVDA", "+14.8% ↗", ""],
+    "money-candlestick":      ["NASDAQ: NVDA", "MARKET CAP // $3.2T", ""],
     "money-cash-stack":       ["$50,000", "Monthly Revenue", ""],
     "money-titanium-card":    ["Upwork", "41%", "of top companies agree"],
     "money-crypto-surge":     ["$98,400", "▲ +8.4% Surge", ""],
@@ -5328,7 +5339,7 @@ window.SC_TPL2 = (function () {
     "money-receipt":          ["INVOICE PAID", "", ""],
     "money-wallet-unlock":    ["$1,250,000", "Liquid Net Worth", ""],
     "money-sale-slash":       ["$99/mo", "$5/mo", "50% OFF NEW USER"],
-    "money-atm":              ["Cash Dispensed", "$10,000 Clean Payout", ""],
+    "money-atm":              ["$10,000 PAYOUT", "Instant Automated Transfer", ""],
 
     // UI
     "ui-ios-notify":          ["SHORTSCRAFT", "Your 4K Short is ready to post 🚀", ""],
@@ -5390,7 +5401,7 @@ window.SC_TPL2 = (function () {
     "paper-binder":           ["Card Title", "Card Subtitle", ""],
     "paper-receipt":          ["Receipt Header", "", ""],
     "paper-double-pol":       ["Title", "", ""],
-    "paper-collage":          ["Sub-label", "", ""],
+    "paper-collage":          ["Hook Word", "Caption", ""],
 
     "text-highlight-box":     ["Kicker", "Highlighted Phrase", ""],
     "text-scribble":          ["Pre-heading", "Main Hook", ""],
@@ -5414,7 +5425,7 @@ window.SC_TPL2 = (function () {
     "maps-topo":              ["Summit Peak Name", "Elevation Data", ""],
     "maps-trade-route":       ["Chokepoint / Strait", "Trade Volume", ""],
 
-    "money-candlestick":      ["Ticker", "Percentage", ""],
+    "money-candlestick":      ["Ticker", "Market Cap", ""],
     "money-cash-stack":       ["Amount", "Label", ""],
     "money-titanium-card":    ["Brand Header", "Stat Percentage", "Subtext"],
     "money-crypto-surge":     ["Coin Price", "Growth Percentage", ""],
@@ -5423,7 +5434,7 @@ window.SC_TPL2 = (function () {
     "money-receipt":          ["Invoice Header", "", ""],
     "money-wallet-unlock":    ["Net Worth", "Status", ""],
     "money-sale-slash":       ["Old Price", "New Price", "Badge Label"],
-    "money-atm":              ["ATM Status", "Payout Note", ""],
+    "money-atm":              ["Bill Amount", "Payout Note", ""],
 
     "ui-ios-notify":          ["App Name", "Notification Body", ""],
     "ui-safari-scroll":       ["Website Title", "", ""],
@@ -5483,7 +5494,7 @@ window.SC_TPL2 = (function () {
     "paper-binder":           ["Card Title", "Card Subtitle", "Folder Code"],
     "paper-receipt":          ["Receipt Header", "Item Line", "Total Amount"],
     "paper-double-pol":       ["Title", "Photo 1 Label", "Photo 2 Label"],
-    "paper-collage":          ["Sub-label", "Main Headline", "Cutout Caption"],
+    "paper-collage":          ["Hook Word", "Caption", "Cutout Caption"],
 
     "text-highlight-box":     ["Kicker Tag", "Highlighted Phrase", "Payoff Subtitle"],
     "text-scribble":          ["Pre-heading", "Main Hook", "Supporting Line"],
@@ -5507,7 +5518,7 @@ window.SC_TPL2 = (function () {
     "maps-topo":              ["Summit Peak Name", "Elevation Data", "Mountain Range"],
     "maps-trade-route":       ["Chokepoint / Strait", "Trade Volume", "Daily Vessel Count"],
 
-    "money-candlestick":      ["Ticker Symbol", "Percentage Change", "Current Price"],
+    "money-candlestick":      ["Ticker Symbol", "Market Cap Line", "Current Price"],
     "money-cash-stack":       ["Amount Value", "Metric Label", "Time Period"],
     "money-titanium-card":    ["Cardholder Name", "Stat Percentage", "Subtext Detail"],
     "money-crypto-surge":     ["Coin Price", "Growth Percentage", "24h Volume"],
@@ -5516,7 +5527,7 @@ window.SC_TPL2 = (function () {
     "money-receipt":          ["Invoice Header", "Item Description", "Grand Total"],
     "money-wallet-unlock":    ["Net Worth Value", "Portfolio Status", "Daily Gain"],
     "money-sale-slash":       ["Old Price", "New Price", "Badge Label"],
-    "money-atm":              ["ATM Status", "Payout Note", "Balance Remaining"],
+    "money-atm":              ["Bill Amount", "Payout Note", "Balance Remaining"],
 
     "ui-ios-notify":          ["App Name", "Notification Body", "Timestamp Tag"],
     "ui-safari-scroll":       ["Website Title", "URL Domain", "Headline Text"],

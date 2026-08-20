@@ -1,90 +1,64 @@
-// ============================================================
-// ShortsCraft — Comments Ledger Backend
-// Manages real-time template comments and creator discussions
-// ============================================================
-const fs = require("fs");
-const path = require("path");
+/* ============================================================
+   comments.js — template comment threads, backed by Postgres.
+   ============================================================ */
+const db = require("./db");
 
-// Overridable so the container can point it at the mounted volume — writing
-// inside the image would lose every comment on each redeploy.
-const COMMENTS_FILE = process.env.COMMENTS_FILE || path.join(__dirname, ".comments.json");
+/* A template with no comments yet still needs to look alive. This is not
+   persisted until someone actually comments — it is a display fallback, the
+   same behaviour the file-backed version had. */
+const GENERIC_FALLBACK = [
+  { id: "c_gen_1", authorName: "Motion Creator", authorHandle: "@motion_pro", text: "Stunning kinetic pacing and clean easing curves. Great template!", time: "4 hours ago", likes: 5 },
+  { id: "c_gen_2", authorName: "Creator Hub", authorHandle: "@creator_daily", text: "Super easy to customize in the Studio editor.", time: "1 day ago", likes: 3 }
+];
 
-const SEED_COMMENTS = {
-  "docu-red-string": [
-    { id: "c_1", authorName: "Aryan Vlogs", authorHandle: "@aryan_edits", text: "This corkboard hook helped my crime short hit 180k views! The string connection animation is so smooth.", time: "2 hours ago", likes: 14 },
-    { id: "c_2", authorName: "Rohan FX", authorHandle: "@rohan_motion", text: "Can we customize the text inside the polaroids in the editor?", time: "5 hours ago", likes: 8 },
-    { id: "c_3", authorName: "Crime Chronicles", authorHandle: "@crime_vault", text: "Best investigation board template available online. 10/10.", time: "1 day ago", likes: 22 }
-  ],
-  "social-views-counter": [
-    { id: "c_4", authorName: "Tech Trends", authorHandle: "@techtrends_in", text: "The milestone tick animation is perfect for subscriber growth reels.", time: "1 hour ago", likes: 19 },
-    { id: "c_5", authorName: "Kabir", authorHandle: "@kabir_shorts", text: "Smooth 60fps counter! Looks very professional.", time: "4 hours ago", likes: 7 }
-  ],
-  "paper-torn-rip": [
-    { id: "c_6", authorName: "Kunal Designs", authorHandle: "@kunal_fx", text: "The torn paper texture on cutting mat looks 100% like After Effects!", time: "3 hours ago", likes: 31 },
-    { id: "c_7", authorName: "Ananya", authorHandle: "@ananya_motion", text: "Procedural deckle edges are crazy good 🔥", time: "6 hours ago", likes: 12 }
-  ],
-  "ui-google-search": [
-    { id: "c_8", authorName: "Vikram Dev", authorHandle: "@vikram_dev", text: "The typing cursor and drop suggest animation is super engaging.", time: "30 mins ago", likes: 15 },
-    { id: "c_9", authorName: "Shorts Guy", authorHandle: "@shorts_master", text: "Used this for an SEO tutorial short, worked like magic.", time: "2 days ago", likes: 9 }
-  ]
-};
-
-let store = {};
-
-function load() {
-  try {
-    if (fs.existsSync(COMMENTS_FILE)) {
-      store = JSON.parse(fs.readFileSync(COMMENTS_FILE, "utf8"));
-    } else {
-      store = JSON.parse(JSON.stringify(SEED_COMMENTS));
-      save();
-    }
-  } catch (e) {
-    store = JSON.parse(JSON.stringify(SEED_COMMENTS));
-  }
+function relativeTime(createdAt) {
+  const ms = Date.now() - new Date(createdAt).getTime();
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return "Just now";
+  if (min < 60) return min + (min === 1 ? " minute ago" : " minutes ago");
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return hr + (hr === 1 ? " hour ago" : " hours ago");
+  const day = Math.floor(hr / 24);
+  return day + (day === 1 ? " day ago" : " days ago");
 }
 
-function save() {
-  try {
-    fs.writeFileSync(COMMENTS_FILE, JSON.stringify(store, null, 2), "utf8");
-  } catch (e) {
-    console.warn("[comments save skipped]", e.message);
-  }
-}
-
-load();
-
-function getComments(tplId) {
-  load();
-  if (store[tplId]) return store[tplId];
-  // Generate generic initial comments for any template
-  return [
-    { id: "c_gen_1", authorName: "Motion Creator", authorHandle: "@motion_pro", text: "Stunning kinetic pacing and clean easing curves. Great template!", time: "4 hours ago", likes: 5 },
-    { id: "c_gen_2", authorName: "Creator Hub", authorHandle: "@creator_daily", text: "Super easy to customize in the Studio editor.", time: "1 day ago", likes: 3 }
-  ];
-}
-
-function addComment(tplId, commentData, user) {
-  load();
-  if (!store[tplId]) {
-    store[tplId] = getComments(tplId);
-  }
-  const handle = (user && user.handle) || commentData.authorHandle || "@creator_" + Math.floor(Math.random() * 899 + 100);
-  const name = (user && user.name) || commentData.authorName || "Creator";
-  const newC = {
-    id: "c_" + Date.now(),
-    authorName: name,
-    authorHandle: handle.startsWith("@") ? handle : "@" + handle,
-    text: String(commentData.text || "").trim().slice(0, 500),
-    time: "Just now",
-    likes: 1
+function toComment(row) {
+  return {
+    id: row.id,
+    authorName: row.author_name,
+    authorHandle: row.author_handle,
+    text: row.text,
+    time: relativeTime(row.created_at),
+    likes: row.likes
   };
-  store[tplId].unshift(newC);
-  save();
-  return newC;
 }
 
-module.exports = {
-  getComments,
-  addComment
-};
+async function getComments(tplId) {
+  const { rows } = await db.query(
+    `select * from public.template_comments where tpl_id = $1 order by created_at desc`,
+    [tplId]
+  );
+  if (rows.length) return rows.map(toComment);
+  return GENERIC_FALLBACK;
+}
+
+async function addComment(tplId, commentData, user) {
+  const handle = (user && user.handle) || commentData.authorHandle || "@creator_" + Math.floor(Math.random() * 899 + 100);
+  const name = (user && user.displayName) || commentData.authorName || "Creator";
+  const id = "c_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+  const { rows } = await db.query(
+    `insert into public.template_comments (id, tpl_id, author_name, author_handle, text, likes)
+     values ($1, $2, $3, $4, $5, 1)
+     returning *`,
+    [
+      id, tplId,
+      name || "Creator",
+      handle.startsWith("@") ? handle : "@" + handle,
+      String(commentData.text || "").trim().slice(0, 500)
+    ]
+  );
+  return toComment(rows[0]);
+}
+
+module.exports = { getComments, addComment };

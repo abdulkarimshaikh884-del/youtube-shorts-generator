@@ -1,71 +1,61 @@
 /* ============================================================
-   waitlist.js — reservations for the launch offer.
+   waitlist.js — reservations for the launch offer, backed by Postgres.
 
    The payment gateway needs an 18+ account holder, so until it is switched on
    the pricing page collects interest instead of money. Nothing here charges
    anyone; it records "tell me when Pro opens" so the first buyers are already
    waiting on day one.
-
-   File-backed like credits.js and auth.js — one small JSON file is the source
-   of truth, so a restart or a second process cannot serve a stale list.
    ============================================================ */
-const fs = require("fs");
-const path = require("path");
-
-const FILE = process.env.WAITLIST_FILE || path.join(__dirname, ".waitlist.json");
-
-let cache = null;
-let cacheMtime = 0;
-
-function load() {
-  let mtime = 0;
-  try { mtime = fs.statSync(FILE).mtimeMs; } catch (e) { mtime = 0; }
-  if (cache && mtime === cacheMtime) return cache;
-  try {
-    cache = JSON.parse(fs.readFileSync(FILE, "utf8"));
-  } catch (e) {
-    cache = { entries: [] };
-  }
-  if (!Array.isArray(cache.entries)) cache.entries = [];
-  cacheMtime = mtime;
-  return cache;
-}
-
-function save() {
-  fs.writeFileSync(FILE, JSON.stringify(cache, null, 2));
-  try { cacheMtime = fs.statSync(FILE).mtimeMs; } catch (e) { cacheMtime = 0; }
-}
+const db = require("./db");
 
 function normEmail(e) {
   return String(e || "").trim().toLowerCase();
 }
 
 /* Adding the same address twice is not an error — it is someone checking that
-   their reservation stuck. Report the existing position instead of a duplicate. */
-function add(email, plan, userId) {
-  const db = load();
+   their reservation stuck. Report the existing position instead of a
+   duplicate row (the unique index on lower(email) is what actually enforces
+   this — ON CONFLICT just turns that into a friendly response). */
+async function add(email, plan, userId) {
   const key = normEmail(email);
-  const at = db.entries.findIndex((x) => normEmail(x.email) === key);
-  if (at > -1) {
-    return { already: true, position: at + 1 };
+  const { rows } = await db.query(
+    `insert into public.waitlist (email, plan, user_id)
+     values ($1, $2, $3)
+     on conflict (lower(email)) do nothing
+     returning id`,
+    [key, plan || "promax", userId || null]
+  );
+
+  if (rows.length) {
+    const { rows: pos } = await db.query(
+      `select count(*)::int as n from public.waitlist where id <= $1`,
+      [rows[0].id]
+    );
+    return { already: false, position: pos[0].n };
   }
-  db.entries.push({
-    email: key,
-    plan: plan || "promax",
-    userId: userId || null,
-    at: new Date().toISOString()
-  });
-  save();
-  return { already: false, position: db.entries.length };
+
+  // Already on the list — find its position by insertion order.
+  const { rows: existing } = await db.query(
+    `select id from public.waitlist where lower(email) = $1`, [key]
+  );
+  const { rows: pos } = await db.query(
+    `select count(*)::int as n from public.waitlist where id <= $1`,
+    [existing[0].id]
+  );
+  return { already: true, position: pos[0].n };
 }
 
-function count() {
-  return load().entries.length;
+async function count() {
+  const { rows } = await db.query(`select count(*)::int as n from public.waitlist`);
+  return rows[0].n;
 }
 
 /* For the owner: everyone to email when payments open. */
-function list() {
-  return load().entries.slice();
+async function list() {
+  const { rows } = await db.query(
+    `select email, plan, user_id as "userId", created_at as "at" from public.waitlist order by id asc`
+  );
+  return rows;
 }
 
 module.exports = { add, count, list };

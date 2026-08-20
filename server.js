@@ -137,27 +137,52 @@ app.use(
 // local store. Auth runs BEFORE credits so a signed-in visitor is billed against
 // their account instead of an anonymous cookie.
 const auth = require("./auth");
-app.use(auth.middleware);
-
-app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), (req, res) => {
-  const { email, password } = req.body || {};
-  const out = auth.signUp(res, email, password);
-  if (out.error) return res.status(400).json({ success: false, error: out.error });
-  console.log("[auth] new account", out.user.email, "· total", auth.count());
-  return res.json({ success: true, user: out.user });
+// Express 4 does not await an async middleware's own promise — it only
+// reacts to next() being called — so an unhandled rejection inside
+// auth.middleware would surface as a silent hang, not a 500. Wrapping it
+// makes a DB error during session lookup a clean failure instead.
+app.use((req, res, next) => {
+  auth.middleware(req, res, next).catch((err) => {
+    console.error("[auth.middleware]", err.message);
+    req.user = null;
+    next();
+  });
 });
 
-app.post("/api/auth/login", rateLimit({ windowMs: 600_000, max: 20 }), (req, res) => {
-  const { email, password } = req.body || {};
-  const out = auth.logIn(res, email, password);
-  // deliberately vague: never reveal whether the address exists
-  if (out.error) return res.status(401).json({ success: false, error: out.error });
-  return res.json({ success: true, user: out.user });
+app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    const out = await auth.signUp(res, email, password);
+    if (out.error) return res.status(400).json({ success: false, error: out.error });
+    console.log("[auth] new account", out.user.email, "· total", await auth.count());
+    return res.json({ success: true, user: out.user });
+  } catch (err) {
+    console.error("[/api/auth/signup]", err.message);
+    return res.status(500).json({ success: false, error: "Could not create the account. Please retry." });
+  }
 });
 
-app.post("/api/auth/logout", (req, res) => {
-  auth.logOut(req, res);
-  return res.json({ success: true });
+app.post("/api/auth/login", rateLimit({ windowMs: 600_000, max: 20 }), async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    const out = await auth.logIn(res, email, password);
+    // deliberately vague: never reveal whether the address exists
+    if (out.error) return res.status(401).json({ success: false, error: out.error });
+    return res.json({ success: true, user: out.user });
+  } catch (err) {
+    console.error("[/api/auth/login]", err.message);
+    return res.status(500).json({ success: false, error: "Could not log in. Please retry." });
+  }
+});
+
+app.post("/api/auth/logout", async (req, res) => {
+  try {
+    await auth.logOut(req, res);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("[/api/auth/logout]", err.message);
+    return res.status(500).json({ success: false, error: "Could not log out. Please retry." });
+  }
 });
 
 app.get("/api/auth/me", (req, res) => {
@@ -165,21 +190,31 @@ app.get("/api/auth/me", (req, res) => {
   return res.json({ success: true, user: req.user || null });
 });
 
-app.post("/api/auth/profile", (req, res) => {
-  if (!req.user || !req.user.id) {
-    return res.status(401).json({ success: false, error: "Please log in first." });
+app.post("/api/auth/profile", async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, error: "Please log in first." });
+    }
+    const out = await auth.updateProfile(req.user.id, req.body || {});
+    if (out.error) return res.status(400).json({ success: false, error: out.error });
+    return res.json({ success: true, user: out.user });
+  } catch (err) {
+    console.error("[/api/auth/profile]", err.message);
+    return res.status(500).json({ success: false, error: "Could not save your profile. Please retry." });
   }
-  const out = auth.updateProfile(req.user.id, req.body || {});
-  if (out.error) return res.status(400).json({ success: false, error: out.error });
-  return res.json({ success: true, user: out.user });
 });
 
-app.post("/api/auth/star", (req, res) => {
-  const targetId = req.body?.userId || req.user?.id;
-  if (!targetId) return res.status(400).json({ success: false, error: "Target creator is required." });
-  const out = auth.giveStar(targetId);
-  if (out.error) return res.status(400).json({ success: false, error: out.error });
-  return res.json({ success: true, stars: out.stars });
+app.post("/api/auth/star", async (req, res) => {
+  try {
+    const targetId = req.body?.userId || req.user?.id;
+    if (!targetId) return res.status(400).json({ success: false, error: "Target creator is required." });
+    const out = await auth.giveStar(targetId);
+    if (out.error) return res.status(400).json({ success: false, error: out.error });
+    return res.json({ success: true, stars: out.stars });
+  } catch (err) {
+    console.error("[/api/auth/star]", err.message);
+    return res.status(500).json({ success: false, error: "Could not save that. Please retry." });
+  }
 });
 
 // ── Credits ────────────────────────────────────────────────
@@ -191,41 +226,71 @@ const waitlist = require("./waitlist");
 const community = require("./community");
 app.use(credits.middleware);
 
-app.get("/api/credits", (req, res) => {
-  res.set("Cache-Control", "no-store");
-  res.json({ success: true, ...credits.state(req) });
+app.get("/api/credits", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    res.json({ success: true, ...(await credits.state(req)) });
+  } catch (err) {
+    console.error("[/api/credits]", err.message);
+    res.status(500).json({ success: false, error: "Could not load credits." });
+  }
 });
 
 // ── Community Templates & Creator Publishing ─────────────────
-app.get("/api/community-templates", (req, res) => {
-  res.set("Cache-Control", "no-store");
-  res.json({ success: true, templates: community.list(req.query.cat) });
+app.get("/api/community-templates", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    res.json({ success: true, templates: await community.list(req.query.cat) });
+  } catch (err) {
+    console.error("[/api/community-templates]", err.message);
+    res.status(500).json({ success: false, error: "Could not load templates." });
+  }
 });
 
-app.get("/api/user/creations", (req, res) => {
-  res.set("Cache-Control", "no-store");
-  const userId = req.user?.id || null;
-  const userHandle = req.user?.handle || (req.user?.email ? req.user.email.split("@")[0] : null);
-  const items = community.listByAuthor(userId, userHandle);
-  return res.json({ success: true, creations: items });
+app.get("/api/user/creations", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    const userId = req.user?.id || null;
+    const userHandle = req.user?.handle || (req.user?.email ? req.user.email.split("@")[0] : null);
+    const items = await community.listByAuthor(userId, userHandle);
+    return res.json({ success: true, creations: items });
+  } catch (err) {
+    console.error("[/api/user/creations]", err.message);
+    res.status(500).json({ success: false, error: "Could not load creations." });
+  }
 });
 
-app.post("/api/community-templates", express.json(), (req, res) => {
-  const result = community.publish(req.body, req.user);
-  if (result.error) return res.status(400).json({ success: false, error: result.error });
-  res.json(result);
+app.post("/api/community-templates", express.json(), async (req, res) => {
+  try {
+    const result = await community.publish(req.body, req.user);
+    if (result.error) return res.status(400).json({ success: false, error: result.error });
+    res.json(result);
+  } catch (err) {
+    console.error("[POST /api/community-templates]", err.message);
+    res.status(500).json({ success: false, error: "Could not publish that template." });
+  }
 });
 
-app.delete("/api/community-templates/:id", (req, res) => {
-  const result = community.remove(req.params.id, req.user);
-  if (result.error) return res.status(400).json({ success: false, error: result.error });
-  res.json({ success: true });
+app.delete("/api/community-templates/:id", async (req, res) => {
+  try {
+    const result = await community.remove(req.params.id, req.user);
+    if (result.error) return res.status(400).json({ success: false, error: result.error });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[DELETE /api/community-templates]", err.message);
+    res.status(500).json({ success: false, error: "Could not delete that template." });
+  }
 });
 
-app.post("/api/community-templates/:id/like", (req, res) => {
-  const result = community.like(req.params.id);
-  if (result.error) return res.status(404).json({ success: false, error: result.error });
-  res.json(result);
+app.post("/api/community-templates/:id/like", async (req, res) => {
+  try {
+    const result = await community.like(req.params.id);
+    if (result.error) return res.status(404).json({ success: false, error: result.error });
+    res.json(result);
+  } catch (err) {
+    console.error("[POST /api/community-templates/:id/like]", err.message);
+    res.status(500).json({ success: false, error: "Could not like that template." });
+  }
 });
 
 // AI Video-to-Template ("deconstruct a video into a template") is not a real
@@ -236,20 +301,30 @@ app.post("/api/community-templates/:id/like", (req, res) => {
 // ── Comments & Discussions API ──────────────────────────────
 const comments = require("./comments");
 
-app.get("/api/comments", (req, res) => {
-  const tplId = String(req.query.tpl || "docu-red-string");
-  res.json({ success: true, comments: comments.getComments(tplId) });
+app.get("/api/comments", async (req, res) => {
+  try {
+    const tplId = String(req.query.tpl || "docu-red-string");
+    res.json({ success: true, comments: await comments.getComments(tplId) });
+  } catch (err) {
+    console.error("[/api/comments]", err.message);
+    res.status(500).json({ success: false, error: "Could not load comments." });
+  }
 });
 
-app.post("/api/comments", express.json(), (req, res) => {
-  const tplId = req.body?.tpl;
-  if (!tplId) return res.status(400).json({ success: false, error: "Template id is required." });
-  const newC = comments.addComment(tplId, req.body, req.user);
-  res.json({ success: true, comment: newC });
+app.post("/api/comments", express.json(), async (req, res) => {
+  try {
+    const tplId = req.body?.tpl;
+    if (!tplId) return res.status(400).json({ success: false, error: "Template id is required." });
+    const newC = await comments.addComment(tplId, req.body, req.user);
+    res.json({ success: true, comment: newC });
+  } catch (err) {
+    console.error("[POST /api/comments]", err.message);
+    res.status(500).json({ success: false, error: "Could not post that comment." });
+  }
 });
 
 // ── Creator Profile API ─────────────────────────────────────
-app.get("/api/creator", (req, res) => {
+app.get("/api/creator", async (req, res) => {
   const handle = String(req.query.handle || "").replace(/^@/, "").toLowerCase();
   const creatorProfiles = {
     crimedocu: {
@@ -354,8 +429,13 @@ app.get("/api/creator", (req, res) => {
     cat: "all"
   };
 
-  const commTemplates = community.listByAuthor(null, "@" + handle);
-  res.json({ success: true, creator: prof, communityTemplates: commTemplates });
+  try {
+    const commTemplates = await community.listByAuthor(null, "@" + handle);
+    res.json({ success: true, creator: prof, communityTemplates: commTemplates });
+  } catch (err) {
+    console.error("[/api/creator]", err.message);
+    res.status(500).json({ success: false, error: "Could not load that creator." });
+  }
 });
 
 // ── Health check ────────────────────────────────────────────
@@ -376,146 +456,265 @@ app.get("/api/config", (req, res) => {
     gaId: process.env.GA_ID || "",
     services: {
       ai: Boolean(process.env.NVIDIA_API_KEY || process.env.GROQ_API_KEY || process.env.GEMINI_API_KEY),
-      auth: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+      // Accounts are our own Postgres-backed auth (auth.js + db.js), not
+      // Supabase's client SDK. Reporting readiness from SUPABASE_ANON_KEY —
+      // which this app no longer uses — told the frontend auth was off while
+      // sign-up and log-in were working perfectly well.
+      auth: Boolean(process.env.DATABASE_URL),
       payments: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
     },
   });
 });
 
 // ── Unified AI Generation (NVIDIA NIM / Groq / Gemini) ───────
-async function callAI(prompt, { temperature = 0.7, maxTokens = 2200, system, model: modelOverride, timeoutMs = 120_000 } = {}) {
-  const nvidiaKey = process.env.NVIDIA_API_KEY;
-  const groqKey = process.env.GROQ_API_KEY;
-  const geminiKey = process.env.GEMINI_API_KEY;
+/* Every provider gets its OWN timeout budget instead of sharing one abort
+   controller. Sharing it meant a single unreachable provider could eat the
+   whole window and the request never reached the healthy fallback — which is
+   exactly what happened: NVIDIA stopped answering, so /api/generate hung for
+   two minutes and the SEO Tools button sat on "Generating…" forever.
+
+   A provider that times out or answers with a 4xx is parked for a few minutes,
+   so the next visitor does not pay the same dead-provider tax again. */
+const DEFAULT_PROVIDER_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 45_000);
+const PROVIDER_COOLDOWN_MS = 5 * 60_000;
+const providerDown = new Map(); // name -> timestamp it may be retried
+
+function providerAvailable(name) {
+  const until = providerDown.get(name);
+  if (!until) return true;
+  if (Date.now() >= until) { providerDown.delete(name); return true; }
+  return false;
+}
+function markProviderDown(name, why) {
+  providerDown.set(name, Date.now() + PROVIDER_COOLDOWN_MS);
+  console.warn(`[ai] ${name} parked for ${PROVIDER_COOLDOWN_MS / 60000}min — ${why}`);
+}
+
+const DEFAULT_SYSTEM =
+  "You are ShortsCraft, an expert AI video and YouTube Shorts creator who writes punchy Hinglish (Hindi-English mix) content for animated motion graphics, kinetic typography, viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and video-first.";
+
+/* A key that is unset, blank, or still a placeholder is not a key. Treating an
+   empty string as configured is how a blank GROQ_API_KEY turned into a 401 on
+   every request instead of that provider simply being skipped. */
+function realKey(v) {
+  const s = String(v || "").trim();
+  if (!s) return null;
+  if (/^(your|changeme|xxx|<)/i.test(s)) return null;
+  return s;
+}
+
+async function fetchWithTimeout(url, opts, ms) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, Object.assign({}, opts, { signal: ctrl.signal }));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* 429 and 503 mean "busy, come back" — not "broken". Giving the same provider a
+   second chance after a short pause is far cheaper than falling through to a
+   slower one, and it is what turned a hosted-model demand spike into a failed
+   animation instead of a two-second wait. */
+const RETRYABLE = new Set([429, 503, 502, 504]);
+
+async function withRetry(run, attempts = 3) {
+  let last;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await run();
+    } catch (err) {
+      last = err;
+      if (!err.retryable || i === attempts - 1) throw err;
+      await new Promise((r) => setTimeout(r, 700 * Math.pow(2, i)));
+    }
+  }
+  throw last;
+}
+
+/* json:true asks the provider for a JSON body — the animation scene generator
+   needs that. The SEO tools want plain text with "=== SECTION ===" headers, so
+   it must stay OFF by default; forcing JSON there handed the renderer a JSON
+   blob it could not display as headings. */
+async function callAI(prompt, {
+  temperature = 0.7,
+  maxTokens = 2200,
+  system,
+  model: modelOverride,
+  json = false,
+  timeoutMs = DEFAULT_PROVIDER_TIMEOUT_MS,
+} = {}) {
+  const sys = system || DEFAULT_SYSTEM;
+  const nvidiaKey = realKey(process.env.NVIDIA_API_KEY);
+  const groqKey = realKey(process.env.GROQ_API_KEY);
+  const geminiKey = realKey(process.env.GEMINI_API_KEY);
 
   if (!nvidiaKey && !groqKey && !geminiKey) throw new Error("AI service not configured");
 
-  const ctrl = new AbortController();
-  const timeout = setTimeout(() => ctrl.abort(), timeoutMs);
-
-  try {
-    // 1) Primary: NVIDIA NIM (Llama 3.1 / Nemotron)
-    if (nvidiaKey) {
-      try {
-        const baseUrl = process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1";
-        const model = modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct";
-        const r = await fetch(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${nvidiaKey}`,
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              {
-                role: "system",
-                content: system ||
-                  "You are ShortsCraft, an expert AI video and YouTube Shorts creator who writes punchy Hinglish (Hindi-English mix) content for animated motion graphics, kinetic typography, viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and video-first.",
-              },
-              { role: "user", content: prompt },
-            ],
-            temperature,
-            top_p: 0.95,
-            max_tokens: Math.min(maxTokens, 2500),
-          }),
-          signal: ctrl.signal,
-        });
-
-        if (r.ok) {
-          const data = await r.json();
-          const msg = data?.choices?.[0]?.message;
-          const content = msg?.content?.trim() || "";
-          if (content) return content;
-        } else {
-          const errText = await r.text().catch(() => "");
-          console.warn(`[NVIDIA NIM error ${r.status}]:`, errText.slice(0, 200));
-          if (!groqKey && !geminiKey) {
-            throw new Error(`NVIDIA AI provider error (${r.status}): ${errText.slice(0, 200)}`);
-          }
-        }
-      } catch (nErr) {
-        console.warn("[NVIDIA NIM attempt failed]:", nErr.message);
-        if (!groqKey && !geminiKey) throw nErr;
-      }
+  // OpenAI-compatible chat completion — NVIDIA NIM and Groq share this shape.
+  const openaiStyle = (name, url, key, model) => async () => {
+    const r = await fetchWithTimeout(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify(Object.assign({
+        model,
+        messages: [{ role: "system", content: sys }, { role: "user", content: prompt }],
+        temperature,
+        top_p: 0.95,
+        max_tokens: Math.min(maxTokens, 2500),
+      }, json ? { response_format: { type: "json_object" } } : {})),
+    }, timeoutMs);
+    if (!r.ok) {
+      const body = await r.text().catch(() => "");
+      const err = new Error(`${name} ${r.status}: ${body.slice(0, 180)}`);
+      // 4xx means a bad key or a bad model name — retrying costs latency for
+      // nothing, so park it. 5xx may be transient, so leave it in rotation.
+      err.park = r.status >= 400 && r.status < 500 && !RETRYABLE.has(r.status);
+      err.retryable = RETRYABLE.has(r.status);
+      throw err;
     }
+    const data = await r.json();
+    const content = (data && data.choices && data.choices[0] && data.choices[0].message
+      && data.choices[0].message.content || "").trim();
+    if (!content) throw new Error(`${name} returned an empty completion`);
+    return content;
+  };
 
-    // 2) Secondary: Groq
-    if (groqKey) {
-      const model = modelOverride || process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-      const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  const geminiCall = (key, model) => async () => {
+    const r = await fetchWithTimeout(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
+      {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${groqKey}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: "system",
-              content: system ||
-                "You are ShortsCraft, an expert AI video and YouTube Shorts creator who writes punchy Hinglish (Hindi-English mix) content for animated motion graphics, kinetic typography, viral hooks, SEO titles, descriptions, hashtags, ideas, and thumbnail prompts. Always be concise, energetic, and video-first.",
-            },
-            { role: "user", content: prompt },
-          ],
-          temperature,
-          max_tokens: maxTokens,
+          systemInstruction: { parts: [{ text: sys }] },
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          /* Gemini 3 reasons before it answers and charges that reasoning to
+             the SAME maxOutputTokens budget — a 3500-token ask spent 3360 on
+             thinking and emitted 136, so the scene JSON came back cut in half
+             and every AI animation failed on "invalid JSON". The budget has to
+             cover thinking AND the answer, hence the generous multiplier.
+             (thinkingBudget:0 is rejected outright by these models.) */
+          generationConfig: Object.assign({
+            temperature,
+            maxOutputTokens: Math.min(Math.max(maxTokens * 4, 8192), 32768),
+          }, json ? { responseMimeType: "application/json" } : {}),
         }),
-        signal: ctrl.signal,
-      });
-
-      if (!r.ok) {
-        const errText = await r.text().catch(() => "");
-        if (!geminiKey) throw new Error(`Groq AI error (${r.status}): ${errText.slice(0, 200)}`);
-      } else {
-        const data = await r.json();
-        const c = data?.choices?.[0]?.message?.content?.trim() || "";
-        if (c) return c;
-      }
+      },
+      timeoutMs
+    );
+    if (!r.ok) {
+      const body = await r.text().catch(() => "");
+      const err = new Error(`Gemini ${r.status}: ${body.slice(0, 180)}`);
+      err.park = r.status >= 400 && r.status < 500 && !RETRYABLE.has(r.status);
+      err.retryable = RETRYABLE.has(r.status);
+      throw err;
     }
-
-    // 3) Fallback: Gemini
-    if (geminiKey) {
-      const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
-      let attempts = 0;
-      let r, errText;
-      while (attempts < 2) {
-        attempts++;
-        r = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
-              contents: [{ role: "user", parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature,
-                maxOutputTokens: 8192,
-                responseMimeType: "application/json"
-              }
-            }),
-            signal: ctrl.signal,
-          }
-        );
-        if (r.ok) break;
-        if (r.status === 503 && attempts < 2) {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          continue;
-        }
-        errText = await r.text().catch(() => "");
-        throw new Error(`Gemini AI provider error (${r.status}): ${errText.slice(0, 200)}`);
-      }
-      const data = await r.json();
-      const parts = data?.candidates?.[0]?.content?.parts || [];
-      return parts.map((p) => p.text).filter(Boolean).join("").trim();
+    const data = await r.json();
+    const cand = (data && data.candidates && data.candidates[0]) || null;
+    const parts = (cand && cand.content && cand.content.parts) || [];
+    const content = parts.map((p) => p.text).filter(Boolean).join("").trim();
+    // A truncated answer is worse than none: it reaches the caller as malformed
+    // JSON or a half-written script. Say so and let the chain try another model.
+    if (cand && cand.finishReason === "MAX_TOKENS") {
+      const err = new Error(`Gemini ${model} hit the output limit before finishing`);
+      err.retryable = true;
+      throw err;
     }
+    if (!content) throw new Error("Gemini returned an empty completion");
+    return content;
+  };
 
-    throw new Error("AI returned empty response. Please retry.");
-  } finally {
-    clearTimeout(timeout);
+  const available = {};
+  if (nvidiaKey) {
+    const base = (process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1").replace(/\/$/, "");
+    available.nvidia = openaiStyle("NVIDIA", `${base}/chat/completions`, nvidiaKey,
+      modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct");
   }
+  if (groqKey) {
+    available.groq = openaiStyle("Groq", "https://api.groq.com/openai/v1/chat/completions", groqKey,
+      process.env.GROQ_MODEL || "llama-3.3-70b-versatile");
+  }
+  if (geminiKey) {
+    /* One hosted model can be busy while its siblings are idle — a 503 "high
+       demand" on the lead model is not an outage. Rolling to the next model
+       name costs a second; falling through to the next provider costs its
+       whole timeout. Aliases first: a pinned version can be retired without
+       warning, which is exactly how gemini-2.5-flash started 404ing. */
+    const geminiModels = String(
+      process.env.GEMINI_MODEL
+        ? process.env.GEMINI_MODEL + ",gemini-flash-latest,gemini-3.6-flash"
+        : "gemini-flash-latest,gemini-3.6-flash,gemini-3.5-flash"
+    ).split(",").map((s) => s.trim()).filter(Boolean);
+    const uniqueModels = [...new Set(geminiModels)];
+
+    available.gemini = async () => {
+      let last;
+      for (const m of uniqueModels) {
+        try {
+          return await geminiCall(geminiKey, m)();
+        } catch (err) {
+          last = err;
+          // A retryable/missing model rolls on; anything else (bad key, quota
+          // exhausted) will fail identically on every model, so stop early.
+          if (!err.retryable && !/ 404:/.test(err.message)) throw err;
+          console.warn(`[ai] gemini model ${m} unavailable — trying next`);
+        }
+      }
+      throw last;
+    };
+  }
+
+  /* Gemini leads by default because it is the provider that actually answers
+     on this deployment: NVIDIA's /chat/completions accepts the request and then
+     never responds (its /models endpoint replies in under half a second, so the
+     key is fine — the inference route is not). Set AI_PROVIDER_ORDER to
+     reorder, e.g. "nvidia,gemini", once that account can serve completions. */
+  const order = String(process.env.AI_PROVIDER_ORDER || "gemini,nvidia,groq")
+    .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const chain = [];
+  for (const name of order) if (available[name]) chain.push([name, available[name]]);
+  for (const name of Object.keys(available)) {
+    if (!chain.some(([n]) => n === name)) chain.push([name, available[name]]);
+  }
+
+  const failures = [];
+  /* Pass 1 tries the providers that were healthy when this request began.
+     Pass 2 reaches for the ones that were already parked before it began, so a
+     provider that has since recovered is not locked out for the full cooldown.
+     A provider that fails *during* this request is never retried inside it —
+     doing that made one dead provider cost its timeout twice per request. */
+  const parkedAtStart = new Set(chain.map(([n]) => n).filter((n) => !providerAvailable(n)));
+  const attempt = async (name, run) => {
+    try {
+      const out = await withRetry(run);
+      providerDown.delete(name);
+      return { ok: true, out };
+    } catch (err) {
+      const timedOut = err.name === "AbortError" || err.name === "TimeoutError";
+      const why = timedOut ? `timed out after ${timeoutMs}ms` : err.message;
+      failures.push(`${name}: ${why}`);
+      console.warn(`[ai] ${name} failed — ${why}`);
+      if (err.park || timedOut) markProviderDown(name, why);
+      return { ok: false };
+    }
+  };
+
+  for (const [name, run] of chain) {
+    if (parkedAtStart.has(name)) continue;
+    const r = await attempt(name, run);
+    if (r.ok) return r.out;
+  }
+  for (const [name, run] of chain) {
+    if (!parkedAtStart.has(name)) continue;
+    const r = await attempt(name, run);
+    if (r.ok) return r.out;
+  }
+
+  const e = new Error(`All AI providers failed — ${failures.join(" | ")}`);
+  e.allProvidersFailed = true;
+  throw e;
 }
 const callGroq = callAI;
 
@@ -611,24 +810,26 @@ Strict requirements:
     res.json({ success: true, type, topic, content, generatedAt: new Date().toISOString() });
   } catch (err) {
     console.error("[/api/generate]", err.message);
-    const userMsg =
-      err.name === "AbortError"
-        ? "AI is taking too long. Please retry."
-        : err.message?.includes("not configured")
-        ? "Service temporarily unavailable."
-        : "Generation failed. Please retry in a few seconds.";
-    res.status(500).json({ success: false, error: userMsg });
+    // 503, not 500: when every provider is down this is an upstream outage, and
+    // saying so lets the browser show "try again shortly" instead of a bug.
+    const down = err.allProvidersFailed || /not configured/.test(err.message || "");
+    res.status(down ? 503 : 500).json({
+      success: false,
+      error: down
+        ? "The AI service is not responding right now. Please try again in a minute."
+        : "Generation failed. Please retry in a few seconds.",
+    });
   }
 });
 
 /* Pro Max launches as a lifetime deal for the first credits.LIFETIME_SLOTS
    buyers. Once those seats are taken the same price buys a year instead.
    The decision is made here, server-side, at the moment of purchase. */
-function planTermFor(planId) {
+async function planTermFor(planId) {
   const plan = credits.PLANS[planId];
   if (!plan) return "month";
   if (plan.term !== "lifetime") return plan.term;
-  const taken = auth.countLifetime(planId);
+  const taken = await auth.countLifetime(planId);
   return taken < credits.LIFETIME_SLOTS ? "lifetime" : (plan.fallbackTerm || "year");
 }
 
@@ -636,37 +837,47 @@ const paymentsLive = () =>
   Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 
 // ── Launch offer status (how many lifetime seats are left) ──
-app.get("/api/offer", (req, res) => {
-  res.set("Cache-Control", "no-store");
-  const taken = auth.countLifetime("promax");
-  const total = credits.LIFETIME_SLOTS;
-  const left = Math.max(0, total - taken);
-  res.json({
-    success: true,
-    plan: "promax",
-    price: credits.PLANS.promax.price,
-    proPrice: credits.PLANS.pro.price,
-    total, taken, left,
-    lifetimeAvailable: left > 0,
-    term: left > 0 ? "lifetime" : (credits.PLANS.promax.fallbackTerm || "year"),
-    // Until the gateway is configured the pricing page collects reservations
-    // instead of payments. Adding the keys flips it to real checkout with no
-    // code change.
-    paymentsLive: paymentsLive(),
-    opensOn: process.env.PAYMENTS_OPEN_DATE || "",
-    reserved: waitlist.count()
-  });
+app.get("/api/offer", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    const taken = await auth.countLifetime("promax");
+    const total = credits.LIFETIME_SLOTS;
+    const left = Math.max(0, total - taken);
+    res.json({
+      success: true,
+      plan: "promax",
+      price: credits.PLANS.promax.price,
+      proPrice: credits.PLANS.pro.price,
+      total, taken, left,
+      lifetimeAvailable: left > 0,
+      term: left > 0 ? "lifetime" : (credits.PLANS.promax.fallbackTerm || "year"),
+      // Until the gateway is configured the pricing page collects reservations
+      // instead of payments. Adding the keys flips it to real checkout with no
+      // code change.
+      paymentsLive: paymentsLive(),
+      opensOn: process.env.PAYMENTS_OPEN_DATE || "",
+      reserved: await waitlist.count()
+    });
+  } catch (err) {
+    console.error("[/api/offer]", err.message);
+    res.status(500).json({ success: false, error: "Could not load the offer." });
+  }
 });
 
 // ── Reserve a seat while payments are not open yet ──────────
-app.post("/api/waitlist", rateLimit({ windowMs: 60_000, max: 10 }), (req, res) => {
-  const email = String(req.body?.email || "").trim().slice(0, 140);
-  const plan = credits.PLANS[String(req.body?.plan || "")] ? String(req.body.plan) : "promax";
-  if (!/^[^\s@]{1,64}@[^\s@]{3,255}\.[a-z]{2,24}$/i.test(email)) {
-    return res.status(400).json({ success: false, error: "That email address does not look right." });
+app.post("/api/waitlist", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().slice(0, 140);
+    const plan = credits.PLANS[String(req.body?.plan || "")] ? String(req.body.plan) : "promax";
+    if (!/^[^\s@]{1,64}@[^\s@]{3,255}\.[a-z]{2,24}$/i.test(email)) {
+      return res.status(400).json({ success: false, error: "That email address does not look right." });
+    }
+    const r = await waitlist.add(email, plan, req.user ? req.user.id : null);
+    res.json({ success: true, alreadyOn: r.already, position: r.position });
+  } catch (err) {
+    console.error("[/api/waitlist]", err.message);
+    res.status(500).json({ success: false, error: "Could not reserve that seat. Please retry." });
   }
-  const r = waitlist.add(email, plan, req.user ? req.user.id : null);
-  res.json({ success: true, alreadyOn: r.already, position: r.position });
 });
 
 // ── Razorpay: create order ──────────────────────────────────
@@ -692,7 +903,7 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
       return res.status(503).json({ success: false, error: "Payments are not switched on yet. Please try again shortly." });
     }
 
-    const term = planTermFor(planId);
+    const term = await planTermFor(planId);
     const amountPaise = plan.price * 100;
     const userId = req.user.id;
 
@@ -755,10 +966,10 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
       return res.status(401).json({ success: false, error: "Please log in to activate your plan." });
     }
     const planId = credits.PLANS[String(req.body?.plan || "")] ? String(req.body.plan) : "pro";
-    const term = planTermFor(planId);
+    const term = await planTermFor(planId);
 
-    auth.changePlan(req.user.id, planId, term);
-    credits.setPlan(req, planId);
+    await auth.changePlan(req.user.id, planId, term);
+    await credits.setPlan(req, planId);
 
     res.json({
       success: true,
@@ -847,7 +1058,14 @@ const EXPORT_LIMITS = {
   fps: [24, 30, 60],
   heights: [720, 1080, 1440],
   maxDurMs: 12000,              // total across all clips
-  maxFrames: 900,
+  /* Rendering costs roughly 0.1s of CPU per frame, and exports are serialised
+     so one request blocks the next. 900 frames is ~90s of render before
+     queueing, which overruns the 100s timeout most proxies (Render included)
+     put in front of a web service — the client would see a dropped connection
+     after the work had already been done. 450 keeps the worst case near 45s.
+     12s at 30fps (360) still fits; 12s at 60fps does not and is refused with
+     an actionable message rather than silently timing out. */
+  maxFrames: 450,
   maxClips: 8,
   aspects: {
     "9:16": [9, 16], "16:9": [16, 9], "1:1": [1, 1], "4:5": [4, 5],
@@ -958,14 +1176,14 @@ app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async
   }
   /* Order matters: validate the request, then check what this account is allowed
      to use, and only then complain about our own configuration. */
-  const plan = credits.state(req).plan;
+  const plan = (await credits.state(req)).plan;
   if (TIER[quality].plans.indexOf(plan) < 0) {
     return res.status(403).json({
       success: false,
       error: `The ${TIER[quality].label} model needs the ${TIER[quality].label} plan. ` +
         `You are on ${credits.PLANS[plan].label}.`,
       needPlan: TIER[quality].plans[0],
-      credits: credits.state(req)
+      credits: await credits.state(req)
     });
   }
   if (!process.env.NVIDIA_API_KEY && !process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
@@ -975,12 +1193,12 @@ app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async
     });
   }
 
-  const bill = credits.charge(req, "animate");
+  const bill = await credits.charge(req, "animate");
   if (!bill.ok) {
     return res.status(402).json({
       success: false,
       error: `A custom animation costs ${bill.need} credits and you have ${bill.left} left today.`,
-      credits: credits.state(req)
+      credits: await credits.state(req)
     });
   }
 
@@ -989,12 +1207,12 @@ app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async
       prompt, dur, image,
       model: TIER[quality].model(),
       callModel: ({ system, user, model, maxTokens, temperature }) =>
-        callAI(user, { system, model, maxTokens, temperature })
+        callAI(user, { system, model, maxTokens, temperature, json: true, timeoutMs: 90_000 })
     });
-    return res.json({ success: true, scene, credits: credits.state(req) });
+    return res.json({ success: true, scene, credits: await credits.state(req) });
   } catch (err) {
     // nobody pays for our failure
-    credits.refund(req, "animate");
+    await credits.refund(req, "animate");
     const bad = err instanceof anim.BadScene;
     console.error("[/api/animate]", bad ? "rejected: " : "", err.message);
     return res.status(bad ? 422 : 502).json({
@@ -1003,7 +1221,7 @@ app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async
         ? "The generated scene did not pass our safety and quality checks. Try rewording the prompt."
         : "The AI service did not respond. Please retry.",
       detail: bad ? err.message : undefined,
-      credits: credits.state(req)
+      credits: await credits.state(req)
     });
   }
 });
@@ -1059,7 +1277,10 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
 
   const dur = clips.reduce((s, c) => s + c.dur, 0);
   if (dur > EXPORT_LIMITS.maxDurMs) {
-    return res.status(400).json({ success: false, error: "Requested clip is too long." });
+    return res.status(400).json({
+      success: false,
+      error: `The project is ${(dur / 1000).toFixed(1)}s long. The export limit is ${EXPORT_LIMITS.maxDurMs / 1000}s — shorten or remove a clip.`
+    });
   }
   const tpl = clips[0].tpl;
 
@@ -1081,17 +1302,17 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
   // frames are apportioned per clip so the total matches duration * fps exactly
   const total = Math.round((dur / 1000) * fps);
   if (total > EXPORT_LIMITS.maxFrames) {
-    return res.status(400).json({ success: false, error: "Requested clip is too long." });
+    return res.status(400).json({ success: false, error: `That is ${total} frames to render. Lower the frame rate or shorten the clip — the limit is ${EXPORT_LIMITS.maxFrames} frames.` });
   }
 
   // Exporting costs a credit. Charged after validation so a malformed request
   // never bills, and refunded below if the render itself fails.
-  const bill = credits.charge(req, "export");
+  const bill = await credits.charge(req, "export");
   if (!bill.ok) {
     return res.status(402).json({
       success: false,
       error: `Exporting costs ${bill.need} credit and you have ${bill.left} left today.`,
-      credits: credits.state(req)
+      credits: await credits.state(req)
     });
   }
 
@@ -1160,10 +1381,10 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
     res.setHeader("Content-Disposition",
       `attachment; filename="shortscraft-${tpl}-${aspect.replace(":", "x")}.mp4"`);
     res.setHeader("Cache-Control", "no-store");
-    res.setHeader("X-Credits-Left", String(credits.state(req).left));
+    res.setHeader("X-Credits-Left", String((await credits.state(req)).left));
     return res.end(mp4);
   } catch (err) {
-    credits.refund(req, "export");
+    await credits.refund(req, "export");
     console.error("[/api/export]", err.message);
     if (/Unknown template/.test(err.message)) {
       return res.status(400).json({ success: false, error: "Unknown template." });

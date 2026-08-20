@@ -126,8 +126,11 @@ function cleanBody(body) {
     while ((a = attrRe.exec(m[2] || ""))) {
       const name = a[1].toLowerCase();
       if (!ATTRS.has(name)) {
-        // Silently skip non-standard / pseudo attributes rather than breaking the entire scene
-        continue;
+        // Refuse, do not skip. "Skip" left the attribute sitting in the body
+        // string that gets rendered — the allowlist was being consulted and
+        // then ignored, so things like srcdoc sailed through. The scene is
+        // model output we can regenerate, so rejecting costs nothing.
+        throw new BadScene(`body uses the ${name} attribute, which is not allowed`);
       }
       const val = (a[2] || "").replace(/^['"]|['"]$/g, "");
       if (name === "style") {
@@ -193,7 +196,13 @@ RULES:
 2. Monochrome base (#08080a) with EXACTLY ONE accent colour, used via var(--ac).
 3. Spring easing: animation: animName var(--D) var(--sp) infinite. var(--D) is loop duration (${dur}ms).
 4. Size everything with container units: cqw and cqh (9:16 viewport).
-5. Output raw JSON ONLY with double quotes (") around all keys and values. No markdown fences.`;
+5. Output raw JSON ONLY with double quotes (") around all keys and values. No markdown fences.
+6. ${hasImage
+    ? "The user attached an image. Use it as the subject: reference it as " +
+      "background-image:url(var(--img)) with background-size:cover, and animate " +
+      "it (a slow parallax drift, a masked reveal, or a scale-in). url(var(--img)) " +
+      "is the ONLY url() you may write."
+    : "Do not reference any image. No url(), no <img>, no background-image."}`;
 }
 
 /* ── model call ───────────────────────────────────────────── */
@@ -269,28 +278,33 @@ async function generateScene({ prompt, dur, image, model, callModel }) {
 
   spec.img = image || null;
 
-  // Auto-inject loop duration if missing
-  if (spec.css && !/var\(--D\)/.test(spec.css)) {
-    spec.css = spec.css.replace(/(\d+(?:\.\d+)?s|\d+ms)(?=\s+(?:var\(--sp\)|ease|linear|cubic-bezier|infinite))/gi, "var(--D)");
-    if (!/var\(--D\)/.test(spec.css)) {
-      spec.css += "\n.sc-wrap,.sc-card,.sc-elem{animation:scPulse var(--D) var(--sp) infinite;}";
-    }
+  /* Quality gate.
+
+     A near-miss is repaired: if the model wrote a real animation but hardcoded
+     its duration ("3s") instead of using var(--D), rewrite it so the scene
+     honours the clip length. That produces exactly what the user asked for.
+
+     Anything worse is refused, not patched. Bolting a generic pulse onto a
+     static card would hand back a scene the user did not ask for while still
+     charging them 5 credits; throwing BadScene makes /api/animate refund the
+     credit and tell them to reword. */
+  if (spec.css && /@keyframes/i.test(spec.css) && !/var\(--D\)/.test(spec.css)) {
+    spec.css = spec.css.replace(
+      /(\d+(?:\.\d+)?s|\d+ms)(?=\s+(?:var\(--sp\)|var\(--ov\)|ease|linear|cubic-bezier|infinite))/gi,
+      "var(--D)"
+    );
   }
 
-  // Auto-inject keyframes if missing
-  if (spec.css && !/@keyframes/i.test(spec.css)) {
-    spec.css += "\n@keyframes scPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:0.92}}";
+  if (!spec.css || !/@keyframes/i.test(spec.css)) {
+    throw new BadScene("the model returned no animation — the scene has no @keyframes");
+  }
+  if (!/var\(--D\)/.test(spec.css)) {
+    throw new BadScene("the scene ignores the loop length (var(--D)), so it would not match the clip");
   }
 
-  let clean;
-  try {
-    clean = sanitise(spec);
-  } catch (err) {
-    console.warn("[animate] sanitise fallback triggered:", err.message);
-    clean = createFallbackScene(prompt, dur);
-  }
-
-  return clean;
+  // Hostile output is refused outright rather than quietly swapped for a
+  // fallback — a silent swap hides that the model produced something unsafe.
+  return sanitise(spec);
 }
 
 function createFallbackScene(prompt, dur) {
