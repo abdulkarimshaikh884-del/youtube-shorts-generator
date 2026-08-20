@@ -68,6 +68,12 @@
 
 /* ── cards ─────────────────────────────────────────────── */
 .pg-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+
+/* An email address is one unbreakable token far longer than the other stats,
+   so in a 262px half-column it was snapping mid-domain — "example.c / om".
+   Give that one card the full row and let it wrap at a sane point. */
+.pg-grid .pg-card--wide{grid-column:1/-1}
+.pg-grid .pg-card p{overflow-wrap:anywhere}
 .pg-card{
   padding:20px;border:1px solid var(--line);border-radius:16px;
   background:linear-gradient(180deg, rgba(22, 22, 34, 0.85) 0%, rgba(12, 12, 18, 0.95) 100%);

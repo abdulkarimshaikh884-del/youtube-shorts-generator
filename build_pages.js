@@ -9,7 +9,19 @@ const path = require("path");
 const OUT = path.join(__dirname, "public");
 const V = "202608192";
 
-const { LIFETIME_SLOTS } = require("./credits");
+/* Read from credits.js rather than require()ing it: that module pulls in db.js,
+   which throws at import time when DATABASE_URL is unset — so generating static
+   marketing pages had come to depend on holding live database credentials.
+   The server keeps that fail-fast; a page build has no business needing it. */
+const LIFETIME_SLOTS = (function () {
+  try {
+    const src = fs.readFileSync(path.join(__dirname, "credits.js"), "utf8");
+    const m = src.match(/const\s+LIFETIME_SLOTS\s*=\s*(\d+)/);
+    return m ? Number(m[1]) : 100;
+  } catch (e) {
+    return 100;
+  }
+})();
 
 /* Counted from the engine itself so the marketing copy can never claim a
    template count the site does not actually ship. */
@@ -52,8 +64,11 @@ const TOOLS = [
    The wordmark stays as the way back. Everything after it closes the document,
    so chrome() returns early for these pages. */
 function BARE(p, V) {
+  /* The outer element only centres the card — the <main> is p.body's own, and
+     nesting one inside another is invalid HTML that leaves assistive tech with
+     two competing "main content" landmarks on the page. */
   return `
-<main class="pg-screen">
+<div class="pg-screen">
   <a href="/" class="pg-wordmark" aria-label="ShortsCraft home">
     <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
     <span class="sh-brand-name">Shorts<i>Craft</i></span>
@@ -66,7 +81,7 @@ ${p.body}
     <a href="/privacy">Privacy</a>
     <a href="/contact">Help</a>
   </nav>
-</main>
+</div>
 
 <script src="/authui.js?v=${V}" defer></script>
 <script src="/page.js?v=${V}" defer></script>
@@ -400,7 +415,7 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
       <section class="pg-sec">
         <h2>What a credit buys</h2>
         <div class="pg-grid">
-          <article class="pg-card"><h3>${C.export} credit · Export a template</h3><p>Any of the 12 motion templates, edited however you like, rendered to a real MP4 at up to 1440p. Editing and previewing are free — you are only charged when you export.</p></article>
+          <article class="pg-card"><h3>${C.export} credit · Export a template</h3><p>Any of the ${TPL_COUNT} motion templates, edited however you like, rendered to a real MP4 at up to 1440p. Editing and previewing are free — you are only charged when you export.</p></article>
           <article class="pg-card"><h3>${C.animate} credits · A custom AI animation</h3><p>Describe the animation you want, optionally attach an image, and the AI designs a brand-new scene for your timeline. It costs more because it is a model call, not a preset.</p></article>
           <article class="pg-card"><h3>Free · Everything else</h3><p>Browsing templates, editing text and colours, building a multi-clip sequence, scrubbing the timeline and using all six SEO tools.</p></article>
           <article class="pg-card"><h3>Failed work is refunded</h3><p>If a render or a generation fails on our side, the credits go straight back. You never pay for our error.</p></article>
@@ -447,7 +462,7 @@ ${pageHead("About", "A motion-design workspace, not another text-on-gradient app
 
         <h2>How it works</h2>
         <ol>
-          <li><strong>Pick a template</strong> from twelve motion pieces across eight categories.</li>
+          <li><strong>Pick a template</strong> from ${TPL_COUNT} motion templates across eight categories.</li>
           <li><strong>Edit the content</strong> — the fields are named for what the animation actually shows, so a progress ring asks for a percentage, not a paragraph.</li>
           <li><strong>Build a sequence</strong> on the timeline. Each clip has its own template, text, accent and duration.</li>
           <li><strong>Export a real MP4.</strong> Headless Chrome renders the animation frame by frame and ffmpeg encodes H.264 — deterministic timing, no screen recording, no dropped frames.</li>
@@ -812,7 +827,7 @@ const account = {
         </div>
 
         <div class="pg-grid">
-          <article class="pg-card"><h3>Email</h3><p id="accEmail">—</p></article>
+          <article class="pg-card pg-card--wide"><h3>Email</h3><p id="accEmail">—</p></article>
           <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p><p class="pg-cardsub" id="accPlanTerm"></p></article>
           <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
           <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
@@ -943,7 +958,7 @@ const indexPage = {
           <div class="sh-search-bar-row">
             <div class="sh-search-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="tplSearch" placeholder="Search 80+ motion templates..." autocomplete="off">
+              <input type="text" id="tplSearch" placeholder="Search ${TPL_COUNT} motion templates..." autocomplete="off">
               <button type="button" id="tplSearchClear" hidden>×</button>
             </div>
             <div class="sh-filters-scroll" id="filters"></div>

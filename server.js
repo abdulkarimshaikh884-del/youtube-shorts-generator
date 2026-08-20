@@ -1555,6 +1555,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, error: "Internal server error." });
 });
 
+/* db.js builds its pool lazily now, so a server with no DATABASE_URL would
+   otherwise boot happily and only fall over on the first visitor. Check here
+   instead: a misconfigured deploy dies at startup, where the logs get read. */
+try {
+  require("./db").assertReady();
+} catch (err) {
+  console.error("[boot]", err.message);
+  process.exit(1);
+}
+
 app.listen(PORT, () => {
   console.log(`⚡ ShortsCraft v2.0 running on :${PORT} (${NODE_ENV})`);
 });

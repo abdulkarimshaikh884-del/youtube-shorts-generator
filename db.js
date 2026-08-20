@@ -17,14 +17,21 @@
    ============================================================ */
 const { Pool } = require("pg");
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL is not set. The app now reads accounts, credits and the " +
-    "waitlist from Postgres — see DEPLOY.md for the connection string."
-  );
-}
+const MISSING_URL =
+  "DATABASE_URL is not set. Accounts, credits and the waitlist are read from " +
+  "Postgres — see DEPLOY.md for the connection string.";
 
-const pool = new Pool({
+/* Built on first use rather than at import. Throwing while the module loaded
+   meant anything that merely reached credits.js for a constant — build_pages.js
+   wants LIFETIME_SLOTS and the plan table — could not run at all without live
+   database credentials, so generating static marketing pages had become a
+   privileged operation. The server still fails fast: it calls assertReady() at
+   boot, so a misconfigured deploy dies immediately and loudly as before. */
+let pool = null;
+function getPool() {
+  if (pool) return pool;
+  if (!process.env.DATABASE_URL) throw new Error(MISSING_URL);
+  pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Supabase terminates TLS with a cert that isn't in Node's default trust
   // store; rejectUnauthorized:false trusts the connection without pinning
@@ -40,22 +47,30 @@ const pool = new Pool({
   // A cold connection over a slow link occasionally passed 10s and surfaced as
   // "Connection terminated due to connection timeout" during load.
   connectionTimeoutMillis: 20_000
-});
+  });
 
-pool.on("error", (err) => {
-  // A dropped idle connection must not crash the process — the next query
-  // just opens a new one from the pool.
-  console.error("[db] idle client error:", err.message);
-});
+  pool.on("error", (err) => {
+    // A dropped idle connection must not crash the process — the next query
+    // just opens a new one from the pool.
+    console.error("[db] idle client error:", err.message);
+  });
+  return pool;
+}
+
+/* Boot-time guard for the server, so a missing connection string is still a
+   startup failure rather than a surprise on the first visitor request. */
+function assertReady() {
+  if (!process.env.DATABASE_URL) throw new Error(MISSING_URL);
+}
 
 function query(text, params) {
-  return pool.query(text, params);
+  return getPool().query(text, params);
 }
 
 /* Run a set of queries on one connection inside a transaction. `fn` receives
    a client with the same .query(text, params) shape. */
 async function tx(fn) {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query("BEGIN");
     const result = await fn(client);
@@ -69,4 +84,4 @@ async function tx(fn) {
   }
 }
 
-module.exports = { query, tx, pool };
+module.exports = { query, tx, getPool, assertReady };
