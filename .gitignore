@@ -1,7 +1,9 @@
 node_modules/
 .env
 .env.local
-.env.example
+# .env.example carries no secrets — it is the template a deploy is set up from,
+# so it belongs in the repo.
+!.env.example
 data/
 *.log
 *.ps1
