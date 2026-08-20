@@ -191,6 +191,23 @@
       show(modal, false);
     }
 
+    /* Escape closes a dialog — people expect it, and without it the only way
+       out was to hit the small ✕. Backdrop clicks close it too, but only when
+       the press started on the backdrop, so dragging a selection out of a
+       field and releasing outside does not throw the form away. */
+    modal.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") { ev.stopPropagation(); closeModal(); }
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !modal.hasAttribute("hidden")) closeModal();
+    });
+    var backdropDown = false;
+    modal.addEventListener("pointerdown", function (ev) { backdropDown = ev.target === modal; });
+    modal.addEventListener("click", function (ev) {
+      if (ev.target === modal && backdropDown) closeModal();
+      backdropDown = false;
+    });
+
     openBtns.forEach(function (btn) {
       btn.addEventListener("click", function (e) {
         e.preventDefault();
@@ -548,6 +565,23 @@
     function closeModal() {
       show(modal, false);
     }
+
+    /* Escape closes a dialog — people expect it, and without it the only way
+       out was to hit the small ✕. Backdrop clicks close it too, but only when
+       the press started on the backdrop, so dragging a selection out of a
+       field and releasing outside does not throw the form away. */
+    modal.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") { ev.stopPropagation(); closeModal(); }
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !modal.hasAttribute("hidden")) closeModal();
+    });
+    var backdropDown = false;
+    modal.addEventListener("pointerdown", function (ev) { backdropDown = ev.target === modal; });
+    modal.addEventListener("click", function (ev) {
+      if (ev.target === modal && backdropDown) closeModal();
+      backdropDown = false;
+    });
 
     openBtns.forEach(function (b) {
       b.addEventListener("click", function (e) {

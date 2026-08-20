@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Terms of Service — ShortsCraft</title>
-<meta name="description" content="The rules for using ShortsCraft: who owns the output, what is not allowed, plans and refunds, and the limits of our liability."/>
-<link rel="canonical" href="https://shortscraft.online/terms"/>
+<title>My uploads — ShortsCraft</title>
+<meta name="description" content="The templates you have published to the ShortsCraft community."/>
+<link rel="canonical" href="https://shortscraft.online/uploads"/>
+<meta name="robots" content="noindex, follow"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Terms of Service — ShortsCraft"/>
-<meta property="og:description" content="The rules for using ShortsCraft: who owns the output, what is not allowed, plans and refunds, and the limits of our liability."/>
-<meta property="og:url" content="https://shortscraft.online/terms"/>
+<meta property="og:title" content="My uploads — ShortsCraft"/>
+<meta property="og:description" content="The templates you have published to the ShortsCraft community."/>
+<meta property="og:url" content="https://shortscraft.online/uploads"/>
 <meta name="twitter:card" content="summary_large_image"/>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,7 +57,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
           <span>Templates</span>
         </a>
-        <a href="/account">
+        <a href="/account" aria-current="page">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           <span>My Projects</span>
         </a>
@@ -205,51 +206,35 @@
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
-    <main class="pg">
+    <main class="pg pg-narrow">
     <section class="pg-head">
-      <span class="pg-eyebrow">Legal</span>
-      <h1>Terms of Service</h1>
-      <p>Last updated 8 August 2026. By using ShortsCraft you accept these terms.</p>
+      <span class="pg-eyebrow">My uploads</span>
+      <h1>Templates you have published</h1>
+      <p>Everything here is live in the Community gallery under your creator name and handle.</p>
     </section>
 
-      <section class="pg-sec pg-prose pg-legal">
-        <h2>What the service is</h2>
-        <p>ShortsCraft generates animated videos from templates you configure, and text for short-form content using an AI model. It is a drafting tool. Judgement about what you publish stays with you.</p>
+      <section class="pg-sec" id="accountBox" hidden>
+        <div class="pg-accsec-head">
+          <h2><span id="creationsCount">0 Templates</span> published</h2>
+          <button type="button" class="pg-bo pg-accsec-btn js-open-upload">+ Publish a template</button>
+        </div>
 
-        <h2>Your content and your output</h2>
-        <p>The text you enter remains yours. The videos and text you generate are yours to use commercially, including on monetised channels. We claim no ownership of your output and no right to republish your work.</p>
-        <p>The templates, code, design and brand of ShortsCraft remain ours. You may use them to produce your videos; you may not resell, rehost or clone the product itself.</p>
+        <div class="pg-grid" id="userCreationsGrid">
+          <article class="pg-card"><h3>Loading…</h3><p>Fetching your published templates.</p></article>
+        </div>
 
-        <h2>Review before you publish</h2>
-        <p>AI output can be wrong, generic, or accidentally similar to something else. Fact-check it, edit it into your own voice, and make sure it fits the policies of the platform you upload to. We cannot be responsible for a video you did not check.</p>
+        <div class="pg-row" style="margin-top:22px">
+          <a href="/editor" class="pg-bw">Open the Studio</a>
+          <a href="/community" class="pg-bo">Browse the Community</a>
+        </div>
+      </section>
 
-        <h2>What is not allowed</h2>
-        <ul>
-          <li>Illegal content, or content that harasses, defames or endangers anyone.</li>
-          <li>Sexual content involving minors, or any content that sexualises children.</li>
-          <li>Impersonating a real person or brand, or building misleading medical, legal or financial claims.</li>
-          <li>Scraping, automating or hammering the API beyond the published rate limits, or trying to bypass them.</li>
-          <li>Reselling generations as your own API or service.</li>
-        </ul>
-        <p>Accounts or IPs doing any of this can be blocked without notice.</p>
-
-        <h2>Free plan and fair use</h2>
-        <p>The free plan includes 10 generations per day and export limits that keep the render queue usable for everyone. Rate limits exist so one user cannot starve the server, and they may be adjusted.</p>
-
-        <h2>Pro plan, billing and refunds</h2>
-        <p>Pro is ₹99 per month, billed through Razorpay. Cancel any time; access continues to the end of the period already paid for. If the service did not work for you, ask for a refund within 7 days of upgrading through <a href="/contact">Help &amp; Feedback</a>.</p>
-
-        <h2>Availability</h2>
-        <p>This is an independently run product. We do not promise uptime, and features can change or be withdrawn. Exports depend on server capacity — a long render may be queued.</p>
-
-        <h2>Liability</h2>
-        <p>ShortsCraft is provided "as is", without warranties. To the extent the law allows, our total liability is limited to the amount you paid us in the previous three months. We are not liable for lost revenue, lost views, or platform decisions about your channel.</p>
-
-        <h2>Changes</h2>
-        <p>These terms can change; the date above will say when. Continuing to use the service means accepting the current version.</p>
-
-        <h2>Contact</h2>
-        <p>Anything unclear here — ask through <a href="/contact">Help &amp; Feedback</a>.</p>
+      <section class="pg-sec" id="accountGuest" hidden>
+        <p class="pg-planline">Log in to see the templates you have published.</p>
+        <div class="pg-row">
+          <a href="/login?next=/uploads" class="pg-bw">Log in</a>
+          <a href="/signup?next=/uploads" class="pg-bo">Create an account</a>
+        </div>
       </section>
     </main>
 
@@ -291,5 +276,5 @@
 
 <script src="/authui.js?v=202608192" defer></script>
 <script src="/page.js?v=202608192" defer></script>
-</body>
+<script src="/templates-v2.js?v=9" defer></script></body>
 </html>

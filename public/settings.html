@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Terms of Service — ShortsCraft</title>
-<meta name="description" content="The rules for using ShortsCraft: who owns the output, what is not allowed, plans and refunds, and the limits of our liability."/>
-<link rel="canonical" href="https://shortscraft.online/terms"/>
+<title>Settings — ShortsCraft</title>
+<meta name="description" content="Your ShortsCraft profile, plan and account controls."/>
+<link rel="canonical" href="https://shortscraft.online/settings"/>
+<meta name="robots" content="noindex, follow"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Terms of Service — ShortsCraft"/>
-<meta property="og:description" content="The rules for using ShortsCraft: who owns the output, what is not allowed, plans and refunds, and the limits of our liability."/>
-<meta property="og:url" content="https://shortscraft.online/terms"/>
+<meta property="og:title" content="Settings — ShortsCraft"/>
+<meta property="og:description" content="Your ShortsCraft profile, plan and account controls."/>
+<meta property="og:url" content="https://shortscraft.online/settings"/>
 <meta name="twitter:card" content="summary_large_image"/>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -205,51 +206,84 @@
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
-    <main class="pg">
+    <main class="pg pg-narrow">
     <section class="pg-head">
-      <span class="pg-eyebrow">Legal</span>
-      <h1>Terms of Service</h1>
-      <p>Last updated 8 August 2026. By using ShortsCraft you accept these terms.</p>
+      <span class="pg-eyebrow">Settings</span>
+      <h1>Account settings</h1>
+      <p>Your creator identity, your plan, and the controls for this device.</p>
     </section>
 
-      <section class="pg-sec pg-prose pg-legal">
-        <h2>What the service is</h2>
-        <p>ShortsCraft generates animated videos from templates you configure, and text for short-form content using an AI model. It is a drafting tool. Judgement about what you publish stays with you.</p>
+      <section class="pg-sec" id="accountBox" hidden>
 
-        <h2>Your content and your output</h2>
-        <p>The text you enter remains yours. The videos and text you generate are yours to use commercially, including on monetised channels. We claim no ownership of your output and no right to republish your work.</p>
-        <p>The templates, code, design and brand of ShortsCraft remain ours. You may use them to produce your videos; you may not resell, rehost or clone the product itself.</p>
+        <h2 class="pg-seclabel">Creator profile</h2>
+        <div class="pg-prof" id="profile">
+          <div class="pg-prof-av" id="crAvatarChar">KA</div>
+          <div class="pg-prof-main">
+            <h3 class="pg-prof-name" id="crDisplayName">Creator</h3>
+            <p class="pg-prof-handle" id="crHandle">@creator</p>
+            <p class="pg-prof-bio" id="crBio"></p>
+            <div class="pg-prof-links">
+              <a id="crYtLink" href="/settings" target="_blank" rel="noopener">YouTube</a>
+              <a id="crIgLink" href="/settings" target="_blank" rel="noopener">Instagram</a>
+              <span class="pg-prof-stars">★ <b id="crStarsCount">48</b></span>
+            </div>
+          </div>
+          <button type="button" class="pg-bo pg-prof-edit" id="openEditProfileBtn">Edit profile</button>
+        </div>
+        <p class="pg-fine">This is what other creators see on every template you publish.</p>
 
-        <h2>Review before you publish</h2>
-        <p>AI output can be wrong, generic, or accidentally similar to something else. Fact-check it, edit it into your own voice, and make sure it fits the policies of the platform you upload to. We cannot be responsible for a video you did not check.</p>
+        <h2 class="pg-seclabel">Account</h2>
+        <div class="pg-grid">
+          <article class="pg-card pg-card--wide"><h3>Email</h3><p id="accEmail">—</p></article>
+          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p><p class="pg-cardsub" id="accPlanTerm"></p></article>
+          <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
+          <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
+        </div>
 
-        <h2>What is not allowed</h2>
-        <ul>
-          <li>Illegal content, or content that harasses, defames or endangers anyone.</li>
-          <li>Sexual content involving minors, or any content that sexualises children.</li>
-          <li>Impersonating a real person or brand, or building misleading medical, legal or financial claims.</li>
-          <li>Scraping, automating or hammering the API beyond the published rate limits, or trying to bypass them.</li>
-          <li>Reselling generations as your own API or service.</li>
-        </ul>
-        <p>Accounts or IPs doing any of this can be blocked without notice.</p>
+        <h2 class="pg-seclabel">Plan &amp; billing</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>Change your plan</h3>
+            <p>Compare Free, Pro and Pro Max, and see exactly what a credit buys.</p>
+            <a href="/pricing" class="pg-cardlink">View plans →</a>
+          </article>
+          <article class="pg-card">
+            <h3>Credits</h3>
+            <p>Credits reset every day at 00:00 UTC. Exporting costs 1, a custom AI scene costs 5.</p>
+            <a href="/pricing#credits" class="pg-cardlink">How credits work →</a>
+          </article>
+        </div>
 
-        <h2>Free plan and fair use</h2>
-        <p>The free plan includes 10 generations per day and export limits that keep the render queue usable for everyone. Rate limits exist so one user cannot starve the server, and they may be adjusted.</p>
+        <h2 class="pg-seclabel">Your work</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>Published templates</h3>
+            <p>Everything you have shared with the Community gallery.</p>
+            <a href="/uploads" class="pg-cardlink">Open My uploads →</a>
+          </article>
+          <article class="pg-card">
+            <h3>Drafts &amp; projects</h3>
+            <p>Projects the Studio has saved in this browser.</p>
+            <a href="/drafts" class="pg-cardlink">Open Drafts →</a>
+          </article>
+        </div>
 
-        <h2>Pro plan, billing and refunds</h2>
-        <p>Pro is ₹99 per month, billed through Razorpay. Cancel any time; access continues to the end of the period already paid for. If the service did not work for you, ask for a refund within 7 days of upgrading through <a href="/contact">Help &amp; Feedback</a>.</p>
+        <h2 class="pg-seclabel">This device</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>Sign out</h3>
+            <p>Log out of ShortsCraft here. Your templates and plan stay on your account.</p>
+            <button type="button" class="pg-cardlink pg-linkbtn pg-danger" id="accLogout">Log out →</button>
+          </article>
+        </div>
+      </section>
 
-        <h2>Availability</h2>
-        <p>This is an independently run product. We do not promise uptime, and features can change or be withdrawn. Exports depend on server capacity — a long render may be queued.</p>
-
-        <h2>Liability</h2>
-        <p>ShortsCraft is provided "as is", without warranties. To the extent the law allows, our total liability is limited to the amount you paid us in the previous three months. We are not liable for lost revenue, lost views, or platform decisions about your channel.</p>
-
-        <h2>Changes</h2>
-        <p>These terms can change; the date above will say when. Continuing to use the service means accepting the current version.</p>
-
-        <h2>Contact</h2>
-        <p>Anything unclear here — ask through <a href="/contact">Help &amp; Feedback</a>.</p>
+      <section class="pg-sec" id="accountGuest" hidden>
+        <p class="pg-planline">Log in to manage your profile, plan and account.</p>
+        <div class="pg-row">
+          <a href="/login?next=/settings" class="pg-bw">Log in</a>
+          <a href="/signup?next=/settings" class="pg-bo">Create an account</a>
+        </div>
       </section>
     </main>
 

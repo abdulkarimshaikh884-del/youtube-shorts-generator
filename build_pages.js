@@ -200,7 +200,7 @@ ${nav}
                 <span class="sh-upop-hot-tag">NEW</span>
               </button>
 
-              <a href="/account#creations" class="sh-upop-item">
+              <a href="/uploads" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>My Uploads</b>
@@ -208,7 +208,7 @@ ${nav}
                 </div>
               </a>
 
-              <a href="/account#drafts" class="sh-upop-item">
+              <a href="/drafts" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>Drafts &amp; Projects</b>
@@ -216,7 +216,7 @@ ${nav}
                 </div>
               </a>
 
-              <a href="/account#settings" class="sh-upop-item">
+              <a href="/settings" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>Settings</b>
@@ -837,48 +837,26 @@ const account = {
           <a href="/pricing" class="pg-bo">Change plan</a>
         </div>
 
-        <div class="pg-accsec" id="creations">
-          <div class="pg-accsec-head">
-            <h2>Your published templates</h2>
-            <button type="button" class="pg-bo pg-accsec-btn js-open-upload">+ Publish a template</button>
-          </div>
-          <div class="pg-grid" id="accTplGrid">
-            <article class="pg-card">
-              <h3>Nothing published yet</h3>
-              <p>Build a scene in the Studio, then publish it so other creators can use it. Your name and handle travel with it.</p>
-              <a href="/editor" class="pg-cardlink">Open Studio Editor →</a>
-            </article>
-          </div>
-        </div>
-
-        <div class="pg-accsec" id="drafts">
-          <div class="pg-accsec-head">
-            <h2>Drafts &amp; projects</h2>
-            <a href="/editor" class="pg-bo pg-accsec-btn">+ New project</a>
-          </div>
-          <div class="pg-grid" id="accDraftGrid">
-            <article class="pg-card">
-              <h3>Your work in progress lives in the Studio</h3>
-              <p>The editor keeps your current timeline in this browser, so you can close the tab and pick it up again. Publish a scene to keep it on your account for good.</p>
-              <a href="/editor" class="pg-cardlink">Continue in the Studio →</a>
-            </article>
-          </div>
-        </div>
-
-        <div class="pg-accsec" id="settings">
-          <div class="pg-accsec-head">
-            <h2>Settings</h2>
-          </div>
+        <!-- Uploads, drafts and settings are their own pages now. Three
+             sections that all lived here meant the account menu offered three
+             destinations and delivered one scrolled page. -->
+        <div class="pg-accsec">
+          <div class="pg-accsec-head"><h2>Your work</h2></div>
           <div class="pg-grid">
             <article class="pg-card">
-              <h3>Profile</h3>
-              <p>Your display name, handle, bio and social links appear on every template you publish.</p>
-              <button type="button" class="pg-cardlink pg-linkbtn" id="openEditProfileBtn2">Edit profile →</button>
+              <h3>My uploads</h3>
+              <p>The templates you have published to the Community gallery.</p>
+              <a href="/uploads" class="pg-cardlink">Open My uploads →</a>
             </article>
             <article class="pg-card">
-              <h3>Plan &amp; billing</h3>
-              <p>Compare plans, upgrade, or check what your credits buy.</p>
-              <a href="/pricing" class="pg-cardlink">View plans →</a>
+              <h3>Drafts &amp; projects</h3>
+              <p>Projects the Studio has saved in this browser, ready to reopen.</p>
+              <a href="/drafts" class="pg-cardlink">Open Drafts →</a>
+            </article>
+            <article class="pg-card">
+              <h3>Settings</h3>
+              <p>Your creator profile, plan and account controls.</p>
+              <a href="/settings" class="pg-cardlink">Open Settings →</a>
             </article>
             <article class="pg-card">
               <h3>Sign out</h3>
@@ -1142,6 +1120,167 @@ const creatorPage = {
   scripts: `<script src="/templates-v2.js?v=9"></script><script src="/creator-profile.js?v=4" defer></script>`
 };
 
+/* ── MY UPLOADS ───────────────────────────────────────────── */
+/* Was an anchor into /account that showed a permanent empty state: the script
+   that fills it looks for #userCreationsGrid, which existed on no page, so a
+   creator who had published templates still saw "nothing published yet". */
+const uploads = {
+  route: "/uploads",
+  active: "projects",
+  robots: "noindex, follow",
+  title: "My uploads — ShortsCraft",
+  desc: "The templates you have published to the ShortsCraft community.",
+  body: `    <main class="pg pg-narrow">
+${pageHead("My uploads", "Templates you have published",
+  "Everything here is live in the Community gallery under your creator name and handle.")}
+
+      <section class="pg-sec" id="accountBox" hidden>
+        <div class="pg-accsec-head">
+          <h2><span id="creationsCount">0 Templates</span> published</h2>
+          <button type="button" class="pg-bo pg-accsec-btn js-open-upload">+ Publish a template</button>
+        </div>
+
+        <div class="pg-grid" id="userCreationsGrid">
+          <article class="pg-card"><h3>Loading…</h3><p>Fetching your published templates.</p></article>
+        </div>
+
+        <div class="pg-row" style="margin-top:22px">
+          <a href="/editor" class="pg-bw">Open the Studio</a>
+          <a href="/community" class="pg-bo">Browse the Community</a>
+        </div>
+      </section>
+
+      <section class="pg-sec" id="accountGuest" hidden>
+        <p class="pg-planline">Log in to see the templates you have published.</p>
+        <div class="pg-row">
+          <a href="/login?next=/uploads" class="pg-bw">Log in</a>
+          <a href="/signup?next=/uploads" class="pg-bo">Create an account</a>
+        </div>
+      </section>
+    </main>`,
+  scripts: `<script src="/templates-v2.js?v=9" defer></script>`
+};
+
+/* ── DRAFTS & PROJECTS ────────────────────────────────────── */
+/* The copy here used to claim the editor kept your timeline between visits.
+   It did not — nothing was persisted anywhere. drafts-store.js implements that
+   promise, and this page is the list it makes possible. */
+const drafts = {
+  route: "/drafts",
+  active: "projects",
+  robots: "noindex, follow",
+  title: "Drafts & projects — ShortsCraft",
+  desc: "Your saved ShortsCraft animation projects, ready to reopen in the Studio.",
+  body: `    <main class="pg pg-narrow">
+${pageHead("Drafts & projects", "Your work in progress",
+  "The Studio saves every project in this browser as you edit. Reopen one to pick up exactly where you stopped.")}
+
+      <section class="pg-sec">
+        <div class="pg-accsec-head">
+          <h2>Saved projects <span class="pg-count" id="draftCount">0</span></h2>
+          <a href="/editor" class="pg-bo pg-accsec-btn">+ New project</a>
+        </div>
+
+        <div class="pg-grid" id="draftGrid">
+          <article class="pg-card"><h3>Loading…</h3><p>Reading your saved projects.</p></article>
+        </div>
+
+        <p class="pg-fine" id="draftNote" style="margin-top:18px">
+          Drafts are stored in this browser, so they do not follow you to another
+          device and clearing site data removes them. Publish a scene to keep it
+          on your account for good.
+        </p>
+      </section>
+    </main>`,
+  scripts: `<script src="/templates-v2.js?v=9"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=${V}" defer></script>`
+};
+
+/* ── SETTINGS ─────────────────────────────────────────────── */
+const settings = {
+  route: "/settings",
+  active: null,
+  robots: "noindex, follow",
+  title: "Settings — ShortsCraft",
+  desc: "Your ShortsCraft profile, plan and account controls.",
+  body: `    <main class="pg pg-narrow">
+${pageHead("Settings", "Account settings",
+  "Your creator identity, your plan, and the controls for this device.")}
+
+      <section class="pg-sec" id="accountBox" hidden>
+
+        <h2 class="pg-seclabel">Creator profile</h2>
+        <div class="pg-prof" id="profile">
+          <div class="pg-prof-av" id="crAvatarChar">KA</div>
+          <div class="pg-prof-main">
+            <h3 class="pg-prof-name" id="crDisplayName">Creator</h3>
+            <p class="pg-prof-handle" id="crHandle">@creator</p>
+            <p class="pg-prof-bio" id="crBio"></p>
+            <div class="pg-prof-links">
+              <a id="crYtLink" href="/settings" target="_blank" rel="noopener">YouTube</a>
+              <a id="crIgLink" href="/settings" target="_blank" rel="noopener">Instagram</a>
+              <span class="pg-prof-stars">★ <b id="crStarsCount">48</b></span>
+            </div>
+          </div>
+          <button type="button" class="pg-bo pg-prof-edit" id="openEditProfileBtn">Edit profile</button>
+        </div>
+        <p class="pg-fine">This is what other creators see on every template you publish.</p>
+
+        <h2 class="pg-seclabel">Account</h2>
+        <div class="pg-grid">
+          <article class="pg-card pg-card--wide"><h3>Email</h3><p id="accEmail">—</p></article>
+          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p><p class="pg-cardsub" id="accPlanTerm"></p></article>
+          <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
+          <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
+        </div>
+
+        <h2 class="pg-seclabel">Plan &amp; billing</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>Change your plan</h3>
+            <p>Compare Free, Pro and Pro Max, and see exactly what a credit buys.</p>
+            <a href="/pricing" class="pg-cardlink">View plans →</a>
+          </article>
+          <article class="pg-card">
+            <h3>Credits</h3>
+            <p>Credits reset every day at 00:00 UTC. Exporting costs ${C.export}, a custom AI scene costs ${C.animate}.</p>
+            <a href="/pricing#credits" class="pg-cardlink">How credits work →</a>
+          </article>
+        </div>
+
+        <h2 class="pg-seclabel">Your work</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>Published templates</h3>
+            <p>Everything you have shared with the Community gallery.</p>
+            <a href="/uploads" class="pg-cardlink">Open My uploads →</a>
+          </article>
+          <article class="pg-card">
+            <h3>Drafts &amp; projects</h3>
+            <p>Projects the Studio has saved in this browser.</p>
+            <a href="/drafts" class="pg-cardlink">Open Drafts →</a>
+          </article>
+        </div>
+
+        <h2 class="pg-seclabel">This device</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>Sign out</h3>
+            <p>Log out of ShortsCraft here. Your templates and plan stay on your account.</p>
+            <button type="button" class="pg-cardlink pg-linkbtn pg-danger" id="accLogout">Log out →</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="pg-sec" id="accountGuest" hidden>
+        <p class="pg-planline">Log in to manage your profile, plan and account.</p>
+        <div class="pg-row">
+          <a href="/login?next=/settings" class="pg-bw">Log in</a>
+          <a href="/signup?next=/settings" class="pg-bo">Create an account</a>
+        </div>
+      </section>
+    </main>`
+};
+
 /* ── write ────────────────────────────────────────────────── */
 const PAGES = [
   ["index.html", indexPage],
@@ -1156,7 +1295,10 @@ const PAGES = [
   ["seo-tools.html", seoTools],
   ["login.html", authPage("login")],
   ["signup.html", authPage("signup")],
-  ["account.html", account]
+  ["account.html", account],
+  ["uploads.html", uploads],
+  ["drafts.html", drafts],
+  ["settings.html", settings]
 ];
 
 let n = 0;

@@ -252,7 +252,53 @@
     else box.appendChild(f);
   }
 
+  /* ── Draft autosave ───────────────────────────────────────
+     One draft record per editor session, rewritten in place. Debounced because
+     the colour picker and the duration slider fire continuously while dragging,
+     and localStorage writes are synchronous. */
+  var currentDraftId = null;
+  var draftTimer = 0;
+  var projectNamed = false;   // true once the title is the person's own
+
+  function draftSnapshot() {
+    var nameEl = $("#edProject") || $("#edName");
+    return {
+      id: currentDraftId,
+      name: (nameEl && nameEl.value.trim()) || "Untitled animation",
+      aspect: state.aspect,
+      clips: state.clips.map(function (c) {
+        return {
+          tpl: c.tpl,
+          lines: Array.isArray(c.lines) ? c.lines.slice() : [],
+          accent: c.accent,
+          font: c.font,
+          dur: c.dur,
+          spec: c.spec || null
+        };
+      })
+    };
+  }
+
+  function saveDraftNow() {
+    if (!window.SC_DRAFTS || !state.clips.length) return;
+    var rec = SC_DRAFTS.save(draftSnapshot());
+    if (!rec) return;
+    // Adopt the id the store minted, so later saves update rather than pile up.
+    if (!currentDraftId) {
+      currentDraftId = rec.id;
+      try {
+        history.replaceState(null, "", "/editor?draft=" + encodeURIComponent(rec.id));
+      } catch (e) { /* a blocked history write must not lose the save */ }
+    }
+  }
+
+  function scheduleDraftSave() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveDraftNow, 600);
+  }
+
   function renderAll(keepLocal) {
+    scheduleDraftSave();
     state.clips.forEach(function (c, i) { renderClip(i, keepLocal); });
     var ar = state.aspect.split(":");
     $("#edFrame").style.setProperty("--arw", ar[0]);
@@ -274,6 +320,7 @@
   }
 
   function queueRender() {
+    scheduleDraftSave();
     clearTimeout(renderTimer);
     renderTimer = setTimeout(function () {
       renderClip(state.sel, true);
@@ -462,6 +509,12 @@
   function layout() {
     var ruler = $("#edRuler");
     if (!ruler) return;
+    /* Every structural change funnels through here — adding and deleting
+       clips, the duration slider, the aspect switch. Hooking the funnel rather
+       than each caller is why a clip added a moment before closing the tab is
+       still in the draft. (A resize also lands here; the save is debounced and
+       writes the same bytes, so it costs nothing.) */
+    scheduleDraftSave();
     var w = ruler.clientWidth || 600;
     var add = $("#edAdd");
     // the clip span has to leave room for the Add button, or the lane pushes
@@ -573,9 +626,15 @@
     $("#edTpl").value = isAi ? "" : c.tpl;
     $("#edTpl").disabled = isAi;
     $("#edFont").value = c.font;
-    $("#edProject").value = state.clips.length > 1
-      ? state.clips.length + " clips"
-      : clipName(c);
+    /* Only auto-label a project the person has not named. syncPanel runs on
+       every clip select and every add, so an unconditional write here wiped a
+       typed title the moment a second clip appeared — and now that drafts are
+       saved, it wiped it in storage too. */
+    if (!projectNamed) {
+      $("#edProject").value = state.clips.length > 1
+        ? state.clips.length + " clips"
+        : clipName(c);
+    }
     setAccent(c.accent);
     $("#edDur").value = String(Math.min(MAX_DUR, Math.max(2000, c.dur)));
     $("#edDurVal").textContent = (c.dur / 1000).toFixed(1) + "s";
@@ -1575,6 +1634,8 @@
     if (projInput) {
       projInput.addEventListener("input", function (ev) {
         document.title = (ev.target.value.trim() || "Editor") + " — ShortsCraft";
+        projectNamed = ev.target.value.trim() !== "";
+        scheduleDraftSave();
       });
     }
 
@@ -1589,6 +1650,14 @@
     });
 
     window.addEventListener("resize", function () { layout(); });
+
+    /* The debounce is the whole risk: closing the tab a moment after an edit
+       would drop it. pagehide fires on close, navigation and mobile Safari
+       backgrounding, where an unload handler does not. */
+    window.addEventListener("pagehide", saveDraftNow);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") saveDraftNow();
+    });
 
     // export / reset
     wireExportModal();
@@ -1675,16 +1744,46 @@
       if (pf) pf.value = topic.slice(0, 600);
     }
 
+    /* ?draft=<id> reopens saved work, and it wins over ?tpl= because someone
+       coming back to a project means to resume it, not start its first clip
+       again. Everything above has already built a valid single-clip state, so
+       a missing or corrupt draft simply falls through to that. */
+    var draftId = q.get("draft");
+    var restored = null;
+    if (draftId && window.SC_DRAFTS) restored = SC_DRAFTS.get(draftId);
+    if (restored && Array.isArray(restored.clips) && restored.clips.length) {
+      state.clips = restored.clips.map(function (c) {
+        var base = newClip(meta[c.tpl] ? c.tpl : "blank");
+        base.lines = Array.isArray(c.lines) ? c.lines.slice() : base.lines;
+        base.accent = c.accent || base.accent;
+        base.font = c.font || base.font;
+        base.dur = Number(c.dur) > 0 ? Number(c.dur) : base.dur;
+        if (c.spec) base.spec = c.spec;
+        return base;
+      });
+      state.sel = 0;
+      mounted = 0;
+      state.aspect = restored.aspect || state.aspect;
+      currentDraftId = restored.id;
+      if (nameEl) nameEl.value = restored.name || "Untitled animation";
+      projectNamed = true;
+    }
+
     renderAll(false);
     syncPanel();
     layout();
 
-    if (activeTpl !== "blank") {
+    if (restored) {
+      history.replaceState(null, "", "/editor?draft=" + encodeURIComponent(restored.id));
+    } else if (activeTpl !== "blank") {
       history.replaceState(null, "", "/editor?tpl=" + encodeURIComponent(activeTpl) +
         "&aspect=" + encodeURIComponent(state.aspect));
     } else {
       history.replaceState(null, "", "/editor");
     }
+
+    // From here on every edit is remembered, including this opening state.
+    scheduleDraftSave();
 
     refreshCredits();
     cancelAnimationFrame(rafId);

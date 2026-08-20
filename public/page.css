@@ -1220,3 +1220,57 @@ button.pg-buy[disabled]{transform:none;box-shadow:none}
     transform:none !important;
   }
 }
+
+/* ── section labels and counts on the account-area pages ─────────────
+   /uploads, /drafts and /settings group their cards under short headings.
+   pg-seclabel is quieter than an h1 and louder than a card title, so the
+   groups read as structure rather than as more content. */
+/* .pg-sec > h2 is more specific than a bare class, so the group labels were
+   inheriting its margin:0 and sitting flush against the cards above them. */
+.pg-sec > h2.pg-seclabel{
+  margin:34px 0 12px;
+  font-family:var(--sh-display, inherit);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--sh-ink4, #7b7b8c);
+}
+.pg-sec > h2.pg-seclabel:first-of-type{margin-top:6px}
+.pg-count{
+  display:inline-block;
+  margin-left:6px;
+  padding:2px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  font-size:12px;
+  font-weight:700;
+  color:var(--sh-ink3, #a6a6b8);
+  vertical-align:middle;
+}
+
+/* ── draft cards: text actions, not icon actions ────────────────────
+   .cr-cre-actions .pg-bo is sized as a 32x32 icon button for the uploads
+   cards. The draft cards label their actions instead ("Rename", "Delete"),
+   because deleting a draft is irreversible and an unlabelled glyph is a poor
+   place to find that out. This lets a labelled button size to its text. */
+.cr-cre-actions .cr-cre-btn{
+  width:auto;
+  padding:0 12px;
+  height:32px;
+  font-size:11.5px;
+  font-weight:650;
+  white-space:nowrap;
+  border-radius:999px;
+  flex:0 0 auto;
+}
+.cr-cre-actions a.cr-cre-btn.pg-bw{flex:1 1 auto;min-width:0}
+.cr-cre-sub{
+  margin:0 0 6px;
+  font-size:12px;
+  color:var(--sh-ink3, #a6a6b8);
+  line-height:1.4;
+}
+/* Three actions on a ~215px card: let the row wrap rather than shave a label. */
+.cr-cre-actions{flex-wrap:wrap;row-gap:6px}
