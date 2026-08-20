@@ -19,3 +19,7 @@ DEPENDENCY_REPORT.md
 audit_results/
 audit_*.js
 .waitlist.json
+
+# Audit/QA scratch scripts and screenshots
+_*.js
+_shots/

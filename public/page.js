@@ -67,22 +67,29 @@
     });
   }
 
-  /* ── live credit balance in the sidebar badge ──────────── */
+  /* ── live credit balance: sidebar badge + the account cards ───
+     The account page's Plan and Credits cards used to be filled inside an
+     `if (badge)` branch, so they depended on a sidebar element they have
+     nothing to do with — and if the call failed they sat on their "—"
+     placeholder forever with no explanation. Fetch when EITHER surface is on
+     the page, and give the cards a readable fallback when it does not land. */
   var badge = document.querySelector(".sh-plan-badge");
-  if (badge) {
+  var accPlan = $("#accPlan"), accCredits = $("#accCredits");
+  if (badge || accPlan || accCredits) {
     fetch("/api/credits", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        if (!j || !j.success) return;
-        var b = badge.querySelector("b"), s = badge.querySelector("span");
-        if (b) b.textContent = j.planLabel + " plan";
-        if (s) {
-          s.textContent = j.left + " of " + j.perDay + " credits left today · " +
-            "export " + j.cost.export + ", AI scene " + j.cost.animate;
+        if (!j || !j.success) throw new Error("credits unavailable");
+        if (badge) {
+          var b = badge.querySelector("b"), s = badge.querySelector("span");
+          if (b) b.textContent = j.planLabel + " plan";
+          if (s) {
+            s.textContent = j.left + " of " + j.perDay + " credits left today · " +
+              "export " + j.cost.export + ", AI scene " + j.cost.animate;
+          }
+          var up = badge.querySelector("a");
+          if (up && j.plan !== "free") up.textContent = "Manage your plan";
         }
-        var up = badge.querySelector("a");
-        if (up && j.plan !== "free") up.textContent = "Manage your plan";
-        var accPlan = $("#accPlan"), accCredits = $("#accCredits");
         if (accPlan) accPlan.textContent = j.planLabel + (j.plan === "free" ? "" : " · active");
         if (accCredits) accCredits.textContent = j.left + " of " + j.perDay + " left today";
         var fill = $("#crCreditFill");
@@ -91,7 +98,11 @@
           fill.style.width = pct + "%";
         }
       })
-      .catch(function () { /* the badge keeps its static copy */ });
+      .catch(function () {
+        // the badge keeps its static copy; the cards say why they are blank
+        if (accPlan && accPlan.textContent.trim() === "—") accPlan.textContent = "Could not load";
+        if (accCredits && accCredits.textContent.trim() === "—") accCredits.textContent = "Could not load";
+      });
   }
 
   /* ── feedback form ────────────────────────────────────── */
