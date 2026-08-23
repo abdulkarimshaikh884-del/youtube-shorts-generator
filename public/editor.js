@@ -1231,7 +1231,9 @@
         tpl: null, spec: scene, prompt: prompt,
         lines: [], accent: scene.accent || "#ffffff",
         font: cur() ? cur().font : "inter",
-        dur: wanted
+        // The server caps AI scenes, so trust the length it reports over the
+        // one we asked for — otherwise the clip is labelled longer than it is.
+        dur: Number(j.dur) > 0 ? Number(j.dur) : wanted
       };
       if (appending) {
         state.clips.push(clip);

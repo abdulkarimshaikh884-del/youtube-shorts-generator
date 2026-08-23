@@ -1137,6 +1137,13 @@ app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 20 }), async (req, 
 const puppeteer = require("puppeteer");
 const { spawn } = require("child_process");
 
+/* A scene generated from the chat prompt is capped at 10s. Shorter is fine —
+   the AI often wants 4-6s and that is left alone — but nothing it produces may
+   run longer. This is deliberately separate from the export limit below: a
+   project assembled by hand from several clips may still total 12s, so raising
+   or lowering one must not silently move the other. */
+const AI_MAX_DUR_MS = 10000;
+
 const EXPORT_LIMITS = {
   fps: [24, 30, 60],
   heights: [720, 1080, 1440],
@@ -1235,7 +1242,7 @@ const jsonBig = express.json({ limit: "2mb" });
 app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async (req, res) => {
   const b = req.body || {};
   const prompt = String(b.prompt || "").trim().slice(0, 600);
-  const dur = Math.min(Math.max(Number(b.dur) || 4600, 1500), EXPORT_LIMITS.maxDurMs);
+  const dur = Math.min(Math.max(Number(b.dur) || 4600, 1500), AI_MAX_DUR_MS);
   const image = b.image ? String(b.image) : null;
 
   /* The three model tiers are the three plans. A free account cannot silently
@@ -1292,7 +1299,11 @@ app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async
       callModel: ({ system, user, model, maxTokens, temperature }) =>
         callAI(user, { system, model, maxTokens, temperature, json: true, timeoutMs: 90_000 })
     });
-    return res.json({ success: true, scene, credits: await credits.state(req) });
+    /* Report the duration actually used. The request is clamped to
+       AI_MAX_DUR_MS, so a client that asked for longer must not go on
+       believing it got what it asked for and label the clip with the wrong
+       length. */
+    return res.json({ success: true, scene, dur, credits: await credits.state(req) });
   } catch (err) {
     // nobody pays for our failure
     await credits.refund(req, "animate");
