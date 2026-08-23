@@ -29,6 +29,8 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script></head>
 <body class="sh-body">
 
+<a class="sh-skip" href="#main">Skip to content</a>
+
 <div class="sh-wrap">
 
   <aside class="sh-rail">
@@ -73,8 +75,8 @@
     <div class="sh-rail-foot">
       <div class="sh-plan-badge">
         <b>Free plan</b>
-        <span>10 credits every day. Export 1, AI scene 5.</span>
-        <a href="/pricing">Upgrade to Pro · ₹99/mo — Upgrade ↗</a>
+        <span>8 credits every day. Export 1, AI scene 2.</span>
+        <a href="/pricing">Upgrade to Pro · ₹99/mo ↗</a>
       </div>
 
       <div class="sh-user-box" id="sidebarUserBox">
@@ -174,7 +176,7 @@
     </div>
   </aside>
 
-  <div class="sh-main">
+  <div class="sh-main" id="main" role="main" tabindex="-1">
 
     <header class="sh-topbar">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -229,20 +231,20 @@
             <input type="hidden" name="quality" id="qualitySelect" value="mini">
             <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Model tier: Free">
               <span class="sh-csel-sparkle">✦</span>
-              <span class="sh-csel-val" id="qualityVal">Free (5 credits)</span>
+              <span class="sh-csel-val" id="qualityVal">Free (2 credits)</span>
               <svg class="sh-csel-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="sh-csel-menu" id="qualityMenu" role="listbox" hidden>
               <div class="sh-csel-opt selected" role="option" data-val="mini" aria-selected="true">
-                <div class="sh-csel-opt-main"><b>✦ Free</b><span>Fast standard generation · 5 credits</span></div>
+                <div class="sh-csel-opt-main"><b>✦ Free</b><span>Fast standard generation · 2 credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
               <div class="sh-csel-opt" role="option" data-val="pro" aria-selected="false">
-                <div class="sh-csel-opt-main"><b>✦ Pro</b><span>Priority speed & detailed motion · 5 credits</span></div>
+                <div class="sh-csel-opt-main"><b>✦ Pro</b><span>Priority speed & detailed motion · 2 credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
               <div class="sh-csel-opt" role="option" data-val="max" aria-selected="false">
-                <div class="sh-csel-opt-main"><b>✦ Pro Max</b><span>Max fidelity & complex layouts · 5 credits</span></div>
+                <div class="sh-csel-opt-main"><b>✦ Pro Max</b><span>Max fidelity & complex layouts · 2 credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
             </div>
@@ -350,7 +352,7 @@
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
-          <h4>Product</h4>
+          <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
           <a href="/community">Community Hub</a>
@@ -358,7 +360,7 @@
         </nav>
 
         <nav class="sh-fcol" aria-label="Legal and support">
-          <h4>Legal &amp; Support</h4>
+          <h2>Legal &amp; Support</h2>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
           <a href="/contact">Help &amp; Feedback</a>

@@ -22,7 +22,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=circle2026">
 <link rel="manifest" href="/site.webmanifest?v=power2026">
 
-<link rel="stylesheet" href="/shell.css?v=20260819">
+<link rel="stylesheet" href="/shell.css?v=202608192">
+<link rel="stylesheet" href="/page.css?v=202608192">
 <style>
 .sh-comm-head{
   padding:50px 28px 20px;
@@ -60,6 +61,8 @@
 </style>
 </head>
 <body class="sh-body">
+
+<a class="sh-skip" href="#main">Skip to content</a>
 
 <div class="sh-wrap">
 
@@ -144,7 +147,7 @@
                 <span class="sh-upop-hot-tag">NEW</span>
               </button>
 
-              <a href="/account#creations" class="sh-upop-item">
+              <a href="/uploads" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>My Uploads</b>
@@ -152,7 +155,7 @@
                 </div>
               </a>
 
-              <a href="/account#drafts" class="sh-upop-item">
+              <a href="/drafts" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>Drafts &amp; Projects</b>
@@ -160,7 +163,7 @@
                 </div>
               </a>
 
-              <a href="/account#settings" class="sh-upop-item">
+              <a href="/settings" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>Settings</b>
@@ -211,7 +214,7 @@
     </div>
   </aside>
 
-  <div class="sh-main">
+  <div class="sh-main" id="main" role="main" tabindex="-1">
 
     <header class="sh-topbar">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -305,7 +308,7 @@
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
-          <h4>Product</h4>
+          <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
           <a href="/community">Community Hub</a>
@@ -313,7 +316,7 @@
         </nav>
 
         <nav class="sh-fcol" aria-label="Legal and support">
-          <h4>Legal &amp; Support</h4>
+          <h2>Legal &amp; Support</h2>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
           <a href="/contact">Help &amp; Feedback</a>
@@ -330,8 +333,9 @@
   </div>
 </div>
 
-<script src="/authui.js?v=20260819" defer></script>
+<script src="/authui.js?v=202608192" defer></script>
 <script src="/templates-v2.js?v=9" defer></script>
+<script src="/shell.js?v=9" defer></script>
 <script>
 (function() {
   "use strict";
@@ -342,17 +346,68 @@
   var currentCat = "all";
   var currentAspect = "9:16";
 
+  /* A failed load used to log to the console and leave the grid empty, so a
+     database outage rendered as a page that had simply finished loading with
+     nothing on it. Say what happened and offer a retry instead. */
+  function showLoadError() {
+    if (!grid) return;
+    grid.innerHTML = "";
+    var box = document.createElement("div");
+    box.className = "sh-comm-error";
+    var h = document.createElement("b");
+    h.textContent = "Could not load community templates";
+    var msg = document.createElement("span");
+    msg.textContent = "The gallery is temporarily unavailable. The Studio and the main template library are unaffected.";
+    var row = document.createElement("div");
+    row.className = "sh-comm-error-row";
+    var again = document.createElement("button");
+    again.type = "button";
+    again.className = "sh-comm-retry";
+    again.textContent = "Try again";
+    again.addEventListener("click", function () { loadTemplates(); });
+    var browse = document.createElement("a");
+    browse.className = "sh-comm-retry alt";
+    browse.href = "/#templates";
+    browse.textContent = "Browse all templates";
+    row.appendChild(again);
+    row.appendChild(browse);
+    box.appendChild(h);
+    box.appendChild(msg);
+    box.appendChild(row);
+    grid.appendChild(box);
+  }
+
+  function showLoading() {
+    if (!grid) return;
+    grid.innerHTML = "";
+    var l = document.createElement("p");
+    l.className = "sh-comm-loading";
+    l.textContent = "Loading community templates…";
+    grid.appendChild(l);
+  }
+
   function loadTemplates() {
-    fetch("/api/community-templates")
-      .then(function(r) { return r.json(); })
+    showLoading();
+    /* The server waits on its database connection before it can answer, so a
+       dead database left this request open for 20s with the page just saying
+       "Loading". Give up sooner and show the retry. */
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 12000);
+    fetch("/api/community-templates", ctrl ? { signal: ctrl.signal } : undefined)
+      .then(function(r) {
+        clearTimeout(bail);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
       .then(function(d) {
-        if (d && d.templates) {
-          allTemplates = d.templates;
-          renderGrid();
-        }
+        if (!d || !d.templates) throw new Error((d && d.error) || "No templates in response");
+        allTemplates = d.templates;
+        renderGrid();
       })
       .catch(function(err) {
+        clearTimeout(bail);
         console.error("Could not load community templates", err);
+        showLoadError();
       });
   }
 

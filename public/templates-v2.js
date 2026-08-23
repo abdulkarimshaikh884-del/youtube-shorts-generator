@@ -51,6 +51,16 @@ window.SC_TPL2 = (function () {
     });
   }
 
+  /* The watermark is on unless the caller explicitly turns it off. Only the
+     export route does that, and only after reading the plan from the credit
+     ledger — never from anything the browser sent. Defaulting to ON means a
+     new call site, or a forgotten option, leaks a watermark rather than
+     silently giving away the paid feature. */
+  function wmHtml(o) {
+    if (o && o.watermark === false) return "";
+    return '<div class="wm">shortscraft.online</div>';
+  }
+
   function words(line) {
     return String(line || "").split(/\s+/).filter(Boolean);
   }
@@ -2828,7 +2838,7 @@ window.SC_TPL2 = (function () {
   T["text-scribble"] = {
     name: "Scribble Arrow Hook", cat: "text", dark: true, accent: "#ff0055",
     desc: "Vector hand-drawn squiggle scribble underlining the hook word",
-    css: '.tx-scb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.tx-scb h2{font-size:12cqw;font-weight:900;color:#fff;line-height:1.1}.tx-scb svg{width:60cqw;height:6cqw;stroke:var(--ac);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:300;animation:txScb var(--D) var(--sp) infinite}@keyframes txScb{0%,18%{stroke-dashoffset:300}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:300}}',
+    css: '.tx-scb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.tx-scb h2{font-size:12cqw;font-weight:900;color:#fff;line-height:1.1}.tx-scb svg{width:60cqw;height:6cqw;stroke:var(--ac);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:300;animation:txScb var(--D) var(--sp) infinite,txScbIdle var(--D) ease-in-out infinite}@keyframes txScb{0%,18%{stroke-dashoffset:300}35%{stroke-dashoffset:0}85%{stroke-dashoffset:0}100%{stroke-dashoffset:300}}@keyframes txScbIdle{0%,35%{transform:translateY(0) rotate(0)}55%{transform:translateY(-.35cqh) rotate(-.5deg)}75%{transform:translateY(.2cqh) rotate(.4deg)}85%,100%{transform:translateY(0) rotate(0)}}',
     html: function (o) {
       return '<div class="tx-scb"><div style="font-size:4cqw;color:var(--dim);margin-bottom:1.5cqh">' + esc(o.lines[0] || "DON'T MISS THIS") + '</div><h2>' + esc(o.lines[1] || "10X RETENTION") + '</h2><svg viewBox="0 0 200 20"><path d="M5,15 Q50,0 100,12 T195,10"/></svg></div>';
     }
@@ -5985,9 +5995,17 @@ window.SC_TPL2 = (function () {
     var s = SCHEMAS[id] || defaultSchema(id);
     var p = Object.assign({}, s.defaults, o.props || {});
 
-    // If lines were passed explicitly, map them into the schema fields
+    /* Seed the schema fields from the positional lines array — but never on
+       top of a field the caller set explicitly in props. The editor sends both
+       (lines carries the template's demo copy, props carries what you typed),
+       so an unconditional copy here overwrote every custom-field edit on the
+       very next render: typing in "Evidence Card 1 Title" changed nothing on
+       screen. Explicit props win; lines only fill what props left alone. */
     if (o.lines && o.lines.length) {
+      var explicit = o.props || {};
       s.fields.forEach(function (f, idx) {
+        var setByCaller = explicit[f.key] != null && String(explicit[f.key]).trim() !== "";
+        if (setByCaller) return;
         if (o.lines[idx] != null && String(o.lines[idx]).trim() !== "") {
           p[f.key] = o.lines[idx];
         }
@@ -6025,7 +6043,7 @@ window.SC_TPL2 = (function () {
       + base(t, res) + t.css
       + '</style></head><body><div class="vp">'
       + '<div class="cv">' + t.html(res) + '</div>'
-      + '<div class="wm">shortscraft.online</div>'
+      + wmHtml(o)
       + '</div></body></html>';
   }
 
@@ -6058,7 +6076,7 @@ window.SC_TPL2 = (function () {
       + base(t, res) + img + spec.css
       + '</style></head><body><div class="vp">'
       + '<div class="cv">' + spec.body + '</div>'
-      + '<div class="wm">shortscraft.online</div>'
+      + wmHtml(o)
       + '</div></body></html>';
   }
 

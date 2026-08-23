@@ -39,10 +39,13 @@ function getPool() {
   // connect. It is not the same as skipping TLS.
   ssl: { rejectUnauthorized: false },
   max: 10,
-  // Keep connections warm for longer. The database is a few hundred
-  // milliseconds away, so re-establishing TLS per burst of traffic is the
-  // expensive part; holding idle sockets avoids paying it repeatedly.
-  idleTimeoutMillis: 5 * 60_000,
+  /* Keep connections warm, but retire them before the server does. Holding
+     sockets for 5 minutes meant Supabase closed them from its side first, and
+     every one surfaced here as "Connection terminated unexpectedly" — noise
+     that reads like an outage in the logs. Closing at 30s keeps the TLS
+     handshake amortised across a burst of traffic while making the teardown
+     ours, and therefore silent. */
+  idleTimeoutMillis: 30_000,
   keepAlive: true,
   // A cold connection over a slow link occasionally passed 10s and surfaced as
   // "Connection terminated due to connection timeout" during load.
@@ -61,6 +64,41 @@ function getPool() {
    startup failure rather than a surprise on the first visitor request. */
 function assertReady() {
   if (!process.env.DATABASE_URL) throw new Error(MISSING_URL);
+  warnIfIpv6Only(process.env.DATABASE_URL);
+}
+
+/* Supabase's direct host, db.<project-ref>.supabase.co, resolves to an AAAA
+   record and no A record. On a network without an IPv6 route every query dies
+   with "Connection terminated due to connection timeout" — which reads as a
+   database outage or an app bug, not as the addressing problem it is. Say so
+   once at boot instead of leaving it to be rediscovered from request logs.
+   Advisory only: the lookup is async and never blocks or fails startup, since
+   a host can be IPv6-only and perfectly reachable on an IPv6 network. */
+function warnIfIpv6Only(url) {
+  let host;
+  try { host = new URL(url).hostname; } catch (e) { return; }
+  if (!/^db\..*\.supabase\.co$/i.test(host)) return;
+
+  /* dns.lookup, not dns.resolve4: resolve* talks to the configured nameserver
+     directly, which plenty of corporate and VPN resolvers refuse outright
+     (ECONNREFUSED) — that told us nothing about the host. dns.lookup goes
+     through getaddrinfo, the same path the driver itself will take, so it
+     answers the question that actually matters: can this process reach an
+     IPv4 address for the host. */
+  const dns = require("dns");
+  dns.lookup(host, { family: 4 }, (err4, v4) => {
+    if (v4) return;                              // IPv4 available, nothing to say
+    dns.lookup(host, { family: 6 }, (err6, v6) => {
+      if (!v6) return;                           // host unresolvable entirely
+      console.warn(
+        "[db] " + host + " resolves to IPv6 only (" + v6 + ") and this host has " +
+        "no IPv4 address for it. If connections time out, switch DATABASE_URL to " +
+        "the Supabase transaction pooler, which answers on IPv4: " +
+        "postgresql://postgres.<project-ref>:PASSWORD@aws-0-<region>.pooler.supabase.com:6543/postgres " +
+        "(Project Settings -> Database -> Connection string). See .env.example."
+      );
+    });
+  });
 }
 
 function query(text, params) {

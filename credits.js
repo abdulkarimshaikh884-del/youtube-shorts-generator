@@ -24,19 +24,73 @@ const COOKIE = "sc_uid";
    Razorpay is charged (x100 for paise). `term` is what the payment buys:
      month    — renews monthly
      lifetime — never expires, but only for the first LIFETIME_SLOTS buyers;
-                after those are gone Pro Max falls back to `year`. */
+                after those are gone Pro Max falls back to `year`.
+
+   How the tiers are drawn, and why:
+
+   Editing, previewing and browsing are pure client-side CSS and cost us
+   nothing, so they are unlimited on every plan — throttling them would only
+   make the product feel mean without saving a rupee.
+
+   Exporting is the expensive part: each render is Chromium plus ffmpeg, and
+   exports are serialised, so one long export blocks the queue for everyone.
+   Measured on a fast machine: 720p/4s ≈ 14s, 1080p/6s ≈ 19s, 1080p/12s ≈ 38s,
+   and a small cloud instance is several times slower again. That is the real
+   constraint, so that is what the plans price.
+
+   The earlier numbers (10/100/300 a day) were written before anyone measured
+   this. 300 exports a day sold ONCE as a lifetime deal is several hours of
+   dedicated CPU per user per day, forever, for ₹499 — the deal would have cost
+   far more to honour than it brought in. These caps sit above what a working
+   Shorts creator actually needs (a few posts a day, a couple of takes each)
+   while staying survivable if every seat is sold.
+
+   The paid tiers therefore lead on capability, not volume: no watermark and a
+   higher resolution ceiling are what people are really buying. */
 const LIFETIME_SLOTS = 100;
 
 const PLANS = {
-  free:   { id: "free",   label: "Free",    perDay: 10,  price: 0,   inr: "₹0",   term: "forever" },
-  pro:    { id: "pro",    label: "Pro",     perDay: 100, price: 99,  inr: "₹99",  term: "month" },
-  promax: { id: "promax", label: "Pro Max", perDay: 300, price: 499, inr: "₹499", term: "lifetime", fallbackTerm: "year" }
+  free: {
+    id: "free", label: "Free", price: 0, inr: "₹0", term: "forever",
+    // Enough for a real first session: try a few templates, export them, and
+    // still have room to generate one or two AI scenes. Below this the trial
+    // stops proving anything, which costs signups rather than saving CPU.
+    perDay: 8,
+    watermark: true,
+    maxHeight: 720
+  },
+  pro: {
+    id: "pro", label: "Pro", price: 99, inr: "₹99", term: "month",
+    perDay: 50,
+    watermark: false,
+    maxHeight: 1080
+  },
+  promax: {
+    id: "promax", label: "Pro Max", price: 499, inr: "₹499",
+    term: "lifetime", fallbackTerm: "year",
+    perDay: 100,
+    watermark: false,
+    maxHeight: 1440
+  }
 };
 
-/* ── what things cost ───────────────────────────────────── */
+/* ── what things cost ─────────────────────────────────────
+   Priced by what each one actually costs us to serve.
+
+   An export is Chromium plus ffmpeg — 14 to 38 seconds of CPU, serialised, so
+   it also blocks the queue for everyone else. An AI scene is a single model
+   call: a few seconds, and cheap. Animate was priced at 5 against export's 1,
+   which had it backwards — the cheaper operation cost the user five times
+   more, and on the Free grant a single export left them unable to try the AI
+   feature at all that day. That is the headline feature; it should not be the
+   one a new user cannot reach.
+
+   Note that generating a scene does not produce a video on its own — the user
+   still pays an export credit to render it — so the AI path is billed twice
+   over its life, which is the right shape. */
 const COST = {
-  export: 1,      // rendering a template project to MP4
-  animate: 5      // generating a brand-new animation from a prompt
+  export: 1,      // rendering a template project to MP4 — the expensive one
+  animate: 2      // one model call to design a brand-new scene
 };
 
 const secret = () => process.env.CREDITS_SECRET || "shortscraft-dev-secret";
@@ -135,10 +189,27 @@ async function state(req) {
     spentToday: rec.spent,
     plan: plan.id,
     planLabel: plan.label,
+    watermark: plan.watermark === true,
+    maxHeight: plan.maxHeight,
     signedIn: !!req.user,
     email: req.user ? req.user.email : null,
     cost: COST,
     resetsAt: new Date(new Date().setUTCHours(24, 0, 0, 0)).toISOString()
+  };
+}
+
+/* What this request is entitled to, resolved from the ledger — never from
+   anything the client sent. The export route asks this before rendering, so a
+   crafted request cannot drop the watermark or ask for a resolution the plan
+   does not include. */
+async function entitlements(req) {
+  const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
+  const plan = PLANS[rec.plan] || PLANS.free;
+  return {
+    plan: plan.id,
+    planLabel: plan.label,
+    watermark: plan.watermark === true,
+    maxHeight: plan.maxHeight
   };
 }
 
@@ -188,4 +259,4 @@ async function setPlan(req, planId) {
   return true;
 }
 
-module.exports = { middleware, state, charge, refund, setPlan, PLANS, COST, COOKIE, LIFETIME_SLOTS };
+module.exports = { middleware, state, entitlements, charge, refund, setPlan, PLANS, COST, COOKIE, LIFETIME_SLOTS };

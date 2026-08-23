@@ -132,6 +132,8 @@ ${p.head || ""}</head>
 
   return head + `<body class="sh-body">
 
+<a class="sh-skip" href="#main">Skip to content</a>
+
 <div class="sh-wrap">
 
   <aside class="sh-rail">
@@ -162,7 +164,7 @@ ${nav}
       <div class="sh-plan-badge">
         <b>Free plan</b>
         <span>${P.free.perDay} credits every day. Export ${C.export}, AI scene ${C.animate}.</span>
-        <a href="/pricing">Upgrade to Pro · ₹99/mo — Upgrade ↗</a>
+        <a href="/pricing">Upgrade to Pro · ₹${P.pro.price}/mo ↗</a>
       </div>
 
       <div class="sh-user-box" id="sidebarUserBox">
@@ -262,7 +264,7 @@ ${nav}
     </div>
   </aside>
 
-  <div class="sh-main">
+  <div class="sh-main" id="main" role="main" tabindex="-1">
 
     <header class="sh-topbar">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -306,7 +308,7 @@ ${p.body}
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
-          <h4>Product</h4>
+          <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
           <a href="/community">Community Hub</a>
@@ -314,7 +316,7 @@ ${p.body}
         </nav>
 
         <nav class="sh-fcol" aria-label="Legal and support">
-          <h4>Legal &amp; Support</h4>
+          <h2>Legal &amp; Support</h2>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
           <a href="/contact">Help &amp; Feedback</a>
@@ -339,6 +341,32 @@ ${p.scripts || ""}</body>
 }
 
 /* ── page heads ───────────────────────────────────────────── */
+/* Signed-out state for the account-scoped pages. These used to render one
+   grey sentence and two buttons on an otherwise blank full-height page, which
+   read as a page that had failed to load rather than one asking you to log in.
+   The gate states what is behind it, so the page is worth looking at logged
+   out too. `next` sends you back where you started after logging in. */
+const guestGate = (next, title, sub, perks) => `      <section class="pg-sec" id="accountGuest" hidden>
+        <div class="pg-gate">
+          <span class="pg-gate-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="4" y="10" width="16" height="11" rx="2.5"/>
+              <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+            </svg>
+          </span>
+          <h2>${title}</h2>
+          <p>${sub}</p>
+          <div class="pg-row pg-gate-row">
+            <a href="/login?next=${next}" class="pg-bw">Log in</a>
+            <a href="/signup?next=${next}" class="pg-bo">Create an account</a>
+          </div>
+          <ul class="pg-gate-list">
+${perks.map(p => `            <li>${p}</li>`).join("")}
+          </ul>
+          <p class="pg-gate-fine">Free to start — ${P.free.perDay} credits every day, no card required.</p>
+        </div>
+      </section>`;
+
 const pageHead = (eyebrow, h1, sub, extra) => `    <section class="pg-head">
       <span class="pg-eyebrow">${eyebrow}</span>
       <h1>${h1}</h1>
@@ -355,10 +383,10 @@ const pricing = {
   route: "/pricing",
   active: "pricing",
   title: "Pricing — ShortsCraft",
-  desc: `ShortsCraft pricing: Free with ${P.free.perDay} credits a day, Pro at ₹${P.pro.price}/month with ${P.pro.perDay} a day, Pro Max at ₹${P.promax.price} with ${P.promax.perDay} a day — lifetime for the first 100 members. Exporting a template costs ${C.export} credit, a custom AI animation costs ${C.animate}.`,
+  desc: `ShortsCraft pricing: Free gives ${P.free.perDay} watermarked exports a day, Pro is ₹${P.pro.price}/month for watermark-free 1080p and ${P.pro.perDay} exports a day, and Pro Max is a one-time ₹${P.promax.price} — lifetime for the first ${LIFETIME_SLOTS} members. Editing and preview are unlimited on every plan.`,
   body: `    <main class="pg">
 ${pageHead("Pricing", "Three plans. One currency: credits.",
-    `Everything you do that costs us money costs credits — exporting a template is ${C.export} credit, generating a brand-new animation from your prompt is ${C.animate}. Credits refill every day.`)}
+    `Editing, previewing and browsing every template are free and unlimited — they run in your browser. You only spend a credit when you export a video (${C.export}) or ask the AI to design a brand-new scene (${C.animate}). Credits refill every day.`)}
 
       <div class="pg-offer" id="offerBanner" hidden>
         <span class="pg-offer-tag">Launch offer</span>
@@ -370,13 +398,13 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
         <article class="pg-plan">
           <span class="pg-tier">${P.free.label}</span>
           <div class="pg-amt">₹0</div>
-          <p class="pg-planline"><b>${P.free.perDay} credits every day</b> — enough for ${P.free.perDay} template exports, or ${Math.floor(P.free.perDay / C.animate)} AI animations.</p>
+          <p class="pg-planline"><b>${P.free.perDay} exports every day</b> — enough to try everything and post your first Shorts.</p>
           <ul>
             <li>All ${TPL_COUNT} motion templates</li>
+            <li>Unlimited editing and preview</li>
             <li>Custom AI animations from your prompt</li>
-            <li>Attach an image to animate</li>
-            <li>MP4 export up to 1080p</li>
-            <li>No card required</li>
+            <li>Export up to 720p</li>
+            <li>Small ShortsCraft watermark</li>
           </ul>
           <a href="/" class="pg-bo">Start free</a>
         </article>
@@ -384,12 +412,12 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
         <article class="pg-plan pg-hot">
           <span class="pg-tier">${P.pro.label} · Most popular</span>
           <div class="pg-amt">₹${P.pro.price}<small>/month</small></div>
-          <p class="pg-planline"><b>${P.pro.perDay} credits every day</b> — about ${Math.floor(P.pro.perDay / C.animate)} AI animations a day.</p>
+          <p class="pg-planline"><b>No watermark, and ${P.pro.perDay} exports a day</b> — built for posting daily.</p>
           <ul>
             <li>Everything in Free</li>
-            <li>${P.pro.perDay} credits per day</li>
-            <li>Priority AI speed</li>
-            <li>1440p export</li>
+            <li><b>No watermark</b> on your videos</li>
+            <li>Full 1080p export</li>
+            <li>${P.pro.perDay} exports per day</li>
             <li>Cancel any time</li>
           </ul>
           <button type="button" class="pg-bw pg-buy" data-plan="pro">Upgrade to Pro · ₹${P.pro.price}</button>
@@ -398,18 +426,18 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
         <article class="pg-plan pg-max">
           <span class="pg-tier">${P.promax.label}</span>
           <div class="pg-amt">₹${P.promax.price}<small id="maxTerm">one-time</small></div>
-          <p class="pg-planline" id="maxLine"><b>${P.promax.perDay} credits every day</b> — for teams and daily publishers.</p>
+          <p class="pg-planline" id="maxLine"><b>Pay once, keep it for good</b> — no watermark, ever.</p>
           <ul>
             <li>Everything in Pro</li>
-            <li>${P.promax.perDay} credits per day</li>
-            <li>Longest multi-clip sequences</li>
-            <li>The Pro AI model for scene generation</li>
-            <li>First access to new templates</li>
+            <li><b>No monthly bill, ever</b></li>
+            <li>1440p export</li>
+            <li>${P.promax.perDay} exports per day</li>
+            <li>The Pro AI model, and new templates first</li>
           </ul>
           <button type="button" class="pg-bo pg-buy" data-plan="promax">Get Pro Max · ₹${P.promax.price}</button>
         </article>
       </div>
-      <p class="pg-note pg-center" id="buyNote" role="status"></p>
+      <p class="pg-note pg-center" id="buyNote" role="status" aria-live="polite"></p>
       <p class="pg-fine pg-center">Payments are processed by Razorpay — UPI, cards, netbanking and wallets. Credits reset daily at 00:00 UTC and do not stack up.</p>
 
       <section class="pg-sec">
@@ -527,22 +555,22 @@ ${pageHead("Help &amp; Feedback", "Tell us what is broken or missing.", "Bug rep
 
         <aside class="pg-aside">
           <section class="pg-card">
-            <h3>Reporting a bug?</h3>
+            <h2>Reporting a bug?</h2>
             <p>Please include the page URL, your device and browser, and the template or clip you were working on. That usually turns a two-day guess into a same-day fix.</p>
           </section>
           <section class="pg-card">
-            <h3>Requesting a template?</h3>
+            <h2>Requesting a template?</h2>
             <p>Describe the <em>object</em> you want animated — a switch, a chart, a phone screen, a card — plus where you would use it. Object ideas get built; "make it look premium" cannot.</p>
           </section>
           <section class="pg-card">
-            <h3>Elsewhere</h3>
+            <h2>Elsewhere</h2>
             <p>
               <a href="https://youtube.com/@VaultGamer-in" rel="noopener" target="_blank">YouTube · @VaultGamer-in</a><br>
               <a href="https://instagram.com/tech_vault_in" rel="noopener" target="_blank">Instagram · @tech_vault_in</a>
             </p>
           </section>
           <section class="pg-card">
-            <h3>Response time</h3>
+            <h2>Response time</h2>
             <p>Usually within two days. Billing questions are answered first.</p>
           </section>
         </aside>
@@ -799,7 +827,7 @@ const account = {
   robots: "noindex, follow",
   title: "Your account — ShortsCraft",
   desc: "Your ShortsCraft plan, daily credits and account details.",
-  body: `    <main class="pg pg-narrow">
+  body: `    <main class="pg">
       <section class="pg-head">
         <span class="pg-eyebrow">Account</span>
         <h1>Your account</h1>
@@ -867,13 +895,7 @@ const account = {
         </div>
       </section>
 
-      <section class="pg-sec" id="accountGuest" hidden>
-        <p class="pg-planline">You are not logged in. Credits are attached to this browser only.</p>
-        <div class="pg-row">
-          <a href="/login" class="pg-bw">Log in</a>
-          <a href="/signup" class="pg-bo">Create an account</a>
-        </div>
-      </section>
+${guestGate("/account", "Log in to see your account", "Right now your credits live in this browser alone — clear your site data and they are gone. An account carries your plan, your credits and your published templates across every device you use.", ["Your plan and daily credit balance in one place", "Templates you publish stay tied to your creator name", "Drafts and settings follow you to any device"])}
     </main>`
 };
 
@@ -1061,7 +1083,7 @@ const templatePage = {
           </a>
 
           <div class="sh-m-comments" id="comments">
-            <h3 class="sh-m-comm-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink3);font-size:13px;">(3)</span></h3>
+            <h2 class="sh-m-comm-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink3);font-size:13px;">(3)</span></h2>
             <form class="sh-m-comm-form" id="commentForm">
               <textarea class="sh-m-comm-input" id="commentInput" placeholder="Write a comment or question about this template..." required></textarea>
               <button type="submit" class="sh-m-comm-btn">Post Comment</button>
@@ -1130,7 +1152,7 @@ const uploads = {
   robots: "noindex, follow",
   title: "My uploads — ShortsCraft",
   desc: "The templates you have published to the ShortsCraft community.",
-  body: `    <main class="pg pg-narrow">
+  body: `    <main class="pg">
 ${pageHead("My uploads", "Templates you have published",
   "Everything here is live in the Community gallery under your creator name and handle.")}
 
@@ -1150,13 +1172,7 @@ ${pageHead("My uploads", "Templates you have published",
         </div>
       </section>
 
-      <section class="pg-sec" id="accountGuest" hidden>
-        <p class="pg-planline">Log in to see the templates you have published.</p>
-        <div class="pg-row">
-          <a href="/login?next=/uploads" class="pg-bw">Log in</a>
-          <a href="/signup?next=/uploads" class="pg-bo">Create an account</a>
-        </div>
-      </section>
+${guestGate("/uploads", "Log in to see your uploads", "This page lists the templates you have published to the Community gallery, under your creator name and handle.", ["Every template you publish, in one gallery", "Edit or remove a published template at any time", "Likes and comments from other creators"])}
     </main>`,
   scripts: `<script src="/templates-v2.js?v=9" defer></script>`
 };
@@ -1171,7 +1187,7 @@ const drafts = {
   robots: "noindex, follow",
   title: "Drafts & projects — ShortsCraft",
   desc: "Your saved ShortsCraft animation projects, ready to reopen in the Studio.",
-  body: `    <main class="pg pg-narrow">
+  body: `    <main class="pg">
 ${pageHead("Drafts & projects", "Your work in progress",
   "The Studio saves every project in this browser as you edit. Reopen one to pick up exactly where you stopped.")}
 
@@ -1202,7 +1218,7 @@ const settings = {
   robots: "noindex, follow",
   title: "Settings — ShortsCraft",
   desc: "Your ShortsCraft profile, plan and account controls.",
-  body: `    <main class="pg pg-narrow">
+  body: `    <main class="pg">
 ${pageHead("Settings", "Account settings",
   "Your creator identity, your plan, and the controls for this device.")}
 
@@ -1271,13 +1287,7 @@ ${pageHead("Settings", "Account settings",
         </div>
       </section>
 
-      <section class="pg-sec" id="accountGuest" hidden>
-        <p class="pg-planline">Log in to manage your profile, plan and account.</p>
-        <div class="pg-row">
-          <a href="/login?next=/settings" class="pg-bw">Log in</a>
-          <a href="/signup?next=/settings" class="pg-bo">Create an account</a>
-        </div>
-      </section>
+${guestGate("/settings", "Log in to manage your settings", "Your creator profile, your plan and your account controls all live behind a login.", ["Creator name, handle, bio and channel links", "Change or cancel your plan whenever you want", "Sign out of this device"])}
     </main>`
 };
 

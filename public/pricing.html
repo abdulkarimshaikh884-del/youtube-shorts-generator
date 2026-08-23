@@ -4,11 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Pricing — ShortsCraft</title>
-<meta name="description" content="ShortsCraft pricing: Free with 10 credits a day, Pro at ₹99/month with 100 a day, Pro Max at ₹499 with 300 a day — lifetime for the first 100 members. Exporting a template costs 1 credit, a custom AI animation costs 5."/>
+<meta name="description" content="ShortsCraft pricing: Free gives 8 watermarked exports a day, Pro is ₹99/month for watermark-free 1080p and 50 exports a day, and Pro Max is a one-time ₹499 — lifetime for the first 100 members. Editing and preview are unlimited on every plan."/>
 <link rel="canonical" href="https://shortscraft.online/pricing"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="Pricing — ShortsCraft"/>
-<meta property="og:description" content="ShortsCraft pricing: Free with 10 credits a day, Pro at ₹99/month with 100 a day, Pro Max at ₹499 with 300 a day — lifetime for the first 100 members. Exporting a template costs 1 credit, a custom AI animation costs 5."/>
+<meta property="og:description" content="ShortsCraft pricing: Free gives 8 watermarked exports a day, Pro is ₹99/month for watermark-free 1080p and 50 exports a day, and Pro Max is a one-time ₹499 — lifetime for the first 100 members. Editing and preview are unlimited on every plan."/>
 <meta property="og:url" content="https://shortscraft.online/pricing"/>
 <meta name="twitter:card" content="summary_large_image"/>
 
@@ -28,6 +28,8 @@
 <link rel="stylesheet" href="/page.css?v=202608192">
 </head>
 <body class="sh-body">
+
+<a class="sh-skip" href="#main">Skip to content</a>
 
 <div class="sh-wrap">
 
@@ -73,8 +75,8 @@
     <div class="sh-rail-foot">
       <div class="sh-plan-badge">
         <b>Free plan</b>
-        <span>10 credits every day. Export 1, AI scene 5.</span>
-        <a href="/pricing">Upgrade to Pro · ₹99/mo — Upgrade ↗</a>
+        <span>8 credits every day. Export 1, AI scene 2.</span>
+        <a href="/pricing">Upgrade to Pro · ₹99/mo ↗</a>
       </div>
 
       <div class="sh-user-box" id="sidebarUserBox">
@@ -174,7 +176,7 @@
     </div>
   </aside>
 
-  <div class="sh-main">
+  <div class="sh-main" id="main" role="main" tabindex="-1">
 
     <header class="sh-topbar">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -209,7 +211,7 @@
     <section class="pg-head">
       <span class="pg-eyebrow">Pricing</span>
       <h1>Three plans. One currency: credits.</h1>
-      <p>Everything you do that costs us money costs credits — exporting a template is 1 credit, generating a brand-new animation from your prompt is 5. Credits refill every day.</p>
+      <p>Editing, previewing and browsing every template are free and unlimited — they run in your browser. You only spend a credit when you export a video (1) or ask the AI to design a brand-new scene (2). Credits refill every day.</p>
     </section>
 
       <div class="pg-offer" id="offerBanner" hidden>
@@ -222,13 +224,13 @@
         <article class="pg-plan">
           <span class="pg-tier">Free</span>
           <div class="pg-amt">₹0</div>
-          <p class="pg-planline"><b>10 credits every day</b> — enough for 10 template exports, or 2 AI animations.</p>
+          <p class="pg-planline"><b>8 exports every day</b> — enough to try everything and post your first Shorts.</p>
           <ul>
             <li>All 94 motion templates</li>
+            <li>Unlimited editing and preview</li>
             <li>Custom AI animations from your prompt</li>
-            <li>Attach an image to animate</li>
-            <li>MP4 export up to 1080p</li>
-            <li>No card required</li>
+            <li>Export up to 720p</li>
+            <li>Small ShortsCraft watermark</li>
           </ul>
           <a href="/" class="pg-bo">Start free</a>
         </article>
@@ -236,12 +238,12 @@
         <article class="pg-plan pg-hot">
           <span class="pg-tier">Pro · Most popular</span>
           <div class="pg-amt">₹99<small>/month</small></div>
-          <p class="pg-planline"><b>100 credits every day</b> — about 20 AI animations a day.</p>
+          <p class="pg-planline"><b>No watermark, and 50 exports a day</b> — built for posting daily.</p>
           <ul>
             <li>Everything in Free</li>
-            <li>100 credits per day</li>
-            <li>Priority AI speed</li>
-            <li>1440p export</li>
+            <li><b>No watermark</b> on your videos</li>
+            <li>Full 1080p export</li>
+            <li>50 exports per day</li>
             <li>Cancel any time</li>
           </ul>
           <button type="button" class="pg-bw pg-buy" data-plan="pro">Upgrade to Pro · ₹99</button>
@@ -250,25 +252,25 @@
         <article class="pg-plan pg-max">
           <span class="pg-tier">Pro Max</span>
           <div class="pg-amt">₹499<small id="maxTerm">one-time</small></div>
-          <p class="pg-planline" id="maxLine"><b>300 credits every day</b> — for teams and daily publishers.</p>
+          <p class="pg-planline" id="maxLine"><b>Pay once, keep it for good</b> — no watermark, ever.</p>
           <ul>
             <li>Everything in Pro</li>
-            <li>300 credits per day</li>
-            <li>Longest multi-clip sequences</li>
-            <li>The Pro AI model for scene generation</li>
-            <li>First access to new templates</li>
+            <li><b>No monthly bill, ever</b></li>
+            <li>1440p export</li>
+            <li>100 exports per day</li>
+            <li>The Pro AI model, and new templates first</li>
           </ul>
           <button type="button" class="pg-bo pg-buy" data-plan="promax">Get Pro Max · ₹499</button>
         </article>
       </div>
-      <p class="pg-note pg-center" id="buyNote" role="status"></p>
+      <p class="pg-note pg-center" id="buyNote" role="status" aria-live="polite"></p>
       <p class="pg-fine pg-center">Payments are processed by Razorpay — UPI, cards, netbanking and wallets. Credits reset daily at 00:00 UTC and do not stack up.</p>
 
       <section class="pg-sec">
         <h2>What a credit buys</h2>
         <div class="pg-grid">
           <article class="pg-card"><h3>1 credit · Export a template</h3><p>Any of the 94 motion templates, edited however you like, rendered to a real MP4 at up to 1440p. Editing and previewing are free — you are only charged when you export.</p></article>
-          <article class="pg-card"><h3>5 credits · A custom AI animation</h3><p>Describe the animation you want, optionally attach an image, and the AI designs a brand-new scene for your timeline. It costs more because it is a model call, not a preset.</p></article>
+          <article class="pg-card"><h3>2 credits · A custom AI animation</h3><p>Describe the animation you want, optionally attach an image, and the AI designs a brand-new scene for your timeline. It costs more because it is a model call, not a preset.</p></article>
           <article class="pg-card"><h3>Free · Everything else</h3><p>Browsing templates, editing text and colours, building a multi-clip sequence, scrubbing the timeline and using all six SEO tools.</p></article>
           <article class="pg-card"><h3>Failed work is refunded</h3><p>If a render or a generation fails on our side, the credits go straight back. You never pay for our error.</p></article>
         </div>
@@ -278,8 +280,8 @@
         <h2>Pricing questions</h2>
         <div class="pg-faq">
           <details open><summary>Do credits carry over?</summary><p>No. The grant is per day and resets at 00:00 UTC, so a busy day is never limited by a quiet one being unused.</p></details>
-          <details><summary>Is there a trial?</summary><p>Free is the trial — 10 credits every day, for as long as you like, with no card.</p></details>
-          <details><summary>Why does an AI animation cost 5?</summary><p>It runs a language model to design the scene and then renders it. A template export only renders.</p></details>
+          <details><summary>Is there a trial?</summary><p>Free is the trial — 8 credits every day, for as long as you like, with no card.</p></details>
+          <details><summary>Why does an AI animation cost 2?</summary><p>It runs a language model to design the scene and then renders it. A template export only renders.</p></details>
           <details><summary>Which payment methods work?</summary><p>UPI, debit and credit cards, netbanking and wallets, secured by Razorpay.</p></details>
           <details><summary>Can I cancel?</summary><p>Yes. Cancel any time and the plan stays active until the end of the period you already paid for.</p></details>
           <details><summary>Do you offer refunds?</summary><p>If the service did not work for you, contact us within 7 days of upgrading and we will refund it.</p></details>
@@ -288,7 +290,7 @@
 
       <section class="pg-cta">
         <h2>Ready to ship more Shorts?</h2>
-        <p>Open the editor — your 10 credits are already waiting.</p>
+        <p>Open the editor — your 8 credits are already waiting.</p>
         <div class="pg-row">
           <a href="/editor" class="pg-bw">Open the Editor</a>
           <a href="/seo-tools" class="pg-bo">Explore SEO Tools</a>
@@ -307,7 +309,7 @@
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
-          <h4>Product</h4>
+          <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
           <a href="/community">Community Hub</a>
@@ -315,7 +317,7 @@
         </nav>
 
         <nav class="sh-fcol" aria-label="Legal and support">
-          <h4>Legal &amp; Support</h4>
+          <h2>Legal &amp; Support</h2>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
           <a href="/contact">Help &amp; Feedback</a>

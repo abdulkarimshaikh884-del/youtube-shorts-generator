@@ -30,6 +30,8 @@
 </head>
 <body class="sh-body">
 
+<a class="sh-skip" href="#main">Skip to content</a>
+
 <div class="sh-wrap">
 
   <aside class="sh-rail">
@@ -74,8 +76,8 @@
     <div class="sh-rail-foot">
       <div class="sh-plan-badge">
         <b>Free plan</b>
-        <span>10 credits every day. Export 1, AI scene 5.</span>
-        <a href="/pricing">Upgrade to Pro · ₹99/mo — Upgrade ↗</a>
+        <span>8 credits every day. Export 1, AI scene 2.</span>
+        <a href="/pricing">Upgrade to Pro · ₹99/mo ↗</a>
       </div>
 
       <div class="sh-user-box" id="sidebarUserBox">
@@ -175,7 +177,7 @@
     </div>
   </aside>
 
-  <div class="sh-main">
+  <div class="sh-main" id="main" role="main" tabindex="-1">
 
     <header class="sh-topbar">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -206,7 +208,7 @@
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
-    <main class="pg pg-narrow">
+    <main class="pg">
       <section class="pg-head">
         <span class="pg-eyebrow">Account</span>
         <h1>Your account</h1>
@@ -275,10 +277,23 @@
       </section>
 
       <section class="pg-sec" id="accountGuest" hidden>
-        <p class="pg-planline">You are not logged in. Credits are attached to this browser only.</p>
-        <div class="pg-row">
-          <a href="/login" class="pg-bw">Log in</a>
-          <a href="/signup" class="pg-bo">Create an account</a>
+        <div class="pg-gate">
+          <span class="pg-gate-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <rect x="4" y="10" width="16" height="11" rx="2.5"/>
+              <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+            </svg>
+          </span>
+          <h2>Log in to see your account</h2>
+          <p>Right now your credits live in this browser alone — clear your site data and they are gone. An account carries your plan, your credits and your published templates across every device you use.</p>
+          <div class="pg-row pg-gate-row">
+            <a href="/login?next=/account" class="pg-bw">Log in</a>
+            <a href="/signup?next=/account" class="pg-bo">Create an account</a>
+          </div>
+          <ul class="pg-gate-list">
+            <li>Your plan and daily credit balance in one place</li>            <li>Templates you publish stay tied to your creator name</li>            <li>Drafts and settings follow you to any device</li>
+          </ul>
+          <p class="pg-gate-fine">Free to start — 8 credits every day, no card required.</p>
         </div>
       </section>
     </main>
@@ -294,7 +309,7 @@
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
-          <h4>Product</h4>
+          <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
           <a href="/community">Community Hub</a>
@@ -302,7 +317,7 @@
         </nav>
 
         <nav class="sh-fcol" aria-label="Legal and support">
-          <h4>Legal &amp; Support</h4>
+          <h2>Legal &amp; Support</h2>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
           <a href="/contact">Help &amp; Feedback</a>

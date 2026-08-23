@@ -86,7 +86,7 @@
   border-color:rgba(160, 140, 255, 0.35);
   box-shadow:0 16px 36px rgba(0,0,0,.7), 0 0 24px rgba(118,87,255,.14);
 }
-.pg-card h3{margin:0 0 8px;font-size:16px;font-weight:640}
+.pg-card h3,.pg-card h2{margin:0 0 8px;font-size:16px;font-weight:640;font-family:inherit}
 /* overflow-wrap so a long email or handle wraps instead of spilling out */
 .pg-card p{margin:0;font-size:14px;line-height:1.62;color:var(--ink2);overflow-wrap:anywhere}
 .pg-card a{text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px}
@@ -1076,55 +1076,14 @@ body.pg-bare{
   margin-top:10px;
 }
 
-/* ── page footer ───────────────────────────────────────── */
-.sh-footer {
-  width: 100%;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  padding: 40px 0;
-  margin-top: auto;
-}
-.sh-footer-inner {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 30px;
-  flex-wrap: wrap;
-}
-.sh-footer-brand {
-  max-width: 320px;
-}
-.sh-footer-brand p {
-  margin: 14px 0 0;
-  font-size: 14px;
-  color: var(--ink3);
-  line-height: 1.5;
-}
-.sh-footer-links {
-  display: flex;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.sh-footer-links a {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ink2);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-.sh-footer-links a:hover {
-  color: #fff;
-}
-.sh-footer-copy {
-  margin-top: 40px;
-  font-size: 13px;
-  color: var(--ink4);
-}
-@media (max-width: 620px) {
-  .sh-footer-inner {
-    flex-direction: column;
-    gap: 24px;
-  }
-}
+/* ── page footer ───────────────────────────────────────────
+   The footer is styled entirely by shell.css (.sh-footer / .sh-fgrid /
+   .sh-fcol / .sh-fbot). An older markup (.sh-footer-inner/-brand/-links
+   /-copy) used to be re-styled here; that markup is gone, but the stale
+   .sh-footer rule outlived it and — loading after shell.css — overrode
+   its "padding:40px 28px 28px" with "padding:40px 0", which pinned the
+   footer columns flush against the left screen edge on every mobile page.
+   Nothing here is needed any more, so nothing is redefined. */
 /* ============================================================
    Micro-interactions
    Every rule below animates only `transform`, `opacity`, `box-shadow` or
@@ -1274,3 +1233,49 @@ button.pg-buy[disabled]{transform:none;box-shadow:none}
 }
 /* Three actions on a ~215px card: let the row wrap rather than shave a label. */
 .cr-cre-actions{flex-wrap:wrap;row-gap:6px}
+
+/* ── Signed-out gate ───────────────────────────────────────
+   Used by /account, /uploads and /settings when there is no session.
+   These pages are mostly empty logged out by nature; the gate gives the
+   viewport something composed to hold instead of one orphaned sentence. */
+.pg-gate{
+  max-width:560px;margin:8px auto 0;padding:38px 34px 32px;
+  border:1px solid var(--line);border-radius:20px;
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(121,82,255,.14) 0%, rgba(121,82,255,0) 60%),
+    var(--bg1);
+  text-align:center;
+}
+.pg-gate-icon{
+  width:52px;height:52px;margin:0 auto 18px;
+  display:grid;place-items:center;border-radius:50%;
+  border:1px solid var(--line2);background:var(--bg3);color:#c9b8ff;
+}
+.pg-gate-icon svg{width:24px;height:24px}
+.pg-gate h2{
+  margin:0 0 10px;font-family:var(--display);
+  font-size:24px;font-weight:700;line-height:1.2;color:var(--ink);
+}
+.pg-gate > p:not(.pg-gate-fine){margin:0 auto;max-width:430px;font-size:14.5px;line-height:1.6;color:var(--ink2)}
+.pg-gate-row{justify-content:center;margin-top:24px}
+.pg-gate-list{
+  margin:26px 0 0;padding:22px 0 0;list-style:none;
+  border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:11px;text-align:left;
+}
+.pg-gate-list li{
+  position:relative;padding-left:26px;
+  font-size:14px;line-height:1.5;color:var(--ink2);
+}
+.pg-gate-list li::before{
+  content:"";position:absolute;left:5px;top:6px;width:9px;height:5px;
+  border-left:2px solid #a58cff;border-bottom:2px solid #a58cff;
+  transform:rotate(-45deg);
+}
+.pg-gate-fine{margin:20px 0 0;font-size:12.5px;color:var(--ink4);text-align:center}
+@media (max-width:520px){
+  .pg-gate{padding:30px 22px 26px}
+  .pg-gate h2{font-size:21px}
+  .pg-gate-row{flex-direction:column}
+  .pg-gate-row .pg-bw,.pg-gate-row .pg-bo{width:100%;text-align:center}
+}

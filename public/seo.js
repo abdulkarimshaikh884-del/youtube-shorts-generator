@@ -129,6 +129,20 @@
         return r.json().then(function (j) { return { ok: r.ok, body: j }; });
       })
       .then(function (res) {
+        // Out of free goes: offer the account rather than just refusing, and
+        // bring them back to this page with the topic still typed in.
+        if (res.status === 401 && res.body && res.body.needAccount) {
+          var back = encodeURIComponent(location.pathname);
+          outEl.innerHTML =
+            "<p class='pg-empty'>" + esc(res.body.error) + "</p>" +
+            "<p style='margin-top:12px'>" +
+            "<a class='pg-bw' style='height:38px;padding:0 18px' href='/signup?next=" + back + "'>Create a free account</a>" +
+            " <a class='pg-bo' style='height:38px;padding:0 18px;margin-left:8px' href='/login?next=" + back + "'>Log in</a>" +
+            "</p>";
+          copyBtn.disabled = true;
+          dlBtn.disabled = true;
+          return;
+        }
         if (!res.ok || !res.body || !res.body.success) {
           throw new Error((res.body && res.body.error) || "That did not work. Please retry.");
         }

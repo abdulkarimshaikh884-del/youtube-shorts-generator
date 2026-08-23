@@ -8,6 +8,8 @@
 (function () {
   "use strict";
 
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var note = null;
 
@@ -22,7 +24,7 @@
      needs no edit here. */
   var paymentsLive = true;
 
-  function paintReserveMode(o) {
+  function paintReserveMode(o, keepNote) {
     var banner = $("#offerBanner");
     var left = $("#offerLeft");
     var term = $("#maxTerm");
@@ -46,20 +48,26 @@
         ? "Reserve a lifetime seat"
         : "Notify me when Pro opens";
     });
-    say("Payments open shortly. Reserve a seat and we will email you the moment they do — nothing is charged now.");
+    /* Not when we were called to refresh the seat count right after a
+       successful reservation: this generic line would replace the
+       "Reserved — you are number N" confirmation the visitor just earned,
+       leaving no sign the reservation worked. */
+    if (!keepNote) {
+      say("Payments open shortly. Reserve a seat and we will email you the moment they do — nothing is charged now.");
+    }
   }
 
   /* ── Launch offer counter ─────────────────────────────────
      Pro Max is lifetime for the first N members. Once they are gone the same
      price buys a year, so the page must say which one the visitor is getting. */
-  function paintOffer() {
+  function paintOffer(keepNote) {
     fetch("/api/offer", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
       .then(function (o) {
         if (!o || !o.success) return;
 
         paymentsLive = o.paymentsLive !== false;
-        if (!paymentsLive) { paintReserveMode(o); return; }
+        if (!paymentsLive) { paintReserveMode(o, keepNote); return; }
 
         var banner = $("#offerBanner");
         var left = $("#offerLeft");
@@ -208,14 +216,28 @@
       if (el && el.textContent.indexOf("@") > -1) pre = el.textContent.trim();
     } catch (e) { /* not signed in */ }
 
-    var email = window.prompt(
-      "Enter your email and we will tell you the moment " +
-      (planId === "promax" ? "lifetime Pro Max" : "Pro") + " opens.\n" +
-      "Nothing is charged now.", pre);
-    if (email === null) return;
+    SC_UI.prompt({
+      title: "Reserve your seat",
+      body: "We will email you the moment " +
+        (planId === "promax" ? "lifetime Pro Max" : "Pro") +
+        " opens. Nothing is charged now.",
+      label: "Email address",
+      value: pre,
+      placeholder: "you@example.com",
+      maxLength: 140,
+      confirmLabel: "Reserve my seat"
+    }).then(function (entered) {
+      if (entered === null) return;
+      finishReserve(String(entered).trim(), planId, btn);
+    });
+  }
 
-    email = String(email).trim();
+  function finishReserve(email, planId, btn) {
     if (!email) { say("Enter an email to reserve a seat.", "err"); return; }
+    if (!EMAIL_RE.test(email)) {
+      say("That email address does not look right.", "err");
+      return;
+    }
 
     var label = btn.textContent;
     btn.disabled = true;
@@ -232,7 +254,7 @@
         say(j.alreadyOn
           ? "You are already on the list — number " + j.position + ". We will email you when it opens."
           : "Reserved — you are number " + j.position + " on the list. We will email you when it opens.", "ok");
-        paintOffer();
+        paintOffer(true);
       })
       .catch(function (err) {
         say(err.message || "Network problem. Please try again.", "err");

@@ -161,7 +161,7 @@
           setTimeout(function () { sp.textContent = "🔗 Share"; }, 2000);
         });
       } else {
-        prompt("Copy template link:", url);
+        SC_UI.copy(url, "Template link copied");
       }
     };
 
@@ -606,7 +606,7 @@
               }, 2000);
             });
           } else {
-            prompt("Copy template link:", shareUrl);
+            SC_UI.copy(shareUrl, "Template link copied");
           }
         });
 
@@ -811,7 +811,7 @@
         var file = img.files && img.files[0];
         if (!file) return;
         if (file.size > 900 * 1024) {
-          alert("That image is " + Math.round(file.size / 1024) + " KB. Keep it under 900 KB.");
+          SC_UI.toast("That image is " + Math.round(file.size / 1024) + " KB — keep it under 900 KB.", true, 4000);
           img.value = "";
           return;
         }

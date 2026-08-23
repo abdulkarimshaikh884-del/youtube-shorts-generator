@@ -26,6 +26,12 @@ services:
       # Accounts, credits, the waitlist, community templates and comments all
       # live in Supabase Postgres, so no disk is needed and a redeploy cannot
       # lose them. Set this in the dashboard — it contains the role password.
+      #
+      # MUST be the Supavisor session-pooler host:
+      #   postgresql://shortscraft_app.<ref>:PW@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+      # Render is IPv4-only and Supabase's direct db.<ref>.supabase.co endpoint
+      # is IPv6-only, so the direct host cannot be reached from here at all.
+      # See DEPLOY.md.
       - key: DATABASE_URL
         sync: false
 

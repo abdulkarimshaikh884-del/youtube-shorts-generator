@@ -23,6 +23,17 @@
   if (af) {
     var kind = af.dataset.kind === "signup" ? "signup" : "login";
     var note = $("#authNote"), send = $("#authSend");
+
+    /* Carry ?next= across the login <-> signup switch. The submit handler
+       below already honours it, but the "Create one" / "Log in" link under
+       the form is static markup, so arriving at /login?next=/settings and
+       deciding to sign up instead used to drop the destination and land you
+       on the home page. */
+    var nextParam = new URLSearchParams(location.search).get("next");
+    if (nextParam && /^\/[a-z0-9\-/?=&]*$/i.test(nextParam)) {
+      var cross = af.querySelector('.pg-fine a[href="/login"], .pg-fine a[href="/signup"]');
+      if (cross) cross.href = cross.getAttribute("href") + "?next=" + encodeURIComponent(nextParam);
+    }
     var say = function (msg, bad) {
       note.textContent = msg;
       if (bad) note.setAttribute("data-bad", "1"); else note.removeAttribute("data-bad");

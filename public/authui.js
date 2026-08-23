@@ -63,7 +63,7 @@
         if ($("#crHandle")) $("#crHandle").textContent = handle;
         if ($("#crAvatarChar")) $("#crAvatarChar").textContent = initials;
         if ($("#crBio")) $("#crBio").textContent = bio;
-        if ($("#crStarsCount")) $("#crStarsCount").textContent = user.stars || 48;
+        if ($("#crStarsCount")) $("#crStarsCount").textContent = user.stars || 0;
 
         // A social link with nothing behind it is worse than no link at all —
         // hide it until the creator has actually filled it in.
@@ -386,11 +386,21 @@
         grid.querySelectorAll(".cr-cre-del").forEach(function (btn) {
           btn.addEventListener("click", function () {
             var tid = btn.getAttribute("data-id");
-            if (!confirm("Are you sure you want to delete this template from your creations?")) return;
-            btn.disabled = true;
-            fetch("/api/community-templates/" + tid, { method: "DELETE" })
-              .then(function () { loadUserCreations(); })
-              .catch(function () { btn.disabled = false; });
+            SC_UI.confirm({
+              title: "Delete this template?",
+              body: "It will be removed from the Community gallery for everyone. This cannot be undone.",
+              confirmLabel: "Delete",
+              danger: true
+            }).then(function (yes) {
+              if (!yes) return;
+              btn.disabled = true;
+              fetch("/api/community-templates/" + tid, { method: "DELETE" })
+                .then(function () { loadUserCreations(); SC_UI.toast("Template deleted"); })
+                .catch(function () {
+                  btn.disabled = false;
+                  SC_UI.toast("Could not delete that template. Please retry.", true);
+                });
+            });
           });
         });
 
@@ -718,3 +728,190 @@
   window.SC_AUTH = { paint: paint, logout: logout, loadUserCreations: loadUserCreations, setupUploadModal: setupUploadModal };
 })();
 
+
+/* ============================================================
+   SC_UI — in-page confirm / prompt / toast.
+
+   window.confirm and window.prompt block the page, cannot be styled, and
+   render as raw OS chrome in the middle of an otherwise designed product.
+   Everything that used them now calls these instead. Promise-based so the
+   call sites read the same way the native ones did.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var openDlg = null;
+
+  function build(opts) {
+    var back = document.createElement("div");
+    back.className = "sc-dlg-back";
+    back.setAttribute("role", "dialog");
+    back.setAttribute("aria-modal", "true");
+
+    var box = document.createElement("div");
+    box.className = "sc-dlg";
+
+    var h = document.createElement("h3");
+    h.textContent = opts.title || "Are you sure?";
+    box.appendChild(h);
+    back.setAttribute("aria-label", h.textContent);
+
+    if (opts.body) {
+      var pEl = document.createElement("p");
+      pEl.textContent = opts.body;
+      box.appendChild(pEl);
+    }
+
+    var input = null;
+    if (opts.kind === "prompt") {
+      var lb = document.createElement("label");
+      lb.textContent = opts.label || "Value";
+      lb.htmlFor = "scDlgInput";
+      box.appendChild(lb);
+      input = document.createElement("input");
+      input.type = "text";
+      input.id = "scDlgInput";
+      input.value = opts.value == null ? "" : String(opts.value);
+      input.placeholder = opts.placeholder || "";
+      if (opts.maxLength) input.maxLength = opts.maxLength;
+      box.appendChild(input);
+    }
+
+    var row = document.createElement("div");
+    row.className = "sc-dlg-row";
+    var cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "sc-dlg-btn sc-dlg-cancel";
+    cancel.textContent = opts.cancelLabel || "Cancel";
+    var ok = document.createElement("button");
+    ok.type = "button";
+    ok.className = "sc-dlg-btn sc-dlg-ok" + (opts.danger ? " danger" : "");
+    ok.textContent = opts.confirmLabel || "Confirm";
+    row.appendChild(cancel);
+    row.appendChild(ok);
+    box.appendChild(row);
+    back.appendChild(box);
+
+    return { back: back, ok: ok, cancel: cancel, input: input };
+  }
+
+  function open(opts) {
+    // Only one at a time: a second call closes the first rather than stacking.
+    if (openDlg) openDlg();
+
+    return new Promise(function (resolve) {
+      var el = build(opts);
+      var lastFocus = document.activeElement;
+      var done = false;
+
+      function close(result) {
+        if (done) return;
+        done = true;
+        openDlg = null;
+        document.removeEventListener("keydown", onKey, true);
+        if (el.back.parentNode) el.back.parentNode.removeChild(el.back);
+        try { if (lastFocus && lastFocus.focus) lastFocus.focus(); } catch (e) {}
+        resolve(result);
+      }
+      openDlg = function () { close(opts.kind === "prompt" ? null : false); };
+
+      function onKey(ev) {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          close(opts.kind === "prompt" ? null : false);
+          return;
+        }
+        if (ev.key === "Enter" && opts.kind === "prompt" && ev.target === el.input) {
+          ev.preventDefault();
+          el.ok.click();
+          return;
+        }
+        // keep focus inside the dialog while it is open
+        if (ev.key === "Tab") {
+          var f = el.back.querySelectorAll("button, input");
+          if (!f.length) return;
+          var first = f[0], last = f[f.length - 1];
+          if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+          else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+        }
+      }
+
+      el.ok.addEventListener("click", function () {
+        if (opts.kind === "prompt") {
+          var v = el.input.value.trim();
+          if (opts.required !== false && !v) { el.input.focus(); return; }
+          close(v);
+        } else {
+          close(true);
+        }
+      });
+      el.cancel.addEventListener("click", function () {
+        close(opts.kind === "prompt" ? null : false);
+      });
+      el.back.addEventListener("mousedown", function (ev) {
+        if (ev.target === el.back) close(opts.kind === "prompt" ? null : false);
+      });
+      document.addEventListener("keydown", onKey, true);
+
+      document.body.appendChild(el.back);
+      if (el.input) { el.input.focus(); el.input.select(); }
+      else el.ok.focus();
+    });
+  }
+
+  function confirmDlg(opts) {
+    return open(Object.assign({ kind: "confirm", confirmLabel: "Confirm" }, opts || {}));
+  }
+  function promptDlg(opts) {
+    return open(Object.assign({ kind: "prompt", confirmLabel: "Save" }, opts || {}));
+  }
+
+  var toastWrap = null;
+  function toast(msg, bad, ms) {
+    if (!msg) return;
+    if (!toastWrap) {
+      toastWrap = document.createElement("div");
+      toastWrap.className = "sc-toast-wrap";
+      toastWrap.setAttribute("role", "status");
+      toastWrap.setAttribute("aria-live", "polite");
+      document.body.appendChild(toastWrap);
+    }
+    var t = document.createElement("div");
+    t.className = "sc-toast" + (bad ? " bad" : "");
+    t.textContent = msg;
+    toastWrap.appendChild(t);
+    setTimeout(function () {
+      t.className += " out";
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 260);
+    }, ms || 2600);
+  }
+
+  /* Copy helper: the clipboard API is unavailable on insecure origins and in
+     some in-app browsers. Falls back to execCommand, then to showing the text
+     so the value is never simply lost. */
+  function copy(text, okMsg) {
+    function fallback() {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.cssText = "position:fixed;top:-1000px;opacity:0";
+        document.body.appendChild(ta);
+        ta.select();
+        var done = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (done) { toast(okMsg || "Copied"); return; }
+      } catch (e) {}
+      promptDlg({
+        title: "Copy this link",
+        body: "Your browser blocked the clipboard. Select the text and copy it.",
+        label: "Link", value: text, confirmLabel: "Done", required: false
+      });
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast(okMsg || "Copied"); }, fallback);
+    } else fallback();
+  }
+
+  window.SC_UI = { confirm: confirmDlg, prompt: promptDlg, toast: toast, copy: copy };
+})();

@@ -122,10 +122,18 @@
       ren.className = "pg-bo cr-cre-btn";
       ren.textContent = "Rename";
       ren.addEventListener("click", function () {
-        var name = prompt("Rename this project", d.name || "Untitled animation");
-        if (name === null) return;
-        SC_DRAFTS.rename(d.id, name.trim());
-        render();
+        SC_UI.prompt({
+          title: "Rename this project",
+          label: "Project name",
+          value: d.name || "Untitled animation",
+          maxLength: 80,
+          confirmLabel: "Rename"
+        }).then(function (name) {
+          if (name === null) return;
+          SC_DRAFTS.rename(d.id, name);
+          render();
+          SC_UI.toast("Renamed to “" + name + "”");
+        });
       });
 
       var del = document.createElement("button");
@@ -135,9 +143,17 @@
       del.addEventListener("click", function () {
         // Deleting is the one irreversible action on this page — a draft lives
         // only in this browser, so there is nothing to restore it from.
-        if (!confirm('Delete "' + (d.name || "Untitled animation") + '"? This cannot be undone.')) return;
-        SC_DRAFTS.remove(d.id);
-        render();
+        SC_UI.confirm({
+          title: "Delete this project?",
+          body: "“" + (d.name || "Untitled animation") + "” is saved in this browser only, so deleting it cannot be undone.",
+          confirmLabel: "Delete",
+          danger: true
+        }).then(function (yes) {
+          if (!yes) return;
+          SC_DRAFTS.remove(d.id);
+          render();
+          SC_UI.toast("Project deleted");
+        });
       });
 
       row.appendChild(open);

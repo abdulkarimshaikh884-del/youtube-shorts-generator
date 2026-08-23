@@ -799,14 +799,21 @@
         f.className = "ed-f ed-f-custom";
         f.dataset.key = field.key;
 
+        /* The fallback branch below wires for/id; this one never did, so on
+           any template with a custom schema the field labels were not tied to
+           their inputs — clicking a label focused nothing and a screen reader
+           read the controls unlabelled. */
+        var fid = "edProp_" + String(field.key).replace(/[^A-Za-z0-9_-]/g, "");
         var lb = document.createElement("label");
         lb.textContent = field.label;
+        lb.htmlFor = fid;
         f.appendChild(lb);
 
         var val = c.props[field.key] != null ? c.props[field.key] : (field.default != null ? field.default : "");
 
         if (field.type === "textarea") {
           var ta = document.createElement("textarea");
+          ta.id = fid;
           ta.rows = 3;
           ta.value = val;
           ta.placeholder = field.placeholder || "";
@@ -817,6 +824,7 @@
           f.appendChild(ta);
         } else if (field.type === "select") {
           var sel = document.createElement("select");
+          sel.id = fid;
           (field.options || []).forEach(function (opt) {
             var optEl = document.createElement("option");
             optEl.value = opt.val;
@@ -834,6 +842,7 @@
           togWrap.className = "ed-tog-wrap";
           togWrap.style.cssText = "display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px;";
           var chk = document.createElement("input");
+          chk.id = fid;
           chk.type = "checkbox";
           chk.checked = Boolean(val);
           chk.style.cssText = "width:18px;height:18px;accent-color:var(--sh-accent);";
@@ -852,6 +861,7 @@
           var colRow = document.createElement("div");
           colRow.style.cssText = "display:flex;align-items:center;gap:8px;";
           var colInput = document.createElement("input");
+          colInput.id = fid;
           colInput.type = "color";
           colInput.value = val || "#ffffff";
           colInput.style.cssText = "width:40px;height:36px;padding:0;border:0;border-radius:8px;cursor:pointer;";
@@ -893,6 +903,7 @@
           updatePrev(val);
 
           var txtInput = document.createElement("input");
+          txtInput.id = fid;
           txtInput.type = "text";
           txtInput.value = (typeof val === "string" && val.indexOf("data:image/") === 0) ? "(Custom Image)" : (val || "");
           txtInput.placeholder = "Emoji / Text";
@@ -935,6 +946,7 @@
         } else {
           // Default text input
           var input = document.createElement("input");
+          input.id = fid;
           input.type = "text";
           input.value = val;
           input.placeholder = field.placeholder || "";

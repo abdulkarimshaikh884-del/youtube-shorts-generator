@@ -12,6 +12,43 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 
+/* ── Async route safety net ──────────────────────────────────
+   Express 4 does not await route handlers, so a rejected promise inside an
+   `async (req, res)` never reaches the error middleware — it surfaces as an
+   unhandledRejection, which Node terminates the process for. One database
+   blip during an export was therefore enough to kill the whole server:
+   credits.charge() threw, nothing caught it, and every in-flight request died
+   with it.
+
+   Rather than hand-wrapping twenty-odd handlers and hoping the next one added
+   remembers, wrap the registration methods once. Any handler that returns a
+   promise now routes its rejection to next(), i.e. to the error handler at the
+   bottom of this file, and the client gets a clean 500. */
+for (const method of ["get", "post", "put", "delete", "patch", "all"]) {
+  const original = app[method].bind(app);
+  app[method] = (routePath, ...handlers) =>
+    original(routePath, ...handlers.map((h) =>
+      typeof h === "function" && h.length < 4
+        ? function (req, res, next) {
+            let out;
+            try { out = h(req, res, next); }
+            catch (err) { return next(err); }
+            if (out && typeof out.catch === "function") out.catch(next);
+            return out;
+          }
+        : h));
+}
+
+/* Last line of defence. Anything that still escapes — a stray promise in a
+   timer, a driver emitting after a response was sent — gets logged instead of
+   taking the process down with it. */
+process.on("unhandledRejection", (reason) => {
+  console.error("[unhandledRejection]", reason && reason.stack ? reason.stack : reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[uncaughtException]", err && err.stack ? err.stack : err);
+});
+
 // ── Trust proxy (Render uses reverse proxy) ─────────────────
 app.set("trust proxy", 1);
 
@@ -727,12 +764,58 @@ function sanitizeTopic(s) {
 
 const generationLimiter = rateLimit({ windowMs: 60_000, max: 12 });
 
+/* The SEO tools are the site's main organic entry point — six keyword URLs
+   that bring people in from search — so they stay usable without an account.
+   But each call is a model call we pay for, and previously they were free,
+   unlimited and unauthenticated: 12/minute per IP is over 17,000 model calls a
+   day from one address, with no revenue and nothing tying the usage to anyone.
+
+   The compromise: a few goes to prove the tool works, then an account. That
+   turns the traffic these pages already earn into signups instead of pure
+   cost, without putting a wall in front of a search visitor's first
+   impression. Signed-in users are not limited here — their spending is
+   governed by the credit ledger elsewhere. */
+const SEO_FREE_USES = 3;
+const seoFreeUses = new Map();   // ip -> { n, day }
+
+function seoGate(req) {
+  if (req.user) return { ok: true };
+  const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
+  const day = new Date().toISOString().slice(0, 10);
+  const rec = seoFreeUses.get(ip);
+  const n = rec && rec.day === day ? rec.n : 0;
+  if (n >= SEO_FREE_USES) {
+    return {
+      ok: false,
+      error: `You have used your ${SEO_FREE_USES} free generations for today. ` +
+        `Create a free account to keep going — it takes a few seconds.`
+    };
+  }
+  seoFreeUses.set(ip, { n: n + 1, day });
+  return { ok: true, remaining: SEO_FREE_USES - (n + 1) };
+}
+
+// The map is per-IP-per-day; drop yesterday's entries so it cannot grow forever.
+setInterval(() => {
+  const day = new Date().toISOString().slice(0, 10);
+  for (const [ip, rec] of seoFreeUses.entries()) {
+    if (rec.day !== day) seoFreeUses.delete(ip);
+  }
+}, 3_600_000);
+
 app.post("/api/generate", generationLimiter, async (req, res) => {
   try {
     const topic = sanitizeTopic(req.body?.topic);
     const type = String(req.body?.type || "all").toLowerCase();
     if (!topic || topic.length < 2) {
       return res.status(400).json({ success: false, error: "Topic is required (min 2 characters)." });
+    }
+
+    // Checked after validating the request, so a malformed call never burns
+    // one of the free goes.
+    const gate = seoGate(req);
+    if (!gate.ok) {
+      return res.status(401).json({ success: false, error: gate.error, needAccount: true });
     }
 
     const prompts = {
@@ -1237,7 +1320,12 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
 
   const aspect = EXPORT_LIMITS.aspects[b.aspect] ? b.aspect : "9:16";
   const fps = EXPORT_LIMITS.fps.includes(Number(b.fps)) ? Number(b.fps) : 30;
-  const height = EXPORT_LIMITS.heights.includes(Number(b.height)) ? Number(b.height) : 1080;
+  /* Resolution and watermark come from the plan on the server, not the
+     request. A crafted POST asking for 1440p without a watermark is simply
+     clamped to whatever the account actually pays for. */
+  const ent = await credits.entitlements(req);
+  const askedHeight = EXPORT_LIMITS.heights.includes(Number(b.height)) ? Number(b.height) : 1080;
+  const height = Math.min(askedHeight, ent.maxHeight);
 
   const clips = [];
   for (const c of rawClips) {
@@ -1332,12 +1420,19 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
             ? await page.evaluate(
               (spec, opts) => window.SC_TPL2.buildCustom(spec, opts),
               c.spec,
-              { aspect, dur: c.dur, font: c.font, accent: c.accent || c.spec.accent }
+              {
+                aspect, dur: c.dur, font: c.font,
+                accent: c.accent || c.spec.accent,
+                watermark: ent.watermark
+              }
             )
             : await page.evaluate(
               (id, opts) => window.SC_TPL2.build(id, opts),
               c.tpl,
-              { lines: c.lines, accent: c.accent, aspect, dur: c.dur, font: c.font }
+              {
+                lines: c.lines, accent: c.accent, aspect, dur: c.dur, font: c.font,
+                watermark: ent.watermark
+              }
             );
           if (!html) throw new Error("Unknown template.");
           docs.push(html);

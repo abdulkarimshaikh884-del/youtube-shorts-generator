@@ -35,6 +35,33 @@ The app connects as a dedicated role, **`shortscraft_app`**, not as `postgres`:
 The connection string is in `.env` locally and must be set as a secret in the
 host's dashboard. It contains the role password, so it is never committed.
 
+### Use the pooler host, not the direct one
+
+`DATABASE_URL` must point at the **Supavisor session pooler**:
+
+```
+postgresql://shortscraft_app.mqsimdmogbycrbizrrsm:PASSWORD@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+```
+
+Not `db.mqsimdmogbycrbizrrsm.supabase.co:5432`. Two reasons, both hard:
+
+1. **Render cannot reach the direct endpoint at all.** It is IPv6-only without
+   the paid IPv4 add-on, and Render is an IPv4-only platform — Supabase names
+   it explicitly in their own docs. A deploy pointed at the direct host would
+   fail every query.
+2. **It is six times faster from here.** Measured: `select 1` takes ~1,370ms
+   over the direct IPv6 route and ~180ms through the pooler, and a cold
+   connection took 11.5s versus 1.3s. `/api/credits` went from 2.3–15s to
+   ~0.37s just by switching hosts.
+
+Note the username is `shortscraft_app.<project-ref>`, with the ref appended
+after a dot — the pooler uses that to identify the tenant. The plain role name
+gives `tenant/user not found`. Also note the host is `aws-1-…`, not `aws-0-…`;
+`aws-0` does not serve this project.
+
+Session mode (port 5432), not transaction mode (6543): this is a persistent
+backend, and session mode supports prepared statements, which `pg` uses.
+
 ---
 
 ## Render (the blueprint is already written)

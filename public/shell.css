@@ -182,10 +182,15 @@ body.sh-body #scrollBar{
 .sh-plan-badge b{display:block;font-size:13px;font-weight:650;margin-bottom:2px;color:#fff}
 .sh-plan-badge span{display:block;font-size:11.5px;color:var(--sh-ink3);line-height:1.45}
 .sh-plan-badge a{
+  /* border-bottom draws one line under the whole inline box, so when this
+     label wrapped in the 250px rail the underline sat under the last line
+     only and read as clipped text. text-decoration underlines each line. */
   display:inline-block;margin-top:8px;
-  font-size:11.5px;font-weight:650;color:#fff;
-  border-bottom:1px solid var(--sh-line2);
+  font-size:11.5px;font-weight:650;color:#fff;line-height:1.45;
+  text-decoration:underline;text-decoration-color:var(--sh-line2);
+  text-underline-offset:3px;
 }
+.sh-plan-badge a:hover{text-decoration-color:#fff}
 
 /* ── Sidebar User / Account Bar & Flyout Popover Menu ──── */
 .sh-user-box{
@@ -1001,11 +1006,19 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
 @media (min-width: 1400px) {
   .sh-gallery { grid-template-columns: repeat(5, 1fr); }
 }
+/* Only tighten the padding here. Forcing 2 columns at this breakpoint made
+   a 768px tablet show two 362px-wide tiles and a 37,000px page; the base
+   auto-fill rule already lands on 3 columns there and 2 by ~600px. */
 @media (max-width: 900px) {
-  .sh-gallery { grid-template-columns: repeat(2, 1fr); padding:10px 14px 40px; }
+  .sh-gallery { padding:10px 14px 40px; }
 }
+/* This used to drop to a single column under 540px. With 101 templates in
+   the gallery that made the phone home page ~68,000px tall — seven times the
+   desktop height — so the sections under the gallery were unreachable in
+   practice. Two columns is what every template gallery uses on a phone; the
+   gap and padding tighten instead. */
 @media (max-width: 540px) {
-  .sh-gallery { grid-template-columns: 1fr; }
+  .sh-gallery { grid-template-columns: repeat(2, 1fr); gap:10px; padding:10px 12px 40px; }
 }
 
 .sh-tile{
@@ -1798,7 +1811,7 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
 @media (max-width: 768px){.sh-fgrid{grid-template-columns:1fr;gap:26px}}
 .sh-fbrand p{margin:12px 0 0;font-size:13px;color:var(--sh-ink3);line-height:1.6;max-width:320px}
 .sh-fcol{display:flex;flex-direction:column;gap:10px}
-.sh-fcol h4{margin:0 0 4px;font-size:13px;font-weight:650;color:#fff}
+.sh-fcol h2{margin:0 0 4px;font-size:13px;font-weight:650;color:#fff}
 .sh-fcol a{font-size:13px;color:var(--sh-ink3);transition:color .15s ease}
 .sh-fcol a:hover{color:#fff}
 .sh-fbot{
@@ -2035,3 +2048,124 @@ textarea.sh-minput{
   transform:translateY(-1px);
   box-shadow:0 6px 24px rgba(121, 82, 255, 0.6);
 }
+
+/* ── In-page dialogs & toasts ───────────────────────────────
+   Replaces window.prompt / confirm / alert. The native dialogs are unstyled
+   OS chrome, cannot carry the product's own type or colour, and block the
+   whole page while open — the three things a paid product should not do at
+   the moment it asks you to confirm deleting your work. */
+.sc-dlg-back{
+  position:fixed;inset:0;z-index:1000000;
+  display:grid;place-items:center;padding:20px;
+  background:rgba(4,4,8,.72);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  animation:scDlgBack .16s ease-out both;
+}
+@keyframes scDlgBack{from{opacity:0}to{opacity:1}}
+.sc-dlg{
+  width:100%;max-width:420px;box-sizing:border-box;
+  background:linear-gradient(180deg,rgba(24,24,36,.99),rgba(12,12,19,.99));
+  border:1px solid rgba(255,255,255,.16);border-radius:18px;
+  box-shadow:0 30px 80px rgba(0,0,0,.9),0 0 40px rgba(110,80,255,.14);
+  padding:24px;color:#fff;
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  animation:scDlgIn .18s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes scDlgIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.sc-dlg h3{
+  margin:0 0 8px;font-family:"Space Grotesk","Inter",system-ui,sans-serif;
+  font-size:18px;font-weight:700;line-height:1.25;color:#fff;
+}
+.sc-dlg p{margin:0;font-size:13.5px;line-height:1.55;color:#b8b8c4}
+.sc-dlg label{display:block;margin:16px 0 6px;font-size:12px;font-weight:650;color:#b8b8c4}
+.sc-dlg input{
+  width:100%;box-sizing:border-box;height:40px;padding:0 12px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);
+  border-radius:10px;color:#fff;font-size:14px;font-family:inherit;
+}
+.sc-dlg input:focus{outline:none;border-color:#a485ff;box-shadow:0 0 0 3px rgba(121,82,255,.22)}
+.sc-dlg-row{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap}
+.sc-dlg-btn{
+  min-height:38px;padding:0 18px;border-radius:999px;cursor:pointer;
+  font-family:inherit;font-size:13.5px;font-weight:650;transition:all .15s ease;
+}
+.sc-dlg-cancel{background:transparent;border:1px solid rgba(255,255,255,.22);color:#fff}
+.sc-dlg-cancel:hover{background:rgba(255,255,255,.08);border-color:#fff}
+.sc-dlg-ok{background:#fff;border:1px solid #fff;color:#000}
+.sc-dlg-ok:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,255,255,.18)}
+.sc-dlg-ok.danger{background:#e5484d;border-color:#e5484d;color:#fff}
+.sc-dlg-ok.danger:hover{background:#f2555a;box-shadow:0 6px 18px rgba(229,72,77,.35)}
+@media (max-width:460px){
+  .sc-dlg-row{flex-direction:column-reverse}
+  .sc-dlg-row .sc-dlg-btn{width:100%}
+}
+
+.sc-toast-wrap{
+  position:fixed;left:50%;bottom:28px;transform:translateX(-50%);
+  z-index:1000001;display:flex;flex-direction:column;gap:8px;
+  align-items:center;pointer-events:none;width:max-content;max-width:calc(100vw - 32px);
+}
+.sc-toast{
+  padding:11px 18px;border-radius:999px;
+  background:rgba(22,22,32,.97);border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 12px 34px rgba(0,0,0,.7);
+  color:#fff;font-size:13.5px;font-weight:550;line-height:1.4;
+  font-family:"Inter",system-ui,sans-serif;text-align:center;
+  animation:scToastIn .2s cubic-bezier(.16,1,.3,1) both;
+}
+.sc-toast.bad{border-color:rgba(229,72,77,.65)}
+.sc-toast.out{animation:scToastOut .25s ease-in both}
+@keyframes scToastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes scToastOut{from{opacity:1}to{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){
+  .sc-dlg-back,.sc-dlg,.sc-toast{animation:none}
+}
+
+/* ── Community gallery: loading & failure states ────────────
+   The grid is filled from /api/community-templates. When that call fails the
+   page must still say something — an empty grid is indistinguishable from a
+   gallery with nothing in it. */
+.sh-comm-loading{
+  grid-column:1/-1;padding:48px 20px;text-align:center;
+  font-size:14px;color:var(--sh-ink3);
+}
+.sh-comm-error{
+  grid-column:1/-1;margin:8px auto;max-width:520px;padding:34px 28px;
+  border:1px solid var(--sh-line);border-radius:18px;
+  background:var(--sh-bg2);text-align:center;
+}
+.sh-comm-error b{
+  display:block;margin-bottom:8px;font-family:var(--sh-display);
+  font-size:17px;font-weight:700;color:#fff;
+}
+.sh-comm-error span{
+  display:block;font-size:13.5px;line-height:1.55;color:var(--sh-ink2);
+}
+.sh-comm-error-row{
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px;
+}
+.sh-comm-retry{
+  min-height:38px;padding:0 18px;border-radius:999px;cursor:pointer;
+  display:inline-flex;align-items:center;
+  font-family:inherit;font-size:13.5px;font-weight:650;
+  background:#fff;border:1px solid #fff;color:#000;transition:all .15s ease;
+}
+.sh-comm-retry:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,255,255,.18)}
+.sh-comm-retry.alt{background:transparent;border-color:var(--sh-line2);color:#fff}
+.sh-comm-retry.alt:hover{background:rgba(255,255,255,.08);border-color:#fff;box-shadow:none}
+
+/* ── Skip to content ────────────────────────────────────────
+   WCAG 2.4.1. The rail carries the brand, the create CTA, five nav links, the
+   plan card and the account menu — all of it ahead of the page content in the
+   tab order, on every page. Off-screen until focused, then a real target. */
+.sh-skip{
+  position:absolute;left:12px;top:-60px;z-index:1000002;
+  padding:11px 18px;border-radius:0 0 12px 12px;
+  background:#fff;color:#000;
+  font-family:"Inter",system-ui,sans-serif;font-size:13.5px;font-weight:650;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+  transition:top .16s ease;
+}
+.sh-skip:focus{top:0}
+.sh-main:focus{outline:none}
+@media (prefers-reduced-motion:reduce){.sh-skip{transition:none}}

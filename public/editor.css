@@ -473,7 +473,8 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 /* ── Right: properties ─────────────────────────────────── */
 .ed-props{padding:16px 16px 40px;display:flex;flex-direction:column;gap:20px}
 .ed-grp{display:flex;flex-direction:column;gap:10px}
-.ed-grp > h3{
+.ed-grp > h3,
+.ed-grp > h2{
   margin:0;font-size:10.5px;font-weight:650;letter-spacing:.18em;
   text-transform:uppercase;color:var(--ink4);
 }

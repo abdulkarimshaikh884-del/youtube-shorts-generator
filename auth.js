@@ -85,7 +85,7 @@ function publicUser(row) {
     bio: row.bio || "",
     youtube: row.youtube || "",
     instagram: row.instagram || "",
-    stars: Number(row.stars) || 48
+    stars: Number(row.stars) || 0
   };
 }
 
@@ -253,7 +253,7 @@ async function updateProfile(userId, data) {
 
 async function giveStar(userId) {
   const { rows } = await db.query(
-    `update public.users set stars = coalesce(stars, 48) + 1 where id = $1 returning stars`,
+    `update public.users set stars = coalesce(stars, 0) + 1 where id = $1 returning stars`,
     [userId]
   );
   if (!rows[0]) return { error: "User not found." };

@@ -228,7 +228,7 @@
             }, 2200);
           });
         } else {
-          prompt("Copy link:", url);
+          SC_UI.copy(url, "Link copied");
         }
       });
     }

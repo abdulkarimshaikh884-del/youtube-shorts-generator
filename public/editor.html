@@ -26,6 +26,8 @@
 </head>
 <body class="ed-body">
 
+<a class="ed-skip" href="#main">Skip to the stage</a>
+
 <div class="ed-app">
 
   <!-- ── TOP BAR ─────────────────────────────────────────── -->
@@ -135,7 +137,7 @@
     </aside>
 
     <!-- CENTRE: stage + playback -->
-    <section class="ed-col ed-center">
+    <main class="ed-col ed-center" id="main" role="main" tabindex="-1">
       <div class="ed-stagewrap">
         <!-- Layers are created by editor.js (renderClip), one sandboxed iframe
              per clip carrying the template's own CSS document. A pre-placed
@@ -180,7 +182,7 @@
       </div>
 
       <div class="ed-status" id="edStatus" role="status" aria-live="polite"></div>
-    </section>
+    </main>
 
     <!-- RIGHT: properties -->
     <aside class="ed-col ed-right">
@@ -189,7 +191,7 @@
         <div class="ed-props">
 
           <div class="ed-grp">
-            <h3>Template</h3>
+            <h2>Template</h2>
             <div class="ed-f">
               <label for="edTpl">Current template</label>
               <select id="edTpl"></select>
@@ -197,7 +199,7 @@
           </div>
 
           <div class="ed-grp">
-            <h3>Typography</h3>
+            <h2>Typography</h2>
             <div class="ed-f">
               <label for="edFont">Scene font</label>
               <select id="edFont"></select>
@@ -205,12 +207,12 @@
           </div>
 
           <div class="ed-grp">
-            <h3>Content</h3>
+            <h2>Content</h2>
             <div id="edFields"></div>
           </div>
 
           <div class="ed-grp">
-            <h3>Colours</h3>
+            <h2>Colours</h2>
             <div class="ed-f">
               <label for="edHex">Accent</label>
               <div class="ed-inline">
@@ -222,7 +224,7 @@
           </div>
 
           <div class="ed-grp">
-            <h3>Format</h3>
+            <h2>Format</h2>
             <div class="ed-f">
               <label for="edAspect">Aspect ratio</label>
               <select id="edAspect"></select>
