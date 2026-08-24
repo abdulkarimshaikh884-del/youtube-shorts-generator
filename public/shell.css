@@ -175,11 +175,52 @@ body.sh-body #scrollBar{
   flex-direction:column;
   gap:12px;
 }
+/* The plan card is the only upgrade prompt on most pages, so it should read as
+   an offer rather than a grey note. A soft accent wash, a hairline that lifts
+   on hover, and a slow sheen that crosses it every few seconds — all on
+   transform/opacity so it composites on the GPU and costs nothing to run. */
 .sh-plan-badge{
-  border:1px solid var(--sh-line);border-radius:var(--sh-r);
-  padding:12px 14px;background:var(--sh-bg2);
+  position:relative;overflow:hidden;
+  border:1px solid rgba(140,110,255,.28);
+  border-radius:var(--sh-r);
+  padding:13px 15px;
+  background:
+    linear-gradient(180deg, rgba(120,90,255,.13) 0%, rgba(120,90,255,.04) 55%, transparent 100%),
+    var(--sh-bg2);
+  transition:border-color .25s ease, box-shadow .25s ease, transform .25s cubic-bezier(.16,1,.3,1);
 }
-.sh-plan-badge b{display:block;font-size:13px;font-weight:650;margin-bottom:2px;color:#fff}
+.sh-plan-badge:hover{
+  border-color:rgba(160,140,255,.5);
+  box-shadow:0 10px 26px rgba(0,0,0,.5), 0 0 22px rgba(120,90,255,.16);
+  transform:translateY(-2px);
+}
+.sh-plan-badge::after{
+  content:"";position:absolute;top:-60%;left:0;
+  width:36%;height:220%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.10),transparent);
+  transform:translateX(-180%) rotate(22deg);
+  animation:shPlanSheen 7s cubic-bezier(.16,1,.3,1) infinite;
+  pointer-events:none;
+}
+@keyframes shPlanSheen{
+  0%,72%{transform:translateX(-180%) rotate(22deg)}
+  100%  {transform:translateX(420%) rotate(22deg)}
+}
+.sh-plan-badge b{
+  display:flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:700;margin-bottom:3px;color:#fff;
+}
+/* a small live dot, so the card reads as current status not static copy */
+.sh-plan-badge b::before{
+  content:"";width:6px;height:6px;border-radius:50%;flex:none;
+  background:#a58cff;box-shadow:0 0 0 0 rgba(165,140,255,.55);
+  animation:shPlanDot 2.6s ease-out infinite;
+}
+@keyframes shPlanDot{
+  0%  {box-shadow:0 0 0 0 rgba(165,140,255,.5)}
+  70% {box-shadow:0 0 0 7px rgba(165,140,255,0)}
+  100%{box-shadow:0 0 0 0 rgba(165,140,255,0)}
+}
 .sh-plan-badge span{display:block;font-size:11.5px;color:var(--sh-ink3);line-height:1.45}
 .sh-plan-badge a{
   /* border-bottom draws one line under the whole inline box, so when this
@@ -191,6 +232,13 @@ body.sh-body #scrollBar{
   text-underline-offset:3px;
 }
 .sh-plan-badge a:hover{text-decoration-color:#fff}
+
+/* Anyone who asked their OS for less motion gets a still card. */
+@media (prefers-reduced-motion:reduce){
+  .sh-plan-badge,
+  .sh-plan-badge::after,
+  .sh-plan-badge b::before{animation:none !important;transition:none !important;transform:none !important}
+}
 
 /* ── Sidebar User / Account Bar & Flyout Popover Menu ──── */
 .sh-user-box{
@@ -967,6 +1015,80 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   padding:2px 0;
 }
 .sh-filters-scroll::-webkit-scrollbar{display:none}
+
+/* ── Community filter bar ─────────────────────────────────
+   The community page ships a format switch and a scrollable category strip
+   with prev/next arrows. The markup existed but none of these classes had any
+   CSS, so the arrows rendered as full-width block buttons stacked above and
+   below the chips instead of sitting either side of them. */
+.sh-ratio-switch{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.sh-ratio-lbl{
+  flex:none;
+  font-size:12px;font-weight:600;letter-spacing:.04em;
+  color:var(--sh-ink3);
+  margin-right:2px;
+}
+.sh-rchip{
+  display:inline-flex;align-items:center;gap:7px;
+  flex:none;height:32px;padding:0 13px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:999px;
+  background:transparent;color:var(--sh-ink2);
+  font-family:var(--sh-font);font-size:12.5px;font-weight:550;
+  cursor:pointer;white-space:nowrap;
+  transition:color .15s ease, background-color .15s ease, border-color .15s ease, transform .15s cubic-bezier(.16,1,.3,1);
+}
+.sh-rchip svg{flex:none}
+.sh-rchip:hover{color:#fff;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.2);transform:translateY(-1px)}
+.sh-rchip.active,
+.sh-rchip[aria-pressed="true"]{
+  background:#fff;color:#000;border-color:#fff;font-weight:650;
+}
+
+.sh-filters-wrap{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.sh-filters{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex:1;
+  min-width:0;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  padding:2px 0;
+}
+.sh-filters::-webkit-scrollbar{display:none}
+.sh-fnav-btn{
+  display:grid;place-items:center;
+  flex:none;width:30px;height:30px;
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:50%;
+  background:var(--sh-bg2);color:var(--sh-ink2);
+  cursor:pointer;
+  transition:color .15s ease, background-color .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.sh-fnav-btn:hover{color:#fff;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.07)}
+/* Hidden rather than greyed at each end: an arrow that cannot scroll anywhere
+   is clutter, and the strip simply takes the space back. */
+.sh-fnav-btn[hidden],
+.sh-fnav-btn:disabled{display:none}
+
+@media (max-width:760px){
+  /* On a phone the strip is swiped, so the arrows are dead weight. */
+  .sh-fnav-btn{display:none}
+  .sh-ratio-lbl{width:100%;margin:0 0 2px}
+}
 
 .sh-chip{
   flex:none;height:34px;padding:0 15px;

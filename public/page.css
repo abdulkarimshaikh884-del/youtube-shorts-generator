@@ -18,10 +18,20 @@
   --display:"Space Grotesk","Inter",system-ui,sans-serif;
 
   width:100%;
-  max-width:1080px;
-  margin:0 auto;
-  padding:34px 26px 80px;
+  /* Left-aligned against the sidebar, not centred in the remaining space.
+     `margin:0 auto` with a 1080px cap left a wide gap on both sides of every
+     page on a normal desktop, so the content floated in the middle of an empty
+     column while the rail sat far off to the left. Reading starts at the left
+     edge; the cap only stops long paragraphs from running too wide. */
+  max-width:1180px;
+  margin:0;
+  padding:34px 40px 80px;
   color:var(--ink);
+}
+/* Centre it again only once the viewport is wider than the content needs, so
+   very large screens do not push everything into the far-left corner. */
+@media (min-width:1700px){
+  .pg{margin-inline:auto}
 }
 .pg *,.pg *::before,.pg *::after{box-sizing:border-box}
 .pg a{color:inherit}

@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const OUT = path.join(__dirname, "public");
-const V = "202608192";
+const V = "202608241";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -39,6 +39,31 @@ const TPL_COUNT = (function () {
   }
 })();
 
+/* Every social link on the site comes from here — the sidebar, the About page
+   and the Help page all read this list, so a changed handle is one edit rather
+   than a hunt through three files. An entry with an empty href is skipped
+   entirely rather than rendering a dead icon. */
+const SOCIAL = [
+  {
+    key: "youtube", label: "YouTube", handle: "@TechVault-90",
+    href: "https://youtube.com/@TechVault-90",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>'
+  },
+  {
+    key: "instagram", label: "Instagram", handle: "@tech_vault_in",
+    href: "https://instagram.com/tech_vault_in",
+    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>'
+  },
+  {
+    key: "telegram", label: "Telegram", handle: "Tech Vault",
+    // Set this to the channel's public t.me link to switch the icon on.
+    // Left empty on purpose: a guessed URL could point at someone else's
+    // channel, which is worse than the icon simply not being there yet.
+    href: "",
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3 18.7 19c-.24 1.07-.88 1.33-1.78.83l-4.92-3.63-2.37 2.29c-.26.26-.48.48-.99.48l.35-5.02L18.1 6.7c.4-.35-.09-.55-.62-.2L6.2 13.32l-4.95-1.55c-1.08-.34-1.1-1.08.22-1.6L20.5 2.72c.9-.33 1.68.2 1.4 1.58Z"/></svg>'
+  }
+];
+
 const NAV = [
   { href: "/#templates", label: "Templates", key: "templates",
     icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
@@ -46,7 +71,7 @@ const NAV = [
     icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' },
   { href: "/community", label: "Community", key: "community",
     icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-  { href: "/contact", label: "Tutorials & Help", key: "contact",
+  { href: "/tutorials", label: "Tutorials & Help", key: "tutorials",
     icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>' }
 ];
 
@@ -143,12 +168,9 @@ ${p.head || ""}</head>
     </a>
 
     <div class="sh-social">
-      <a href="https://youtube.com/@VaultGamer-in" rel="noopener" target="_blank" aria-label="YouTube">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
-      </a>
-      <a href="https://instagram.com/tech_vault_in" rel="noopener" target="_blank" aria-label="Instagram">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-      </a>
+${SOCIAL.filter(s => s.href).map(s => `      <a href="${s.href}" rel="noopener" target="_blank" aria-label="${s.label}" title="${s.label} · ${s.handle}">
+        ${s.icon}
+      </a>`).join("\n")}
     </div>
 
     <a href="/editor" class="sh-cta">
@@ -496,12 +518,13 @@ ${pageHead("About", "A motion-design workspace, not another text-on-gradient app
           <li><strong>Export a real MP4.</strong> Headless Chrome renders the animation frame by frame and ffmpeg encodes H.264 — deterministic timing, no screen recording, no dropped frames.</li>
         </ol>
 
-        <h2>What the AI does and does not do</h2>
-        <p>The AI writes: scripts, titles, descriptions, hashtags, follow-up ideas and thumbnail prompts, in Hinglish. The motion is not AI-generated — it is deterministic CSS, which is why the same project exports identically every time.</p>
+        <h2>What the AI does</h2>
+        <p>Two separate things. It writes the words — scripts, titles, descriptions, hashtags, follow-up ideas and thumbnail prompts, in Hinglish. And from a prompt it can design a brand-new scene: describe an object and it writes the CSS for a looping animation of it, up to ten seconds.</p>
+        <p>What it produces is still CSS, not video. That matters, because it means an AI scene exports through exactly the same deterministic pipeline as a built-in template — the same project renders identically every time, and nothing is re-generated at export.</p>
         <p>Everything it writes is a first draft. Review it, make it yours, then publish. That is also the platform-safe way to work.</p>
 
         <h2>Who builds this</h2>
-        <p>ShortsCraft is an independent product built for Indian creators, from the same workshop as the <a href="https://youtube.com/@VaultGamer-in" rel="noopener" target="_blank">Vault Gamer</a> channel. Feature requests reach a human: use <a href="/contact">Help &amp; Feedback</a>.</p>
+        <p>ShortsCraft is an independent product built for Indian creators, from the same workshop as the <a href="${SOCIAL[0].href}" rel="noopener" target="_blank">Tech Vault</a> channel. Feature requests reach a human: use <a href="/contact">Help &amp; Feedback</a>.</p>
       </section>
 
       <section class="pg-cta">
@@ -516,6 +539,446 @@ ${pageHead("About", "A motion-design workspace, not another text-on-gradient app
 };
 
 /* ── CONTACT ──────────────────────────────────────────────── */
+/* ── TUTORIALS & HELP ─────────────────────────────────────
+   The sidebar's "Tutorials & Help" used to point at /contact, so clicking it
+   opened a bug-report form — which answers no questions at all. This is the
+   page it should have gone to; the form is still one click away at the end for
+   anything not covered. */
+const tutorials = {
+  route: "/tutorials",
+  active: "tutorials",
+  title: "Tutorials & Help — ShortsCraft",
+  desc: "How to make an animated YouTube Short with ShortsCraft: pick a template, edit the text, export an MP4, and what the credits and plans mean.",
+  body: `    <main class="pg">
+${pageHead("Tutorials & Help", "Make your first Short in three minutes.",
+    "Everything here is short on purpose. If something is still unclear, the last section goes straight to a human.")}
+
+      <section class="pg-sec">
+        <h2>Make your first animation</h2>
+        <ol class="pg-steps">
+          <li>
+            <b>Pick a template.</b>
+            <span>Open <a href="/#templates">Templates</a> and click any card. There are ${TPL_COUNT} of them across ${8} categories — documentary, paper craft, kinetic text, maps, finance, UI, social and charts. Every one previews live, so you can judge it before you commit.</span>
+          </li>
+          <li>
+            <b>Change the words.</b>
+            <span>In the Studio the right-hand panel has a field for each line of text. Type and the preview updates as you go. Editing and previewing are free and unlimited — you are never charged to look.</span>
+          </li>
+          <li>
+            <b>Set the look.</b>
+            <span>One accent colour drives the whole scene, so a single click restyles it. Below that: the font, the aspect ratio (9:16 for Shorts and Reels, 16:9 for YouTube) and the loop length.</span>
+          </li>
+          <li>
+            <b>Export the MP4.</b>
+            <span>Press Export. Rendering takes roughly 15 to 40 seconds depending on length and resolution — the video is built frame by frame on our server, which is why it is not instant. The file downloads when it is done.</span>
+          </li>
+        </ol>
+      </section>
+
+      <section class="pg-sec">
+        <h2>Using the AI</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>Describe an object, not a mood</h3>
+            <p>"A toggle switch flipping on with a green glow" works. "Make it look premium" does not — there is no object in it to animate. The AI builds one looping scene around one thing.</p>
+          </article>
+          <article class="pg-card">
+            <h3>Scenes are up to 10 seconds</h3>
+            <p>Ask for longer and it comes back at 10. Shorter is fine and often better — most Shorts hooks land in under six.</p>
+          </article>
+          <article class="pg-card">
+            <h3>You can attach an image</h3>
+            <p>The picture becomes part of the scene — a background that drifts, or a shape the animation reveals. It is used as artwork, not analysed.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="pg-sec">
+        <h2>Credits and plans</h2>
+        <div class="pg-grid">
+          <article class="pg-card">
+            <h3>What costs a credit</h3>
+            <p>Exporting a video costs ${C.export}. Asking the AI to design a new scene costs ${C.animate}. Browsing, editing, previewing and the SEO tools cost nothing.</p>
+          </article>
+          <article class="pg-card">
+            <h3>Why exports are the thing we charge for</h3>
+            <p>They are the only part that runs on our machines. Everything else happens in your browser, so it is free to give away and we do.</p>
+          </article>
+          <article class="pg-card">
+            <h3>They refill daily</h3>
+            <p>Free gives ${P.free.perDay} a day. Credits reset at midnight UTC and do not roll over. <a href="/pricing">See the plans</a> for what Pro adds.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="pg-sec">
+        <h2>Common questions</h2>
+        <div class="pg-faq">
+          <details>
+            <summary>Why does my video have a ShortsCraft watermark?</summary>
+            <p>Free exports carry a small watermark in the corner. Pro and Pro Max remove it — that is the main thing the paid plans buy.</p>
+          </details>
+          <details>
+            <summary>My export is taking a long time.</summary>
+            <p>Between 15 and 40 seconds is normal. Exports run one at a time, so if someone else started just before you, yours waits its turn. Longer videos and higher resolutions take proportionally longer.</p>
+          </details>
+          <details>
+            <summary>Where did my project go?</summary>
+            <p>Projects are saved in the browser you made them in, so they do not follow you to another device, and clearing site data removes them. Publishing a scene to the community keeps it on your account instead.</p>
+          </details>
+          <details>
+            <summary>Can I use the videos commercially?</summary>
+            <p>Yes. What you make is yours — put it on YouTube, Instagram, anywhere, including monetised channels.</p>
+          </details>
+          <details>
+            <summary>The AI said my prompt was rejected.</summary>
+            <p>Every generated scene is checked before it reaches you, and one that is static, unsafe or malformed is refused rather than shipped. Rewording around a concrete object usually fixes it, and you are not charged for a rejected scene.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="pg-cta">
+        <h2>Still stuck?</h2>
+        <p>Bug reports and template requests both reach a person, usually within two days.</p>
+        <div class="pg-row">
+          <a href="/contact" class="pg-bw">Help &amp; Feedback</a>
+          <a href="/editor" class="pg-bo">Open the Studio</a>
+        </div>
+      </section>
+    </main>`
+};
+
+
+/* ── COMMUNITY ─────────────────────────────────────────────
+   Was a hand-written public/community.html carrying its own copy of the
+   sidebar, the plan badge and the nav. That duplicate is exactly why fixes
+   kept missing this page: the YouTube handle, the "Tutorials & Help"
+   destination and the credit numbers were all corrected here and the community
+   page went on showing the old ones. It is generated from the same chrome as
+   every other page now, so there is one copy of all of it. */
+const community = {
+  route: "/community",
+  active: "community",
+  title: "Community Templates — ShortsCraft",
+  desc: "Discover, customize and publish creator motion graphics templates. Built by creators for YouTube Shorts and Instagram Reels.",
+  head: `<style>
+.sh-comm-head{
+  padding:50px 28px 20px;
+  display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;
+}
+.sh-comm-head h1{
+  font-family:var(--sh-display);
+  font-size:clamp(28px,4vw,44px);
+  margin:0 0 8px;font-weight:700;letter-spacing:-.03em;
+}
+.sh-comm-head p{margin:0;font-size:15px;color:var(--sh-ink2);max-width:560px}
+.sh-pub-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:42px;padding:0 22px;border-radius:999px;
+  background:#fff;color:#000 !important;font-weight:650;font-size:14px;
+  text-decoration:none;transition:transform .15s ease;
+}
+.sh-pub-btn:hover{transform:translateY(-1px);background:#f2f2f2}
+
+.sh-author-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:8px;padding-top:8px;border-top:1px solid var(--sh-line);
+}
+.sh-author{
+  display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--sh-ink3);
+}
+.sh-author b{color:var(--sh-ink);font-weight:600}
+.sh-like-btn{
+  background:none;border:1px solid var(--sh-line);border-radius:999px;
+  color:var(--sh-ink2);padding:3px 10px;font-size:12px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:4px;transition:all .15s ease;
+}
+.sh-like-btn:hover{border-color:var(--sh-line2);color:#fff;background:rgba(255,255,255,.06)}
+.sh-like-btn.liked{color:#ff3b5c;border-color:rgba(255,59,92,.4);background:rgba(255,59,92,.1)}
+</style>`,
+  body: `    <main class="sh-home">
+      <section class="sh-comm-head">
+        <div>
+          <span class="sh-eyebrow">✦ Creator Showcase</span>
+          <h1>Community Templates</h1>
+          <p>Explore animations published by creator accounts. Open any template to customize text, typography and colors in the Studio.</p>
+        </div>
+        <button type="button" class="sh-pub-btn sh-tupload-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Upload / Publish Template
+        </button>
+      </section>
+
+      <div class="sh-ratio-switch" id="commRatioSwitch" style="padding: 0 28px 10px;" role="group" aria-label="Aspect Ratio Filter">
+        <span class="sh-ratio-lbl">Format:</span>
+        <button type="button" class="sh-rchip active" data-ar="9:16" aria-pressed="true">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/></svg>
+          <span>9:16 Shorts/Reels</span>
+        </button>
+        <button type="button" class="sh-rchip" data-ar="16:9" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+          <span>16:9 YouTube</span>
+        </button>
+        <button type="button" class="sh-rchip" data-ar="1:1" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+          <span>1:1 Square</span>
+        </button>
+        <button type="button" class="sh-rchip" data-ar="4:5" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/></svg>
+          <span>4:5 Feed</span>
+        </button>
+      </div>
+
+      <div class="sh-filters-wrap" style="padding: 0 28px;">
+        <button type="button" class="sh-fnav-btn prev" id="commFnavPrev" aria-label="Scroll categories left">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="sh-filters" id="commFilters">
+          <button type="button" class="sh-chip" data-cat="all" aria-pressed="true">All</button>
+          <button type="button" class="sh-chip" data-cat="text" aria-pressed="false">Text</button>
+          <button type="button" class="sh-chip" data-cat="ui" aria-pressed="false">UI Elements</button>
+          <button type="button" class="sh-chip" data-cat="social" aria-pressed="false">Social Media</button>
+          <button type="button" class="sh-chip" data-cat="logos" aria-pressed="false">Logos</button>
+          <button type="button" class="sh-chip" data-cat="charts" aria-pressed="false">Charts &amp; Data</button>
+          <button type="button" class="sh-chip" data-cat="money" aria-pressed="false">Money</button>
+        </div>
+        <button type="button" class="sh-fnav-btn next" id="commFnavNext" aria-label="Scroll categories right">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+
+      <div class="sh-gallery" id="commGallery" data-ar="9:16" style="padding-top:16px;"></div>
+    </main>`,
+  scripts: `<script src="/templates-v2.js?v=9" defer></script><script>
+(function() {
+  "use strict";
+  var grid = document.getElementById("commGallery");
+  var filterBar = document.getElementById("commFilters");
+  var ratioBar = document.getElementById("commRatioSwitch");
+  var allTemplates = [];
+  var currentCat = "all";
+  var currentAspect = "9:16";
+
+  /* A failed load used to log to the console and leave the grid empty, so a
+     database outage rendered as a page that had simply finished loading with
+     nothing on it. Say what happened and offer a retry instead. */
+  function showLoadError() {
+    if (!grid) return;
+    grid.innerHTML = "";
+    var box = document.createElement("div");
+    box.className = "sh-comm-error";
+    var h = document.createElement("b");
+    h.textContent = "Could not load community templates";
+    var msg = document.createElement("span");
+    msg.textContent = "The gallery is temporarily unavailable. The Studio and the main template library are unaffected.";
+    var row = document.createElement("div");
+    row.className = "sh-comm-error-row";
+    var again = document.createElement("button");
+    again.type = "button";
+    again.className = "sh-comm-retry";
+    again.textContent = "Try again";
+    again.addEventListener("click", function () { loadTemplates(); });
+    var browse = document.createElement("a");
+    browse.className = "sh-comm-retry alt";
+    browse.href = "/#templates";
+    browse.textContent = "Browse all templates";
+    row.appendChild(again);
+    row.appendChild(browse);
+    box.appendChild(h);
+    box.appendChild(msg);
+    box.appendChild(row);
+    grid.appendChild(box);
+  }
+
+  function showLoading() {
+    if (!grid) return;
+    grid.innerHTML = "";
+    var l = document.createElement("p");
+    l.className = "sh-comm-loading";
+    l.textContent = "Loading community templates…";
+    grid.appendChild(l);
+  }
+
+  function loadTemplates() {
+    showLoading();
+    /* The server waits on its database connection before it can answer, so a
+       dead database left this request open for 20s with the page just saying
+       "Loading". Give up sooner and show the retry. */
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 12000);
+    fetch("/api/community-templates", ctrl ? { signal: ctrl.signal } : undefined)
+      .then(function(r) {
+        clearTimeout(bail);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function(d) {
+        if (!d || !d.templates) throw new Error((d && d.error) || "No templates in response");
+        allTemplates = d.templates;
+        renderGrid();
+      })
+      .catch(function(err) {
+        clearTimeout(bail);
+        console.error("Could not load community templates", err);
+        showLoadError();
+      });
+  }
+
+  function renderGrid() {
+    if (!grid) return;
+    grid.innerHTML = "";
+    grid.dataset.ar = currentAspect;
+    var list = (currentCat === "all") ? allTemplates : allTemplates.filter(function(t) { return t.category === currentCat; });
+
+    if (!list.length) {
+      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:40px;color:var(--sh-ink3);">No community templates in this category yet. Be the first to publish one!</p>';
+      return;
+    }
+
+    var e = window.SC_TPL2;
+
+    list.forEach(function(t) {
+      var tile = document.createElement("article");
+      tile.className = "sh-tile";
+
+      var stage = document.createElement("a");
+      stage.className = "sh-stage";
+      var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl || "type-cascade")
+        + "&accent=" + encodeURIComponent(t.accent || "#ffffff")
+        + "&font=" + encodeURIComponent(t.font || "inter")
+        + "&dur=" + encodeURIComponent(t.dur || 4600)
+        + "&aspect=" + encodeURIComponent(currentAspect)
+        + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
+      stage.href = editUrl;
+      stage.setAttribute("aria-label", "Open " + t.title + " in Video Studio");
+
+      var use = document.createElement("span");
+      use.className = "sh-use";
+      use.textContent = "Customize template";
+      stage.appendChild(use);
+
+      if (e && typeof e.build === "function") {
+        var html = e.build(t.tpl, {
+          lines: t.lines,
+          accent: t.accent,
+          font: t.font,
+          dur: t.dur,
+          aspect: currentAspect
+        });
+        if (html) {
+          var frame = document.createElement("iframe");
+          frame.setAttribute("sandbox", "");
+          frame.setAttribute("scrolling", "no");
+          frame.setAttribute("tabindex", "-1");
+          frame.setAttribute("aria-hidden", "true");
+          frame.srcdoc = html;
+          stage.appendChild(frame);
+        }
+      }
+
+      var meta = document.createElement("div");
+      meta.className = "sh-tmeta";
+      var b = document.createElement("b");
+      b.textContent = t.title;
+      var sp = document.createElement("span");
+      sp.textContent = t.description;
+      meta.appendChild(b);
+      meta.appendChild(sp);
+
+      var arow = document.createElement("div");
+      arow.className = "sh-author-row";
+      arow.innerHTML = '<div class="sh-author"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> <b>@' + (t.authorHandle || "creator") + '</b></div>'
+        + '<button type="button" class="sh-like-btn" data-id="' + t.id + '">❤️ <span>' + (t.likes || 1) + '</span></button>';
+
+      meta.appendChild(arow);
+      tile.appendChild(stage);
+      tile.appendChild(meta);
+      grid.appendChild(tile);
+    });
+
+    // Wire like buttons
+    grid.querySelectorAll(".sh-like-btn").forEach(function(btn) {
+      btn.addEventListener("click", function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var id = btn.dataset.id;
+        fetch("/api/community-templates/" + id + "/like", { method: "POST" })
+          .then(function(r) { return r.json(); })
+          .then(function(res) {
+            if (res && res.success) {
+              btn.classList.add("liked");
+              btn.querySelector("span").textContent = res.likes;
+            }
+          });
+      });
+    });
+  }
+
+  if (filterBar) {
+    filterBar.addEventListener("click", function(ev) {
+      var btn = ev.target && ev.target.closest(".sh-chip");
+      if (!btn) return;
+      filterBar.querySelectorAll(".sh-chip").forEach(function(b) {
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+      currentCat = btn.dataset.cat;
+      renderGrid();
+    });
+  }
+
+  if (ratioBar) {
+    ratioBar.addEventListener("click", function(ev) {
+      var btn = ev.target && ev.target.closest(".sh-rchip");
+      if (!btn || !btn.dataset.ar) return;
+      var ar = btn.dataset.ar;
+      if (ar === currentAspect) return;
+      currentAspect = ar;
+      ratioBar.querySelectorAll(".sh-rchip").forEach(function(b) {
+        var active = b === btn;
+        b.classList.toggle("active", active);
+        b.setAttribute("aria-pressed", String(active));
+      });
+      renderGrid();
+    });
+  }
+
+  /* Category strip arrows. The buttons were in the markup but wired to
+     nothing, so they sat there doing nothing at either end of the strip.
+     Each one nudges the strip by most of a screenful, and both hide
+     themselves when there is nothing further to scroll to — an arrow that
+     cannot move is worse than no arrow. */
+  (function wireStripArrows() {
+    var strip = document.getElementById("commFilters");
+    var prev = document.getElementById("commFnavPrev");
+    var next = document.getElementById("commFnavNext");
+    if (!strip || !prev || !next) return;
+
+    function sync() {
+      var max = strip.scrollWidth - strip.clientWidth;
+      // 2px of slack: sub-pixel layout means scrollLeft rarely lands exactly
+      // on 0 or on max, which would leave an arrow visible but inert.
+      prev.hidden = strip.scrollLeft <= 2;
+      next.hidden = strip.scrollLeft >= max - 2;
+    }
+
+    function nudge(dir) {
+      strip.scrollBy({ left: dir * Math.max(160, strip.clientWidth * 0.8), behavior: "smooth" });
+    }
+
+    prev.addEventListener("click", function () { nudge(-1); });
+    next.addEventListener("click", function () { nudge(1); });
+    strip.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
+    sync();
+  })();
+
+  window.addEventListener("DOMContentLoaded", function() {
+    loadTemplates();
+  });
+})();
+</script>`
+};
+
 const contact = {
   route: "/contact",
   active: "contact",
@@ -565,8 +1028,7 @@ ${pageHead("Help &amp; Feedback", "Tell us what is broken or missing.", "Bug rep
           <section class="pg-card">
             <h2>Elsewhere</h2>
             <p>
-              <a href="https://youtube.com/@VaultGamer-in" rel="noopener" target="_blank">YouTube · @VaultGamer-in</a><br>
-              <a href="https://instagram.com/tech_vault_in" rel="noopener" target="_blank">Instagram · @tech_vault_in</a>
+${SOCIAL.filter(s => s.href).map(s => `              <a href="${s.href}" rel="noopener" target="_blank">${s.label} · ${s.handle}</a>`).join("<br>\n")}
             </p>
           </section>
           <section class="pg-card">
@@ -1299,6 +1761,8 @@ const PAGES = [
   ["pricing.html", pricing],
   ["about.html", about],
   ["contact.html", contact],
+  ["community.html", community],
+  ["tutorials.html", tutorials],
   ["privacy.html", privacy],
   ["terms.html", terms],
   ["404.html", notfound],

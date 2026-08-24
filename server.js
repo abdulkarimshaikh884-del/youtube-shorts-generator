@@ -1604,6 +1604,7 @@ const PAGES = {
   "/login": "login.html",
   "/signup": "signup.html",
   "/account": "account.html",
+  "/tutorials": "tutorials.html",
   "/uploads": "uploads.html",
   "/drafts": "drafts.html",
   "/settings": "settings.html",
