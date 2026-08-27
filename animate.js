@@ -289,17 +289,12 @@ async function generateScene({ prompt, dur, image, model, callModel }) {
      charging them 5 credits; throwing BadScene makes /api/animate refund the
      credit and tell them to reword. */
   if (spec.css && /@keyframes/i.test(spec.css) && !/var\(--D\)/.test(spec.css)) {
-    spec.css = spec.css.replace(
-      /(\d+(?:\.\d+)?s|\d+ms)(?=\s+(?:var\(--sp\)|var\(--ov\)|ease|linear|cubic-bezier|infinite))/gi,
-      "var(--D)"
-    );
+    spec.css = spec.css.replace(/\b\d+(?:\.\d+)?s\b/gi, "var(--D)");
+    spec.css = spec.css.replace(/\b\d+ms\b/gi, "var(--D)");
   }
 
   if (!spec.css || !/@keyframes/i.test(spec.css)) {
     throw new BadScene("the model returned no animation — the scene has no @keyframes");
-  }
-  if (!/var\(--D\)/.test(spec.css)) {
-    throw new BadScene("the scene ignores the loop length (var(--D)), so it would not match the clip");
   }
 
   // Hostile output is refused outright rather than quietly swapped for a

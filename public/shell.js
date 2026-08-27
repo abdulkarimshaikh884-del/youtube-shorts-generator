@@ -354,12 +354,16 @@
       var allItems = [];
       var seenIds = {};
 
+      var validTpls = {};
+      e.list().forEach(function (t) { validTpls[t.id] = true; });
+
       // 1. Featured Community Templates
       commList.forEach(function (ct) {
+        var tplId = ct.tpl;
+        if (!validTpls[tplId]) return;
         var likes = Number(ct.likes || 1);
         var downloads = Number(ct.downloads || 1);
         var score = (likes * 25) + (downloads * 12) + 120;
-        var tplId = ct.tpl || "text-cascade";
 
         allItems.push({
           id: ct.id || ("comm_" + Math.random()),
@@ -866,14 +870,24 @@
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (!j || !j.success) return;
-          var b = badge.querySelector("b"), s = badge.querySelector("span");
+          var b = badge.querySelector("b");
+          var sCredits = badge.querySelector(".sh-plan-credits");
+          var sRates = badge.querySelector(".sh-plan-rates");
+          var sLegacy = badge.querySelector("span:not(.sh-plan-arrow)");
+          var up = badge.querySelector(".sh-plan-upgrade-link") || badge.querySelector("a");
+
           if (b) b.textContent = j.planLabel + " plan";
-          if (s) {
-            s.textContent = j.left + " of " + j.perDay + " credits left today · " +
-              "export " + j.cost.export + ", AI scene " + j.cost.animate;
+          if (sCredits) {
+            sCredits.textContent = j.left + " of " + j.perDay + " credits left today";
+          } else if (sLegacy) {
+            sLegacy.textContent = j.left + " of " + j.perDay + " credits left today";
           }
-          var up = badge.querySelector("a");
-          if (up && j.plan !== "free") up.textContent = "Manage your plan";
+          if (sRates && j.cost) {
+            sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
+          }
+          if (up && j.plan !== "free") {
+            up.textContent = "Manage your plan ↗";
+          }
         })
         .catch(function () {});
     }

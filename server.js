@@ -369,8 +369,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@crimedocu",
       initials: "CD",
       bio: "Creating high-retention dark documentary hooks, investigation evidence boards, and true crime storytelling templates for YouTube Shorts.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "12.4k",
       likes: "48.2k",
       cat: "docu"
@@ -380,8 +380,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@aman_fx",
       initials: "AF",
       bio: "Procedural paper craft, cutting mat collage textures, deckle edges and viral kinetic transitions.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "8.9k",
       likes: "32.1k",
       cat: "paper"
@@ -391,8 +391,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@sarah_motion",
       initials: "SC",
       bio: "Clean 3D UI toggles, iOS notifications, Google search widgets, and modern device mockups.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "15.1k",
       likes: "54.0k",
       cat: "ui"
@@ -402,8 +402,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@vikram_creations",
       initials: "VS",
       bio: "Viral social counter animations, live views tickers, subscriber milestones, and engagement overlays.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "19.3k",
       likes: "72.5k",
       cat: "social"
@@ -413,8 +413,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@kabir_motion",
       initials: "KM",
       bio: "Cyberpunk neon rings, data visualizations, circular progress meters and futuristic HUD graphics.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "6.2k",
       likes: "21.4k",
       cat: "charts"
@@ -424,8 +424,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@finance_pulse",
       initials: "FP",
       bio: "Titanium cards, market candlestick charts, crypto surges, and luxury finance motion graphics.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "11.7k",
       likes: "44.9k",
       cat: "money"
@@ -435,8 +435,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@typography_pro",
       initials: "KS",
       bio: "High-impact kinetic text, word-by-word cascades, 3D typography and punchy dialogue animations.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "14.8k",
       likes: "61.2k",
       cat: "text"
@@ -446,8 +446,8 @@ app.get("/api/creator", async (req, res) => {
       handle: "@geo_explorer",
       initials: "GE",
       bio: "Tactical map route animations, radar pulses, satellite coordinates and geo-location documentary graphics.",
-      youtube: "https://youtube.com/@VaultGamer-in",
-      instagram: "https://instagram.com/tech_vault_in",
+      youtube: "",
+      instagram: "",
       followers: "9.5k",
       likes: "37.8k",
       cat: "maps"
@@ -459,8 +459,8 @@ app.get("/api/creator", async (req, res) => {
     handle: "@" + (handle || "creator"),
     initials: (handle ? handle.slice(0, 2).toUpperCase() : "SC"),
     bio: "Passionate motion designer crafting animated templates for YouTube Shorts and Instagram Reels on ShortsCraft.",
-    youtube: "https://youtube.com/@VaultGamer-in",
-    instagram: "https://instagram.com/tech_vault_in",
+    youtube: "",
+    instagram: "",
     followers: "4.5k",
     likes: "18.2k",
     cat: "all"
@@ -667,7 +667,7 @@ async function callAI(prompt, {
   if (nvidiaKey) {
     const base = (process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1").replace(/\/$/, "");
     available.nvidia = openaiStyle("NVIDIA", `${base}/chat/completions`, nvidiaKey,
-      modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct");
+      modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct");
   }
   if (groqKey) {
     available.groq = openaiStyle("Groq", "https://api.groq.com/openai/v1/chat/completions", groqKey,
@@ -708,7 +708,7 @@ async function callAI(prompt, {
      never responds (its /models endpoint replies in under half a second, so the
      key is fine — the inference route is not). Set AI_PROVIDER_ORDER to
      reorder, e.g. "nvidia,gemini", once that account can serve completions. */
-  const order = String(process.env.AI_PROVIDER_ORDER || "gemini,nvidia,groq")
+  const order = String(process.env.AI_PROVIDER_ORDER || "nvidia,gemini,groq")
     .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
   const chain = [];
   for (const name of order) if (available[name]) chain.push([name, available[name]]);
@@ -1249,9 +1249,9 @@ app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async
      use the Pro model, and it is told which plan unlocks it rather than being
      quietly downgraded. */
   const TIER = {
-    mini: { plans: ["free", "pro", "promax"], label: "Free", model: () => process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct" },
-    pro: { plans: ["pro", "promax"], label: "Pro", model: () => process.env.NVIDIA_MODEL_PRO || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct" },
-    max: { plans: ["promax"], label: "Pro Max", model: () => process.env.NVIDIA_MODEL_MAX || process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct" }
+    mini: { plans: ["free", "pro", "promax"], label: "Free", model: () => process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct" },
+    pro: { plans: ["pro", "promax"], label: "Pro", model: () => process.env.NVIDIA_MODEL_PRO || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct" },
+    max: { plans: ["promax"], label: "Pro Max", model: () => process.env.NVIDIA_MODEL_MAX || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct" }
   };
   const quality = TIER[b.quality] ? b.quality : "mini";
 

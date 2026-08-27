@@ -50,23 +50,30 @@
   function preview(draft) {
     var e = window.SC_TPL2;
     var first = draft.clips && draft.clips[0];
-    if (!e || !first || typeof e.build !== "function") return null;
-    var html = e.build(first.tpl, {
-      lines: first.lines,
-      accent: first.accent,
-      font: first.font,
-      dur: first.dur,
-      aspect: draft.aspect || "9:16"
-    });
-    if (!html) return null;
-    var f = document.createElement("iframe");
-    // No allow-scripts: these frames are pure CSS animation and never need JS.
-    f.setAttribute("sandbox", "");
-    f.setAttribute("scrolling", "no");
-    f.setAttribute("tabindex", "-1");
-    f.setAttribute("aria-hidden", "true");
-    f.srcdoc = html;
-    return f;
+    if (e && first && typeof e.build === "function") {
+      try {
+        var html = e.build(first.tpl || "text-cascade", {
+          lines: first.lines && first.lines.length ? first.lines : ["ShortsCraft", "Motion Scene"],
+          accent: first.accent || "#7952ff",
+          font: first.font || "inter",
+          dur: first.dur || 4500,
+          aspect: draft.aspect || "9:16"
+        });
+        if (html) {
+          var f = document.createElement("iframe");
+          f.setAttribute("sandbox", "");
+          f.setAttribute("scrolling", "no");
+          f.setAttribute("tabindex", "-1");
+          f.setAttribute("aria-hidden", "true");
+          f.srcdoc = html;
+          return f;
+        }
+      } catch (err) {}
+    }
+    var poster = document.createElement("div");
+    poster.className = "cr-cre-poster";
+    poster.innerHTML = '<div class="cr-cre-poster-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><span>' + esc(draft.name || "Saved Animation") + '</span>';
+    return poster;
   }
 
   function render() {
@@ -111,16 +118,16 @@
       row.className = "cr-cre-actions";
 
       var open = document.createElement("a");
-      open.className = "pg-bw cr-cre-btn";
+      open.className = "cr-cre-btn-open";
       open.href = "/editor?draft=" + encodeURIComponent(d.id);
-      // "in Studio" is redundant on a page that already says so, and the
-      // three-button row has about 215px to work with on a card.
-      open.textContent = "Open";
+      open.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Open</span>';
 
       var ren = document.createElement("button");
       ren.type = "button";
-      ren.className = "pg-bo cr-cre-btn";
-      ren.textContent = "Rename";
+      ren.className = "cr-cre-btn-ren";
+      ren.title = "Rename Project";
+      ren.setAttribute("aria-label", "Rename Project");
+      ren.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> <span>Rename</span>';
       ren.addEventListener("click", function () {
         SC_UI.prompt({
           title: "Rename this project",
@@ -138,11 +145,11 @@
 
       var del = document.createElement("button");
       del.type = "button";
-      del.className = "pg-bo cr-cre-btn pg-danger";
-      del.textContent = "Delete";
+      del.className = "cr-cre-btn-del";
+      del.title = "Delete Project";
+      del.setAttribute("aria-label", "Delete Project");
+      del.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
       del.addEventListener("click", function () {
-        // Deleting is the one irreversible action on this page — a draft lives
-        // only in this browser, so there is nothing to restore it from.
         SC_UI.confirm({
           title: "Delete this project?",
           body: "“" + (d.name || "Untitled animation") + "” is saved in this browser only, so deleting it cannot be undone.",

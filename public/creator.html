@@ -86,11 +86,15 @@
     </nav>
 
     <div class="sh-rail-foot">
-      <div class="sh-plan-badge">
-        <b>Free plan</b>
-        <span>8 credits every day. Export 1, AI scene 2.</span>
-        <a href="/pricing">Upgrade to Pro · ₹99/mo ↗</a>
-      </div>
+      <a href="/pricing" class="sh-plan-badge" aria-label="Upgrade to Pro Plan">
+        <div class="sh-plan-badge-head">
+          <b>Free plan</b>
+          <i class="sh-plan-arrow">↗</i>
+        </div>
+        <span class="sh-plan-credits">8 of 8 credits left today</span>
+        <span class="sh-plan-rates">Export 1 · AI scene 2</span>
+        <div class="sh-plan-upgrade-link">Upgrade to Pro · ₹99/mo</div>
+      </a>
 
       <div class="sh-user-box" id="sidebarUserBox">
         <div class="sh-user-trigger-wrap" data-auth="in" hidden>
@@ -110,13 +114,13 @@
             </div>
 
             <div class="sh-upop-menu">
-              <button type="button" class="sh-upop-item" id="popoverProfileBtn">
+              <a href="/account" class="sh-upop-item" id="popoverProfileBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>My Profile &amp; Setup</b>
                   <span>Setup bio, avatar &amp; links</span>
                 </div>
-              </button>
+              </a>
 
               <button type="button" class="sh-upop-item highlight" id="popoverUploadBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -179,7 +183,7 @@
           <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
             <div class="sh-user-trigger-av" data-user-avatar>KA</div>
             <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-user-name>Account</span>
+              <span class="sh-user-trigger-name" data-auth-email>Account</span>
               <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
             </div>
             <span class="sh-user-trigger-arrow">▲</span>
@@ -200,10 +204,14 @@
       <a href="/about" class="sh-tlink">About</a>
       <a href="/pricing" class="sh-tfill">Upgrade</a>
       <span class="sh-tsep" aria-hidden="true"></span>
+      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Upload Custom Template (XML, Lottie, JSON, HTML)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload Template</span>
+      </button>
       <a href="/login" class="sh-tlink" data-auth="out">Log in</a>
       <a href="/signup" class="sh-tline" data-auth="out">Sign up</a>
-      <a href="/account" class="sh-tlink" data-auth="in" hidden><span data-auth-email>Account</span></a>
-      <button type="button" class="sh-tline" data-auth="in" id="logoutBtn" hidden>Log out</button>
+      <a href="/account" class="sh-tlink" data-auth="in" hidden>Account</a>
+      <button type="button" class="sh-tline" id="logoutBtn" data-auth="in" hidden>Log out</button>
     </header>
 
     <div id="navMobile" hidden>
@@ -213,6 +221,10 @@
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
       <a href="/contact">Help &amp; Feedback</a>
+      <button type="button" class="sh-m-upload-btn js-open-upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload Template</span>
+      </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
       <a href="/account" data-auth="in" hidden>Account</a>

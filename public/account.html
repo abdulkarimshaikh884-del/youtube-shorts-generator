@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Your account — ShortsCraft</title>
-<meta name="description" content="Your ShortsCraft plan, daily credits and account details."/>
+<title>My Profile & Setup — ShortsCraft</title>
+<meta name="description" content="Manage your creator profile, channel links, daily credits, and account settings."/>
 <link rel="canonical" href="https://shortscraft.online/account"/>
 <meta name="robots" content="noindex, follow"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Your account — ShortsCraft"/>
-<meta property="og:description" content="Your ShortsCraft plan, daily credits and account details."/>
+<meta property="og:title" content="My Profile & Setup — ShortsCraft"/>
+<meta property="og:description" content="Manage your creator profile, channel links, daily credits, and account settings."/>
 <meta property="og:url" content="https://shortscraft.online/account"/>
 <meta name="twitter:card" content="summary_large_image"/>
 
@@ -74,11 +74,15 @@
     </nav>
 
     <div class="sh-rail-foot">
-      <div class="sh-plan-badge">
-        <b>Free plan</b>
-        <span>8 credits every day. Export 1, AI scene 2.</span>
-        <a href="/pricing">Upgrade to Pro · ₹99/mo ↗</a>
-      </div>
+      <a href="/pricing" class="sh-plan-badge" aria-label="Upgrade to Pro Plan">
+        <div class="sh-plan-badge-head">
+          <b>Free plan</b>
+          <i class="sh-plan-arrow">↗</i>
+        </div>
+        <span class="sh-plan-credits">8 of 8 credits left today</span>
+        <span class="sh-plan-rates">Export 1 · AI scene 2</span>
+        <div class="sh-plan-upgrade-link">Upgrade to Pro · ₹99/mo</div>
+      </a>
 
       <div class="sh-user-box" id="sidebarUserBox">
         <div class="sh-user-trigger-wrap" data-auth="in" hidden>
@@ -98,13 +102,13 @@
             </div>
 
             <div class="sh-upop-menu">
-              <button type="button" class="sh-upop-item" id="popoverProfileBtn">
+              <a href="/account" class="sh-upop-item" id="popoverProfileBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>My Profile &amp; Setup</b>
                   <span>Setup bio, avatar &amp; links</span>
                 </div>
-              </button>
+              </a>
 
               <button type="button" class="sh-upop-item highlight" id="popoverUploadBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -167,7 +171,7 @@
           <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
             <div class="sh-user-trigger-av" data-user-avatar>KA</div>
             <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-user-name>Account</span>
+              <span class="sh-user-trigger-name" data-auth-email>Account</span>
               <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
             </div>
             <span class="sh-user-trigger-arrow">▲</span>
@@ -188,10 +192,14 @@
       <a href="/about" class="sh-tlink">About</a>
       <a href="/pricing" class="sh-tfill">Upgrade</a>
       <span class="sh-tsep" aria-hidden="true"></span>
+      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Upload Custom Template (XML, Lottie, JSON, HTML)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload Template</span>
+      </button>
       <a href="/login" class="sh-tlink" data-auth="out">Log in</a>
       <a href="/signup" class="sh-tline" data-auth="out">Sign up</a>
-      <a href="/account" class="sh-tlink" data-auth="in" hidden><span data-auth-email>Account</span></a>
-      <button type="button" class="sh-tline" data-auth="in" id="logoutBtn" hidden>Log out</button>
+      <a href="/account" class="sh-tlink" data-auth="in" hidden>Account</a>
+      <button type="button" class="sh-tline" id="logoutBtn" data-auth="in" hidden>Log out</button>
     </header>
 
     <div id="navMobile" hidden>
@@ -201,6 +209,10 @@
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
       <a href="/contact">Help &amp; Feedback</a>
+      <button type="button" class="sh-m-upload-btn js-open-upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload Template</span>
+      </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
       <a href="/account" data-auth="in" hidden>Account</a>
@@ -208,72 +220,261 @@
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
-    <main class="pg">
-      <section class="pg-head">
-        <span class="pg-eyebrow">Account</span>
-        <h1>Your account</h1>
-        <p>Plan, credits and sign-out live here.</p>
-      </section>
+    <main class="pg ig-main">
 
-      <section class="pg-sec" id="accountBox" hidden>
+      <section class="ig-prof-container" id="accountBox" hidden>
 
-        <!-- Creator profile. The fields are painted by authui.js and edited
-             through the same modal the sidebar opens, so there is one profile
-             editor on the site rather than two that can disagree. -->
-        <div class="pg-prof" id="profile">
-          <div class="pg-prof-av" id="crAvatarChar">KA</div>
-          <div class="pg-prof-main">
-            <h2 class="pg-prof-name" id="crDisplayName">Creator</h2>
-            <p class="pg-prof-handle" id="crHandle">@creator</p>
-            <p class="pg-prof-bio" id="crBio"></p>
-            <div class="pg-prof-links">
-              <a id="crYtLink" href="/account" target="_blank" rel="noopener">YouTube</a>
-              <a id="crIgLink" href="/account" target="_blank" rel="noopener">Instagram</a>
-              <span class="pg-prof-stars">★ <b id="crStarsCount">48</b></span>
+        <!-- Instagram Profile Header -->
+        <header class="ig-header">
+          <!-- Left: Story Gradient Avatar Ring -->
+          <div class="ig-avatar-col">
+            <div class="ig-story-ring" title="Creator Profile">
+              <div class="ig-avatar" id="crAvatarChar">KA</div>
             </div>
           </div>
-          <button type="button" class="pg-bo pg-prof-edit" id="openEditProfileBtn">Edit profile</button>
+
+          <!-- Right: Profile Info -->
+          <div class="ig-info-col">
+            <!-- Row 1: Username & Action Buttons -->
+            <div class="ig-user-row">
+              <h1 class="ig-username" id="crHandle">@creator</h1>
+              <span class="ig-badge" title="Verified Creator">
+                <svg viewBox="0 0 24 24" fill="#0095f6" width="18" height="18" aria-label="Verified"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              </span>
+
+              <div class="ig-actions-row">
+                <button type="button" class="ig-btn ig-btn-secondary" id="openEditProfileBtn">Edit profile</button>
+                <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Share Creator Profile">Share profile</button>
+                <button type="button" class="ig-btn ig-btn-danger" id="accLogout" title="Log out of ShortsCraft">Log out</button>
+              </div>
+            </div>
+
+            <!-- Row 2: Stats Counter -->
+            <ul class="ig-stats-row">
+              <li class="ig-stat"><strong id="igCreationsCount">0</strong> <span>creations</span></li>
+              <li class="ig-stat"><strong id="crStarsCount">0</strong> <span>stars</span></li>
+              <li class="ig-stat"><strong id="igCreditsCount">8</strong> <span>daily credits</span></li>
+            </ul>
+
+            <!-- Row 3: Name, Category, Bio & Social Links -->
+            <div class="ig-bio-block">
+              <div class="ig-fullname" id="crDisplayName">Creator</div>
+              <div class="ig-category">🎬 AI Motion Graphics &amp; Video Creator</div>
+              <div class="ig-bio" id="crBio">Designing viral YouTube Shorts, Instagram Reels &amp; AI kinetic typography motion graphics.</div>
+
+              <div class="ig-links-row">
+                <a id="crYtLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff0000"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
+                  <span>YouTube</span>
+                </a>
+                <a id="crIgLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e1306c" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                  <span>Instagram</span>
+                </a>
+                <a href="/" class="ig-link-pill">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  <span>shortscraft.online</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Instagram Story Highlights Tray -->
+        <div class="ig-highlights-tray" aria-label="Creator Highlights">
+          <a href="/editor" class="ig-highlight-item">
+            <div class="ig-hl-ring"><div class="ig-hl-icon">⚡</div></div>
+            <span class="ig-hl-label">Studio</span>
+          </a>
+          <a href="/#templates" class="ig-highlight-item">
+            <div class="ig-hl-ring"><div class="ig-hl-icon">🎬</div></div>
+            <span class="ig-hl-label">Templates</span>
+          </a>
+          <a href="/pricing" class="ig-highlight-item">
+            <div class="ig-hl-ring"><div class="ig-hl-icon">💎</div></div>
+            <span class="ig-hl-label">Pro Plan</span>
+          </a>
+          <a href="/community" class="ig-highlight-item">
+            <div class="ig-hl-ring"><div class="ig-hl-icon">🔥</div></div>
+            <span class="ig-hl-label">Community</span>
+          </a>
+          <a href="/tutorials" class="ig-highlight-item">
+            <div class="ig-hl-ring"><div class="ig-hl-icon">💡</div></div>
+            <span class="ig-hl-label">Tutorials</span>
+          </a>
+          <a href="/editor" class="ig-highlight-item ig-hl-add">
+            <div class="ig-hl-ring"><div class="ig-hl-icon">+</div></div>
+            <span class="ig-hl-label">New Short</span>
+          </a>
         </div>
 
-        <div class="pg-grid">
-          <article class="pg-card pg-card--wide"><h3>Email</h3><p id="accEmail">—</p></article>
-          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p><p class="pg-cardsub" id="accPlanTerm"></p></article>
-          <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
-          <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
-        </div>
-        <div class="pg-row" style="margin-top:20px">
-          <a href="/editor" class="pg-bw">Open the Editor</a>
-          <a href="/pricing" class="pg-bo">Change plan</a>
-        </div>
+        <!-- Instagram Navigation Tabs -->
+        <nav class="ig-tabs" role="tablist">
+          <button type="button" class="ig-tab-btn is-active" data-ig-tab="creations" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span>POSTS</span>
+          </button>
+          <button type="button" class="ig-tab-btn" data-ig-tab="saved" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span>SAVED &amp; DRAFTS</span>
+          </button>
+          <button type="button" class="ig-tab-btn" data-ig-tab="account" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>PLAN &amp; CREDITS</span>
+          </button>
+          <button type="button" class="ig-tab-btn" data-ig-tab="edit" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>EDIT PROFILE</span>
+          </button>
+        </nav>
 
-        <!-- Uploads, drafts and settings are their own pages now. Three
-             sections that all lived here meant the account menu offered three
-             destinations and delivered one scrolled page. -->
-        <div class="pg-accsec">
-          <div class="pg-accsec-head"><h2>Your work</h2></div>
-          <div class="pg-grid">
-            <article class="pg-card">
-              <h3>My uploads</h3>
-              <p>The templates you have published to the Community gallery.</p>
-              <a href="/uploads" class="pg-cardlink">Open My uploads →</a>
+        <!-- Tab 1: Posts & Creations Grid -->
+        <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel">
+          <div class="ig-grid" id="userCreationsGrid">
+            <!-- Dynamic creation cards rendered by authui.js -->
+          </div>
+        </section>
+
+        <!-- Tab 2: Saved & Drafts -->
+        <section class="ig-pane" id="igPaneSaved" role="tabpanel" hidden>
+          <div class="ig-saved-grid">
+            <article class="ig-saved-card">
+              <div class="ig-saved-icon">📁</div>
+              <div class="ig-saved-info">
+                <h3>Drafts &amp; Timelines</h3>
+                <p>Pick up right where you left off in your multi-clip projects.</p>
+              </div>
+              <a href="/drafts" class="ig-btn ig-btn-primary">Open Drafts →</a>
             </article>
-            <article class="pg-card">
-              <h3>Drafts &amp; projects</h3>
-              <p>Projects the Studio has saved in this browser, ready to reopen.</p>
-              <a href="/drafts" class="pg-cardlink">Open Drafts →</a>
+            <article class="ig-saved-card">
+              <div class="ig-saved-icon">☁️</div>
+              <div class="ig-saved-info">
+                <h3>Community Uploads</h3>
+                <p>Manage the templates and motion presets you shared publicly.</p>
+              </div>
+              <a href="/uploads" class="ig-btn ig-btn-secondary">View Uploads →</a>
             </article>
-            <article class="pg-card">
-              <h3>Settings</h3>
-              <p>Your creator profile, plan and account controls.</p>
-              <a href="/settings" class="pg-cardlink">Open Settings →</a>
-            </article>
-            <article class="pg-card">
-              <h3>Sign out</h3>
-              <p>Log out of ShortsCraft on this device. Your templates and plan stay on your account.</p>
-              <button type="button" class="pg-cardlink pg-linkbtn pg-danger" id="accLogout">Log out →</button>
+            <article class="ig-saved-card">
+              <div class="ig-saved-icon">⚡</div>
+              <div class="ig-saved-info">
+                <h3>Motion Studio</h3>
+                <p>Launch the editor to compose brand new kinetic text animations.</p>
+              </div>
+              <a href="/editor" class="ig-btn ig-btn-primary">Open Studio →</a>
             </article>
           </div>
-        </div>
+        </section>
+
+        <!-- Tab 3: Account, Plan & Balance -->
+        <section class="ig-pane" id="igPaneAccount" role="tabpanel" hidden>
+          <div class="ig-account-grid">
+            <article class="ig-account-card">
+              <div class="ig-acc-head">
+                <span class="ig-acc-lbl">Account Email</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <p class="ig-acc-val" id="accEmail">—</p>
+            </article>
+
+            <article class="ig-account-card ig-acc-highlight">
+              <div class="ig-acc-head">
+                <span class="ig-acc-lbl">Current Plan</span>
+                <span class="ig-badge ig-badge-pill">✦ ACTIVE</span>
+              </div>
+              <p class="ig-acc-val" id="accPlan">—</p>
+              <p class="ig-acc-sub" id="accPlanTerm"></p>
+              <a href="/pricing" class="ig-card-cta">Upgrade or Change Plan →</a>
+            </article>
+
+            <article class="ig-account-card">
+              <div class="ig-acc-head">
+                <span class="ig-acc-lbl">Daily Credits Balance</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <p class="ig-acc-val" id="accCredits">—</p>
+              <p class="ig-acc-sub">Resets every 24 hours at 00:00 UTC</p>
+            </article>
+
+            <article class="ig-account-card">
+              <div class="ig-acc-head">
+                <span class="ig-acc-lbl">Member Since</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <p class="ig-acc-val" id="accSince">—</p>
+            </article>
+          </div>
+
+          <div class="ig-danger-zone">
+            <div class="ig-danger-info">
+              <h4>Session Management</h4>
+              <p>Log out of ShortsCraft on this device.</p>
+            </div>
+            <button type="button" class="ig-btn ig-btn-danger" id="accLogoutPane">Log out</button>
+          </div>
+        </section>
+
+        <!-- Tab 4: Edit Profile Form -->
+        <section class="ig-pane" id="igPaneEdit" role="tabpanel" hidden>
+          <div class="ig-edit-container">
+            <div class="ig-edit-header">
+              <div class="ig-edit-av" id="pageAvatarPreview">KA</div>
+              <div class="ig-edit-av-info">
+                <h3 id="pageAvatarHandle">@creator</h3>
+                <p>Customise your public creator brand and social media channel links</p>
+              </div>
+            </div>
+
+            <form id="pageEditProfileForm" class="ig-edit-form">
+              <div class="ig-field">
+                <label class="ig-label" for="pageDisplayName">
+                  <span>Display Name</span>
+                  <span class="ig-hint">Public name visible on your creations</span>
+                </label>
+                <input type="text" id="pageDisplayName" class="ig-input" placeholder="e.g. Karim Abdul" required maxlength="50" />
+              </div>
+
+              <div class="ig-field">
+                <label class="ig-label" for="pageHandle">
+                  <span>Creator Handle</span>
+                  <span class="ig-hint">Unique @username</span>
+                </label>
+                <input type="text" id="pageHandle" class="ig-input" placeholder="e.g. @karim_creates" required maxlength="30" />
+              </div>
+
+              <div class="ig-field">
+                <label class="ig-label" for="pageBio">
+                  <span>Bio &amp; Style</span>
+                  <span class="ig-hint">Short description about your animation niche</span>
+                </label>
+                <textarea id="pageBio" class="ig-input ig-textarea" rows="3" placeholder="Designing viral YouTube Shorts, Instagram Reels &amp; AI kinetic typography motion graphics."></textarea>
+              </div>
+
+              <div class="ig-grid-2">
+                <div class="ig-field">
+                  <label class="ig-label" for="pageYoutube">YouTube Channel URL</label>
+                  <div class="ig-input-wrap">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="#ff0000"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
+                    <input type="text" id="pageYoutube" class="ig-input" placeholder="https://youtube.com/@channel" />
+                  </div>
+                </div>
+
+                <div class="ig-field">
+                  <label class="ig-label" for="pageInstagram">Instagram Profile URL</label>
+                  <div class="ig-input-wrap">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e1306c" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    <input type="text" id="pageInstagram" class="ig-input" placeholder="https://instagram.com/profile" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="ig-form-foot">
+                <span id="pageProfileMsg" class="ig-msg"></span>
+                <button type="submit" class="ig-btn ig-btn-primary" id="pageSaveProfileBtn">Save Profile Changes</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
       </section>
 
       <section class="pg-sec" id="accountGuest" hidden>
@@ -285,7 +486,7 @@
             </svg>
           </span>
           <h2>Log in to see your account</h2>
-          <p>Right now your credits live in this browser alone — clear your site data and they are gone. An account carries your plan, your credits and your published templates across every device you use.</p>
+          <p>Your creator profile, channel links, daily credits, and account settings all live behind a login.</p>
           <div class="pg-row pg-gate-row">
             <a href="/login?next=/account" class="pg-bw">Log in</a>
             <a href="/signup?next=/account" class="pg-bo">Create an account</a>

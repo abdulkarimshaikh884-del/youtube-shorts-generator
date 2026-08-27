@@ -92,14 +92,24 @@
       .then(function (j) {
         if (!j || !j.success) throw new Error("credits unavailable");
         if (badge) {
-          var b = badge.querySelector("b"), s = badge.querySelector("span");
+          var b = badge.querySelector("b");
+          var sCredits = badge.querySelector(".sh-plan-credits");
+          var sRates = badge.querySelector(".sh-plan-rates");
+          var sLegacy = badge.querySelector("span:not(.sh-plan-arrow)");
+          var up = badge.querySelector(".sh-plan-upgrade-link") || badge.querySelector("a");
+
           if (b) b.textContent = j.planLabel + " plan";
-          if (s) {
-            s.textContent = j.left + " of " + j.perDay + " credits left today · " +
-              "export " + j.cost.export + ", AI scene " + j.cost.animate;
+          if (sCredits) {
+            sCredits.textContent = j.left + " of " + j.perDay + " credits left today";
+          } else if (sLegacy) {
+            sLegacy.textContent = j.left + " of " + j.perDay + " credits left today";
           }
-          var up = badge.querySelector("a");
-          if (up && j.plan !== "free") up.textContent = "Manage your plan";
+          if (sRates && j.cost) {
+            sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
+          }
+          if (up && j.plan !== "free") {
+            up.textContent = "Manage your plan ↗";
+          }
         }
         if (accPlan) accPlan.textContent = j.planLabel + (j.plan === "free" ? "" : " · active");
         if (accCredits) accCredits.textContent = j.left + " of " + j.perDay + " left today";

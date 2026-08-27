@@ -17,7 +17,7 @@ window.SC_TPL2 = (function () {
   "use strict";
 
   var CATS = [
-    { id: "docu",    label: "Documentary & Retro" },
+{ id: "docu",    label: "Documentary & Retro" },
     { id: "paper",   label: "Paper & Cutout" },
     { id: "text",    label: "Kinetic Text & Hooks" },
     { id: "maps",    label: "Maps & Radar" },
@@ -114,6 +114,11 @@ window.SC_TPL2 = (function () {
       + '--ae-recoil:cubic-bezier(.68,-.6,.32,1.6);'
       + 'transform-style:preserve-3d;perspective:1000px;'
       + '}'
+      + '@keyframes swFadeUp{0%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:translateY(0)}}'
+      + '@keyframes swPop{0%{opacity:0;transform:scale(0.85)}100%{opacity:1;transform:scale(1)}}'
+      + '@keyframes swBlink{0%,49%{opacity:1}50%,100%{opacity:0}}'
+      + '@keyframes swFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5cqh)}}'
+      + '@keyframes swPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.05);opacity:1}}'
       + '.cv{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'
       + 'width:auto;height:100%;aspect-ratio:9/16;max-width:100%;max-height:100%;'
       + 'container-type:size;overflow:hidden;display:flex;align-items:center;justify-content:center}'
@@ -138,492 +143,476 @@ window.SC_TPL2 = (function () {
   };
 
   /* ============================================================
+     💥 3 NEW ULTRA-PREMIUM REMOTION KINETIC TEXT TEMPLATES 💥
+     ============================================================ */
+
+  /* 1. Vox Kinetic Power Impact */
+  T["text-vox-impact"] = {
+    name: "Vox Kinetic Power Impact", cat: "text", dark: true, accent: "#38BDF8",
+    desc: "Magnates Media & Vox style editorial power hook with camera shake impact, RGB chromatic displacement, and glowing golden keyword",
+    css: '.vx-imp-wrap{position:absolute;inset:0;background:#08090C;color:#ffffff;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8cqw;text-align:center;font-family:Inter,system-ui,sans-serif}'
+      + '.vx-imp-grid{position:absolute;inset:0;opacity:0.12;background-image:linear-gradient(to right,rgba(255,255,255,0.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.08) 1px,transparent 1px);background-size:6cqw 6cqw;pointer-events:none}'
+      + '.vx-imp-glow{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:85cqw;height:55cqh;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,0.2) 0%,transparent 70%);filter:blur(60px);pointer-events:none}'
+      + '.vx-imp-cross{position:absolute;color:rgba(255,255,255,0.3);font-size:3.5cqw;font-family:ui-monospace,monospace;font-weight:900}'
+      + '.vx-imp-cross.tl{top:4cqh;left:6cqw}.vx-imp-cross.tr{top:4cqh;right:6cqw}.vx-imp-cross.bl{bottom:4cqh;left:6cqw}.vx-imp-cross.br{bottom:4cqh;right:6cqw}'
+      + '.vx-imp-badge{display:inline-flex;align-items:center;gap:1.5cqw;background:rgba(56,189,248,0.15);border:1.5px solid rgba(56,189,248,0.5);padding:1cqh 4cqw;border-radius:999px;margin-bottom:3cqh;box-shadow:0 0 30px rgba(56,189,248,0.2);animation:swPulse var(--D) infinite alternate}'
+      + '.vx-imp-dot{width:2.2cqw;height:2.2cqw;border-radius:50%;background:#38BDF8;box-shadow:0 0 12px #38BDF8}'
+      + '.vx-imp-badgetext{font-family:ui-monospace,monospace;font-size:2.8cqw;font-weight:800;letter-spacing:.25em;color:#38BDF8;text-transform:uppercase}'
+      + '.vx-imp-l1{font-size:7.5cqw;font-weight:800;letter-spacing:-.03em;color:#E2E8F0;margin:0;line-height:1.1;text-transform:uppercase;animation:swFadeUp var(--D) var(--sp) infinite alternate}'
+      + '.vx-imp-power{position:relative;font-size:11cqw;font-weight:950;letter-spacing:-.04em;color:#FFD700;line-height:1;text-transform:uppercase;margin:2cqh 0 3cqh;text-shadow:0 0 40px rgba(255,215,0,0.6),0 10px 30px rgba(0,0,0,0.9);animation:swPop var(--D) var(--ov) infinite alternate}'
+      + '.vx-imp-l3{font-size:3.6cqw;font-weight:500;color:#94A3B8;margin:0;line-height:1.4;max-width:85%;animation:swFadeUp var(--D) var(--sp) infinite alternate}',
+    html: function (o) {
+      var tag = getP(o, "tag", "VIRAL HOOK FRAMEWORK");
+      var l1 = getP(o, "l1", o.lines[0] || "STOP MAKING");
+      var power = getP(o, "power", o.lines[1] || "BORING VIDEOS");
+      var l3 = getP(o, "l3", o.lines[2] || "Retention decides everything.");
+      return '<div class="vx-imp-wrap">'
+        + '<div class="vx-imp-grid"></div>'
+        + '<div class="vx-imp-glow"></div>'
+        + '<div class="vx-imp-cross tl">+</div><div class="vx-imp-cross tr">+</div><div class="vx-imp-cross bl">+</div><div class="vx-imp-cross br">+</div>'
+        + '<div class="vx-imp-badge"><div class="vx-imp-dot"></div><span class="vx-imp-badgetext">' + esc(tag) + '</span></div>'
+        + '<h2 class="vx-imp-l1">' + esc(l1) + '</h2>'
+        + '<h1 class="vx-imp-power">' + esc(power) + '</h1>'
+        + '<p class="vx-imp-l3">' + esc(l3) + '</p>'
+        + '</div>';
+    }
+  };
+
+  /* 2. Elastic Typography Wave Stream */
+  T["text-elastic-wave"] = {
+    name: "Elastic Typography Wave Stream", cat: "text", dark: false, accent: "#0A11F6",
+    desc: "Swishy signature organic elastic kinetic typography stream flowing with SVG gooey filter and smooth wave motion",
+    css: '.el-wv-wrap{position:absolute;inset:0;background:#ffffff;overflow:hidden;display:flex;justify-content:center;align-items:center;font-family:"Source Code Pro",ui-monospace,monospace}'
+      + '.el-wv-stream{position:absolute;top:50%;left:0;right:0;display:flex;flex-direction:column;align-items:center;animation:elWaveScroll 6s linear infinite}'
+      + '.el-wv-pill{background:#0A11F6;color:#ffffff;padding:1.8cqh 6cqw;border-radius:999px;font-size:6.5cqw;font-weight:800;line-height:1;white-space:nowrap;margin-top:-2.2cqh;box-shadow:0 20px 50px rgba(10,17,246,0.35);letter-spacing:-.02em}'
+      + '@keyframes elWaveScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}',
+    html: function (o) {
+      var w1 = getP(o, "w1", o.lines[0] || "SWISHY");
+      var w2 = getP(o, "w2", o.lines[1] || "MOTION");
+      var w3 = getP(o, "w3", o.lines[2] || "DESIGN");
+      var w4 = getP(o, "w4", "2026");
+      var pills = [w1, w2, w3, w4, w1, w2, w3, w4, w1, w2, w3, w4];
+      var pillsHtml = pills.map(function (p, i) {
+        var rot = (i % 2 === 0 ? 1 : -1) * (4 + (i % 3) * 2);
+        var transX = (i % 2 === 0 ? 1 : -1) * (15 + (i % 4) * 5);
+        return '<div class="el-wv-pill" style="transform:translateX(' + transX + 'px) rotate(' + rot + 'deg);">' + esc(p) + '</div>';
+      }).join("");
+      return '<div class="el-wv-wrap">'
+        + '<div class="el-wv-stream">' + pillsHtml + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 3. 3D Kinetic Slot Machine Hook */
+  T["text-slot-machine"] = {
+    name: "3D Kinetic Slot Machine Hook", cat: "text", dark: true, accent: "#F59E0B",
+    desc: "Viral 3D slot machine cylindrical ticker that spins rapidly through keywords and locks into the winning hook word",
+    css: '.sl-mc-wrap{position:absolute;inset:0;background:#0A0B10;color:#ffffff;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sl-mc-grid{position:absolute;inset:0;opacity:0.15;background-image:linear-gradient(to right,rgba(255,255,255,0.06) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.06) 1px,transparent 1px);background-size:8cqw 8cqw;pointer-events:none}'
+      + '.sl-mc-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:85cqw;height:45cqh;border-radius:50%;background:radial-gradient(ellipse,rgba(245,158,11,0.25) 0%,transparent 70%);filter:blur(80px);pointer-events:none}'
+      + '.sl-mc-prefix{font-family:ui-monospace,monospace;font-size:3.6cqw;font-weight:800;letter-spacing:.25em;color:#94A3B8;text-transform:uppercase;margin-bottom:3cqh;animation:swFadeUp var(--D) var(--sp) infinite alternate}'
+      + '.sl-mc-reel{position:relative;width:100%;height:14cqh;border-top:2px solid rgba(245,158,11,0.8);border-bottom:2px solid rgba(245,158,11,0.8);background:rgba(15,23,42,0.6);box-shadow:0 0 50px rgba(245,158,11,0.25),inset 0 0 25px rgba(0,0,0,0.8);border-radius:3cqw;display:flex;align-items:center;justify-content:center;overflow:hidden;animation:swPop var(--D) var(--ov) infinite alternate}'
+      + '.sl-mc-tick{position:absolute;color:#F59E0B;font-size:3.5cqw;font-weight:900;z-index:15}'
+      + '.sl-mc-tick.left{left:4cqw}.sl-mc-tick.right{right:4cqw}'
+      + '.sl-mc-word{font-size:8.5cqw;font-weight:950;letter-spacing:-.03em;text-transform:uppercase;color:#F59E0B;text-shadow:0 0 35px #F59E0B,0 0 70px rgba(245,158,11,0.6);animation:swPulse var(--D) infinite alternate}'
+      + '.sl-mc-suffix{font-size:4.2cqw;font-weight:900;letter-spacing:.1em;color:#E2E8F0;text-transform:uppercase;margin-top:3.5cqh;text-shadow:0 4px 15px rgba(0,0,0,0.8);animation:swFadeUp var(--D) var(--sp) infinite alternate}',
+    html: function (o) {
+      var prefix = getP(o, "prefix", o.lines[0] || "THE #1 SECRET TO");
+      var word = getP(o, "word", o.lines[1] || "RETENTION");
+      var suffix = getP(o, "suffix", o.lines[2] || "IS HOOK VELOCITY");
+      return '<div class="sl-mc-wrap">'
+        + '<div class="sl-mc-grid"></div>'
+        + '<div class="sl-mc-glow"></div>'
+        + '<div class="sl-mc-prefix">' + esc(prefix) + '</div>'
+        + '<div class="sl-mc-reel">'
+        + '<div class="sl-mc-tick left">▶</div>'
+        + '<div class="sl-mc-word">' + esc(word) + '</div>'
+        + '<div class="sl-mc-tick right">◀</div>'
+        + '</div>'
+        + '<div class="sl-mc-suffix">' + esc(suffix) + '</div>'
+        + '</div>';
+    }
+  };
+
+
+
+  
+
+  
+  
+  
+  
+  
+  /* ============================================================
+     ✨ OFFICIAL SWISHY.AI REVERSE-ENGINEERED VIRAL TEMPLATES ✨
+     ============================================================ */
+
+  /* 1. Swishy Squiggle Flow Kinetic Stream */
+  T["swishy-squiggle-stream"] = {
+    name: "Squiggle Flow Kinetic Stream", cat: "text", dark: false, accent: "#0A11F6",
+    desc: "Swishy signature organic metaball kinetic text stream flowing through SVG gooey filter with rotating capsules",
+    css: '.sw-sq-wrap{position:absolute;inset:0;background:#ffffff;overflow:hidden;display:flex;justify-content:space-evenly;align-items:center;font-family:"Source Code Pro",ui-monospace,monospace}'
+      + '.sw-sq-stream{display:flex;flex-direction:column;align-items:center;width:100%;animation:swStreamScroll 6s linear infinite}'
+      + '.sw-sq-pill{background:#0A11F6;color:#ffffff;padding:1.4cqh 5cqw;border-radius:999px;font-size:5.5cqw;font-weight:700;line-height:1;white-space:nowrap;margin-top:-1.8cqh;box-shadow:0 10px 30px rgba(10,17,246,0.3)}'
+      + '@keyframes swStreamScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}',
+    html: function (o) {
+      var w1 = getP(o, "w1", o.lines[0] || "SWISHY");
+      var w2 = getP(o, "w2", o.lines[1] || "VIRAL");
+      var w3 = getP(o, "w3", o.lines[2] || "MOTION");
+      var w4 = getP(o, "w4", "2026");
+      var pills = [w1, w2, w3, w4, w1, w2, w3, w4, w1, w2, w3, w4];
+      var pillsHtml = pills.map(function (p, i) {
+        var rot = (i % 2 === 0 ? 1 : -1) * (3 + (i % 3) * 2);
+        var transX = (i % 2 === 0 ? 1 : -1) * (10 + (i % 4) * 4);
+        return '<div class="sw-sq-pill" style="transform:translateX(' + transX + 'px) rotate(' + rot + 'deg);">' + esc(p) + '</div>';
+      }).join("");
+      return '<div class="sw-sq-wrap">'
+        + '<div class="sw-sq-stream">' + pillsHtml + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 2. Swishy Stretchy Elastic Typography */
+  T["swishy-stretchy-pill"] = {
+    name: "Stretchy Elastic Pill Caps", cat: "text", dark: false, accent: "#D6FB00",
+    desc: "Swishy signature expanding stretchy neon lime pills with responsive letter spacing and animated connecting squiggles",
+    css: '.sw-str-wrap{position:absolute;inset:0;background:#DCE0E2;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-str-box{display:flex;flex-direction:column;gap:1.8cqh;width:100%;align-items:center}'
+      + '.sw-str-pill{background:#D6FB00;border-radius:999px;padding:1.2cqh 4cqw;display:flex;align-items:center;justify-content:space-between;color:#0F0F0F;font-size:4.8cqw;font-weight:700;box-shadow:0 12px 30px rgba(0,0,0,0.12);animation:swStretch 2.5s cubic-bezier(.34,1.56,.64,1) infinite alternate}'
+      + '.sw-str-line{flex-grow:1;height:2px;background:#0F0F0F;margin:0 2cqw;opacity:0.8}'
+      + '@keyframes swStretch{0%{width:65%}100%{width:95%}}',
+    html: function (o) {
+      var l1 = getP(o, "l1", o.lines[0] || "SWISHY");
+      var l2 = getP(o, "l2", o.lines[1] || "CREATE");
+      var l3 = getP(o, "l3", o.lines[2] || "MOTION");
+      return '<div class="sw-str-wrap">'
+        + '<div class="sw-str-box">'
+        + '<div class="sw-str-pill" style="animation-delay:0s;"><span>S</span><div class="sw-str-line"></div><span>W</span><div class="sw-str-line"></div><span>I</span><span>S</span><div class="sw-str-line"></div><span>H</span><span>Y</span></div>'
+        + '<div class="sw-str-pill" style="animation-delay:0.2s;"><span>C</span><div class="sw-str-line"></div><span>R</span><span>E</span><div class="sw-str-line"></div><span>A</span><span>T</span><span>E</span></div>'
+        + '<div class="sw-str-pill" style="animation-delay:0.4s;"><span>M</span><div class="sw-str-line"></div><span>O</span><div class="sw-str-line"></div><span>T</span><span>I</span><span>O</span><span>N</span></div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 3. Swishy Vinyl Record Track Player */
+  T["swishy-vinyl-player"] = {
+    name: "Spotify Vinyl Record Player", cat: "social", dark: true, accent: "#1DB954",
+    desc: "Rotating vinyl record disc with realistic vinyl grooves, scrolling marquee song title, Spotify UI controls, and animated progress track",
+    css: '.sw-vn-wrap{position:absolute;inset:0;background:#121212;color:#ffffff;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-vn-disc{width:65cqw;height:65cqw;border-radius:50%;background:#1A1A1A;position:relative;box-shadow:0 25px 70px rgba(0,0,0,0.9),0 0 0 2px rgba(255,255,255,0.05);display:flex;justify-content:center;align-items:center;animation:swSpin 6s linear infinite}'
+      + '.sw-vn-grooves{position:absolute;inset:0;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0px,transparent 3px,rgba(255,255,255,0.03) 3px,rgba(255,255,255,0.03) 4px);pointer-events:none}'
+      + '.sw-vn-center{width:28cqw;height:28cqw;border-radius:50%;background:#ffffff;overflow:hidden;position:relative;display:flex;justify-content:center;align-items:center;box-shadow:0 0 20px rgba(0,0,0,0.5)}'
+      + '.sw-vn-cover{width:100%;height:100%;background:linear-gradient(135deg,#6366F1,#EC4899);display:flex;align-items:center;justify-content:center;font-size:6cqw;color:#fff;font-weight:900}'
+      + '.sw-vn-spindle{position:absolute;width:5cqw;height:5cqw;border-radius:50%;background:#121212;box-shadow:inset 0 2px 5px rgba(0,0,0,0.8)}'
+      + '.sw-vn-meta{width:100%;margin-top:4cqh;display:flex;flex-direction:column;gap:.6cqh}'
+      + '.sw-vn-title{font-size:5.5cqw;font-weight:700;color:#ffffff;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+      + '.sw-vn-artist{font-size:3.6cqw;color:#b3b3b3;font-weight:500}'
+      + '.sw-vn-track{width:100%;height:4px;background:#333;border-radius:2px;margin-top:2.5cqh;position:relative}'
+      + '.sw-vn-prog{position:absolute;left:0;top:0;height:100%;width:55%;background:#1DB954;border-radius:2px;animation:swProg 6s linear infinite}'
+      + '.sw-vn-ctrls{display:flex;justify-content:center;align-items:center;gap:6cqw;margin-top:3cqh}'
+      + '.sw-vn-btn{background:none;border:none;color:#ffffff;font-size:6cqw;cursor:pointer}'
+      + '.sw-vn-btn.play{width:14cqw;height:14cqw;border-radius:50%;background:#ffffff;color:#121212;display:flex;align-items:center;justify-content:center;font-size:5cqw;box-shadow:0 10px 25px rgba(255,255,255,0.2)}'
+      + '@keyframes swSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}'
+      + '@keyframes swProg{0%{width:0%}100%{width:100%}}',
+    html: function (o) {
+      var song = getP(o, "song", o.lines[0] || "Midnight City Vibes");
+      var artist = getP(o, "artist", o.lines[1] || "ShortsCraft & Swishy");
+      return '<div class="sw-vn-wrap">'
+        + '<div class="sw-vn-disc">'
+        + '<div class="sw-vn-grooves"></div>'
+        + '<div class="sw-vn-center">'
+        + '<div class="sw-vn-cover">🎵</div>'
+        + '<div class="sw-vn-spindle"></div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="sw-vn-meta">'
+        + '<div class="sw-vn-title">' + esc(song) + '</div>'
+        + '<div class="sw-vn-artist">' + esc(artist) + '</div>'
+        + '<div class="sw-vn-track"><div class="sw-vn-prog"></div></div>'
+        + '</div>'
+        + '<div class="sw-vn-ctrls">'
+        + '<span class="sw-vn-btn">⏮</span>'
+        + '<span class="sw-vn-btn play">⏸</span>'
+        + '<span class="sw-vn-btn">⏭</span>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 4. Swishy GitHub Star History Graph */
+  T["swishy-github-stars"] = {
+    name: "GitHub Star History Graph", cat: "charts", dark: false, accent: "#E85D3B",
+    desc: "Clean GitHub Star History chart with animated coordinate line plot, repo badge, and star count markers",
+    css: '.sw-gh-wrap{position:absolute;inset:0;background:#ffffff;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-gh-head{display:flex;align-items:center;gap:2cqw;margin-bottom:2cqh}'
+      + '.sw-gh-title{font-size:5.5cqw;font-weight:700;color:#1a1a1a}'
+      + '.sw-gh-badge{background:#ffffff;border:1px solid #e5e5e5;border-radius:4px;padding:.5cqh 3cqw;font-size:3cqw;color:#1a1a1a;margin-bottom:3cqh;display:flex;align-items:center;gap:1.5cqw;box-shadow:0 2px 6px rgba(0,0,0,0.05)}'
+      + '.sw-gh-dot{width:2.5cqw;height:2.5cqw;background:#E85D3B;border-radius:50%}'
+      + '.sw-gh-stage{position:relative;width:85cqw;height:40cqh;border:1px solid #e5e5e5;border-radius:4px;background:#FAFAFA;padding:2cqh 2cqw}'
+      + '.sw-gh-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}'
+      + '.sw-gh-line{fill:none;stroke:#E85D3B;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1200;stroke-dashoffset:1200;animation:swDrawLine 3s cubic-bezier(.16,1,.3,1) infinite}'
+      + '.sw-gh-grid{stroke:#e5e5e5;stroke-dasharray:4 4;stroke-width:1}'
+      + '.sw-gh-kpi{position:absolute;top:15%;right:8%;background:#1A1A1A;color:#fff;padding:.6cqh 2.5cqw;border-radius:999px;font-family:ui-monospace,monospace;font-size:3.2cqw;font-weight:700;animation:swPop 1s cubic-bezier(.34,1.56,.64,1) both}'
+      + '@keyframes swDrawLine{0%{stroke-dashoffset:1200}60%,100%{stroke-dashoffset:0}}',
+    html: function (o) {
+      var repo = getP(o, "repo", o.lines[0] || "ShortsCraft/engine");
+      var stars = getP(o, "stars", "28,400 Stars");
+      return '<div class="sw-gh-wrap">'
+        + '<div class="sw-gh-head">'
+        + '<span style="font-size:6cqw;">⭐</span>'
+        + '<div class="sw-gh-title">Star History</div>'
+        + '</div>'
+        + '<div class="sw-gh-badge"><div class="sw-gh-dot"></div>' + esc(repo) + '</div>'
+        + '<div class="sw-gh-stage">'
+        + '<svg class="sw-gh-svg" viewBox="0 0 800 500">'
+        + '<line x1="50" y1="100" x2="750" y2="100" class="sw-gh-grid"/>'
+        + '<line x1="50" y1="250" x2="750" y2="250" class="sw-gh-grid"/>'
+        + '<line x1="50" y1="400" x2="750" y2="400" class="sw-gh-grid"/>'
+        + '<path d="M 60 440 C 200 420, 380 340, 520 200 C 620 100, 700 60, 750 40" class="sw-gh-line"/>'
+        + '</svg>'
+        + '<div class="sw-gh-kpi">✦ ' + esc(stars) + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 5. Swishy Social Creator Profile Card */
+  T["swishy-creator-card"] = {
+    name: "Social Creator Profile Card", cat: "social", dark: false, accent: "#3B82F6",
+    desc: "Instagram style creator profile badge with verified stats counter, animated bio reveal, and interactive follow actions",
+    css: '.sw-pr-wrap{position:absolute;inset:0;background:#ffffff;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:6cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-pr-card{width:86cqw;background:#FAFAFA;border:1px solid #E5E7EB;border-radius:5cqw;padding:4cqh 5cqw;box-shadow:0 25px 60px rgba(0,0,0,0.06);animation:swPop var(--D) var(--ov) infinite alternate}'
+      + '.sw-pr-top{display:flex;align-items:center;gap:4cqw;margin-bottom:2.5cqh}'
+      + '.sw-pr-avatar{width:16cqw;height:16cqw;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#8B5CF6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:7cqw;font-weight:900;animation:swPulse var(--D) infinite alternate}'
+      + '.sw-pr-stats{display:flex;gap:4cqw;flex:1;justify-content:space-around}'
+      + '.sw-pr-stat{text-align:center}'
+      + '.sw-pr-stat b{font-size:4.2cqw;font-weight:800;color:#111827;display:block}'
+      + '.sw-pr-stat small{font-size:2.8cqw;color:#6B7280}'
+      + '.sw-pr-name{font-size:4.5cqw;font-weight:800;color:#111827;margin-bottom:.5cqh}'
+      + '.sw-pr-bio{font-size:3.2cqw;color:#4B5563;line-height:1.4;margin-bottom:3cqh}'
+      + '.sw-pr-btns{display:flex;gap:2cqw}'
+      + '.sw-pr-btn{flex:1;padding:1.2cqh 0;border-radius:2.5cqw;font-size:3.4cqw;font-weight:700;text-align:center;border:none}'
+      + '.sw-pr-btn.primary{background:#3B82F6;color:#ffffff;box-shadow:0 4px 15px rgba(59,130,246,0.3)}'
+      + '.sw-pr-btn.sec{background:#E5E7EB;color:#111827}',
+    html: function (o) {
+      var handle = getP(o, "handle", o.lines[0] || "ShortsCraft Official");
+      var bio = getP(o, "bio", o.lines[1] || "Automating cinematic motion graphics for 100K+ content creators.");
+      var followers = getP(o, "followers", "143K");
+      return '<div class="sw-pr-wrap">'
+        + '<div class="sw-pr-card">'
+        + '<div class="sw-pr-top">'
+        + '<div class="sw-pr-avatar">⚡</div>'
+        + '<div class="sw-pr-stats">'
+        + '<div class="sw-pr-stat"><b>184</b><small>posts</small></div>'
+        + '<div class="sw-pr-stat"><b>' + esc(followers) + '</b><small>followers</small></div>'
+        + '<div class="sw-pr-stat"><b>320</b><small>following</small></div>'
+        + '</div>'
+        + '</div>'
+        + '<div class="sw-pr-name">@' + esc(handle.replace(/^@/,"")) + ' ✦</div>'
+        + '<div class="sw-pr-bio">' + esc(bio) + '</div>'
+        + '<div class="sw-pr-btns">'
+        + '<div class="sw-pr-btn primary">Follow</div>'
+        + '<div class="sw-pr-btn sec">Message</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 6. Swishy Global Flight Route Curve */
+  T["swishy-flight-route"] = {
+    name: "Global Flight Route Arc", cat: "maps", dark: true, accent: "#3B82F6",
+    desc: "Global route map with smooth Bézier flight path arc, animated plane icon, pulsing origin/destination nodes, and glowing city markers",
+    css: '.sw-fl-wrap{position:absolute;inset:0;background:#060814;color:#ffffff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-fl-map{position:absolute;inset:0;opacity:0.25;background-image:radial-gradient(circle at center,#3B82F6 1px,transparent 1px);background-size:24px 24px}'
+      + '.sw-fl-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}'
+      + '.sw-fl-arc{fill:none;stroke:#3B82F6;stroke-width:3;stroke-dasharray:8 6;filter:drop-shadow(0 0 10px #3B82F6);animation:swFlightPath 3s linear infinite}'
+      + '.sw-fl-node{position:absolute;width:4cqw;height:4cqw;border-radius:50%;background:#60A5FA;box-shadow:0 0 20px #3B82F6;display:flex;align-items:center;justify-content:center}'
+      + '.sw-fl-node.n1{top:45%;left:15%}'
+      + '.sw-fl-node.n2{top:35%;right:15%}'
+      + '.sw-fl-tag{position:absolute;top:120%;background:rgba(0,0,0,0.8);border:1px solid rgba(59,130,246,0.4);border-radius:999px;padding:.4cqh 3cqw;font-family:ui-monospace,monospace;font-size:3cqw;font-weight:800;color:#93C5FD;white-space:nowrap;transform:translateX(-40%)}'
+      + '.sw-fl-plane{position:absolute;top:32%;left:50%;font-size:6cqw;transform:translate(-50%,-50%) rotate(25deg);animation:swPlaneHover 2s ease-in-out infinite alternate}'
+      + '@keyframes swFlightPath{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}'
+      + '@keyframes swPlaneHover{0%{transform:translate(-50%,-50%) rotate(20deg) scale(1)}100%{transform:translate(-50%,-50%) rotate(28deg) scale(1.15)}}',
+    html: function (o) {
+      var from = getP(o, "from", o.lines[0] || "NEW YORK");
+      var to = getP(o, "to", o.lines[1] || "DUBAI");
+      return '<div class="sw-fl-wrap">'
+        + '<div class="sw-fl-map"></div>'
+        + '<svg class="sw-fl-svg" viewBox="0 0 1000 1600">'
+        + '<path d="M 180 750 Q 500 450 820 580" class="sw-fl-arc"/>'
+        + '</svg>'
+        + '<div class="sw-fl-node n1"><div class="sw-fl-tag">' + esc(from) + '</div></div>'
+        + '<div class="sw-fl-node n2"><div class="sw-fl-tag">' + esc(to) + '</div></div>'
+        + '<div class="sw-fl-plane">✈️</div>'
+        + '</div>';
+    }
+  };
+
+
+
+  /* ============================================================
+     🚀 SWISHY.AI & AUTOAE SIGNATURE VIRAL SUITE (8 Ultra-High-Converting Templates)
+     ============================================================ */
+
+  /* 1. Swishy Upwork 41% Metric Stat */
+  T["swishy-upwork-ad"] = {
+    name: "Upwork 41% Metric Stat", cat: "money", dark: true, accent: "#1FD614",
+    desc: "Upwork style green gradient 41% metric stat with glowing neon counter and two-line headline",
+    css: '.sw-upwork-wrap{position:absolute;inset:0;background:#000000;color:#ffffff;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-upwork-bg{position:absolute;inset:0;background:linear-gradient(to bottom,#000000 0%,#000000 35%,rgba(0,35,2,.95) 55%,rgba(0,90,0,.98) 72%,#00A300 90%,#00C800 100%);opacity:.95}'
+      + '.sw-upwork-brand{position:relative;z-index:5;font-size:7cqw;font-weight:700;letter-spacing:-.02em;color:#ffffff;margin-bottom:2cqh;animation:swFadeUp var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-upwork-metric{position:relative;z-index:5;font-size:26cqw;font-weight:900;line-height:1;letter-spacing:-.04em;color:#1FD614;text-shadow:0 0 35px rgba(31,214,20,.65),0 0 70px rgba(31,214,20,.35);margin:1.5cqh 0;animation:swPop var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-upwork-sub1{position:relative;z-index:5;font-size:4.2cqw;font-weight:400;color:rgba(255,255,255,.85);margin-bottom:.8cqh;text-align:center;animation:swFadeUp var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-upwork-sub2{position:relative;z-index:5;font-size:5cqw;font-weight:700;color:#ffffff;text-align:center;max-width:85%;animation:swFadeUp var(--D) var(--ae-spring) infinite alternate}'
+      + '@keyframes swFadeUp{0%,20%{opacity:0;transform:translateY(30px)}60%,100%{opacity:1;transform:translateY(0)}}'
+      + '@keyframes swPop{0%,20%{opacity:0;transform:scale(0.85)}60%,100%{opacity:1;transform:scale(1)}}',
+    html: function (o) {
+      var brand = getP(o, "brand", o.lines[0] || "Upwork");
+      var metric = getP(o, "metric", "41%");
+      var sub1 = getP(o, "sub1", o.lines[1] || "of top companies agree");
+      var sub2 = getP(o, "sub2", o.lines[2] || "AI works best when humans lead.");
+      return '<div class="sw-upwork-wrap">'
+        + '<div class="sw-upwork-bg"></div>'
+        + '<div class="sw-upwork-bloom"></div>'
+        + '<div class="sw-upwork-brand">' + esc(brand) + '</div>'
+        + '<div class="sw-upwork-metric">' + esc(metric) + '</div>'
+        + '<div class="sw-upwork-sub1">' + esc(sub1) + '</div>'
+        + '<div class="sw-upwork-sub2">' + esc(sub2) + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 2. Swishy macOS Terminal Typing */
+  T["swishy-terminal-typing"] = {
+    name: "macOS Terminal Code Typing", cat: "ui", dark: true, accent: "#00F2FE",
+    desc: "macOS dark code terminal with traffic-light dots, token-aware syntax highlighting and neon cyan blinking cursor",
+    css: '.sw-term-wrap{position:absolute;inset:0;background:#0A0A0C;color:#ffffff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-term-glow{position:absolute;width:90cqw;height:50cqh;background:radial-gradient(ellipse at center,rgba(0,242,254,.15) 0%,transparent 70%);filter:blur(50px);pointer-events:none}'
+      + '.sw-term-card{position:relative;z-index:5;width:86cqw;background:#12131A;border:1px solid rgba(255,255,255,.1);border-radius:4cqw;box-shadow:0 30px 80px rgba(0,0,0,.9);overflow:hidden;animation:swPop var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-term-head{height:7cqh;background:#181924;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;padding:0 4cqw}'
+      + '.sw-term-dots{display:flex;gap:1.8cqw}'
+      + '.sw-tdot{width:2.6cqw;height:2.6cqw;border-radius:50%}'
+      + '.sw-tdot.red{background:#FF5F56}.sw-tdot.yel{background:#FFBD2E}.sw-tdot.grn{background:#27C93F}'
+      + '.sw-term-title{font-family:ui-monospace,monospace;font-size:3.2cqw;color:#9ca3af;font-weight:500}'
+      + '.sw-term-body{padding:4cqh 5cqw;font-family:ui-monospace,monospace;font-size:4.8cqw;line-height:1.5;color:#e5e7eb}'
+      + '.sw-kw{color:#EC4899;font-weight:600;margin-right:1.5cqw}'
+      + '.sw-var{color:#E5E7EB;margin-right:1.5cqw}'
+      + '.sw-op{color:#F472B6;margin-right:1.5cqw}'
+      + '.sw-str{color:#FBBF24}'
+      + '.sw-cursor{display:inline-block;width:.8cqw;height:4.5cqw;background:#00F2FE;margin-left:1cqw;vertical-align:middle;box-shadow:0 0 10px #00F2FE;animation:swBlink 0.9s infinite}'
+      + '@keyframes swBlink{0%,49%{opacity:1}50%,100%{opacity:0}}',
+    html: function (o) {
+      var file = getP(o, "file", "index.ts");
+      return '<div class="sw-term-wrap">'
+        + '<div class="sw-term-glow"></div>'
+        + '<div class="sw-term-card">'
+        + '<div class="sw-term-head">'
+        + '<div class="sw-term-dots"><div class="sw-tdot red"></div><div class="sw-tdot yel"></div><div class="sw-tdot grn"></div></div>'
+        + '<div class="sw-term-title">' + esc(file) + '</div>'
+        + '<div style="width:8cqw;"></div>'
+        + '</div>'
+        + '<div class="sw-term-body">'
+        + '<span class="sw-kw">const</span><span class="sw-var">var</span><span class="sw-op">=</span><span class="sw-str">\'hello world\'</span>'
+        + '<span class="sw-cursor"></span>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+
+
+  /* 4. Swishy iOS Alarm Spring Toggle */
+  T["swishy-alarm-toggle"] = {
+    name: "iOS Alarm Spring Toggle", cat: "ui", dark: true, accent: "#22C55E",
+    desc: "iOS lockscreen 9:40 AM digital clock with interactive spring-physics toggle switch and glowing haptic ripple",
+    css: '.sw-alm-wrap{position:absolute;inset:0;background:#0A0A0C;color:#ffffff;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-alm-glow{position:absolute;width:90cqw;height:50cqh;background:radial-gradient(ellipse at center,rgba(34,197,94,.18) 0%,transparent 70%);filter:blur(60px);pointer-events:none}'
+      + '.sw-alm-card{position:relative;z-index:5;width:86cqw;background:#13151D;border:1px solid rgba(255,255,255,.1);border-radius:5cqw;padding:4cqh 5cqw;box-shadow:0 30px 90px rgba(0,0,0,.9);display:flex;align-items:center;justify-content:space-between;animation:swPop var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-alm-time{font-size:11cqw;font-weight:400;color:#ffffff;line-height:1;letter-spacing:-.03em}'
+      + '.sw-alm-sub{font-size:3.4cqw;font-weight:500;color:#9ca3af;margin-top:1cqh;display:flex;gap:1.5cqw;align-items:center}'
+      + '.sw-alm-sub span{color:#4b5563}'
+      + '.sw-alm-track{width:18cqw;height:10.5cqw;background:#22C55E;border-radius:999px;position:relative;box-shadow:0 0 25px rgba(34,197,94,.5),inset 0 2px 4px rgba(0,0,0,.2);animation:swTrackFlip 3s cubic-bezier(.34,1.56,.64,1) infinite alternate}'
+      + '.sw-alm-knob{width:9cqw;height:9cqw;background:#ffffff;border-radius:50%;position:absolute;top:.75cqw;left:.75cqw;box-shadow:0 4px 10px rgba(0,0,0,.35);animation:swKnobSlide 3s cubic-bezier(.34,1.56,.64,1) infinite alternate}'
+      + '@keyframes swKnobSlide{0%,20%{transform:translateX(0)}60%,100%{transform:translateX(7.5cqw)}}'
+      + '@keyframes swTrackFlip{0%,20%{background:#334155;box-shadow:none}60%,100%{background:#22C55E;box-shadow:0 0 25px rgba(34,197,94,.5)}}',
+    html: function (o) {
+      var time = getP(o, "time", o.lines[0] || "9:40 AM");
+      var lbl = getP(o, "label", "Alarm");
+      var sub = getP(o, "sub", "Every weekday");
+      return '<div class="sw-alm-wrap">'
+        + '<div class="sw-alm-glow"></div>'
+        + '<div class="sw-alm-card">'
+        + '<div>'
+        + '<div class="sw-alm-time">' + esc(time) + '</div>'
+        + '<div class="sw-alm-sub">' + esc(lbl) + ' <span>•</span> ' + esc(sub) + '</div>'
+        + '</div>'
+        + '<div class="sw-alm-track">'
+        + '<div class="sw-alm-knob"></div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+  };
+
+  /* 5. Swishy Notion Kinetic Typography */
+  T["swishy-notion-kinetic"] = {
+    name: "Notion Kinetic Typography", cat: "text", dark: true, accent: "#6366F1",
+    desc: "Word-by-word staggered kinetic typography reveal with blur-to-focus and glowing pill highlight",
+    css: '.sw-not-wrap{position:absolute;inset:0;background:#0A0A0C;color:#ffffff;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:10cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-not-glow{position:absolute;width:90cqw;height:50cqh;background:radial-gradient(circle,rgba(99,102,241,.18) 0%,transparent 70%);filter:blur(60px);pointer-events:none}'
+      + '.sw-not-badge{position:relative;z-index:5;display:flex;align-items:center;gap:1.5cqw;padding:.8cqh 3.5cqw;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-family:ui-monospace,monospace;font-size:2.8cqw;font-weight:700;letter-spacing:.15em;color:#cbd5e1;text-transform:uppercase;margin-bottom:3cqh;animation:swFadeUp var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-not-text{position:relative;z-index:5;font-size:7.5cqw;font-weight:750;line-height:1.2;letter-spacing:-.03em;color:#f8fafc}'
+      + '.sw-not-text span{display:inline-block;margin-right:1.8cqw;animation:swBlurIn var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-not-text span.hl{background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.6);padding:.2cqh 2cqw;border-radius:2cqw;color:#ffffff;text-shadow:0 0 20px #6366F1;font-weight:900}'
+      + '@keyframes swBlurIn{0%,15%{opacity:0;filter:blur(14px);transform:translateY(20px)}60%,100%{opacity:1;filter:blur(0);transform:translateY(0)}}',
+    html: function (o) {
+      var badge = getP(o, "badge", "PRODUCTIVITY");
+      var text = getP(o, "text", o.lines[0] || "Supercharge your creative workflow with automated Remotion video pipelines.");
+      var hl = getP(o, "hl", "Remotion");
+      var words = text.split(/\s+/);
+      var wordsHtml = words.map(function (w, i) {
+        var clean = w.replace(/[^a-zA-Z0-9]/g, "");
+        var isHl = clean.toLowerCase() === hl.toLowerCase();
+        return '<span style="animation-delay:' + (0.1 + i * 0.08) + 's;" class="' + (isHl ? 'hl' : '') + '">' + esc(w) + '</span>';
+      }).join(" ");
+      return '<div class="sw-not-wrap">'
+        + '<div class="sw-not-glow"></div>'
+        + '<div class="sw-not-badge">✦ ' + esc(badge) + '</div>'
+        + '<div class="sw-not-text">' + wordsHtml + '</div>'
+        + '</div>';
+    }
+  };
+
+
+
+  
+
+
+  /* ============================================================
      AUTOAE EXACT 4-SCENE MASTER SUITE
      Matches: z2dugjhz-6311bd0c8643a51afd55495ef5a024116614b904.mp4
      ============================================================ */
 
-  T["autoae-exact-master"] = {
-    name: "AutoAE 4-Scene Masterpiece", cat: "ui", dark: true, accent: "#ffffff",
-    desc: "Exact 1:1 AutoAE 4-scene video template: 1. ChatGPT Prompt Fly-In, 2. Wireframe Search Stream, 3. 3D Blue Evidence Board, 4. 3D Wall Clock in Light Beam",
-    css: '.sc-master-wrap{position:absolute;inset:0;background:#000000;color:#ffffff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
-      + '.sc-master-scene{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none}'
-      
-      /* Scene 1: ChatGPT Prompt Fly-In (0% - 25%) */
-      + '.sc-m-s1{animation:mScene1 var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-cg-brand{font-size:8cqw;font-weight:900;letter-spacing:-.02em;color:#ffffff;margin-bottom:2.5cqh;text-align:center}'
-      + '.sc-cg-pill{width:86cqw;background:#323232;border-radius:6cqw;padding:3cqh 5cqw;box-shadow:0 30px 70px rgba(0,0,0,.9);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:2.5cqh}'
-      + '.sc-cg-input{font-size:5.8cqw;font-weight:600;color:#f3f4f6}'
-      + '.sc-cg-actions{display:flex;gap:2cqw}'
-      + '.sc-cg-btn{padding:.8cqh 2.8cqw;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-size:3cqw;font-weight:600;color:#e5e7eb;display:flex;align-items:center;gap:1.5cqw;background:rgba(255,255,255,.05)}'
-
-      /* Scene 2: 3D Wireframe Stream (25% - 50%) */
-      + '.sc-m-s2{animation:mScene2 var(--D) cubic-bezier(.16,1,.3,1) infinite;background:radial-gradient(circle at 50% 50%,#202020 0%,#000000 75%)}'
-      + '.sc-wf-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28cqw;font-weight:900;color:transparent;-webkit-text-stroke:1.1px rgba(255,255,255,.10);pointer-events:none;white-space:nowrap;z-index:0}'
-      + '.sc-wf-pill{position:absolute;background:#262626;border:1px solid rgba(255,255,255,.15);border-radius:3cqw;padding:1.5cqh 4cqw;font-size:3cqw;color:#9ca3af}'
-      + '.sc-wf-hero{position:relative;z-index:5;text-align:center}'
-      + '.sc-wf-sub{font-size:4.8cqw;color:#ffffff;font-weight:600}'
-      + '.sc-wf-title{font-size:16cqw;font-weight:900;font-style:italic;color:#ffffff;line-height:1;margin-top:.4cqh;text-shadow:0 10px 30px rgba(0,0,0,.95)}'
-
-      /* Scene 3: 3D Blue Spotlight Evidence Board (50% - 75%) */
-      + '.sc-m-s3{animation:mScene3 var(--D) cubic-bezier(.16,1,.3,1) infinite;background:#030712}'
-      + '.sc-ev-light{position:absolute;top:-20%;right:-20%;width:120cqw;height:120cqw;background:radial-gradient(circle,rgba(56,189,248,.35) 0%,transparent 65%);filter:blur(50px);pointer-events:none}'
-      + '.sc-ev-board{width:86cqw;height:54cqh;object-fit:contain;filter:drop-shadow(0 30px 70px rgba(0,0,0,.95)) drop-shadow(0 0 45px rgba(56,189,248,.5));animation:evFloat 4s ease-in-out infinite alternate}'
-      + '.sc-ev-text-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center}'
-      + '.sc-ev-sub{font-size:5cqw;font-weight:700;color:#ffffff;margin-bottom:.5cqh}'
-      + '.sc-ev-title{font-size:14cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 35px rgba(56,189,248,.9),0 4px 15px rgba(0,0,0,.9)}'
-
-      /* Scene 4: 3D Analog Clock in Light Beam (75% - 100%) */
-      + '.sc-m-s4{animation:mScene4 var(--D) cubic-bezier(.16,1,.3,1) infinite;background:#000000}'
-      + '.sc-clk-beam{position:absolute;top:-40%;left:-20%;width:140cqw;height:180cqh;background:linear-gradient(135deg,rgba(255,255,255,.25) 0%,rgba(255,255,255,.05) 40%,transparent 70%);filter:blur(25px);pointer-events:none;transform:rotate(-25deg)}'
-      + '.sc-clk-img{width:68cqw;height:68cqw;object-fit:contain;filter:drop-shadow(0 30px 60px rgba(0,0,0,.95)) drop-shadow(0 0 30px rgba(255,255,255,.25));animation:clkSpin 6s ease-in-out infinite alternate}'
-      + '.sc-clk-text-box{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center}'
-      + '.sc-clk-sub{font-size:4.6cqw;font-weight:600;color:#ffffff}'
-      + '.sc-clk-title{font-size:16cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 10px 40px rgba(0,0,0,.95)}'
-
-      /* Keyframe Sequencing */
-      + '@keyframes mScene1{0%,2%{opacity:0;transform:scale(.9) translateY(4cqh)}5%,22%{opacity:1;transform:scale(1) translateY(0)}25%,100%{opacity:0;transform:scale(1.05) translateY(-2cqh)}}'
-      + '@keyframes mScene2{0%,24%{opacity:0;transform:scale(.94)}27%,47%{opacity:1;transform:scale(1)}50%,100%{opacity:0;transform:scale(1.05)}}'
-      + '@keyframes mScene3{0%,49%{opacity:0;transform:scale(.92)}52%,72%{opacity:1;transform:scale(1)}75%,100%{opacity:0;transform:scale(1.06)}}'
-      + '@keyframes mScene4{0%,74%{opacity:0;transform:scale(.92)}77%,97%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04)}}'
-      + '@keyframes evFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-8deg) translateY(-1.5cqh)}}'
-      + '@keyframes clkSpin{0%{transform:rotateX(15deg) rotateY(10deg) scale(0.96)}100%{transform:rotateX(-10deg) rotateY(-15deg) scale(1.04)}}',
-    html: function (o) {
-      var t1 = getP(o, "t1", o.lines[0] || "Write me a viral Shorts hook");
-      var t2 = getP(o, "t2", o.lines[1] || "Auto-Built");
-      var t3 = getP(o, "t3", o.lines[2] || "The Evidence");
-      var t5 = getP(o, "t5", o.lines[3] || "First 3 Seconds");
-      return '<div class="sc-master-wrap">'
-        /* Scene 1 */
-        + '<div class="sc-master-scene sc-m-s1">'
-        + '<div class="sc-cg-brand">ChatGPT</div>'
-        + '<div class="sc-cg-pill">'
-        + '<div class="sc-cg-input">' + esc(t1) + '</div>'
-        + '<div class="sc-cg-actions">'
-        + '<div class="sc-cg-btn">📎 Attach</div>'
-        + '<div class="sc-cg-btn">🌐 Search</div>'
-        + '<div class="sc-cg-btn">📖 Study</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>'
-
-        /* Scene 2 */
-        + '<div class="sc-master-scene sc-m-s2">'
-        + '<div class="sc-wf-bg">SCRIPT</div>'
-        + '<div class="sc-wf-pill" style="top:18%;left:8%;transform:rotate(-12deg);">Hook Line<br/><small>0:00 — 0:03</small></div>'
-        + '<div class="sc-wf-pill" style="bottom:20%;right:6%;transform:rotate(-6deg);">Payoff Beat<br/><small>0:12 — 0:15</small></div>'
-        + '<div class="sc-wf-hero">'
-        + '<div class="sc-wf-sub">FROM PROMPT TO SCENE</div>'
-        + '<div class="sc-wf-title">' + esc(t2) + '</div>'
-        + '</div>'
-        + '</div>'
-
-        /* Scene 3 */
-        + '<div class="sc-master-scene sc-m-s3">'
-        + '<div class="sc-ev-light"></div>'
-        + '<img src="/assets/investigation_photo_board_3d.png" class="sc-ev-board" alt="Investigation Photo Board" />'
-        + '<div class="sc-ev-text-overlay">'
-        + '<div class="sc-ev-sub">// CASE FILE 004</div>'
-        + '<div class="sc-ev-title">' + esc(t3) + '</div>'
-        + '</div>'
-        + '</div>'
-
-        /* Scene 4 */
-        + '<div class="sc-master-scene sc-m-s4">'
-        + '<div class="sc-clk-beam"></div>'
-        + '<img src="/assets/analog_wall_clock_3d.png" class="sc-clk-img" alt="3D Wall Clock" />'
-        + '<div class="sc-clk-text-box">'
-        + '<div class="sc-clk-sub">// RETENTION WINDOW</div>'
-        + '<div class="sc-clk-title">' + esc(t5) + '</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE Scene 1: Standalone ChatGPT Prompt */
-  T["autoae-chatgpt-prompt"] = {
-    name: "ChatGPT 3D Prompt Box", cat: "ui", dark: true, accent: "#10b981",
-    desc: "3D floating ChatGPT prompt input capsule with action pills (Attach, Search, Study) and kinetic spring fly-in",
-    css: '.sc-cg-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000000;color:#fff;padding:6cqw;font-family:Inter,system-ui,sans-serif}'
-      + '.sc-cg-single-brand{font-size:9cqw;font-weight:900;letter-spacing:-.02em;color:#ffffff;margin-bottom:3cqh;text-align:center;animation:cgPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-cg-single-pill{width:86cqw;background:#323232;border-radius:6cqw;padding:3.5cqh 5cqw;box-shadow:0 30px 80px rgba(0,0,0,.95);border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:3cqh;animation:cgPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-cg-single-input{font-size:6.4cqw;font-weight:600;color:#f3f4f6}'
-      + '.sc-cg-single-actions{display:flex;gap:2.5cqw}'
-      + '.sc-cg-single-btn{padding:1cqh 3cqw;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-size:3.4cqw;font-weight:600;color:#e5e7eb;display:flex;align-items:center;gap:1.5cqw;background:rgba(255,255,255,.06)}'
-      + '@keyframes cgPop{0%,12%{transform:perspective(1000px) rotateX(20deg) translateY(6cqh);opacity:0}25%{transform:perspective(1000px) rotateX(0deg) translateY(0);opacity:1}45%{transform:perspective(1000px) rotateX(2deg) translateY(-.4cqh);opacity:1}65%{transform:perspective(1000px) rotateX(-1.5deg) translateY(.3cqh);opacity:1}85%{transform:perspective(1000px) rotateX(0deg) translateY(0);opacity:1}100%{transform:perspective(1000px) rotateX(-10deg) translateY(-3cqh);opacity:0}}',
-    html: function (o) {
-      var query = getP(o, "query", o.lines[0] || "Write me a viral Shorts hook");
-      return '<div class="sc-cg-standalone">'
-        + '<div class="sc-cg-single-brand">ChatGPT</div>'
-        + '<div class="sc-cg-single-pill">'
-        + '<div class="sc-cg-single-input">' + esc(query) + '</div>'
-        + '<div class="sc-cg-single-actions">'
-        + '<div class="sc-cg-single-btn">📎 Attach</div>'
-        + '<div class="sc-cg-single-btn">🌐 Search</div>'
-        + '<div class="sc-cg-single-btn">📖 Study</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE Scene 2: Standalone Wireframe Search Stream */
-  T["autoae-wireframe-stream"] = {
-    name: "Wireframe Search Stream", cat: "ui", dark: true, accent: "#ffffff",
-    desc: "Massive 3D stroked background wireframe typography with bold italic hero headline and orbiting search cards",
-    css: '.sc-wf-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 50%,#202020 0%,#000000 80%);color:#fff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
-      + '.sc-wf-s-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30cqw;font-weight:900;color:transparent;-webkit-text-stroke:1.2px rgba(255,255,255,.10);pointer-events:none;white-space:nowrap;z-index:0;animation:wfSpin 8s ease-in-out infinite alternate}'
-      + '.sc-wf-s-pill{position:absolute;background:#262626;border:1px solid rgba(255,255,255,.15);border-radius:3cqw;padding:1.8cqh 4.5cqw;font-size:3.4cqw;color:#9ca3af;box-shadow:0 20px 40px rgba(0,0,0,.8)}'
-      + '.sc-wf-s-hero{position:relative;z-index:5;text-align:center;animation:wfPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-wf-s-sub{font-size:5.2cqw;color:#ffffff;font-weight:600}'
-      + '.sc-wf-s-title{font-size:18cqw;font-weight:900;font-style:italic;color:#ffffff;line-height:1;margin-top:.4cqh;text-shadow:0 10px 40px rgba(0,0,0,.95)}'
-      + '@keyframes wfPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}'
-      + '@keyframes wfSpin{0%{transform:scale(1.25) rotate(-10deg)}100%{transform:scale(1.35) rotate(-6deg)}}',
-    html: function (o) {
-      var sub = getP(o, "sub", o.lines[0] || "FROM PROMPT TO SCENE");
-      var title = getP(o, "title", o.lines[1] || "Auto-Built");
-      return '<div class="sc-wf-standalone">'
-        + '<div class="sc-wf-s-bg">SCRIPT</div>'
-        + '<div class="sc-wf-s-pill" style="top:16%;left:6%;transform:rotate(-12deg);">Hook Line<br/><small>0:00 — 0:03</small></div>'
-        + '<div class="sc-wf-s-pill" style="bottom:18%;right:6%;transform:rotate(-6deg);">Payoff Beat<br/><small>0:12 — 0:15</small></div>'
-        + '<div class="sc-wf-s-hero">'
-        + '<div class="sc-wf-s-sub">' + esc(sub) + '</div>'
-        + '<div class="sc-wf-s-title">' + esc(title) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE Scene 3: Standalone Blue Spotlight Evidence Board */
-  T["autoae-blue-evidence"] = {
-    name: "3D Blue Evidence Board", cat: "docu", dark: true, accent: "#38bdf8",
-    desc: "3D tilted investigation evidence board bathed in intense cyan spotlight with glowing headline",
-    css: '.sc-ev-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#030712;color:#fff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
-      + '.sc-ev-s-light{position:absolute;top:-20%;right:-20%;width:130cqw;height:130cqw;background:radial-gradient(circle,rgba(56,189,248,.35) 0%,transparent 65%);filter:blur(50px);pointer-events:none}'
-      + '.sc-ev-s-board{width:88cqw;height:56cqh;object-fit:contain;filter:drop-shadow(0 30px 70px rgba(0,0,0,.95)) drop-shadow(0 0 45px rgba(56,189,248,.5));animation:evFloat 4s ease-in-out infinite alternate}'
-      + '.sc-ev-s-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center;animation:evTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-ev-s-sub{font-size:5.4cqw;font-weight:700;color:#ffffff;margin-bottom:.5cqh}'
-      + '.sc-ev-s-title{font-size:16cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 0 35px rgba(56,189,248,.9),0 4px 15px rgba(0,0,0,.9)}'
-      + '@keyframes evFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-8deg) translateY(-1.5cqh)}}'
-      + '@keyframes evTextPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.06);opacity:0}}',
-    html: function (o) {
-      var sub = getP(o, "sub", o.lines[0] || "// CASE FILE 004");
-      var title = getP(o, "title", o.lines[1] || "The Evidence");
-      return '<div class="sc-ev-standalone">'
-        + '<div class="sc-ev-s-light"></div>'
-        + '<img src="/assets/investigation_photo_board_3d.png" class="sc-ev-s-board" alt="Investigation Photo Board" />'
-        + '<div class="sc-ev-s-text">'
-        + '<div class="sc-ev-s-sub">' + esc(sub) + '</div>'
-        + '<div class="sc-ev-s-title">' + esc(title) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE Scene 4: Standalone 3D Wall Clock Light Beam */
-  T["autoae-volumetric-clock"] = {
-    name: "3D Clock in Light Beam", cat: "docu", dark: true, accent: "#ffffff",
-    desc: "3D floating analog wall clock in volumetric diagonal spotlight beam with orbiting arcs and clean bold typography",
-    css: '.sc-clk-standalone{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000000;color:#fff;overflow:hidden;font-family:Inter,system-ui,sans-serif}'
-      + '.sc-clk-s-beam{position:absolute;top:-40%;left:-20%;width:140cqw;height:180cqh;background:linear-gradient(135deg,rgba(255,255,255,.25) 0%,rgba(255,255,255,.05) 40%,transparent 70%);filter:blur(25px);pointer-events:none;transform:rotate(-25deg)}'
-      + '.sc-clk-s-img{width:70cqw;height:70cqw;object-fit:contain;filter:drop-shadow(0 30px 60px rgba(0,0,0,.95)) drop-shadow(0 0 30px rgba(255,255,255,.25));animation:clkSpin 6s ease-in-out infinite alternate}'
-      + '.sc-clk-s-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:6;text-align:center;animation:clkTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-clk-s-sub{font-size:5cqw;font-weight:600;color:#ffffff}'
-      + '.sc-clk-s-title{font-size:18cqw;font-weight:900;color:#ffffff;line-height:1;text-shadow:0 10px 40px rgba(0,0,0,.95)}'
-      + '@keyframes clkSpin{0%{transform:rotateX(15deg) rotateY(10deg) scale(0.96)}100%{transform:rotateX(-10deg) rotateY(-15deg) scale(1.04)}}'
-      + '@keyframes clkTextPop{0%,15%{transform:scale(.92);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      var sub = getP(o, "sub", o.lines[0] || "// RETENTION WINDOW");
-      var title = getP(o, "title", o.lines[1] || "First 3 Seconds");
-      return '<div class="sc-clk-standalone">'
-        + '<div class="sc-clk-s-beam"></div>'
-        + '<img src="/assets/analog_wall_clock_3d.png" class="sc-clk-s-img" alt="3D Wall Clock" />'
-        + '<div class="sc-clk-s-text">'
-        + '<div class="sc-clk-s-sub">' + esc(sub) + '</div>'
-        + '<div class="sc-clk-s-title">' + esc(title) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
+  
+  
+  
   /* ============================================================
      AUTOAE FLAGSHIP SIGNATURE SERIES (8 Ultra-Premium Templates)
      ============================================================ */
 
-  /* AutoAE.1 Founder Halftone Poster */
-  T["autoae-founder-halftone"] = {
-    name: "Founder Halftone Poster", cat: "docu", dark: true, accent: "#3b82f6",
-    desc: "AutoAE signature Mark Zuckerberg style monochrome halftone cutout poster with vintage sunburst rays and bold typography",
-    css: '.sc-ae-zuck{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 5cqw;background:#090a0f;overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:1000px}'
-      + '.sc-ae-rays{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.05) 0deg 15deg,transparent 15deg 30deg);animation:aeSpinRays 40s linear infinite;pointer-events:none}'
-      + '.sc-ae-halftone{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.15) 1.5px,transparent 1.5px);background-size:12px 12px;opacity:.4;pointer-events:none}'
-      + '.sc-ae-crops{position:absolute;inset:3cqh 3cqw;border:1px dashed rgba(255,255,255,.15);pointer-events:none}'
-      + '.sc-ae-topbar{display:flex;justify-content:space-between;align-items:center;font-family:ui-monospace,monospace;font-size:2.8cqw;color:#94a3b8;letter-spacing:.25em;z-index:5}'
-      + '.sc-ae-cutout-stage{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:center;z-index:3;margin:1cqh 0}'
-      + '.sc-ae-avatar-glow{position:absolute;width:60cqw;height:60cqw;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.35) 0%,transparent 70%);filter:blur(30px);bottom:5cqh}'
-      + '.sc-ae-portrait-card{position:relative;width:72cqw;height:52cqh;border-radius:4cqw;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 30px 60px rgba(0,0,0,.9)) drop-shadow(0 0 35px rgba(59,130,246,.4));animation:aePortraitPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-ae-portrait-img{width:100%;height:100%;object-fit:contain}'
-      + '.sc-ae-bottom-card{position:relative;z-index:5;text-align:center;animation:aeTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-ae-tagline{font-size:4.2cqw;letter-spacing:.3em;color:#94a3b8;font-weight:700;text-transform:uppercase}'
-      + '.sc-ae-main-hero{font-family:Impact,sans-serif;font-size:12.5cqw;letter-spacing:.04em;line-height:1;color:#fff;text-shadow:0 0 35px rgba(59,130,246,.7);margin-top:.4cqh;text-transform:uppercase}'
-      + '@keyframes aeSpinRays{to{transform:rotate(360deg)}}'
-      + '@keyframes aePortraitPop{0%,12%{transform:scale(.88) translateY(4cqh);opacity:0}25%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}'
-      + '@keyframes aeTextPop{0%,18%{transform:translateY(3cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
-    html: function (o) {
-      var topTag = getP(o, "topTag", "// ARCHIVE 2004 · HARVARD");
-      var sub = getP(o, "sub", o.lines[0] || "STARTED");
-      var hero = getP(o, "hero", o.lines[1] || "FACEBOOK");
-      return '<div class="sc-ae-zuck">'
-        + '<div class="sc-ae-rays"></div>'
-        + '<div class="sc-ae-halftone"></div>'
-        + '<div class="sc-ae-crops"></div>'
-        + '<div class="sc-ae-topbar"><span>' + esc(topTag) + '</span><span>CASE FILE #01</span></div>'
-        + '<div class="sc-ae-cutout-stage">'
-        + '<div class="sc-ae-avatar-glow"></div>'
-        + '<div class="sc-ae-portrait-card">'
-        + '<img src="/assets/zuck_portrait_halftone.png" class="sc-ae-portrait-img" alt="Founder Portrait" />'
-        + '</div>'
-        + '</div>'
-        + '<div class="sc-ae-bottom-card">'
-        + '<div class="sc-ae-tagline">' + esc(sub) + '</div>'
-        + '<div class="sc-ae-main-hero">' + esc(hero) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE.2 Stand Out in Crowded Market */
-  T["autoae-neon-spheres"] = {
-    name: "Crowded Market Spheres", cat: "social", dark: true, accent: "#22c55e",
-    desc: "AutoAE signature multi-layer 3D glossy spheres with intense neon green & magenta subsurface rim glow",
-    css: '.sc-sph-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 6cqw;background:radial-gradient(ellipse at 50% 60%,#11121c 0%,#050508 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:900px}'
-      + '.sc-sph-title{font-size:7.4cqw;font-weight:900;letter-spacing:-.03em;line-height:1.2;text-align:center;color:#fff;text-shadow:0 0 25px rgba(255,255,255,.3);animation:sphTitlePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-sph-stage{position:relative;width:100%;height:52cqh;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d}'
-      + '.sc-sph-3d-img{width:90cqw;height:90cqw;object-fit:contain;animation:sphFloat 4s ease-in-out infinite alternate}'
-      + '.sc-sph-footer{display:flex;justify-content:center;font-size:3.2cqw;letter-spacing:.25em;text-transform:uppercase;color:#94a3b8;font-family:monospace}'
-      + '@keyframes sphFloat{0%{transform:translateY(0) scale(0.98)}100%{transform:translateY(-2cqh) scale(1.02)}}'
-      + '@keyframes sphTitlePop{0%,12%{transform:translateY(-2cqh);opacity:0}25%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(1cqh);opacity:0}}',
-    html: function (o) {
-      var hook = getP(o, "hook", o.lines[0] || "Stand out in the crowded market?");
-      var footer = getP(o, "footer", o.lines[1] || "// RETENTION RULE #01");
-      return '<div class="sc-sph-wrap">'
-        + '<div class="sc-sph-title">' + esc(hook) + '</div>'
-        + '<div class="sc-sph-stage">'
-        + '<img src="/assets/neon_spheres_3d.png" class="sc-sph-3d-img" alt="3D Neon Spheres" />'
-        + '</div>'
-        + '<div class="sc-sph-footer">' + esc(footer) + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE.3 3D Metallic Energy Drink */
-  T["autoae-product-can"] = {
-    name: "3D Metallic Product Showcase", cat: "ui", dark: false, accent: "#0284c7",
-    desc: "AutoAE signature 3D metallic drink can tilted with technical barcode, blueprint curve and editorial typography",
-    css: '.sc-can-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:6cqh 6cqw;background:#f1f5f9;color:#0f172a;overflow:hidden;font-family:Inter,sans-serif;perspective:900px}'
-      + '.sc-can-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(15,23,42,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.05) 1px,transparent 1px);background-size:6cqw 6cqw;pointer-events:none}'
-      + '.sc-can-barcode{font-family:monospace;font-size:3.2cqw;letter-spacing:.35em;color:#475569;border-top:3px solid #0f172a;border-bottom:1px solid #0f172a;padding:.6cqh 0;text-align:center;width:48cqw}'
-      + '.sc-can-stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d}'
-      + '.sc-can-swoosh{position:absolute;width:100%;height:100%;pointer-events:none}'
-      + '.sc-can-3d-img{width:68cqw;height:48cqh;object-fit:contain;filter:drop-shadow(0 30px 60px rgba(0,0,0,.45));animation:canFloat 6s ease-in-out infinite alternate}'
-      + '.sc-can-footer{display:flex;justify-content:space-between;align-items:flex-end;z-index:5}'
-      + '.sc-can-title{font-size:9cqw;font-weight:900;line-height:1;letter-spacing:-.03em;color:#0f172a}'
-      + '.sc-can-sub{font-size:3.6cqw;color:#64748b;font-style:italic;font-family:Georgia,serif}'
-      + '@keyframes canFloat{0%{transform:rotate(0deg) translateY(0)}100%{transform:rotate(-4deg) translateY(-2cqh)}}',
-    html: function (o) {
-      var t1 = getP(o, "t1", o.lines[0] || "ENERGY");
-      var t2 = getP(o, "t2", o.lines[1] || "IN A CAN");
-      return '<div class="sc-can-wrap">'
-        + '<div class="sc-can-grid"></div>'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;z-index:5;">'
-        + '<div class="sc-can-barcode">|||| | ||||| ||||</div>'
-        + '<span style="font-family:monospace;font-size:3cqw;font-weight:700;color:#64748b">SKU #2026-X</span>'
-        + '</div>'
-        + '<div class="sc-can-stage">'
-        + '<svg class="sc-can-swoosh" viewBox="0 0 300 300">'
-        + '<path d="M 20 280 Q 80 40 280 60" fill="none" stroke="#0284c7" stroke-width="8" stroke-linecap="round" opacity="0.8"/>'
-        + '</svg>'
-        + '<img src="/assets/redbull_can_3d.png" class="sc-can-3d-img" alt="3D Metallic Energy Drink Can" />'
-        + '</div>'
-        + '<div class="sc-can-footer">'
-        + '<div><div class="sc-can-sub">Premium Motion Graphic</div><div class="sc-can-title">' + esc(t1) + '</div><div class="sc-can-title" style="color:#0284c7">' + esc(t2) + '</div></div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE.4 Founder 4-Step Breakdown */
-  T["autoae-founder-steps"] = {
-    name: "Founder 4-Step Breakdown", cat: "docu", dark: true, accent: "#f59e0b",
-    desc: "AutoAE signature Elon Musk / executive reading newspaper cutout with animated 1-2-3-4 step pills",
-    css: '.sc-step-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:6cqh 6cqw;background:#0d0f17;overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-step-head{border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:1.5cqh}'
-      + '.sc-step-sub{font-size:3.2cqw;letter-spacing:.25em;text-transform:uppercase;color:#f59e0b;font-weight:700}'
-      + '.sc-step-title{font-size:7.2cqw;font-weight:900;color:#fff;margin-top:.4cqh;letter-spacing:-.02em}'
-      + '.sc-step-pills{display:flex;gap:2.5cqw;margin:2.5cqh 0}'
-      + '.sc-step-badge{width:11cqw;height:11cqw;border-radius:2.5cqw;display:grid;place-items:center;font-size:5.5cqw;font-weight:900;background:rgba(255,255,255,.08);color:#94a3b8;border:1px solid rgba(255,255,255,.15);animation:stepGlow 2s ease-in-out infinite alternate}'
-      + '.sc-step-b1{background:#f59e0b;color:#000;border-color:#fbbf24;box-shadow:0 0 25px rgba(245,158,11,.6)}'
-      + '.sc-step-stage{position:relative;flex:1;display:flex;align-items:flex-end;justify-content:space-between;gap:2cqw}'
-      + '.sc-step-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:3cqw;padding:4.5cqw;flex:1;backdrop-filter:blur(20px);box-shadow:0 20px 50px rgba(0,0,0,.8);margin-bottom:2cqh}'
-      + '.sc-step-desc{font-size:3.6cqw;color:#e2e8f0;line-height:1.45;font-weight:500}'
-      + '.sc-step-founder-img{width:48cqw;height:48cqh;object-fit:contain;filter:drop-shadow(0 25px 50px rgba(0,0,0,.95)) drop-shadow(0 0 25px rgba(245,158,11,.2))}'
-      + '@keyframes stepGlow{0%{transform:scale(1)}100%{transform:scale(1.08)}}',
-    html: function (o) {
-      var title = getP(o, "title", o.lines[0] || "4-STEP FRAMEWORK");
-      var stepTxt = getP(o, "stepTxt", o.lines[1] || "First-principles thinking to engineer impossible products.");
-      return '<div class="sc-step-wrap">'
-        + '<div class="sc-step-head">'
-        + '<div class="sc-step-sub">// HOW FOUNDERS SCALE</div>'
-        + '<div class="sc-step-title">' + esc(title) + '</div>'
-        + '</div>'
-        + '<div class="sc-step-pills">'
-        + '<div class="sc-step-badge sc-step-b1">1</div>'
-        + '<div class="sc-step-badge">2</div>'
-        + '<div class="sc-step-badge">3</div>'
-        + '<div class="sc-step-badge">4</div>'
-        + '</div>'
-        + '<div class="sc-step-stage">'
-        + '<div class="sc-step-card"><div style="font-size:4.2cqw;font-weight:800;color:#f59e0b;margin-bottom:1cqh">STEP 1: ZERO TO ONE</div><div class="sc-step-desc">' + esc(stepTxt) + '</div></div>'
-        + '<img src="/assets/elon_newspaper_cutout.png" class="sc-step-founder-img" alt="Founder Cutout" />'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE.5 Vintage Retro CRT Story Monitor */
-  T["autoae-retro-crt"] = {
-    name: "Vintage CRT Story Monitor", cat: "docu", dark: true, accent: "#38bdf8",
-    desc: "AutoAE signature vintage 1980s television CRT monitor with curved phosphor scanlines and glowing storytelling narrative",
-    css: '.sc-crt-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#0a0a0c 100%);overflow:hidden;font-family:ui-monospace,monospace;color:#fff}'
-      + '.sc-crt-box{position:relative;width:88cqw;height:54cqh;display:flex;align-items:center;justify-content:center;animation:tvShake 6s ease-in-out infinite alternate}'
-      + '.sc-crt-frame-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;pointer-events:none}'
-      + '.sc-crt-screen-content{position:absolute;left:10%;top:15%;width:48%;height:68%;display:flex;align-items:center;justify-content:center;text-align:center;padding:2cqw;z-index:5;overflow:hidden}'
-      + '.sc-crt-text{font-size:5.8cqw;font-weight:900;color:#38bdf8;text-shadow:0 0 20px #38bdf8;font-family:Georgia,serif;font-style:italic}'
-      + '.sc-crt-sub{margin-top:3cqh;font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;text-align:center;color:#a1a1aa}'
-      + '@keyframes tvShake{0%{transform:rotate(-1deg) scale(1)}100%{transform:rotate(1deg) scale(1.02)}}',
-    html: function (o) {
-      var story = getP(o, "story", o.lines[0] || "Telling story...");
-      var sub = getP(o, "sub", o.lines[1] || "HOW IT ALL BEGAN // 1998");
-      return '<div class="sc-crt-wrap">'
-        + '<div class="sc-crt-box">'
-        + '<img src="/assets/retro_crt_frame.png" class="sc-crt-frame-img" alt="Vintage CRT Television" />'
-        + '<div class="sc-crt-screen-content">'
-        + '<div class="sc-crt-text">' + esc(story) + '</div>'
-        + '</div>'
-        + '</div>'
-        + '<div class="sc-crt-sub">' + esc(sub) + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE.6 Infinity Metrics Energy Loop */
-  T["autoae-infinity-loop"] = {
-    name: "Infinity Comparison Loop", cat: "charts", dark: true, accent: "#00f0ff",
-    desc: "AutoAE signature dual-energy infinity curve comparing two continuous core principles",
-    css: '.sc-inf-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#091326 0%,#020612 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-inf-title{font-size:7.2cqw;font-weight:900;text-align:center;letter-spacing:-.03em;color:#fff;text-shadow:0 0 25px rgba(0,240,255,.4)}'
-      + '.sc-inf-stage{position:relative;width:100%;height:44cqh;display:grid;place-items:center}'
-      + '.sc-inf-svg{width:100%;height:100%;overflow:visible}'
-      + '.sc-inf-path{fill:none;stroke:#00f0ff;stroke-width:6;stroke-linecap:round;filter:drop-shadow(0 0 15px #00f0ff);stroke-dasharray:700;stroke-dashoffset:700;animation:infDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-inf-labels{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 4cqw;pointer-events:none}'
-      + '.sc-inf-pill{padding:1.5cqh 4cqw;border-radius:999px;font-size:3.8cqw;font-weight:800;backdrop-filter:blur(16px);animation:infPillPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-inf-p1{background:rgba(0,240,255,.15);border:1px solid #00f0ff;color:#a5f3fc;box-shadow:0 0 20px rgba(0,240,255,.4)}'
-      + '.sc-inf-p2{background:rgba(244,63,94,.15);border:1px solid #f43f5e;color:#fecdd3;box-shadow:0 0 20px rgba(244,63,94,.4)}'
-      + '.sc-inf-foot{text-align:center;font-size:3.4cqw;color:#94a3b8;font-family:monospace;letter-spacing:.2em}'
-      + '@keyframes infDraw{0%,15%{stroke-dashoffset:700}40%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:700}}'
-      + '@keyframes infPillPop{0%,18%{transform:scale(.85);opacity:0}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      var t1 = getP(o, "t1", o.lines[0] || "Creative Flow");
-      var t2 = getP(o, "t2", o.lines[1] || "Viral Scale");
-      return '<div class="sc-inf-wrap">'
-        + '<div class="sc-inf-title">CONTINUOUS SYNERGY</div>'
-        + '<div class="sc-inf-stage">'
-        + '<svg class="sc-inf-svg" viewBox="0 0 300 150">'
-        + '<path class="sc-inf-path" d="M 150 75 C 100 0, 20 0, 20 75 C 20 150, 100 150, 150 75 C 200 0, 280 0, 280 75 C 280 150, 200 150, 150 75 Z"/>'
-        + '</svg>'
-        + '<div class="sc-inf-labels">'
-        + '<div class="sc-inf-pill sc-inf-p1">' + esc(t1) + '</div>'
-        + '<div class="sc-inf-pill sc-inf-p2">' + esc(t2) + '</div>'
-        + '</div>'
-        + '</div>'
-        + '<div class="sc-inf-foot">// INFINITY RETENTION LOOP</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE.7 Exponential S-Curve Surge */
-  T["autoae-scurve-growth"] = {
-    name: "Exponential S-Curve Surge", cat: "charts", dark: true, accent: "#38bdf8",
-    desc: "AutoAE signature sigmoid S-curve revenue progression with $900 to $6,000 milestone dots",
-    css: '.sc-scurve-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#09182b 0%,#020814 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-scurve-head{display:flex;justify-content:space-between;align-items:flex-start}'
-      + '.sc-scurve-title{font-size:6.8cqw;font-weight:900;letter-spacing:-.03em;color:#fff}'
-      + '.sc-scurve-badge{padding:.8cqh 2.8cqw;border-radius:999px;background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.35);color:#38bdf8;font-size:3.6cqw;font-weight:800}'
-      + '.sc-scurve-box{position:relative;width:100%;height:44cqh;border-bottom:1px solid rgba(255,255,255,.15);border-left:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}'
-      + '.sc-scurve-svg{width:100%;height:100%;overflow:visible}'
-      + '.sc-scurve-path{fill:none;stroke:#38bdf8;stroke-width:5;stroke-linecap:round;filter:drop-shadow(0 0 12px #38bdf8);stroke-dasharray:600;stroke-dashoffset:600;animation:scurveDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-scurve-dot{fill:#fff;stroke:#38bdf8;stroke-width:3;animation:dotPulse 1.5s ease-in-out infinite alternate}'
-      + '.sc-scurve-foot{display:flex;justify-content:space-between;font-family:"Space Grotesk",sans-serif;font-size:4cqw;font-weight:800;color:#94a3b8}'
-      + '@keyframes scurveDraw{0%,15%{stroke-dashoffset:600}40%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:600}}'
-      + '@keyframes dotPulse{0%{r:4}100%{r:7}}',
-    html: function (o) {
-      var startVal = getP(o, "startVal", o.lines[0] || "$900");
-      var endVal = getP(o, "endVal", o.lines[1] || "$6,000");
-      return '<div class="sc-scurve-wrap">'
-        + '<div class="sc-scurve-head">'
-        + '<div class="sc-scurve-title">S-CURVE EXPANSION</div>'
-        + '<div class="sc-scurve-badge">▲ 6.6X SURGE</div>'
-        + '</div>'
-        + '<div class="sc-scurve-box">'
-        + '<svg class="sc-scurve-svg" viewBox="0 0 300 200">'
-        + '<path class="sc-scurve-path" d="M 20 180 C 100 180, 120 20, 280 20"/>'
-        + '<circle class="sc-scurve-dot" cx="20" cy="180" r="5"/>'
-        + '<circle class="sc-scurve-dot" cx="280" cy="20" r="6" fill="#38bdf8"/>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="sc-scurve-foot">'
-        + '<span>START // ' + esc(startVal) + '</span>'
-        + '<span style="color:#38bdf8">SCALE // ' + esc(endVal) + '</span>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* AutoAE.8 The News Paper Breaking News */
-  T["autoae-newspaper-breaking"] = {
-    name: "The News Paper Breaking News", cat: "paper", dark: false, accent: "#dc2626",
-    desc: "AutoAE signature authentic multi-column archival newspaper with stamped photo crop and breaking news headline",
-    css: '.sc-news-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 5cqw;background:#e5dfd5;color:#1c1917;overflow:hidden;font-family:Georgia,serif;box-shadow:inset 0 0 15cqw rgba(0,0,0,.15)}'
-      + '.sc-news-mast{text-align:center;border-bottom:3px double #1c1917;padding-bottom:1cqh}'
-      + '.sc-news-name{font-size:8.5cqw;font-weight:900;letter-spacing:-.03em;text-transform:uppercase;line-height:1}'
-      + '.sc-news-date{font-family:ui-monospace,monospace;font-size:2.6cqw;color:#57534e;letter-spacing:.2em;margin-top:.4cqh}'
-      + '.sc-news-banner{background:#1c1917;color:#fff;font-family:Impact,sans-serif;font-size:8.8cqw;letter-spacing:.04em;text-align:center;padding:1cqh 0;margin:1.5cqh 0;box-shadow:0 4px 12px rgba(0,0,0,.3);animation:newsBannerPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-news-columns{display:flex;gap:3cqw;flex:1}'
-      + '.sc-news-col{flex:1;font-size:2.8cqw;line-height:1.5;color:#44403c;text-align:justify}'
-      + '.sc-news-photo{width:100%;height:16cqh;background:#1c1917;border-radius:2px;overflow:hidden;margin-bottom:1cqh;border:1px solid #78716c}'
-      + '@keyframes newsBannerPop{0%,15%{transform:scale(.92);opacity:0}28%{transform:scale(1);opacity:1}45%{transform:scale(1.015);opacity:1}65%{transform:scale(.995);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      var headline = getP(o, "headline", o.lines[0] || "BREAKING NEWS!");
-      var lead = getP(o, "lead", o.lines[1] || "The historic breakthrough that disrupted the entire global market.");
-      return '<div class="sc-news-wrap">'
-        + '<div class="sc-news-mast">'
-        + '<div class="sc-news-name">The News Paper</div>'
-        + '<div class="sc-news-date">THE NEWSPAPER // VOL. 18, 1995 · SPECIAL EDITION</div>'
-        + '</div>'
-        + '<div class="sc-news-banner">' + esc(headline) + '</div>'
-        + '<div class="sc-news-columns">'
-        + '<div class="sc-news-col">'
-        + '<div class="sc-news-photo"><img src="/assets/archival_suspect.jpg" style="width:100%;height:100%;object-fit:cover;" alt="News Still"/></div>'
-        + '<b>SPECIAL REPORT:</b> ' + esc(lead)
-        + '</div>'
-        + '<div class="sc-news-col">'
-        + 'Investigation reveals unprecedented acceleration in consumer adoption, completely redefining digital video creation for modern creators worldwide.'
-        + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
+  
+  
+  
+  
+  
+  
   /* ============================================================
      CATEGORY 1: DOCUMENTARY & RETRO (10 templates)
      ============================================================ */
@@ -1736,100 +1725,7 @@ window.SC_TPL2 = (function () {
      CATEGORY 2: PAPER & CUTOUT (10 templates)
      ============================================================ */
 
-  /* 2.1 Torn Paper on Cutting Mat */
-  T["paper-torn-rip"] = {
-    name: "Torn Paper on Cutting Mat", cat: "paper", dark: true, accent: "#d32f2f",
-    desc: "Procedural torn paper cutout slamming onto studio green grid cutting mat with deckle edges and heavy drop shadow",
-    css: '.sc-mat-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background-color:#0b2314;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:4.5cqw 4.5cqw;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.9);font-family:Impact,Montserrat,sans-serif}.sc-mat-grid{position:absolute;inset:0;border:1px solid rgba(255,255,255,.14);margin:4cqw;pointer-events:none}.sc-torn-paper{position:relative;width:82cqw;padding:7cqw 6cqw;background:#d32f2f;color:#fff;text-align:center;clip-path:polygon(0% 4%, 4% 0%, 10% 3%, 16% 0%, 22% 4%, 28% 1%, 34% 5%, 40% 0%, 46% 3%, 52% 0%, 58% 4%, 64% 1%, 70% 5%, 76% 0%, 82% 3%, 88% 1%, 94% 4%, 100% 0%, 98% 25%, 100% 50%, 97% 75%, 100% 100%, 95% 97%, 89% 100%, 83% 96%, 77% 100%, 71% 95%, 65% 99%, 59% 96%, 53% 100%, 47% 95%, 41% 99%, 35% 96%, 29% 100%, 23% 95%, 17% 99%, 11% 96%, 5% 100%, 0% 97%, 2% 75%, 0% 50%, 3% 25%);box-shadow:0 4cqw 12cqw rgba(0,0,0,.85);animation:paperSlam var(--D) cubic-bezier(0.175,0.885,0.32,1.275) infinite}.sc-paper-tag{display:inline-block;font-family:ui-monospace,monospace;font-size:3cqw;letter-spacing:.25em;font-weight:800;opacity:.9;margin-bottom:1cqh;background:rgba(0,0,0,.3);padding:.4cqh 2cqw;border-radius:1cqw}.sc-paper-heading{font-size:8.4cqw;line-height:1.05;font-weight:900;margin:1cqh 0 0 0;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 .4cqw 1cqw rgba(0,0,0,.4)}@keyframes paperSlam{0%,10%{transform:scale(1.4) rotate(-8deg);opacity:0}22%{transform:scale(1) rotate(-2deg);opacity:1}45%{transform:scale(1.015) rotate(-1.2deg);opacity:1}68%{transform:scale(.99) rotate(-2.6deg);opacity:1}92%{transform:scale(1) rotate(-2deg);opacity:1}100%{transform:scale(1) rotate(-2deg);opacity:1}}',
-    html: function (o) {
-      var tag = getP(o, "tag", o.lines[0] || "CONFIDENTIAL");
-      var heading = getP(o, "heading", o.lines[1] || "UNCOVER THE TRUTH");
-      var paperColor = getP(o, "paperColor", "#d32f2f");
-      var matColor = getP(o, "matColor", "#0b2314");
-      return '<div class="sc-mat-wrap" style="background-color:' + esc(matColor) + '">'
-        + '<div class="sc-mat-grid"></div>'
-        + '<div class="sc-torn-paper" style="background:' + esc(paperColor) + '">'
-        + '<span class="sc-paper-tag">' + esc(tag) + '</span>'
-        + '<h2 class="sc-paper-heading">' + esc(heading) + '</h2>'
-        + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const p = props || {};
-  const tag = p.tag || 'CONFIDENTIAL';
-  const heading = p.heading || 'UNCOVER THE TRUTH';
-  const paperColor = p.paperColor || '#d32f2f';
-  const matColor = p.matColor || '#0b2314';
-
-  const slam = spring({ frame, fps, config: { damping: 12, stiffness: 120, mass: 0.8 } });
-  const scale = interpolate(slam, [0, 1], [1.5, 1]);
-  const rot = interpolate(slam, [0, 1], [-8, -2]);
-  const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
-
-  return (
-    <AbsoluteFill style={{
-      backgroundColor: matColor,
-      backgroundImage: 'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)',
-      backgroundSize: '24px 24px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      overflow: 'hidden',
-      boxShadow: 'inset 0 0 100px rgba(0,0,0,0.9)',
-      fontFamily: 'Impact, Montserrat, sans-serif'
-    }}>
-      <div style={{
-        position: 'absolute',
-        inset: 20,
-        border: '1px solid rgba(255,255,255,0.14)',
-        pointerEvents: 'none'
-      }} />
-
-      <div style={{
-        position: 'relative',
-        width: '84%',
-        padding: '36px 28px',
-        backgroundColor: paperColor,
-        color: '#ffffff',
-        textAlign: 'center',
-        clipPath: 'polygon(0% 4%, 4% 0%, 10% 3%, 16% 0%, 22% 4%, 28% 1%, 34% 5%, 40% 0%, 46% 3%, 52% 0%, 58% 4%, 64% 1%, 70% 5%, 76% 0%, 82% 3%, 88% 1%, 94% 4%, 100% 0%, 98% 25%, 100% 50%, 97% 75%, 100% 100%, 95% 97%, 89% 100%, 83% 96%, 77% 100%, 71% 95%, 65% 99%, 59% 96%, 53% 100%, 47% 95%, 41% 99%, 35% 96%, 29% 100%, 23% 95%, 17% 99%, 11% 96%, 5% 100%, 0% 97%, 2% 75%, 0% 50%, 3% 25%)',
-        boxShadow: '0 30px 80px rgba(0,0,0,0.85)',
-        transform: "scale(" + scale + ") rotate(" + rot + "deg)",
-        opacity: opacity
-      }}>
-        <span style={{
-          display: 'inline-block',
-          fontFamily: 'ui-monospace, monospace',
-          fontSize: 13,
-          letterSpacing: '0.25em',
-          fontWeight: 800,
-          opacity: 0.9,
-          marginBottom: 8,
-          backgroundColor: 'rgba(0,0,0,0.3)',
-          padding: '4px 12px',
-          borderRadius: 4
-        }}>
-          {tag}
-        </span>
-        <h2 style={{
-          fontSize: 36,
-          lineHeight: 1.05,
-          fontWeight: 900,
-          margin: '8px 0 0 0',
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-          textShadow: '0 4px 12px rgba(0,0,0,0.4)'
-        }}>
-          {heading}
-        </h2>
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
+  
   /* 2.2 Scotch Tape Note Reveal */
   T["paper-tape-strip"] = {
     name: "Tape Strip Reveal", cat: "paper", dark: true, accent: "#fef08a",
@@ -1950,118 +1846,7 @@ window.SC_TPL2 = (function () {
 }`
   };
 
-  /* 2.3 Holographic Sticker Peel */
-  T["paper-sticker"] = {
-    name: "Holo Sticker Peel", cat: "paper", dark: true, accent: "#ec4899",
-    desc: "Metallic rainbow iridescent holographic vinyl badge sticker with 3D corner peel flap and slap-down bounce",
-    css: '.sc-stk-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e112a 0%,#09050d 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-stk-badge{position:relative;width:68cqw;height:68cqw;border-radius:50%;background:linear-gradient(135deg,#f43f5e,#eab308,#06b6d4,#a855f7,#f43f5e);padding:1.5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9),0 0 6cqw rgba(236,72,153,.3);animation:stkSlap var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-stk-inner{width:100%;height:100%;border-radius:50%;background:#09090b;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:6cqw;border:2px solid rgba(255,255,255,.2)}.sc-stk-icon{font-size:12cqw;filter:drop-shadow(0 0 2cqw #ec4899);margin-bottom:.5cqh}.sc-stk-title{font-size:8cqw;font-weight:900;letter-spacing:.05em;margin:0;text-transform:uppercase;color:#fff;text-shadow:0 0 12px rgba(255,255,255,.4)}.sc-stk-sub{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.3em;color:#f472b6;margin-top:1cqh;text-transform:uppercase}.sc-stk-peel{position:absolute;bottom:0;right:0;width:18cqw;height:18cqw;background:linear-gradient(135deg,transparent 50%,#e2e8f0 50%);border-bottom-right-radius:50%;filter:drop-shadow(-4px -4px 6px rgba(0,0,0,.6))}@keyframes stkSlap{0%,10%{transform:scale(1.4) rotate(-12deg);opacity:0}22%{transform:scale(1) rotate(0deg);opacity:1}45%{transform:scale(1.02) rotate(1.4deg);opacity:1}68%{transform:scale(.99) rotate(-1.4deg);opacity:1}92%{transform:scale(1) rotate(0deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}',
-    html: function (o) {
-      var icon = getP(o, "icon", "⚡");
-      var title = getP(o, "title", o.lines[0] || "VIRAL CLUB");
-      var sub = getP(o, "sub", o.lines[1] || "OFFICIAL ASSET // 2026");
-      return '<div class="sc-stk-wrap">'
-        + '<div class="sc-stk-badge">'
-        + '<div class="sc-stk-inner">'
-        + '<div class="sc-stk-icon">' + esc(icon) + '</div>'
-        + '<h2 class="sc-stk-title">' + esc(title) + '</h2>'
-        + '<div class="sc-stk-sub">' + esc(sub) + '</div>'
-        + '</div>'
-        + '<div class="sc-stk-peel"></div>'
-        + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const p = props || {};
-  const icon = p.icon || '⚡';
-  const title = p.title || 'VIRAL CLUB';
-  const sub = p.sub || 'OFFICIAL ASSET // 2026';
-
-  const slam = spring({ frame, fps, config: { damping: 12, stiffness: 130, mass: 0.8 } });
-  const scale = interpolate(slam, [0, 1], [1.5, 1]);
-  const rot = interpolate(slam, [0, 1], [-14, 0]);
-  const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
-
-  return (
-    <AbsoluteFill style={{
-      background: 'radial-gradient(circle at center, #1e112a 0%, #09050d 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '6%',
-      overflow: 'hidden',
-      boxShadow: 'inset 0 0 100px rgba(0,0,0,0.95)',
-      fontFamily: 'Impact, sans-serif'
-    }}>
-      <div style={{
-        position: 'relative',
-        width: 250,
-        height: 250,
-        borderRadius: '50%',
-        background: 'linear-gradient(135deg, #f43f5e, #eab308, #06b6d4, #a855f7, #f43f5e)',
-        padding: 6,
-        boxShadow: '0 30px 80px rgba(0,0,0,0.9), 0 0 40px rgba(236,72,153,0.3)',
-        transform: "scale(" + scale + ") rotate(" + rot + "deg)",
-        opacity: opacity
-      }}>
-        <div style={{
-          width: '100%',
-          height: '100%',
-          borderRadius: '50%',
-          backgroundColor: '#09090b',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          color: '#ffffff',
-          padding: 20,
-          border: '2px solid rgba(255,255,255,0.2)'
-        }}>
-          <div style={{ fontSize: 44, filter: 'drop-shadow(0 0 10px #ec4899)', marginBottom: 4 }}>
-            {icon}
-          </div>
-          <h2 style={{
-            fontSize: 28,
-            fontWeight: 900,
-            letterSpacing: '0.05em',
-            margin: 0,
-            textTransform: 'uppercase',
-            color: '#ffffff',
-            textShadow: '0 0 12px rgba(255,255,255,0.4)'
-          }}>
-            {title}
-          </h2>
-          <div style={{
-            fontFamily: 'ui-monospace, monospace',
-            fontSize: 11,
-            letterSpacing: '0.3em',
-            color: '#f472b6',
-            marginTop: 6,
-            textTransform: 'uppercase'
-          }}>
-            {sub}
-          </div>
-        </div>
-
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          width: 55,
-          height: 55,
-          background: 'linear-gradient(135deg, transparent 50%, #e2e8f0 50%)',
-          borderBottomRightRadius: '50%',
-          filter: 'drop-shadow(-4px -4px 6px rgba(0,0,0,0.6))'
-        }} />
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
+  
   /* 2.4 Legal Pad Notebook */
   T["paper-notebook"] = {
     name: "Kraft Legal Pad", cat: "paper", dark: true, accent: "#ef4444",
@@ -2266,314 +2051,9 @@ window.SC_TPL2 = (function () {
 }`
   };
 
-  /* 2.6 Cardboard Stencil */
-  T["paper-cardboard"] = {
-    name: "Cardboard Stencil", cat: "paper", dark: true, accent: "#ffffff",
-    desc: "Authentic corrugated brown kraft cardboard with industrial spray-painted white stencil typography, barcode, and cargo icons",
-    css: '.sc-box-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#2b1911;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,monospace,sans-serif}.sc-box-card{position:relative;width:86cqw;background:#78350f;background-image:repeating-linear-gradient(90deg,transparent 0px,transparent 1.5cqw,rgba(0,0,0,.12) 1.5cqw,rgba(0,0,0,.12) 3cqw);border:2px solid #572608;border-radius:3cqw;padding:8cqw 6cqw;text-align:center;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);color:#fff;animation:boxZoom var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-box-tape{position:absolute;top:0;bottom:0;left:50%;width:8cqw;transform:translateX(-50%);background:rgba(217,119,6,.25);border-left:1px dashed rgba(255,255,255,.15);border-right:1px dashed rgba(255,255,255,.15);pointer-events:none}.sc-box-kicker{font-family:ui-monospace,monospace;font-size:3cqw;letter-spacing:.3em;color:#fde68a;margin-bottom:1.5cqh;text-transform:uppercase}.sc-box-title{font-size:12cqw;font-weight:900;letter-spacing:.15em;text-transform:uppercase;margin:0;line-height:1;border-top:3px dashed rgba(255,255,255,.4);border-bottom:3px dashed rgba(255,255,255,.4);padding:1.5cqh 0;text-shadow:0 0 10px rgba(255,255,255,.3)}.sc-box-sub{font-size:3.6cqw;color:#fcd34d;letter-spacing:.1em;margin-top:2cqh;font-weight:700}.sc-box-icons{font-size:6cqw;margin-top:1.5cqh;letter-spacing:.5em;opacity:.85}@keyframes boxZoom{0%,10%{transform:scale(.92);opacity:0}22%{transform:scale(1);opacity:1}45%{transform:scale(1.012);opacity:1}68%{transform:scale(.994);opacity:1}92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
-    html: function (o) {
-      var kicker = getP(o, "kicker", "HEAVY CARGO // PRIORITY");
-      var title = getP(o, "title", o.lines[0] || "FRAGILE");
-      var sub = getP(o, "sub", o.lines[1] || "Handle With Extreme Care");
-      return '<div class="sc-box-wrap">'
-        + '<div class="sc-box-card">'
-        + '<div class="sc-box-tape"></div>'
-        + '<div class="sc-box-kicker">' + esc(kicker) + '</div>'
-        + '<h1 class="sc-box-title">' + esc(title) + '</h1>'
-        + '<div class="sc-box-sub">' + esc(sub) + '</div>'
-        + '<div class="sc-box-icons">☂ 🍸 ⬆⬆</div>'
-        + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const p = props || {};
-  const kicker = p.kicker || 'HEAVY CARGO // PRIORITY';
-  const title = p.title || 'FRAGILE';
-  const sub = p.sub || 'Handle With Extreme Care';
-
-  const pop = spring({ frame, fps, config: { damping: 14, stiffness: 90 } });
-  const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
-
-  return (
-    <AbsoluteFill style={{
-      backgroundColor: '#2b1911',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '6%',
-      overflow: 'hidden',
-      boxShadow: 'inset 0 0 100px rgba(0,0,0,0.95)',
-      fontFamily: 'Impact, monospace, sans-serif'
-    }}>
-      <div style={{
-        position: 'relative',
-        width: '90%',
-        backgroundColor: '#78350f',
-        backgroundImage: 'repeating-linear-gradient(90deg, transparent 0px, transparent 8px, rgba(0,0,0,0.12) 8px, rgba(0,0,0,0.12) 16px)',
-        border: '2px solid #572608',
-        borderRadius: 16,
-        padding: '36px 20px',
-        textAlign: 'center',
-        boxShadow: '0 30px 80px rgba(0,0,0,0.9)',
-        color: '#ffffff',
-        transform: "scale(" + pop + ")",
-        opacity: opacity
-      }}>
-        <div style={{
-          fontFamily: 'ui-monospace, monospace',
-          fontSize: 12,
-          letterSpacing: '0.3em',
-          color: '#fde68a',
-          marginBottom: 12,
-          textTransform: 'uppercase'
-        }}>
-          {kicker}
-        </div>
-
-        <h1 style={{
-          fontSize: 48,
-          fontWeight: 900,
-          letterSpacing: '0.15em',
-          textTransform: 'uppercase',
-          margin: 0,
-          lineHeight: 1,
-          borderTop: '3px dashed rgba(255,255,255,0.4)',
-          borderBottom: '3px dashed rgba(255,255,255,0.4)',
-          padding: '12px 0',
-          textShadow: '0 0 10px rgba(255,255,255,0.3)'
-        }}>
-          {title}
-        </h1>
-
-        <div style={{ fontSize: 14, color: '#fcd34d', letterSpacing: '0.1em', marginTop: 14, fontWeight: 700 }}>
-          {sub}
-        </div>
-
-        <div style={{ fontSize: 24, marginTop: 12, letterSpacing: '0.5em', opacity: 0.85 }}>
-          ☂ 🍸 ⬆⬆
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
-  /* 2.7 Binder Clip Card */
-  T["paper-binder"] = {
-    name: "Binder Clip Stack", cat: "paper", dark: true, accent: "#94a3b8",
-    desc: "Archival index dossier clamped by 3D steel binder clip with metallic glint and structured strategic summary",
-    css: '.sc-bnd-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e293b 0%,#0a0f1d 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-bnd-card{position:relative;width:84cqw;background:#ffffff;color:#0f172a;padding:8cqw 6cqw 6cqw 6cqw;border-radius:2cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:bndSlide var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-bnd-clip{position:absolute;top:-3.5cqw;left:50%;transform:translateX(-50%);width:18cqw;height:7cqw;background:#334155;border-radius:1cqw;box-shadow:0 1cqw 3cqw #000;border:2px solid #64748b;z-index:5}.sc-bnd-wire{position:absolute;top:-2cqw;left:50%;transform:translateX(-50%);width:10cqw;height:4cqw;border:3px solid #cbd5e1;border-bottom:none;border-radius:2cqw 2cqw 0 0}.sc-bnd-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.25em;color:#64748b;text-transform:uppercase;margin-bottom:1.5cqh}.sc-bnd-title{font-size:7.2cqw;font-weight:900;color:#0f172a;margin:0 0 1.5cqh 0;line-height:1.15}.sc-bnd-desc{font-size:3.8cqw;color:#475569;line-height:1.5;margin:0}@keyframes bndSlide{0%,10%{transform:translateY(-3cqh);opacity:0}22%{transform:translateY(0);opacity:1}45%{transform:translateY(-.4cqh);opacity:1}68%{transform:translateY(.25cqh);opacity:1}92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
-    html: function (o) {
-      var tag = getP(o, "tag", o.lines[0] || "INDEX ARCHIVE // #01");
-      var title = getP(o, "title", o.lines[1] || "Viral Content Blueprint");
-      var desc = getP(o, "desc", o.lines[2] || "Mastering the psychology of short-form retention.");
-      return '<div class="sc-bnd-wrap">'
-        + '<div class="sc-bnd-card">'
-        + '<div class="sc-bnd-clip"><div class="sc-bnd-wire"></div></div>'
-        + '<div class="sc-bnd-tag">' + esc(tag) + '</div>'
-        + '<h2 class="sc-bnd-title">' + esc(title) + '</h2>'
-        + '<p class="sc-bnd-desc">' + esc(desc) + '</p>'
-        + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const p = props || {};
-  const tag = p.tag || 'INDEX ARCHIVE // #01';
-  const title = p.title || 'Viral Content Blueprint';
-  const desc = p.desc || 'Mastering the psychology of short-form retention.';
-
-  const slide = spring({ frame, fps, config: { damping: 14, stiffness: 90 } });
-  const y = (1 - slide) * -50;
-  const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
-
-  return (
-    <AbsoluteFill style={{
-      background: 'radial-gradient(circle at center, #1e293b 0%, #0a0f1d 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '6%',
-      overflow: 'hidden',
-      boxShadow: 'inset 0 0 100px rgba(0,0,0,0.95)',
-      fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif'
-    }}>
-      <div style={{
-        position: 'relative',
-        width: '86%',
-        backgroundColor: '#ffffff',
-        color: '#0f172a',
-        padding: '40px 26px 30px 26px',
-        borderRadius: 12,
-        boxShadow: '0 30px 80px rgba(0,0,0,0.85)',
-        transform: "translateY(" + y + "px)",
-        opacity: opacity
-      }}>
-        <div style={{
-          position: 'absolute',
-          top: -14,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 60,
-          height: 24,
-          backgroundColor: '#334155',
-          borderRadius: 4,
-          boxShadow: '0 4px 10px rgba(0,0,0,0.6)',
-          border: '2px solid #64748b',
-          zIndex: 5
-        }}>
-          <div style={{
-            position: 'absolute',
-            top: -10,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 34,
-            height: 14,
-            border: '3px solid #cbd5e1',
-            borderBottom: 'none',
-            borderRadius: '6px 6px 0 0'
-          }} />
-        </div>
-
-        <div style={{
-          fontFamily: 'ui-monospace, monospace',
-          fontSize: 12,
-          letterSpacing: '0.25em',
-          color: '#64748b',
-          textTransform: 'uppercase',
-          marginBottom: 10
-        }}>
-          {tag}
-        </div>
-
-        <h2 style={{
-          fontSize: 26,
-          fontWeight: 900,
-          color: '#0f172a',
-          margin: '0 0 12px 0',
-          lineHeight: 1.2
-        }}>
-          {title}
-        </h2>
-
-        <p style={{
-          fontSize: 14,
-          color: '#475569',
-          lineHeight: 1.5,
-          margin: 0
-        }}>
-          {desc}
-        </p>
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
-  /* 2.8 Perforated Receipt Tear */
-  T["paper-receipt"] = {
-    name: "Receipt Zigzag Tear", cat: "paper", dark: true, accent: "#000000",
-    desc: "Authentic thermal POS supermarket register receipt with zigzag serrated torn edge and itemized metrics breakdown",
-    css: '.sc-rec-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#18181b 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:ui-monospace,monospace}.sc-rec-slip{position:relative;width:82cqw;background:#ffffff;color:#000000;padding:6cqw 6cqw 8cqw 6cqw;border-radius:2px;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);clip-path:polygon(0 0, 100% 0, 100% 94%, 95% 97%, 90% 94%, 85% 97%, 80% 94%, 75% 97%, 70% 94%, 65% 97%, 60% 94%, 55% 97%, 50% 94%, 45% 97%, 40% 94%, 35% 97%, 30% 94%, 25% 97%, 20% 94%, 15% 97%, 10% 94%, 5% 97%, 0 94%);animation:recRoll var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-rec-store{font-size:3cqw;letter-spacing:.2em;text-align:center;font-weight:700;margin-bottom:.5cqh}.sc-rec-head{font-size:5.8cqw;font-weight:900;text-align:center;border-bottom:1px dashed #71717a;padding-bottom:1.5cqh;margin:0 0 2cqh 0}.sc-rec-row{display:flex;justify-content:space-between;font-size:3.6cqw;margin-bottom:1.2cqh;font-weight:600}.sc-rec-tot{display:flex;justify-content:space-between;font-size:4.5cqw;font-weight:900;border-top:2px solid #000;padding-top:1.5cqh;margin-top:2cqh}.sc-rec-bar{text-align:center;font-size:3cqw;letter-spacing:.4em;margin-top:2cqh;color:#71717a}@keyframes recRoll{0%,10%{transform:translateY(-5cqh);opacity:0}22%{transform:translateY(0);opacity:1}45%{transform:translateY(-.4cqh);opacity:1}68%{transform:translateY(.3cqh);opacity:1}92%{transform:translateY(0);opacity:1}100%{transform:translateY(0);opacity:1}}',
-    html: function (o) {
-      var store = getP(o, "store", "SHORTSCRAFT POS // 9021");
-      var title = getP(o, "title", o.lines[0] || "RECEIPT #2026");
-      var v1 = getP(o, "v1", "1,420,000");
-      var v2 = getP(o, "v2", "84.2%");
-      var total = getP(o, "total", "100% IMPACT");
-      return '<div class="sc-rec-wrap">'
-        + '<div class="sc-rec-slip">'
-        + '<div class="sc-rec-store">' + esc(store) + '</div>'
-        + '<h3 class="sc-rec-head">' + esc(title) + '</h3>'
-        + '<div class="sc-rec-row"><span>Views Generated:</span> <b>' + esc(v1) + '</b></div>'
-        + '<div class="sc-rec-row"><span>Retention Rate:</span> <b>' + esc(v2) + '</b></div>'
-        + '<div class="sc-rec-tot"><span>TOTAL SCORE:</span> <b>' + esc(total) + '</b></div>'
-        + '<div class="sc-rec-bar">||||| ||| |||| || |||</div>'
-        + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const p = props || {};
-  const store = p.store || 'SHORTSCRAFT POS // 9021';
-  const title = p.title || 'RECEIPT #2026';
-  const v1 = p.v1 || '1,420,000';
-  const v2 = p.v2 || '84.2%';
-  const total = p.total || '100% IMPACT';
-
-  const roll = spring({ frame, fps, config: { damping: 14, stiffness: 90 } });
-  const y = (1 - roll) * -60;
-  const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
-
-  return (
-    <AbsoluteFill style={{
-      background: 'radial-gradient(circle at center, #18181b 0%, #09090b 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '6%',
-      overflow: 'hidden',
-      boxShadow: 'inset 0 0 100px rgba(0,0,0,0.95)',
-      fontFamily: 'ui-monospace, monospace'
-    }}>
-      <div style={{
-        position: 'relative',
-        width: '84%',
-        backgroundColor: '#ffffff',
-        color: '#000000',
-        padding: '24px 20px 32px 20px',
-        borderRadius: 2,
-        boxShadow: '0 30px 80px rgba(0,0,0,0.85)',
-        clipPath: 'polygon(0 0, 100% 0, 100% 94%, 95% 97%, 90% 94%, 85% 97%, 80% 94%, 75% 97%, 70% 94%, 65% 97%, 60% 94%, 55% 97%, 50% 94%, 45% 97%, 40% 94%, 35% 97%, 30% 94%, 25% 97%, 20% 94%, 15% 97%, 10% 94%, 5% 97%, 0 94%)',
-        transform: "translateY(" + y + "px)",
-        opacity: opacity
-      }}>
-        <div style={{ fontSize: 11, letterSpacing: '0.2em', textAlign: 'center', fontWeight: 700, marginBottom: 4 }}>
-          {store}
-        </div>
-        <h3 style={{
-          fontSize: 22,
-          fontWeight: 900,
-          textAlign: 'center',
-          borderBottom: '1px dashed #71717a',
-          paddingBottom: 10,
-          margin: '0 0 14px 0'
-        }}>
-          {title}
-        </h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
-          <span>Views Generated:</span>
-          <b>{v1}</b>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8, fontWeight: 600 }}>
-          <span>Retention Rate:</span>
-          <b>{v2}</b>
-        </div>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: 15,
-          fontWeight: 900,
-          borderTop: '2px solid #000',
-          paddingTop: 10,
-          marginTop: 14
-        }}>
-          <span>TOTAL SCORE:</span>
-          <b>{total}</b>
-        </div>
-        <div style={{ textAlign: 'center', fontSize: 12, letterSpacing: '0.4em', marginTop: 14, color: '#71717a' }}>
-          ||||| ||| |||| || |||
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
+  
+  
+  
   /* 2.9 Double Polaroid Tape */
   T["paper-double-pol"] = {
     name: "Washi Tape Polaroids", cat: "paper", dark: true, accent: "#eab308",
@@ -2676,181 +2156,34 @@ window.SC_TPL2 = (function () {
 }`
   };
 
-  /* 2.10 Scrapbook Collage */
-  T["paper-collage"] = {
-    name: "Cutout Scrapbook", cat: "paper", dark: true, accent: "#f59e0b",
-    desc: "Multi-layered stop-motion scrapbook collage where each letter of the hook keyword is on an individual rotated cutout slip",
-    css: '.sc-col-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Impact,sans-serif}.sc-col-row{display:flex;flex-wrap:wrap;justify-content:center;gap:.2em;margin-bottom:2cqh;max-width:100%}.sc-col-tile{background:#ffffff;color:#000000;padding:.2em .38em;font-size:10cqw;font-weight:900;transform:rotate(-4deg);box-shadow:0 2cqw 6cqw rgba(0,0,0,.8);border-radius:1cqw}.sc-col-t1{background:#ef4444;color:#fff;transform:rotate(-6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite}.sc-col-t2{background:#f59e0b;color:#000;transform:rotate(5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.05s}.sc-col-t3{background:#3b82f6;color:#fff;transform:rotate(-4deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.1s}.sc-col-t4{background:#22c55e;color:#000;transform:rotate(6deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.15s}.sc-col-t5{background:#a855f7;color:#fff;transform:rotate(-5deg);animation:tilePop var(--D) cubic-bezier(.175,.885,.32,1.275) infinite;animation-delay:.2s}.sc-col-sub{font-family:ui-monospace,monospace;font-size:3.6cqw;letter-spacing:.25em;color:#fcd34d;font-weight:800;margin-top:2cqh;text-transform:uppercase}@keyframes tilePop{0%,10%{transform:scale(.7);opacity:0}22%{transform:scale(1);opacity:1}45%{transform:scale(1.015);opacity:1}68%{transform:scale(.992);opacity:1}92%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}',
-    html: function (o) {
-      var word = getP(o, "word", o.lines[0] || "VIRAL");
-      var sub = getP(o, "sub", o.lines[1] || "STOP-MOTION FORMULA");
-      /* One tile per letter, so the row's width is driven entirely by how long
-         the word is. At the fixed 10cqw the tiles ran off both edges as soon as
-         the word passed five characters. 55 is the usable row width divided by
-         a tile's own width in font-size units (glyph + padding + gap). */
-      var chars = word.split("");
-      var fs = Math.min(10, 55 / Math.max(chars.length, 1));
-      var tilesHtml = chars.map(function (c, i) {
-        var cls = "sc-col-t" + ((i % 5) + 1);
-        return '<span class="sc-col-tile ' + cls + '" style="font-size:' + fs.toFixed(2) + 'cqw">' + esc(c) + '</span>';
-      }).join("");
-      return '<div class="sc-col-wrap">'
-        + '<div class="sc-col-row">' + tilesHtml + '</div>'
-        + '<div class="sc-col-sub">' + esc(sub) + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const p = props || {};
-  const word = p.word || 'VIRAL';
-  const sub = p.sub || 'STOP-MOTION FORMULA';
-  const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e', '#a855f7'];
-  const rots = [-6, 5, -4, 6, -5];
-
-  const chars = word.split('');
-  const opacity = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: 'clamp' });
-
-  return (
-    <AbsoluteFill style={{
-      background: 'radial-gradient(circle at center, #1c1917 0%, #09090b 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '6%',
-      overflow: 'hidden',
-      boxShadow: 'inset 0 0 100px rgba(0,0,0,0.95)',
-      fontFamily: 'Impact, sans-serif'
-    }}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, opacity: opacity }}>
-        {chars.map((c, i) => {
-          const pop = spring({ frame: Math.max(0, frame - i * 3), fps, config: { damping: 12, stiffness: 120 } });
-          const bg = colors[i % colors.length];
-          const rot = rots[i % rots.length];
-          return (
-            <span
-              key={i}
-              style={{
-                backgroundColor: bg,
-                color: (i % 2 === 0) ? '#ffffff' : '#000000',
-                padding: '8px 14px',
-                fontSize: 38,
-                fontWeight: 900,
-                transform: "scale(" + pop + ") rotate(" + rot + "deg)",
-                boxShadow: '0 10px 25px rgba(0,0,0,0.8)',
-                borderRadius: 4,
-                display: 'inline-block'
-              }}
-            >
-              {c}
-            </span>
-          );
-        })}
-      </div>
-
-      <div style={{
-        fontFamily: 'ui-monospace, monospace',
-        fontSize: 13,
-        letterSpacing: '0.25em',
-        color: '#fcd34d',
-        fontWeight: 800,
-        marginTop: 8,
-        textTransform: 'uppercase',
-        opacity: opacity
-      }}>
-        {sub}
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
-  /* 2.11 Minimalist Executive Motion (AI Deconstructed from user video) */
-  T["paper-executive-noir"] = {
-    name: "Minimalist Executive Motion", cat: "paper", dark: false, accent: "#141414",
-    desc: "Clean studio paper canvas with floating liquid shadow blobs, stylized silhouette executive mascot, and kinetic impact typography",
-    css: '.sc-exec-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8cqh 6cqw 6cqh;background:#f5f5f3;background-image:radial-gradient(circle at 50% 50%,rgba(0,0,0,.15) 1.5px,transparent 1.5px);background-size:24px 24px;overflow:hidden;font-family:"Space Grotesk",sans-serif;color:#141414}'
-      + '.sc-exec-blob-tl{position:absolute;top:-12cqh;left:-10cqw;width:48cqw;height:38cqh;background:#0d0d11;border-radius:40% 60% 70% 30% / 40% 50% 60% 50%;filter:drop-shadow(0 20px 35px rgba(0,0,0,.45));animation:execBlobFloat 6s ease-in-out infinite alternate}'
-      + '.sc-exec-blob-br{position:absolute;bottom:-12cqh;right:-10cqw;width:48cqw;height:38cqh;background:#0d0d11;border-radius:60% 40% 30% 70% / 50% 60% 40% 50%;filter:drop-shadow(0 -20px 35px rgba(0,0,0,.45));animation:execBlobFloat 7s ease-in-out infinite alternate-reverse}'
-      + '.sc-exec-hook{position:relative;z-index:2;font-size:7.5cqw;font-weight:600;color:#2a2a2e;text-align:center;line-height:1.2;animation:execSnapIn var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-exec-mascot-box{position:relative;z-index:2;flex:1;display:flex;align-items:center;justify-content:center;width:100%;animation:execIdleSway 5s ease-in-out infinite alternate}'
-      + '.sc-exec-mascot-svg{width:68cqw;height:42cqh;filter:drop-shadow(0 14px 25px rgba(0,0,0,.18))}'
-      + '.sc-exec-bottom{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:1.5cqh;text-align:center;width:100%}'
-      + '.sc-exec-punch{font-family:Inter,sans-serif;font-size:10.5cqw;font-weight:900;color:#0e0e12;letter-spacing:-.03em;line-height:1.05;text-transform:lowercase;animation:execSnapIn var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-exec-watermark{font-size:3.6cqw;font-weight:700;letter-spacing:.08em;color:#a8a7a2;opacity:.85}'
-      + '@keyframes execSnapIn{0%,10%{transform:scale(0.88) translateY(2cqh);opacity:0}22%,92%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}'
-      + '@keyframes execIdleSway{0%{transform:rotate(-1deg) translateY(0)}100%{transform:rotate(1deg) translateY(-1cqh)}}'
-      + '@keyframes execBlobFloat{0%{transform:translate(0,0) rotate(0deg)}100%{transform:translate(2cqw,-1.5cqh) rotate(8deg)}}',
-    html: function (o) {
-      var hook = getP(o, "hook", o.lines[0] || "Selling isn't about");
-      var punch = getP(o, "punch", o.lines[1] || "how much you say");
-      var mark = getP(o, "mark", o.lines[2] || "insiderforce.io");
-      return '<div class="sc-exec-wrap">'
-        + '<div class="sc-exec-blob-tl"></div>'
-        + '<div class="sc-exec-blob-br"></div>'
-        + '<div class="sc-exec-hook">' + esc(hook) + '</div>'
-        + '<div class="sc-exec-mascot-box">'
-        + '<svg class="sc-exec-mascot-svg" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">'
-        + '<circle cx="200" cy="200" r="140" fill="rgba(0,0,0,0.03)" stroke="rgba(0,0,0,0.08)" stroke-dasharray="4 4" />'
-        + '<!-- Metaphor Arms & Devices -->'
-        + '<path d="M140 180 Q100 140 80 160" stroke="#141414" stroke-width="12" stroke-linecap="round" fill="none"/>'
-        + '<rect x="60" y="145" width="30" height="20" rx="3" fill="#2a2e38"/>'
-        + '<path d="M260 180 Q300 140 320 160" stroke="#141414" stroke-width="12" stroke-linecap="round" fill="none"/>'
-        + '<rect x="310" y="145" width="22" height="34" rx="4" fill="#2a2e38"/>'
-        + '<path d="M160 150 Q130 90 150 70" stroke="#141414" stroke-width="10" stroke-linecap="round" fill="none"/>'
-        + '<circle cx="150" cy="65" r="14" fill="#facc15"/>'
-        + '<path d="M240 150 Q270 90 250 70" stroke="#141414" stroke-width="10" stroke-linecap="round" fill="none"/>'
-        + '<path d="M245 75 L255 60 L265 75 Z" fill="#2a2e38"/>'
-        + '<!-- Executive Body Silhouette -->'
-        + '<path d="M160 210 L140 330 L175 330 L185 240 L200 270 L215 240 L225 330 L260 330 L240 210 Z" fill="#0d0d11"/>'
-        + '<path d="M160 210 L200 190 L240 210 L225 290 L175 290 Z" fill="#1b1c24"/>'
-        + '<path d="M190 190 L200 235 L210 190 Z" fill="#ffffff"/>'
-        + '<polygon points="196,200 204,200 202,232 198,232" fill="#d97706"/>'
-        + '<!-- Head Silhouette with faceted shading -->'
-        + '<path d="M185 140 L200 110 L218 135 L210 175 L188 175 Z" fill="#0d0d11"/>'
-        + '<path d="M185 140 L200 110 L204 175 L188 175 Z" fill="#22242f"/>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="sc-exec-bottom">'
-        + '<div class="sc-exec-punch">' + esc(punch) + '</div>'
-        + '<div class="sc-exec-watermark">' + esc(mark) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
   /* ============================================================
      CATEGORY 3: KINETIC TEXT & HOOKS (10 templates)
      ============================================================ */
 
-  /* 3.1 Highlight Box */
-  T["text-highlight-box"] = {
-    name: "Marker Highlight Box", cat: "text", dark: true, accent: "#facc15",
-    desc: "Fluorescent yellow highlighter marker box framing critical keywords",
-    css: '.tx-box{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.tx-box .kicker{font-size:3.4cqw;letter-spacing:.25em;text-transform:uppercase;color:var(--dim);margin-bottom:2cqh}.tx-box h2{font-size:11cqw;font-weight:900;letter-spacing:-.04em;line-height:1.2;color:#fff}.tx-box .hl{position:relative;display:inline-block;padding:0 .2em;color:#000;z-index:2}.tx-box .hl::before{content:"";position:absolute;inset:0;background:var(--ac);z-index:-1;transform:skew(-6deg) scale(1.08);border-radius:2px;animation:txHl var(--D) var(--sp) infinite}@keyframes txHl{0%,18%{transform:scaleX(0)}32%,85%{transform:scaleX(1)}100%{transform:scaleX(0)}}',
+  
+  
+  
+  /* 3.5 Kinetic Cascade Typography (Default Starter) */
+  T["text-cascade"] = {
+    name: "Type Cascade Up", cat: "text", dark: true, accent: "#38BDF8",
+    desc: "Punchy word-by-word cascading typography with spring bounce easing and glowing keyword spotlight",
+    css: '.tx-cas-wrap{position:absolute;inset:0;background:#08090C;color:#ffffff;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8cqw;text-align:center;font-family:Inter,system-ui,sans-serif}'
+      + '.tx-cas-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90cqw;height:55cqh;border-radius:50%;background:radial-gradient(circle,rgba(56,189,248,0.22) 0%,transparent 70%);filter:blur(60px);pointer-events:none}'
+      + '.tx-cas-l1{font-size:6.8cqw;font-weight:700;letter-spacing:-.02em;color:#94A3B8;text-transform:uppercase;margin-bottom:1.5cqh;animation:swFadeUp var(--D) var(--sp) infinite alternate}'
+      + '.tx-cas-l2{font-size:12.5cqw;font-weight:950;letter-spacing:-.04em;line-height:1;color:var(--ac);text-transform:uppercase;margin:0 0 2cqh;text-shadow:0 0 40px var(--ac);animation:swPop var(--D) var(--ov) infinite alternate}'
+      + '.tx-cas-l3{font-size:4.5cqw;font-weight:600;color:#E2E8F0;letter-spacing:.05em;text-transform:uppercase;animation:swFadeUp var(--D) var(--sp) infinite alternate}',
     html: function (o) {
-      return '<div class="tx-box"><div class="kicker">' + esc(o.lines[0] || "THE SECRET FORMULA") + '</div><h2>Stop wasting time on <span class="hl">' + esc(o.lines[1] || "complex editing") + '</span></h2></div>';
-    }
-  };
-
-  /* 3.2 Hand-Drawn Scribble Underline */
-  T["text-scribble"] = {
-    name: "Scribble Arrow Hook", cat: "text", dark: true, accent: "#ff0055",
-    desc: "Vector hand-drawn squiggle scribble underlining the hook word",
-    css: '.tx-scb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.tx-scb h2{font-size:12cqw;font-weight:900;color:#fff;line-height:1.1}.tx-scb svg{width:60cqw;height:6cqw;stroke:var(--ac);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:300;animation:txScb var(--D) var(--sp) infinite,txScbIdle var(--D) ease-in-out infinite}@keyframes txScb{0%,18%{stroke-dashoffset:300}35%{stroke-dashoffset:0}85%{stroke-dashoffset:0}100%{stroke-dashoffset:300}}@keyframes txScbIdle{0%,35%{transform:translateY(0) rotate(0)}55%{transform:translateY(-.35cqh) rotate(-.5deg)}75%{transform:translateY(.2cqh) rotate(.4deg)}85%,100%{transform:translateY(0) rotate(0)}}',
-    html: function (o) {
-      return '<div class="tx-scb"><div style="font-size:4cqw;color:var(--dim);margin-bottom:1.5cqh">' + esc(o.lines[0] || "DON'T MISS THIS") + '</div><h2>' + esc(o.lines[1] || "10X RETENTION") + '</h2><svg viewBox="0 0 200 20"><path d="M5,15 Q50,0 100,12 T195,10"/></svg></div>';
-    }
-  };
-
-  /* 3.3 Word Punch Scale */
-  T["text-word-punch"] = {
-    name: "Word Punch Scale", cat: "text", dark: true, accent: "#38bdf8",
-    desc: "High-impact scale punch kinetic typography with rebound shake",
-    css: '.tx-pch{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.tx-pch .punch{font-size:11cqw;font-weight:900;letter-spacing:-.03em;color:#fff;text-transform:uppercase;width:100%;max-width:100%;word-break:break-word;line-height:1.05;animation:txPunch var(--D) cubic-bezier(.12,.9,.15,1) infinite}@keyframes txPunch{0%,15%{transform:scale(3);opacity:0;filter:blur(2cqw)}25%{transform:scale(0.9);opacity:1;filter:blur(0)}32%,85%{transform:scale(1);opacity:1}100%{transform:scale(0.8);opacity:0}}',
-    html: function (o) {
-      return '<div class="tx-pch"><div style="font-size:3.4cqw;letter-spacing:.2em;color:var(--ac);margin-bottom:2cqh">' + esc(o.lines[0] || "HOOK OF THE DAY") + '</div><div class="punch">' + esc(o.lines[1] || "UNSTOPPABLE") + '</div><div style="font-size:4cqw;color:var(--dim);margin-top:2cqh">' + esc(o.lines[2] || "Build your momentum") + '</div></div>';
+      var l1 = getP(o, "line0", o.lines[0] || "HOW TO DOUBLE");
+      var l2 = getP(o, "line1", o.lines[1] || "YOUR VIEWS");
+      var l3 = getP(o, "line2", o.lines[2] || "WITH MOTION GRAPHICS");
+      return '<div class="tx-cas-wrap">'
+        + '<div class="tx-cas-glow"></div>'
+        + '<div class="tx-cas-l1">' + esc(l1) + '</div>'
+        + '<h1 class="tx-cas-l2">' + esc(l2) + '</h1>'
+        + '<div class="tx-cas-l3">' + esc(l3) + '</div>'
+        + '</div>';
     }
   };
 
@@ -2864,16 +2197,7 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 3.5 Type Cascade */
-  T["text-cascade"] = {
-    name: "Type Cascade Up", cat: "text", dark: true, accent: "#ffffff",
-    desc: "Words rise and unblur in sequence over a hairline rule",
-    css: '.tc{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:2.2cqh;padding:0 9cqw}.tc .ln{display:flex;flex-wrap:wrap;gap:0 1.6cqw}.tc .w{display:inline-block;font-weight:800;letter-spacing:-.045em;line-height:.98;opacity:0;animation:tcW var(--D) var(--sp) infinite}.tc .l1 .w{font-size:6.4cqw;color:var(--dim);font-weight:600}.tc .l2 .w{font-size:13.5cqw}.tc .l3 .w{font-size:8.2cqw;color:var(--ac)}@keyframes tcW{0%{opacity:0;transform:translateY(2.6cqh);filter:blur(.9cqw)}18%,82%{opacity:1;transform:translateY(0);filter:blur(0)}100%{opacity:0;transform:translateY(-1.4cqh);filter:blur(.6cqw)}}',
-    html: function (o) {
-      return '<div class="tc"><div class="ln l1"><span class="w">' + esc(o.lines[0] || "The truth about") + '</span></div><div class="ln l2"><span class="w">' + esc(o.lines[1] || "Consistency") + '</span></div><div class="ln l3"><span class="w">' + esc(o.lines[2] || "beats motivation") + '</span></div></div>';
-    }
-  };
-
+  
   /* 3.6 Terminal Typing */
   T["text-terminal"] = {
     name: "Terminal Typing", cat: "text", dark: true, accent: "#38bdf8",
@@ -3117,74 +2441,9 @@ window.SC_TPL2 = (function () {
 }`
   };
 
-  /* 3.8 Editorial Barcode Poster */
-  T["text-editorial"] = {
-    name: "Editorial Barcode Poster", cat: "text", dark: true, accent: "#a855f7",
-    desc: "Cinematic editorial magazine layout with framing crosshairs, drop barcode, and majestic headline",
-    css: '.sc-editorial-wrapper{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10cqh 6cqw;background:radial-gradient(circle at center,#1c1917 0%,#0c0a09 100%);box-sizing:border-box;overflow:hidden}.sc-crosshair{position:absolute;color:rgba(255,255,255,.25);font-size:4cqw;font-family:monospace}.sc-tl{top:4cqw;left:4cqw}.sc-tr{top:4cqw;right:4cqw}.sc-bl{bottom:4cqw;left:4cqw}.sc-br{bottom:4cqw;right:4cqw}.sc-barcode-box{display:flex;flex-direction:column;align-items:center;gap:1cqw;background:#fff;padding:2cqw 4cqw;border-radius:1cqw;box-shadow:0 2cqw 5cqw rgba(0,0,0,.5);animation:barcodeDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-barcode-lines{width:36cqw;height:8cqw;background:repeating-linear-gradient(90deg,#000 0px,#000 2px,transparent 2px,transparent 4px,#000 4px,#000 7px,transparent 7px,transparent 9px,#000 9px,#000 10px,transparent 10px,transparent 13px,#000 13px,#000 16px)}.sc-barcode-num{font-family:monospace;font-size:2.8cqw;color:#000;letter-spacing:.2em;font-weight:700}.sc-editorial-body{text-align:center;display:flex;flex-direction:column;align-items:center}.sc-ed-kicker{color:#a8a29e;font-size:3cqw;letter-spacing:.3em;margin-bottom:1.5cqh;text-transform:uppercase}.sc-ed-title{color:#f5f5f4;font-size:11cqw;font-weight:400;letter-spacing:.15em;margin:0;line-height:1;font-family:Georgia,serif}.sc-ed-subtitle{color:var(--ac);font-size:9cqw;font-weight:800;letter-spacing:.12em;margin:1cqh 0 0 0;text-transform:uppercase}@keyframes barcodeDrop{0%,18%{transform:translateY(-8cqh);opacity:0}30%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-4cqh);opacity:0}}',
-    html: function (o) {
-      var kicker = getP(o, "kicker", o.lines[0] || "COLLECTION // 2026");
-      var title = getP(o, "title", o.lines[1] || "MAJESTIC");
-      var subtitle = getP(o, "subtitle", o.lines[2] || "MONARCH");
-      var barcode = getP(o, "barcode", "8 49204 11092 3");
-      return '<div class="sc-editorial-wrapper">'
-        + '<div class="sc-crosshair sc-tl">+</div><div class="sc-crosshair sc-tr">+</div><div class="sc-crosshair sc-bl">+</div><div class="sc-crosshair sc-br">+</div>'
-        + '<div class="sc-barcode-box">'
-        + '<div class="sc-barcode-lines"></div>'
-        + '<span class="sc-barcode-num">' + esc(barcode) + '</span>'
-        + '</div>'
-        + '<div class="sc-editorial-body">'
-        + '<span class="sc-ed-kicker">' + esc(kicker) + '</span>'
-        + '<h1 class="sc-ed-title">' + esc(title) + '</h1>'
-        + '<h2 class="sc-ed-subtitle">' + esc(subtitle) + '</h2>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 3.9 Netflix Cinema Ribbon Reveal */
-  T["text-skew"] = {
-    name: "Netflix Cinema Ribbon", cat: "text", dark: true, accent: "#e50914",
-    desc: "Iconic 3D folding ribbon logo reveal with cinematic red backlight flare and typography",
-    css: '.sc-nflx{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#200406 0%,#050102 70%,#000 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Montserrat,Inter,sans-serif}.sc-nflx-flare{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:90cqw;height:90cqw;background:radial-gradient(circle,rgba(229,9,20,.35) 0%,rgba(229,9,20,.1) 40%,transparent 70%);filter:blur(3cqw);animation:nflxFlare var(--D) ease-in-out infinite}.sc-nflx-icon{position:relative;width:32cqw;height:46cqw;display:flex;justify-content:space-between;perspective:1000px;animation:nflxZoom var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-nflx-ribbon{position:absolute;top:0;width:9cqw;height:100%;background:linear-gradient(180deg,#e50914 0%,#b81d24 50%,#831010 100%);box-shadow:0 0 4cqw rgba(229,9,20,.5)}.sc-nflx-r1{left:0;border-radius:1px}.sc-nflx-r2{right:0;border-radius:1px}.sc-nflx-diag{position:absolute;top:0;left:0;width:9cqw;height:100%;background:linear-gradient(180deg,#ff1e27 0%,#e50914 50%,#990c12 100%);transform-origin:top left;transform:skewX(-28deg);left:4.5cqw;box-shadow:0 0 5cqw rgba(229,9,20,.8);z-index:2}.sc-nflx-title{color:#e50914;font-size:8.4cqw;font-weight:900;letter-spacing:.3em;text-transform:uppercase;margin-top:4cqh;text-shadow:0 0 3cqw rgba(229,9,20,.6);animation:nflxText var(--D) var(--sp) infinite}.sc-nflx-sub{color:rgba(255,255,255,.6);font-size:2.8cqw;letter-spacing:.35em;text-transform:uppercase;margin-top:1.2cqh;animation:nflxSub var(--D) var(--sp) infinite}@keyframes nflxFlare{0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(.8)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}}@keyframes nflxZoom{0%,15%{transform:scale(.7) translateY(4cqh);opacity:0}28%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.15) translateY(-2cqh);opacity:0}}@keyframes nflxText{0%,20%{opacity:0;letter-spacing:.1em}35%,85%{opacity:1;letter-spacing:.3em}100%{opacity:0;letter-spacing:.4em}}@keyframes nflxSub{0%,25%{opacity:0;transform:translateY(2cqh)}40%,85%{opacity:.7;transform:translateY(0)}100%{opacity:0;transform:translateY(-1cqh)}}',
-    html: function (o) {
-      var title = getP(o, "title", o.lines[0] || "NETFLIX");
-      var tagline = getP(o, "tagline", o.lines[1] || "ORIGINAL SERIES");
-      var ribbonColor = getP(o, "ribbonColor", "#e50914");
-      return '<div class="sc-nflx">'
-        + '<div class="sc-nflx-flare" style="background:radial-gradient(circle,' + esc(ribbonColor) + '44 0%,' + esc(ribbonColor) + '15 40%,transparent 70%)"></div>'
-        + '<div class="sc-nflx-icon">'
-        + '<div class="sc-nflx-ribbon sc-nflx-r1" style="background:linear-gradient(180deg,' + esc(ribbonColor) + ' 0%,#831010 100%)"></div>'
-        + '<div class="sc-nflx-diag" style="background:linear-gradient(180deg,#ff4444 0%,' + esc(ribbonColor) + ' 100%)"></div>'
-        + '<div class="sc-nflx-ribbon sc-nflx-r2" style="background:linear-gradient(180deg,' + esc(ribbonColor) + ' 0%,#831010 100%)"></div>'
-        + '</div>'
-        + '<h1 class="sc-nflx-title" style="color:' + esc(ribbonColor) + '">' + esc(title) + '</h1>'
-        + '<div class="sc-nflx-sub">' + esc(tagline) + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 3.10 Cyber Matrix Logo Code Stream */
-  T["text-split"] = {
-    name: "Cyber Matrix Logo Code", cat: "text", dark: true, accent: "#00ffaa",
-    desc: "Matrix code stream assembling into glowing brand logo emblem with RGB chromatic glitch",
-    css: '.sc-matrix-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#030708;font-family:ui-monospace,monospace;overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.9)}.sc-matrix-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,170,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,170,.06) 1px,transparent 1px);background-size:4cqw 4cqw}.sc-matrix-core{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2cqh;padding:6cqw}.sc-matrix-badge{width:24cqw;height:24cqw;border-radius:4cqw;background:rgba(0,255,170,.08);border:2px solid var(--ac);display:grid;place-items:center;font-size:10cqw;box-shadow:0 0 4cqw rgba(0,255,170,.4);animation:matPulse 2s ease-in-out infinite alternate}.sc-matrix-prompt{color:var(--ac);font-size:3.2cqw;letter-spacing:.2em;text-transform:uppercase}.sc-matrix-title{color:#fff;font-size:9.2cqw;font-weight:900;letter-spacing:.15em;text-transform:uppercase;text-shadow:0 0 3cqw var(--ac);animation:matGlitch var(--D) infinite}@keyframes matPulse{0%{transform:scale(1);box-shadow:0 0 2cqw rgba(0,255,170,.3)}100%{transform:scale(1.08);box-shadow:0 0 6cqw rgba(0,255,170,.7)}}@keyframes matGlitch{0%,85%,100%{transform:none;opacity:1}87%{transform:translateX(-4px);color:#ff0055}91%{transform:translateX(4px);color:#00f0ff}}',
-    html: function (o) {
-      var icon = getP(o, "icon", "⚡");
-      var cmd = getP(o, "cmd", o.lines[0] || "> INITIALIZE_ENGINE()");
-      var title = getP(o, "title", o.lines[1] || "SHORTSCRAFT");
-      var glitchColor = getP(o, "glitchColor", "#00ffaa");
-      return '<div class="sc-matrix-wrap" style="--ac:' + esc(glitchColor) + '">'
-        + '<div class="sc-matrix-grid"></div>'
-        + '<div class="sc-matrix-core">'
-        + '<div class="sc-matrix-badge">' + esc(icon) + '</div>'
-        + '<div class="sc-matrix-prompt">' + esc(cmd) + '</div>'
-        + '<h1 class="sc-matrix-title">' + esc(title) + '</h1>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
+  
   /* ============================================================
      CATEGORY 4: MAPS, ROUTES & RADAR (10 Documentary Templates)
      ============================================================ */
@@ -3221,306 +2480,20 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 4.2 Documentary Flight Route Arc */
-  T["maps-flight-path"] = {
-    name: "Documentary Flight Route", cat: "maps", dark: true, accent: "#38bdf8",
-    desc: "Aged oceanic navigation chart with dashed flight trajectory and compass rose",
-    css: '.mp-flt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#0c121e;color:#fff;overflow:hidden}.mp-flt .top-bar{display:flex;justify-content:space-between;align-items:center;background:rgba(15,23,42,.85);border:1px solid rgba(255,255,255,.14);border-radius:2.5cqw;padding:2.5cqw 4cqw;font-family:monospace;font-size:3cqw;color:#38bdf8}.mp-flt .stage{position:relative;flex:1;display:grid;place-items:center;margin:1cqh 0}.mp-flt svg.ocean-map{width:100%;height:38cqh;border-radius:2cqw;background:#0f172a;border:1px solid rgba(255,255,255,.1)}.mp-flt .arc-path{fill:none;stroke:var(--ac);stroke-width:3;stroke-dasharray:8 6;animation:mpDash 1.2s linear infinite}.mp-flt .plane-icon{transform-origin:center;animation:mpPlaneFly var(--D) ease-in-out infinite}.mp-flt .log-card{background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:3cqw;padding:3.5cqw 5cqw;display:flex;justify-content:space-between;align-items:center}.mp-flt .cities{font-size:6.4cqw;font-weight:900;color:#fff}@keyframes mpDash{to{stroke-dashoffset:-14}}@keyframes mpPlaneFly{0%,10%{transform:translate(30px,150px) rotate(-35deg);opacity:0}20%{opacity:1}85%{transform:translate(250px,50px) rotate(-15deg);opacity:1}95%,100%{transform:translate(270px,40px) rotate(-10deg);opacity:0}}',
-    html: function (o) {
-      return '<div class="mp-flt">'
-        + '<div class="top-bar"><span>TRANSATLANTIC FLIGHT LOG</span><span>ALT: 38,000 FT</span></div>'
-        + '<div class="stage">'
-        + '<svg class="ocean-map" viewBox="0 0 300 200">'
-        + '<line x1="0" y1="100" x2="300" y2="100" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4 4"/>'
-        + '<line x1="150" y1="0" x2="150" y2="200" stroke="rgba(255,255,255,0.06)" stroke-dasharray="4 4"/>'
-        + '<path d="M10,120 Q50,90 90,110 T150,150 T90,190 Z" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)"/>'
-        + '<path d="M180,60 Q230,30 280,50 T290,120 T210,130 Z" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.15)"/>'
-        + '<path class="arc-path" d="M40,160 Q150,30 260,60"/>'
-        + '<circle cx="40" cy="160" r="5" fill="#38bdf8"/>'
-        + '<circle cx="260" cy="60" r="5" fill="#22c55e"/>'
-        + '<g class="plane-icon"><path d="M0,-8 L4,2 L12,4 L4,6 L2,12 L0,8 L-2,12 L-4,6 L-12,4 L-4,2 Z" fill="#fff" filter="drop-shadow(0 0 6px #38bdf8)"/></g>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="log-card">'
-        + '<div class="cities"><span>' + esc(o.lines[0] || "JFK") + '</span> <span style="color:var(--ac);font-size:5cqw">✈</span> <span>' + esc(o.lines[1] || "LHR") + '</span></div>'
-        + '<div style="font-family:monospace;font-size:3.2cqw;color:#94a3b8">' + esc(o.lines[2] || "3,459 MILES // 7h 45m") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.3 Cold War Archival Radar CRT */
-  T["maps-radar-sweep"] = {
-    name: "Cold War Archival Radar", cat: "maps", dark: true, accent: "#22c55e",
-    desc: "Retro CRT oscilloscope radar screen with scanlines, range rings and target blips",
-    css: '.mp-rad{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#030c06;color:#22c55e;font-family:monospace;overflow:hidden}.mp-rad .crt-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0px,rgba(0,0,0,.25) 1px,transparent 1px,transparent 3px);pointer-events:none;z-index:5}.mp-rad .top-stat{display:flex;justify-content:space-between;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:2cqw;padding:2cqw 4cqw;font-size:2.8cqw}.mp-rad .dish-box{position:relative;flex:1;display:grid;place-items:center}.mp-rad .dish{position:relative;width:64cqw;height:64cqw;border-radius:50%;border:2px solid #22c55e;background:radial-gradient(circle,rgba(34,197,94,.12) 0%,rgba(3,12,6,.95) 75%);box-shadow:0 0 4cqw rgba(34,197,94,.3);overflow:hidden}.mp-rad .ring-1{position:absolute;width:66%;height:66%;border-radius:50%;border:1px dashed rgba(34,197,94,.35)}.mp-rad .ring-2{position:absolute;width:33%;height:33%;border-radius:50%;border:1px dashed rgba(34,197,94,.35)}.mp-rad .axis-x{position:absolute;left:0;right:0;height:1px;background:rgba(34,197,94,.3)}.mp-rad .axis-y{position:absolute;top:0;bottom:0;width:1px;background:rgba(34,197,94,.3)}.mp-rad .sweep-beam{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,#22c55e 55deg,transparent 55deg);animation:mpSweep 2.2s linear infinite}.mp-rad .tgt{position:absolute;width:4cqw;height:4cqw;border:1.5px solid #ef4444;transform:rotate(45deg);animation:mpBlink .8s infinite alternate}.mp-rad .t1{top:25%;right:30%}.mp-rad .t2{bottom:35%;left:28%}.mp-rad .foot-hud{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.25);border-radius:2.5cqw;padding:3cqw 4cqw;text-align:center}.mp-rad h3{font-size:5.6cqw;font-weight:900;color:#22c55e;margin:0}@keyframes mpSweep{to{transform:rotate(360deg)}}@keyframes mpBlink{0%{opacity:.4;transform:rotate(45deg) scale(0.9)}100%{opacity:1;transform:rotate(45deg) scale(1.15)}}',
-    html: function (o) {
-      return '<div class="mp-rad">'
-        + '<div class="crt-scan"></div>'
-        + '<div class="top-stat"><span>ARCHIVE RADAR // 1974</span><span>DECLASSIFIED</span></div>'
-        + '<div class="dish-box">'
-        + '<div class="dish">'
-        + '<div class="axis-x"></div><div class="axis-y"></div>'
-        + '<div class="ring-1"></div><div class="ring-2"></div>'
-        + '<div class="sweep-beam"></div>'
-        + '<div class="tgt t1"></div><div class="tgt t2"></div>'
-        + '</div>'
-        + '</div>'
-        + '<div class="foot-hud">'
-        + '<h3>' + esc(o.lines[0] || "2 TARGETS TRACKED") + '</h3>'
-        + '<div style="font-size:3cqw;color:#86efac;margin-top:.6cqh">' + esc(o.lines[1] || "AIR DEFENSE INTERCEPT // SECTOR 04") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.4 Johnny Harris Conflict Zone */
-  T["maps-border"] = {
-    name: "Geopolitical Conflict Zone", cat: "maps", dark: true, accent: "#f59e0b",
-    desc: "Johnny Harris style geopolitical border dispute with animated hazard shading",
-    css: '.mp-bor{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#0d1117;color:#fff;overflow:hidden}.mp-bor .hdr{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:2cqw;padding:2cqw 4cqw;display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#f59e0b}.mp-bor .stage{flex:1;position:relative;display:grid;place-items:center}.mp-bor svg{width:100%;height:38cqh}.mp-bor polygon.contested{fill:rgba(245,158,11,.18);stroke:var(--ac);stroke-width:3;stroke-dasharray:400;stroke-dashoffset:400;animation:mpDrawBorder var(--D) var(--sp) infinite}.mp-bor .info-card{background:#161b22;border:1px solid rgba(255,255,255,.14);border-radius:3cqw;padding:4cqw;text-align:center}.mp-bor h2{font-size:6.8cqw;font-weight:900;color:#fff;margin:0}@keyframes mpDrawBorder{0%,15%{stroke-dashoffset:400}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:400}}',
-    html: function (o) {
-      return '<div class="mp-bor">'
-        + '<div class="hdr"><span>GEOPOLITICAL FRONTIER</span><span>STANDOFF ZONE</span></div>'
-        + '<div class="stage">'
-        + '<svg viewBox="0 0 300 200">'
-        + '<path d="M20,30 L110,40 L160,110 L90,170 L20,130 Z" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)"/>'
-        + '<path d="M190,40 L280,30 L270,140 L200,180 L150,110 Z" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)"/>'
-        + '<polygon class="contested" points="110,40 190,40 200,180 90,170 160,110"/>'
-        + '<text x="135" y="115" fill="#f59e0b" font-size="10" font-family="monospace" font-weight="bold">CONTESTED</text>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="info-card">'
-        + '<h2>' + esc(o.lines[0] || "Disputed Territory") + '</h2>'
-        + '<div style="font-size:3.4cqw;color:#94a3b8;font-family:monospace;margin-top:.8cqh">' + esc(o.lines[1] || "42,500 SQ KM BUFFER REGION") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.5 CIA Reconnaissance Satellite Dossier */
-  T["maps-satellite"] = {
-    name: "CIA Recon Satellite Dossier", cat: "maps", dark: true, accent: "#00f0ff",
-    desc: "Classified military surveillance frame with targeting reticle and coordinate lock",
-    css: '.mp-sat{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#030712;color:#00f0ff;font-family:monospace;overflow:hidden}.mp-sat .top-hud{display:flex;justify-content:space-between;font-size:2.8cqw;border-bottom:1px solid rgba(0,240,255,.25);padding-bottom:1.5cqh}.mp-sat .reticle-box{flex:1;position:relative;display:grid;place-items:center}.mp-sat .ring-outer{position:absolute;width:54cqw;height:54cqw;border:2px dashed rgba(0,240,255,.4);border-radius:50%;animation:mpLockRot 6s linear infinite}.mp-sat .ring-inner{position:absolute;width:34cqw;height:34cqw;border:1.5px solid #00f0ff;border-radius:50%}.mp-sat .cross-laser{position:absolute;width:60cqw;height:1px;background:#00f0ff;box-shadow:0 0 8px #00f0ff}.mp-sat .cross-laser.v{width:1px;height:60cqw}.mp-sat .bracket{position:absolute;width:8cqw;height:8cqw;border-color:#00f0ff;border-style:solid;border-width:0}.mp-sat .b-tl{top:15%;left:15%;border-top-width:3px;border-left-width:3px}.mp-sat .b-br{bottom:15%;right:15%;border-bottom-width:3px;border-right-width:3px}.mp-sat .bottom-data{background:#0b1329;border:1px solid rgba(0,240,255,.3);border-radius:3cqw;padding:3.5cqw 4cqw;text-align:center}.mp-sat h2{font-size:6.4cqw;font-weight:900;color:#00f0ff;margin:0}@keyframes mpLockRot{to{transform:rotate(360deg)}}',
-    html: function (o) {
-      return '<div class="mp-sat">'
-        + '<div class="top-hud"><span>KEYHOLE KH-11 // RECON</span><span>OPTICAL: 32X</span></div>'
-        + '<div class="reticle-box">'
-        + '<div class="ring-outer"></div><div class="ring-inner"></div>'
-        + '<div class="cross-laser"></div><div class="cross-laser v"></div>'
-        + '<div class="bracket b-tl"></div><div class="bracket b-br"></div>'
-        + '</div>'
-        + '<div class="bottom-data">'
-        + '<h2>' + esc(o.lines[0] || "TARGET LOCKED // 100%") + '</h2>'
-        + '<div style="font-size:3.2cqw;color:#a5f3fc;margin-top:.6cqh">' + esc(o.lines[1] || "34°03'08\"N, 118°14'37\"W") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.6 Historical Expedition Journey Route */
-  T["maps-route"] = {
-    name: "Expedition Waypoint Route", cat: "maps", dark: true, accent: "#f59e0b",
-    desc: "Historical expedition path advancing through numbered campsite checkpoints",
-    css: '.mp-rt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#181512;color:#fff;overflow:hidden}.mp-rt .hdr{background:#29221d;border:1px solid #44372e;border-radius:2cqw;padding:2cqw 4cqw;display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#fde68a}.mp-rt .stage{flex:1;position:relative;display:grid;place-items:center}.mp-rt svg{width:100%;height:38cqh}.mp-rt .route-line{fill:none;stroke:#f59e0b;stroke-width:6;stroke-dasharray:300;stroke-dashoffset:300;animation:mpDrawRoute var(--D) var(--sp) infinite}.mp-rt .summit-dot{animation:mpSummitPulse 1.4s ease-in-out infinite}@keyframes mpSummitPulse{0%,100%{r:9;opacity:1}50%{r:11;opacity:.65}}.mp-rt .log-card{background:#231d18;border:1px solid #44372e;border-radius:3cqw;padding:4cqw;text-align:center}.mp-rt h2{font-family:Georgia,serif;font-size:6.8cqw;font-weight:900;color:#fff;margin:0}@keyframes mpDrawRoute{0%,15%{stroke-dashoffset:300}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:300}}',
-    html: function (o) {
-      return '<div class="mp-rt">'
-        + '<div class="hdr"><span>EXPEDITION TIMELINE</span><span>DAY 14 REEL</span></div>'
-        + '<div class="stage">'
-        + '<svg viewBox="0 0 300 200">'
-        + '<path d="M30,170 Q100,160 140,110 T260,40" class="route-line"/>'
-        + '<circle cx="30" cy="170" r="7" fill="#f59e0b"/>'
-        + '<circle cx="140" cy="110" r="7" fill="#f59e0b"/>'
-        + '<circle class="summit-dot" cx="260" cy="40" r="9" fill="#ef4444"/>'
-        + '<text x="45" y="175" fill="#aaa" font-size="10" font-family="monospace">Base Camp</text>'
-        + '<text x="155" y="115" fill="#aaa" font-size="10" font-family="monospace">Ridge Pass</text>'
-        + '<text x="210" y="35" fill="#fca5a5" font-size="10" font-family="monospace" font-weight="bold">Summit</text>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="log-card">'
-        + '<h2>' + esc(o.lines[0] || "The Antarctic Crossing") + '</h2>'
-        + '<div style="font-size:3.4cqw;color:#a8a29e;font-family:monospace;margin-top:.8cqh">' + esc(o.lines[1] || "480 KM TRAVERSED // -42°C") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.7 Vintage Ornate Compass Rose */
-  T["maps-compass"] = {
-    name: "Vintage Compass Rose", cat: "maps", dark: true, accent: "#d97706",
-    desc: "18th-century antique maritime chart with ornate 32-point compass rose and rhumb lines",
-    css: '.mp-cmp{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#14110e;color:#fff;overflow:hidden}.mp-cmp .top-tag{display:flex;justify-content:space-between;font-family:Georgia,serif;font-style:italic;font-size:3.2cqw;color:#d6cebe}.mp-cmp .stage{flex:1;position:relative;display:grid;place-items:center}.mp-cmp .bezel{position:relative;width:58cqw;height:58cqw;border-radius:50%;border:2px solid #b45309;display:grid;place-items:center;animation:mpCmpSpin 8s ease-in-out infinite alternate}.mp-cmp .needle{position:absolute;width:4px;height:48cqw;background:linear-gradient(to bottom,#ef4444 50%,#d6cebe 50%)}.mp-cmp .hud-card{background:#231d18;border:1px solid #44372e;border-radius:3cqw;padding:4cqw;text-align:center}.mp-cmp h2{font-family:Georgia,serif;font-size:7cqw;font-weight:900;color:#fde68a;margin:0}@keyframes mpCmpSpin{0%{transform:rotate(-25deg)}100%{transform:rotate(35deg)}}',
-    html: function (o) {
-      return '<div class="mp-cmp">'
-        + '<div class="top-tag"><span>Navigational Chart</span><span>Anno 1782</span></div>'
-        + '<div class="stage">'
-        + '<div class="bezel">'
-        + '<div class="needle"></div>'
-        + '<div style="position:absolute;top:4%;font-family:Georgia,serif;font-weight:900;color:#ef4444;font-size:4.5cqw">N</div>'
-        + '<div style="position:absolute;bottom:4%;font-family:Georgia,serif;font-weight:900;color:#d6cebe;font-size:4.5cqw">S</div>'
-        + '<div style="position:absolute;right:4%;font-family:Georgia,serif;font-weight:900;color:#d6cebe;font-size:4.5cqw">E</div>'
-        + '<div style="position:absolute;left:4%;font-family:Georgia,serif;font-weight:900;color:#d6cebe;font-size:4.5cqw">W</div>'
-        + '</div>'
-        + '</div>'
-        + '<div class="hud-card">'
-        + '<h2>' + esc(o.lines[0] || "BEARING 045° NE") + '</h2>'
-        + '<div style="font-size:3.4cqw;color:#a8a29e;font-family:monospace;margin-top:.8cqh">' + esc(o.lines[1] || "MAGNETIC DECLINATION: 2°40' W") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.8 Urban Architectural City Grid */
-  T["maps-transit"] = {
-    name: "City Blueprint Breakdown", cat: "maps", dark: true, accent: "#38bdf8",
-    desc: "Architectural city block blueprint with highlighted target sector and coordinates",
-    css: '.mp-trn{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#091d36 0%,#030914 100%);color:#fff;overflow:hidden;font-family:Inter,sans-serif}'
-      + '.mp-trn .hdr{background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.3);border-radius:2cqw;padding:2cqw 4cqw;display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#38bdf8}'
-      + '.mp-trn .stage{flex:1;position:relative;display:grid;place-items:center;margin:1cqh 0}'
-      + '.mp-trn svg{width:100%;height:38cqh;border-radius:2.5cqw;background:#051224;border:1px solid rgba(56,189,248,.2);box-shadow:0 0 30px rgba(56,189,248,.15)}'
-      + '.mp-trn .laser-line{stroke:#38bdf8;stroke-width:2;filter:drop-shadow(0 0 8px #38bdf8);animation:laserScan var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.mp-trn .foot-card{background:#081324;border:1px solid rgba(56,189,248,.35);border-radius:3cqw;padding:4cqw;text-align:center;box-shadow:0 4cqw 12cqw rgba(0,0,0,.8);animation:trnCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.mp-trn h2{font-size:6.8cqw;font-weight:900;color:#fff;margin:0}'
-      + '@keyframes laserScan{0%,10%{transform:translateY(-100px);opacity:0}20%{opacity:1}85%{transform:translateY(160px);opacity:1}100%{opacity:0}}'
-      + '@keyframes trnCardPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      return '<div class="mp-trn">'
-        + '<div class="hdr"><span>ARCHITECTURAL SECTOR</span><span>GRID #104</span></div>'
-        + '<div class="stage">'
-        + '<svg viewBox="0 0 300 180">'
-        + '<line x1="20" y1="30" x2="280" y2="30" stroke="rgba(56,189,248,0.2)"/>'
-        + '<line x1="20" y1="90" x2="280" y2="90" stroke="rgba(56,189,248,0.2)"/>'
-        + '<line x1="20" y1="150" x2="280" y2="150" stroke="rgba(56,189,248,0.2)"/>'
-        + '<rect x="60" y="45" width="70" height="35" fill="rgba(56,189,248,0.06)" stroke="rgba(56,189,248,0.3)"/>'
-        + '<rect x="160" y="45" width="90" height="35" fill="rgba(245,158,11,0.25)" stroke="#f59e0b" stroke-width="2"/>'
-        + '<rect x="60" y="105" width="190" height="35" fill="rgba(56,189,248,0.06)" stroke="rgba(56,189,248,0.3)"/>'
-        + '<line class="laser-line" x1="0" y1="20" x2="300" y2="20"/>'
-        + '<text x="175" y="67" fill="#fde68a" font-size="9" font-family="monospace" font-weight="bold">TARGET BLOCK</text>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="foot-card">'
-        + '<h2>' + esc(o.lines[0] || "5th Avenue District") + '</h2>'
-        + '<div style="font-size:3.4cqw;color:#94a3b8;font-family:monospace;margin-top:.8cqh">' + esc(o.lines[1] || "SURVEILLANCE SECTOR 12 // MANHATTAN") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.9 National Geographic Mountain Summit */
-  T["maps-topo"] = {
-    name: "National Geographic Summit", cat: "maps", dark: true, accent: "#10b981",
-    desc: "Documentary elevation contour isolines with alpine altitude markers and peak flag",
-    css: '.mp-top{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#0b2318 0%,#030a06 100%);color:#fff;overflow:hidden;font-family:Inter,sans-serif}'
-      + '.mp-top .top-bar{display:flex;justify-content:space-between;font-family:monospace;font-size:2.8cqw;color:#6ee7b7;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:2cqw;padding:2cqw 4cqw}'
-      + '.mp-top .stage{flex:1;position:relative;display:grid;place-items:center;margin:1cqh 0}'
-      + '.mp-top svg{width:100%;height:38cqh;stroke:var(--ac);fill:none;border-radius:2.5cqw;background:#05170e;border:1px solid rgba(16,185,129,.2);box-shadow:0 0 30px rgba(16,185,129,.15)}'
-      + '.mp-top .contour-pulse{animation:topoPulse var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.mp-top .summit-card{background:#062317;border:1px solid rgba(16,185,129,.35);border-radius:3cqw;padding:4cqw;text-align:center;box-shadow:0 4cqw 12cqw rgba(0,0,0,.8);animation:topCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.mp-top h2{font-family:Georgia,serif;font-size:7.2cqw;font-weight:900;color:#fff;margin:0}'
-      + '@keyframes topoPulse{0%,15%{transform:scale(0.85);opacity:0}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}'
-      + '@keyframes topCardPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      return '<div class="mp-top">'
-        + '<div class="top-bar"><span>NAT GEO ELEVATION CHART</span><span>CONTOUR: 500M</span></div>'
-        + '<div class="stage">'
-        + '<svg viewBox="0 0 300 200">'
-        + '<ellipse cx="150" cy="100" rx="130" ry="75" stroke-width="1.5" stroke="rgba(16,185,129,0.3)"/>'
-        + '<ellipse cx="150" cy="100" rx="95" ry="55" stroke-width="2" stroke="rgba(16,185,129,0.6)"/>'
-        + '<ellipse class="contour-pulse" cx="150" cy="100" rx="60" ry="35" stroke-width="2.5" stroke="#10b981"/>'
-        + '<ellipse class="contour-pulse" cx="150" cy="100" rx="25" ry="15" stroke-width="3" stroke="#34d399"/>'
-        + '<polygon points="150,85 158,95 142,95" fill="#facc15" filter="drop-shadow(0 0 6px #facc15)"/>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="summit-card">'
-        + '<h2>' + esc(o.lines[0] || "Mont Blanc Summit") + '</h2>'
-        + '<div style="font-size:3.4cqw;color:#a7f3d0;font-family:monospace;margin-top:.8cqh">' + esc(o.lines[1] || "PEAK ELEVATION: 4,810M / 15,781 FT") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 4.10 Geopolitical Maritime Chokepoint */
-  T["maps-trade-route"] = {
-    name: "Maritime Trade Chokepoint", cat: "maps", dark: true, accent: "#38bdf8",
-    desc: "Strategic strait waterway with cargo ship traffic, bathymetry and trade impact metrics",
-    css: '.mp-sea{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#092344 0%,#020b17 100%);color:#fff;overflow:hidden;font-family:Inter,sans-serif}'
-      + '.mp-sea .top-bar{display:flex;justify-content:space-between;font-size:2.8cqw;font-family:monospace;color:#38bdf8;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.25);border-radius:2cqw;padding:2cqw 4cqw}'
-      + '.mp-sea .stage{flex:1;position:relative;display:grid;place-items:center;margin:1cqh 0}'
-      + '.mp-sea svg{width:100%;height:38cqh;border-radius:2.5cqw;background:#041429;border:1px solid rgba(56,189,248,.2);box-shadow:0 0 30px rgba(56,189,248,.15)}'
-      + '.mp-sea .ship-path{stroke:#38bdf8;stroke-width:3;stroke-dasharray:6 6;fill:none;animation:seaDash 1.5s linear infinite}'
-      + '.mp-sea .card{background:#081c36;border:1px solid rgba(56,189,248,.35);border-radius:3cqw;padding:4cqw;text-align:center;box-shadow:0 4cqw 12cqw rgba(0,0,0,.8);animation:seaCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.mp-sea h2{font-size:7cqw;font-weight:900;color:#fff;margin:0}'
-      + '@keyframes seaDash{to{stroke-dashoffset:-24}}'
-      + '@keyframes seaCardPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      return '<div class="mp-sea">'
-        + '<div class="top-bar"><span>GLOBAL TRADE CHOKEPOINT</span><span>AIS RADAR ACTIVE</span></div>'
-        + '<div class="stage">'
-        + '<svg viewBox="0 0 300 200">'
-        + '<path d="M0,40 Q100,60 140,20 T300,10 L300,0 L0,0 Z" fill="rgba(255,255,255,0.06)"/>'
-        + '<path d="M0,160 Q120,130 180,180 T300,150 L300,200 L0,200 Z" fill="rgba(255,255,255,0.06)"/>'
-        + '<path class="ship-path" d="M20,100 Q150,110 280,85"/>'
-        + '<circle cx="150" cy="105" r="5" fill="#38bdf8" filter="drop-shadow(0 0 8px #38bdf8)"/>'
-        + '</svg>'
-        + '</div>'
-        + '<div class="card">'
-        + '<h2>' + esc(o.lines[0] || "Strait of Malacca") + '</h2>'
-        + '<div style="font-size:3.4cqw;color:#94a3b8;font-family:monospace;margin-top:.8cqh">' + esc(o.lines[1] || "30% OF GLOBAL MARITIME TRADE") + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /* ============================================================
      CATEGORY 5: FINANCE & ECONOMY (10 templates)
      ============================================================ */
 
-  /* 5.1 Candlestick Trading Surge */
-  T["money-candlestick"] = {
-    name: "Trading Candlestick", cat: "money", dark: true, accent: "#22c55e",
-    desc: "Green and red stock trading candlestick chart drawing breakout surge with glowing EMA line",
-    css: '.sc-trade-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 7cqw;background:radial-gradient(ellipse at 50% 40%,#0e1726 0%,#060911 100%);overflow:hidden;font-family:"Space Grotesk",sans-serif;color:#fff}'
-      + '.sc-trade-head{display:flex;justify-content:space-between;align-items:flex-start;z-index:2}'
-      + '.sc-trade-ticker{font-size:4.2cqw;font-weight:700;color:var(--dim);letter-spacing:.08em}'
-      + '.sc-trade-gain{display:inline-flex;align-items:center;gap:1.5cqw;padding:.8cqh 2.5cqw;border-radius:999px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);font-size:4.8cqw;font-weight:900;color:#22c55e;box-shadow:0 0 20px rgba(34,197,94,.3);animation:tradeGainPulse 2s ease-in-out infinite}'
-      + '.sc-trade-chart-box{position:relative;width:100%;height:44cqh;display:flex;align-items:flex-end;gap:3.5cqw;padding:0 2cqw 2cqh;border-bottom:1px solid rgba(255,255,255,.12);background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:6cqw 6cqw}'
-      + '.sc-trade-svg-line{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}'
-      + '.sc-trade-ema-path{fill:none;stroke:#38bdf8;stroke-width:4;stroke-linecap:round;filter:drop-shadow(0 0 10px #38bdf8);stroke-dasharray:600;stroke-dashoffset:600;animation:tradeEmaDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-trade-bar{flex:1;position:relative;border-radius:3px;box-shadow:0 0 16px rgba(34,197,94,.35);animation:tradeBarRise var(--D) cubic-bezier(.16,1,.3,1) infinite;transform-origin:bottom}'
-      + '.sc-trade-bar::before{content:"";position:absolute;left:50%;top:-3cqh;bottom:-3cqh;width:2px;background:inherit;transform:translateX(-50%);opacity:.85}'
-      + '.sc-trade-b-green{background:#22c55e;color:#22c55e}'
-      + '.sc-trade-b-red{background:#ef4444;color:#ef4444;box-shadow:0 0 16px rgba(239,68,68,.35)}'
-      + '.sc-trade-foot{display:flex;justify-content:space-between;align-items:center;font-size:3.4cqw;color:var(--dim);border-top:1px solid rgba(255,255,255,.06);padding-top:1.5cqh}'
-      + '@keyframes tradeBarRise{0%,12%{transform:scaleY(0);opacity:0}25%,85%{transform:scaleY(1);opacity:1}100%{transform:scaleY(0.95);opacity:0}}'
-      + '@keyframes tradeEmaDraw{0%,18%{stroke-dashoffset:600}40%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:600}}'
-      + '@keyframes tradeGainPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05);box-shadow:0 0 28px rgba(34,197,94,.5)}}',
-    html: function (o) {
-      var ticker = getP(o, "ticker", o.lines[0] || "NASDAQ: NVDA");
-      var gain = getP(o, "gain", "+14.8% ↗");
-      var cap = getP(o, "cap", o.lines[1] || "MARKET CAP // $3.2T");
-      return '<div class="sc-trade-wrap">'
-        + '<div class="sc-trade-head">'
-        + '<div class="sc-trade-ticker">' + esc(ticker) + '</div>'
-        + '<div class="sc-trade-gain">' + esc(gain) + '</div>'
-        + '</div>'
-        + '<div class="sc-trade-chart-box">'
-        + '<svg class="sc-trade-svg-line" viewBox="0 0 300 200">'
-        + '<path class="sc-trade-ema-path" d="M 15 160 Q 90 140 160 90 T 285 25" />'
-        + '</svg>'
-        + '<div class="sc-trade-bar sc-trade-b-green" style="height:32%;animation-delay:.05s;"></div>'
-        + '<div class="sc-trade-bar sc-trade-b-red" style="height:48%;animation-delay:.12s;"></div>'
-        + '<div class="sc-trade-bar sc-trade-b-green" style="height:64%;animation-delay:.18s;"></div>'
-        + '<div class="sc-trade-bar sc-trade-b-green" style="height:92%;animation-delay:.25s;"></div>'
-        + '</div>'
-        + '<div class="sc-trade-foot">'
-        + '<span>VOL 42.8M</span>'
-        + '<span>' + esc(cap) + '</span>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
   /* 5.2 3D Isometric Cash Stack */
   T["money-cash-stack"] = {
     name: "3D Cash Stack", cat: "money", dark: true, accent: "#34d17a",
@@ -3556,148 +2529,8 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 5.3 Tech Giant 3D Breakout Stat Card */
-  T["money-titanium-card"] = {
-    name: "Tech Giant Stat Card", cat: "money", dark: true, accent: "#10b981",
-    desc: "3D neon emerald gradient ad card with gigantic impact percentage stat and clean corporate typography",
-    css: '.sc-statcard-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#031309;font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow:hidden}.sc-statcard-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 60%,rgba(16,185,129,.4) 0%,rgba(3,19,9,.95) 75%)}.sc-statcard-card{position:relative;z-index:2;width:86cqw;background:linear-gradient(180deg,#0a2315 0%,#04140b 100%);border:1px solid rgba(16,185,129,.3);border-radius:5cqw;padding:8cqw 6cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9),0 0 8cqw rgba(16,185,129,.15);display:flex;flex-direction:column;align-items:center;text-align:center;animation:statcardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-statcard-brand{font-size:5cqw;font-weight:900;letter-spacing:-.02em;color:#ffffff;margin-bottom:3cqh}.sc-statcard-num{font-size:24cqw;font-weight:900;line-height:.9;color:#10b981;letter-spacing:-.05em;text-shadow:0 0 30px rgba(16,185,129,.6),0 4px 12px rgba(0,0,0,.8);margin:1.5cqh 0}.sc-statcard-desc{font-size:3.8cqw;font-weight:600;color:#e2e8f0;line-height:1.4;max-width:90%;margin-top:1cqh}.sc-statcard-footer{font-size:3.4cqw;font-weight:800;color:#34d399;letter-spacing:.02em;margin-top:2cqh}@keyframes statcardPop{0%,15%{transform:scale(.9) translateY(2cqh);opacity:0}30%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      var brand = getP(o, "brand", o.lines[0] || "Upwork");
-      var num = getP(o, "num", "41%");
-      var desc = getP(o, "desc", o.lines[1] || "of top companies agree");
-      var footer = getP(o, "footer", "AI works best when humans lead.");
-      return '<div class="sc-statcard-wrap">'
-        + '<div class="sc-statcard-bg"></div>'
-        + '<div class="sc-statcard-card">'
-        + '<div class="sc-statcard-brand">' + esc(brand) + '</div>'
-        + '<div class="sc-statcard-num">' + esc(num) + '</div>'
-        + '<div class="sc-statcard-desc">' + esc(desc) + '</div>'
-        + '<div class="sc-statcard-footer">' + esc(footer) + '</div>'
-        + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const p = props || {};
-  const brand = p.brand || 'Upwork';
-  const num = p.num || '41%';
-  const desc = p.desc || 'of top companies agree';
-  const footer = p.footer || 'AI works best when humans lead.';
-
-  const pop = spring({ frame, fps, config: { damping: 14, stiffness: 85 } });
-  const opacity = interpolate(frame, [0, 10], [0, 1], { extrapolateRight: 'clamp' });
-
-  return (
-    <AbsoluteFill style={{
-      backgroundColor: '#031309',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '6%',
-      fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
-      overflow: 'hidden'
-    }}>
-      <div style={{
-        position: 'absolute',
-        top: '20%',
-        width: 350,
-        height: 350,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(16,185,129,0.35) 0%, transparent 70%)',
-        filter: 'blur(40px)',
-        pointerEvents: 'none'
-      }} />
-
-      <div style={{
-        position: 'relative',
-        zIndex: 2,
-        width: '90%',
-        background: 'linear-gradient(180deg, #0a2315 0%, #04140b 100%)',
-        border: '1px solid rgba(16,185,129,0.35)',
-        borderRadius: 24,
-        padding: '36px 24px',
-        boxShadow: '0 30px 80px rgba(0,0,0,0.9), 0 0 40px rgba(16,185,129,0.18)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        transform: "scale(" + pop + ")",
-        opacity: opacity
-      }}>
-        <div style={{
-          fontSize: 20,
-          fontWeight: 900,
-          letterSpacing: '-0.02em',
-          color: '#ffffff',
-          marginBottom: 16
-        }}>
-          {brand}
-        </div>
-
-        <div style={{
-          fontSize: 88,
-          fontWeight: 900,
-          lineHeight: 0.9,
-          color: '#10b981',
-          letterSpacing: '-0.05em',
-          textShadow: '0 0 35px rgba(16,185,129,0.7), 0 4px 14px rgba(0,0,0,0.8)',
-          margin: '12px 0'
-        }}>
-          {num}
-        </div>
-
-        <div style={{
-          fontSize: 15,
-          fontWeight: 600,
-          color: '#e2e8f0',
-          lineHeight: 1.4,
-          maxWidth: '90%',
-          marginTop: 6
-        }}>
-          {desc}
-        </div>
-
-        <div style={{
-          fontSize: 13,
-          fontWeight: 800,
-          color: '#34d399',
-          letterSpacing: '0.02em',
-          marginTop: 14
-        }}>
-          {footer}
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
-  /* 5.4 Crypto Bitcoin Flip */
-  T["money-crypto-surge"] = {
-    name: "Bitcoin Gold Ticker", cat: "money", dark: true, accent: "#f59e0b",
-    desc: "Floating 3D gold Bitcoin coin spinning with price breakout and particle glow",
-    css: '.sc-btc-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#261504 0%,#0a0501 100%);overflow:hidden;font-family:"Space Grotesk",sans-serif;color:#fff;perspective:900px}'
-      + '.sc-btc-3d-img{width:36cqw;height:36cqw;object-fit:contain;filter:drop-shadow(0 0 35px rgba(245,158,11,.6)) drop-shadow(0 15px 30px rgba(0,0,0,.8));animation:btcSpin 5s ease-in-out infinite alternate}'
-      + '.sc-btc-card{margin-top:3.5cqh;text-align:center;animation:btcCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-btc-price{font-size:14cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;text-shadow:0 0 30px rgba(245,158,11,.4)}'
-      + '.sc-btc-badge{display:inline-flex;align-items:center;gap:1.5cqw;padding:.8cqh 3cqw;border-radius:999px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);font-size:3.8cqw;font-weight:800;color:#22c55e;margin-top:1.5cqh;box-shadow:0 0 16px rgba(34,197,94,.3)}'
-      + '@keyframes btcSpin{0%{transform:rotateY(-15deg) rotateX(10deg) scale(0.96)}100%{transform:rotateY(25deg) rotateX(-10deg) scale(1.04)}}'
-      + '@keyframes btcCardPop{0%,15%{transform:translateY(3cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-2cqh);opacity:0}}',
-    html: function (o) {
-      var price = getP(o, "price", o.lines[0] || "$98,400");
-      var gain = getP(o, "gain", o.lines[1] || "▲ +8.4% 24H BREAKOUT");
-      return '<div class="sc-btc-wrap">'
-        + '<img src="/assets/bitcoin_gold_3d.png" class="sc-btc-3d-img" alt="3D Gold Bitcoin" />'
-        + '<div class="sc-btc-card">'
-        + '<div class="sc-btc-price">' + esc(price) + '</div>'
-        + '<div class="sc-btc-badge">' + esc(gain) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
   /* 5.5 Gold Bullion Vault */
   T["money-gold-vault"] = {
     name: "Gold Bullion Stack", cat: "money", dark: true, accent: "#ffd700",
@@ -3725,79 +2558,9 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 5.6 Wealth Burn Meter */
-  T["money-burn"] = {
-    name: "Inflation Burn Meter", cat: "money", dark: true, accent: "#ef4444",
-    desc: "Inflation pressure meter burning with flame indicators and warning strobe",
-    css: '.sc-burn-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#2b0808 0%,#090202 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-burn-icon{font-size:18cqw;filter:drop-shadow(0 0 30px #ef4444);animation:flamePulse 1.2s ease-in-out infinite alternate}'
-      + '.sc-burn-info{margin-top:2.5cqh;text-align:center;animation:burnTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-burn-val{font-family:"Space Grotesk",sans-serif;font-size:13cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#ef4444;text-shadow:0 0 35px rgba(239,68,68,.6)}'
-      + '.sc-burn-sub{font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;color:#fca5a5;font-weight:700;margin-top:.8cqh}'
-      + '@keyframes flamePulse{0%{transform:scale(0.92) rotate(-3deg)}100%{transform:scale(1.1) rotate(3deg)}}'
-      + '@keyframes burnTextPop{0%,15%{transform:scale(.9);opacity:0}26%,85%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}',
-    html: function (o) {
-      var val = getP(o, "val", o.lines[0] || "-$24,000/DAY");
-      var sub = getP(o, "sub", o.lines[1] || "Daily Cash Burn Rate");
-      return '<div class="sc-burn-wrap">'
-        + '<div class="sc-burn-icon">🔥</div>'
-        + '<div class="sc-burn-info">'
-        + '<div class="sc-burn-val">' + esc(val) + '</div>'
-        + '<div class="sc-burn-sub">' + esc(sub) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 5.7 Digital Receipt Print */
-  T["money-receipt"] = {
-    name: "Thermal Receipt Print", cat: "money", dark: true, accent: "#ffffff",
-    desc: "Digital thermal receipt printing out with line items and barcode",
-    css: '.sc-rec-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:#09090b;overflow:hidden;font-family:ui-monospace,monospace}'
-      + '.sc-rec-slip{width:84cqw;background:#fff;color:#09090b;border-radius:2px;padding:6cqw;box-shadow:0 20px 50px rgba(0,0,0,.9);animation:receiptSlide var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-rec-title{font-size:5cqw;font-weight:900;text-align:center;letter-spacing:.1em;border-bottom:2px dashed #a1a1aa;padding-bottom:1.5cqh;margin-bottom:2cqh}'
-      + '.sc-rec-row{display:flex;justify-content:space-between;font-size:3.8cqw;font-weight:700;margin-bottom:1cqh}'
-      + '.sc-rec-bar{font-size:2.8cqw;letter-spacing:.35em;text-align:center;border-top:2px solid #000;border-bottom:4px solid #000;padding:.8cqh 0;margin-top:2cqh}'
-      + '@keyframes receiptSlide{0%,12%{transform:translateY(-10cqh);opacity:0}25%{transform:translateY(0);opacity:1}50%{transform:translateY(-.4cqh);opacity:1}70%{transform:translateY(.3cqh);opacity:1}85%{transform:translateY(0);opacity:1}100%{transform:translateY(4cqh);opacity:0}}',
-    html: function (o) {
-      var header = getP(o, "header", o.lines[0] || "INVOICE PAID");
-      var item = getP(o, "item", "ShortsCraft Pro Plan");
-      var price = getP(o, "price", "$99.00");
-      return '<div class="sc-rec-wrap">'
-        + '<div class="sc-rec-slip">'
-        + '<div class="sc-rec-title">' + esc(header) + '</div>'
-        + '<div class="sc-rec-row"><span>' + esc(item) + '</span><b>' + esc(price) + '</b></div>'
-        + '<div class="sc-rec-row" style="color:#71717a"><span>TAX // VAT (0%)</span><span>$0.00</span></div>'
-        + '<div class="sc-rec-bar">|||| | ||||| |||| | |||</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 5.8 Wallet Net Worth Unlock */
-  T["money-wallet-unlock"] = {
-    name: "Net Worth Unlock", cat: "money", dark: true, accent: "#38bdf8",
-    desc: "Secured biometric padlock unlocking into high net-worth wallet balance",
-    css: '.sc-lock-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#091c36 0%,#020b17 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-lock-icon{font-size:18cqw;animation:lockPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-lock-info{margin-top:2.5cqh;text-align:center;animation:lockTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-lock-val{font-family:"Space Grotesk",sans-serif;font-size:13cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;text-shadow:0 0 35px rgba(56,189,248,.5)}'
-      + '.sc-lock-sub{font-size:3.6cqw;letter-spacing:.2em;text-transform:uppercase;color:#7dd3fc;font-weight:700;margin-top:.8cqh}'
-      + '@keyframes lockPop{0%,12%{transform:scale(.7) rotate(-15deg);opacity:0}24%,85%{transform:scale(1) rotate(0);opacity:1}100%{transform:scale(1.05);opacity:0}}'
-      + '@keyframes lockTextPop{0%,18%{transform:translateY(2cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
-    html: function (o) {
-      var val = getP(o, "val", o.lines[0] || "$1,250,000");
-      var sub = getP(o, "sub", o.lines[1] || "Liquid Net Worth Unlocked");
-      return '<div class="sc-lock-wrap">'
-        + '<div class="sc-lock-icon">🔓</div>'
-        + '<div class="sc-lock-info">'
-        + '<div class="sc-lock-val">' + esc(val) + '</div>'
-        + '<div class="sc-lock-sub">' + esc(sub) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
+  
   /* 5.9 Sale Price Slash */
   T["money-sale-slash"] = {
     name: "50% Off Price Slash", cat: "money", dark: true, accent: "#ef4444",
@@ -3823,32 +2586,7 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 5.10 ATM Cash Dispense */
-  T["money-atm"] = {
-    name: "ATM Cash Dispenser", cat: "money", dark: true, accent: "#10b981",
-    desc: "Cash banknotes smoothly sliding out of high-tech ATM slot",
-    css: '.sc-atm-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#092416 0%,#020b06 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-atm-slot{width:75cqw;height:5cqh;border-radius:99px;background:#05140b;border:2px solid #10b981;box-shadow:0 0 25px rgba(16,185,129,.4),inset 0 0 10px rgba(0,0,0,.8);position:relative;margin-bottom:2cqh}'
-      + '.sc-atm-bill{width:68cqw;height:14cqh;border-radius:2cqw;background:linear-gradient(135deg,#10b981 0%,#047857 100%);border:2px solid #6ee7b7;box-shadow:0 15px 35px rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;font-family:"Space Grotesk",sans-serif;font-size:6.5cqw;font-weight:900;color:#fff;animation:atmDispense var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-atm-info{margin-top:3.5cqh;text-align:center;animation:atmTextPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-atm-title{font-size:7.2cqw;font-weight:900;color:#fff;letter-spacing:-.02em}'
-      + '.sc-atm-sub{font-size:3.6cqw;color:#6ee7b7;font-weight:700;margin-top:.6cqh}'
-      + '@keyframes atmDispense{0%,12%{transform:translateY(-8cqh) scale(.8);opacity:0}26%,85%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(4cqh);opacity:0}}'
-      + '@keyframes atmTextPop{0%,18%{transform:translateY(2cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
-    html: function (o) {
-      var val = getP(o, "val", o.lines[0] || "$10,000 PAYOUT");
-      var sub = getP(o, "sub", o.lines[1] || "Instant Automated Transfer");
-      return '<div class="sc-atm-wrap">'
-        + '<div class="sc-atm-slot"></div>'
-        + '<div class="sc-atm-bill">' + esc(val) + '</div>'
-        + '<div class="sc-atm-info">'
-        + '<div class="sc-atm-title">CASH DISPENSED</div>'
-        + '<div class="sc-atm-sub">' + esc(sub) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
+  
   /* ============================================================
      CATEGORY 6: UI & DEVICES (10 templates)
      ============================================================ */
@@ -3932,181 +2670,32 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 6.5 Glow Toggle */
+  /* 6.5 Interactive Spring Toggle Switch */
   T["ui-toggle"] = {
-    name: "Glow Toggle", cat: "ui", dark: true, accent: "#00ffaa",
-    desc: "Neon toggle switch with smooth spring translation, glowing ambient aura, and tactile status toggle",
-    css: '.sc-toggle-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#040608;font-family:Inter,sans-serif;overflow:hidden}.sc-toggle-glow{position:absolute;width:60cqw;height:60cqw;border-radius:50%;background:radial-gradient(circle,var(--ac) 0%,transparent 70%);opacity:.3;filter:blur(6cqw);pointer-events:none}.sc-toggle-title{font-size:3.2cqw;letter-spacing:.3em;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:3cqh;font-weight:700}.sc-toggle-track{width:42cqw;height:23cqw;border-radius:99px;background:rgba(0,255,170,.15);border:2px solid var(--ac);box-shadow:0 0 5cqw rgba(0,255,170,.4),inset 0 0 2cqw rgba(0,255,170,.2);position:relative;padding:1.5cqw;display:flex;align-items:center}.sc-toggle-knob{width:18cqw;height:18cqw;border-radius:50%;background:#fff;box-shadow:0 0 3cqw #fff,0 1cqw 3cqw rgba(0,0,0,.5);position:absolute;right:1.5cqw;display:grid;place-items:center;font-size:5cqw;animation:knobSlide var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-toggle-status{margin-top:3.5cqh;font-size:4.2cqw;font-weight:800;letter-spacing:.15em;color:var(--ac);text-shadow:0 0 2cqw var(--ac)}@keyframes knobSlide{0%,20%{transform:translateX(-19cqw)}40%,85%{transform:translateX(0)}100%{transform:translateX(-19cqw)}}',
+    name: "Toggle Switch", cat: "ui", dark: true, accent: "#22C55E",
+    desc: "Clean iOS-style spring toggle switch with dynamic state transitions and glowing haptic indicator",
+    css: '.sw-tog-wrap{position:absolute;inset:0;background:#0A0B10;color:#ffffff;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6cqw;font-family:Inter,system-ui,sans-serif}'
+      + '.sw-tog-glow{position:absolute;width:90cqw;height:50cqh;background:radial-gradient(ellipse at center,rgba(34,197,94,.2) 0%,transparent 70%);filter:blur(60px);pointer-events:none}'
+      + '.sw-tog-card{position:relative;z-index:5;width:86cqw;background:#13151D;border:1px solid rgba(255,255,255,.1);border-radius:5cqw;padding:4cqh 5cqw;box-shadow:0 30px 90px rgba(0,0,0,.9);display:flex;align-items:center;justify-content:space-between;animation:swPop var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-tog-info{display:flex;flex-direction:column;gap:.8cqh}'
+      + '.sw-tog-title{font-size:7cqw;font-weight:800;color:#ffffff;line-height:1.1;letter-spacing:-.02em}'
+      + '.sw-tog-sub{font-size:3.4cqw;font-weight:500;color:#94A3B8}'
+      + '.sw-tog-track{width:18cqw;height:10.5cqw;background:#22C55E;border-radius:999px;position:relative;box-shadow:0 0 25px rgba(34,197,94,.5);animation:swTrackFlip var(--D) var(--ae-spring) infinite alternate}'
+      + '.sw-tog-knob{width:9cqw;height:9cqw;background:#ffffff;border-radius:50%;position:absolute;top:.75cqw;left:.75cqw;box-shadow:0 4px 10px rgba(0,0,0,.35);animation:swKnobSlide var(--D) var(--ae-spring) infinite alternate}'
+      + '@keyframes swKnobSlide{0%,20%{transform:translateX(0)}60%,100%{transform:translateX(7.5cqw)}}'
+      + '@keyframes swTrackFlip{0%,20%{background:#334155;box-shadow:none}60%,100%{background:var(--ac);box-shadow:0 0 25px var(--ac)}}',
     html: function (o) {
-      var title = getP(o, "title", "VIRAL ENGINE");
-      var status = getP(o, "status", o.lines[0] || "ACTIVE // 60 FPS");
-      var accentColor = getP(o, "accentColor", "#00ffaa");
-      return '<div class="sc-toggle-wrap" style="--ac:' + esc(accentColor) + '">'
-        + '<div class="sc-toggle-glow"></div>'
-        + '<div class="sc-toggle-title">' + esc(title) + '</div>'
-        + '<div class="sc-toggle-track">'
-        + '<div class="sc-toggle-knob">⚡</div>'
+      var title = getP(o, "title", o.lines[0] || "VIRAL MODE");
+      var sub = getP(o, "sub", o.lines[1] || "High-retention animations");
+      return '<div class="sw-tog-wrap">'
+        + '<div class="sw-tog-glow"></div>'
+        + '<div class="sw-tog-card">'
+        + '<div class="sw-tog-info">'
+        + '<div class="sw-tog-title">' + esc(title) + '</div>'
+        + '<div class="sw-tog-sub">' + esc(sub) + '</div>'
         + '</div>'
-        + '<div class="sc-toggle-status">' + esc(status) + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const title = (props && props.title) || "VIRAL ENGINE";
-  const statusOn = (props && props.statusOn) || "ACTIVE // 60 FPS";
-  const statusOff = (props && props.statusOff) || "STANDBY";
-  const accentColor = (props && props.accentColor) || "#00ffaa";
-
-  const isToggled = (frame % 90) > 30;
-  const toggleProgress = spring({
-    frame: (frame % 90) > 30 ? (frame % 90) - 30 : (frame % 90),
-    fps,
-    config: { damping: 14, stiffness: 140, mass: 0.9 }
-  });
-
-  const knobX = isToggled ? interpolate(toggleProgress, [0, 1], [0, 68]) : interpolate(toggleProgress, [0, 1], [68, 0]);
-  const glowOpacity = isToggled ? interpolate(toggleProgress, [0, 1], [0.2, 0.85]) : interpolate(toggleProgress, [0, 1], [0.85, 0.2]);
-
-  return (
-    <AbsoluteFill style={{
-      backgroundColor: '#040608',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'column',
-      fontFamily: 'Inter, system-ui, sans-serif'
-    }}>
-      <div style={{
-        position: 'absolute',
-        width: 320,
-        height: 320,
-        borderRadius: '50%',
-        background: "radial-gradient(circle, " + accentColor + " 0%, transparent 70%)",
-        opacity: glowOpacity * 0.4,
-        filter: 'blur(50px)',
-        pointerEvents: 'none'
-      }} />
-
-      <div style={{
-        fontSize: 14,
-        letterSpacing: '0.3em',
-        color: 'rgba(255,255,255,0.4)',
-        textTransform: 'uppercase',
-        marginBottom: 24,
-        fontWeight: 700
-      }}>
-        {title}
-      </div>
-
-      <div style={{
-        width: 148,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: isToggled ? 'rgba(0,255,170,0.15)' : 'rgba(255,255,255,0.06)',
-        border: "2px solid " + (isToggled ? accentColor : 'rgba(255,255,255,0.18)'),
-        boxShadow: isToggled ? ("0 0 35px " + accentColor + "66, inset 0 0 15px " + accentColor + "33") : 'none',
-        position: 'relative',
-        padding: 6,
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        <div style={{
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          backgroundColor: '#ffffff',
-          boxShadow: isToggled ? "0 0 20px #ffffff, 0 4px 12px rgba(0,0,0,0.5)" : '0 4px 12px rgba(0,0,0,0.5)',
-          transform: "translateX(" + knobX + "px)",
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 22
-        }}>
-          {isToggled ? '⚡' : '○'}
-        </div>
-      </div>
-
-      <div style={{
-        marginTop: 28,
-        fontSize: 18,
-        fontWeight: 800,
-        letterSpacing: '0.15em',
-        color: isToggled ? accentColor : 'rgba(255,255,255,0.4)',
-        textShadow: isToggled ? ("0 0 15px " + accentColor + "88") : 'none'
-      }}>
-        {isToggled ? statusOn : statusOff}
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
-  /* 6.6 Liquid Fluid Morphing Blob */
-  T["ui-slider"] = {
-    name: "Liquid Morphing Fluid Blob", cat: "ui", dark: true, accent: "#ff0080",
-    desc: "Organic fluid SVG metaball blob morphing smoothly with glassmorphism glow and floating typography",
-    css: '.sc-blob-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#09090b;overflow:hidden;font-family:Space Grotesk,sans-serif}.sc-blob-bg{position:absolute;width:76cqw;height:76cqw;background:linear-gradient(135deg,#7928ca,#ff0080,#00dfd8);border-radius:42% 58% 70% 30% / 45% 45% 55% 55%;filter:blur(3cqw);opacity:.85;box-shadow:0 0 12cqw rgba(121,40,202,.6);animation:morphBlob 6s ease-in-out infinite alternate}.sc-blob-card{position:relative;z-index:2;background:rgba(255,255,255,.05);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.18);padding:8cqw 6cqw;border-radius:4cqw;text-align:center;box-shadow:0 4cqw 10cqw rgba(0,0,0,.7);animation:blobFloat 3s ease-in-out infinite alternate}.sc-blob-title{font-size:13cqw;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;text-shadow:0 .4cqw 2cqw rgba(0,0,0,.5)}.sc-blob-sub{font-size:3.8cqw;color:rgba(255,255,255,.8);margin-top:2cqh;font-weight:500;letter-spacing:.05em}@keyframes morphBlob{0%{border-radius:42% 58% 70% 30% / 45% 45% 55% 55%;transform:rotate(0deg) scale(1)}50%{border-radius:70% 30% 46% 54% / 30% 60% 40% 70%;transform:rotate(90deg) scale(1.1)}100%{border-radius:100% 60% 60% 100% / 100% 100% 60% 60%;transform:rotate(180deg) scale(1.05)}}@keyframes blobFloat{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-2cqh) scale(1.02)}}',
-    html: function (o) {
-      var title = getP(o, "title", o.lines[0] || "SWISHY");
-      var sub = getP(o, "sub", o.lines[1] || "Fluid Motion Design Reimagined");
-      var blobGradient = getP(o, "blobGradient", "linear-gradient(135deg,#7928ca,#ff0080,#00dfd8)");
-      return '<div class="sc-blob-wrap">'
-        + '<div class="sc-blob-bg" style="background:' + esc(blobGradient) + '"></div>'
-        + '<div class="sc-blob-card">'
-        + '<h1 class="sc-blob-title">' + esc(title) + '</h1>'
-        + '<div class="sc-blob-sub">' + esc(sub) + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 6.7 Phone Mockup Scroll */
-  T["ui-phone-mockup"] = {
-    name: "Smartphone 9:16 Feed", cat: "ui", dark: true, accent: "#7952ff",
-    desc: "Realistic 3D titanium iPhone frame with Dynamic Island and smooth feed animations",
-    css: '.sc-phone-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4cqw;background:radial-gradient(ellipse at 50% 50%,#18152e 0%,#08080f 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:1000px}'
-      + '.sc-phone-glow{position:absolute;width:65cqw;height:65cqh;border-radius:50%;background:radial-gradient(circle,rgba(121,82,255,.35) 0%,transparent 70%);filter:blur(35px);pointer-events:none}'
-      + '.sc-phone-device{position:relative;width:62cqw;height:78cqh;border-radius:9cqw;background:#0d0d14;border:4px solid #3b3952;box-shadow:0 30px 80px rgba(0,0,0,.9),0 0 35px rgba(121,82,255,.25),inset 0 0 4px rgba(255,255,255,.2);display:flex;flex-direction:column;align-items:center;padding:2.5cqw;transform-style:preserve-3d;transform:rotateX(14deg) rotateY(-10deg) rotateZ(2deg);animation:phoneFloat 6s ease-in-out infinite alternate}'
-      + '.sc-phone-screen{width:100%;height:100%;border-radius:7cqw;background:#000;overflow:hidden;display:flex;flex-direction:column;position:relative;border:1px solid rgba(255,255,255,.08)}'
-      + '.sc-phone-island{position:absolute;top:1.8cqh;left:50%;transform:translateX(-50%);width:24cqw;height:3.8cqh;border-radius:99px;background:#000;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:space-between;padding:0 2.5cqw;z-index:10;box-shadow:0 2px 10px rgba(0,0,0,.8)}'
-      + '.sc-island-dot{width:1.8cqw;height:1.8cqw;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}'
-      + '.sc-island-wave{display:flex;gap:2px;align-items:center;height:1.8cqh}'
-      + '.sc-island-wave span{width:2px;height:100%;background:#7952ff;border-radius:1px;animation:islandWave .8s ease-in-out infinite alternate}'
-      + '.sc-phone-content{padding:7cqh 4cqw 3cqw;display:flex;flex-direction:column;justify-content:space-between;height:100%}'
-      + '.sc-phone-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:4cqw;padding:4cqw;backdrop-filter:blur(16px);animation:phoneCardPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-phone-title{font-size:5cqw;font-weight:900;line-height:1.2;color:#fff;margin-bottom:1.5cqh}'
-      + '.sc-phone-author{display:flex;align-items:center;gap:2.5cqw;font-size:3.4cqw;color:var(--dim)}'
-      + '.sc-phone-av{width:7cqw;height:7cqw;border-radius:50%;background:linear-gradient(135deg,#7952ff,#00d2ff);display:grid;place-items:center;font-size:3.5cqw;font-weight:900;color:#fff}'
-      + '.sc-phone-actions{display:flex;gap:3cqw;margin-top:2cqh}'
-      + '.sc-phone-btn{padding:.8cqh 3cqw;border-radius:99px;background:rgba(255,255,255,.08);font-size:3cqw;font-weight:700;color:#e2e8f0;display:flex;align-items:center;gap:1.5cqw}'
-      + '@keyframes phoneFloat{0%{transform:rotateX(12deg) rotateY(-8deg) translateY(0)}100%{transform:rotateX(16deg) rotateY(-12deg) translateY(-2cqh)}}'
-      + '@keyframes islandWave{0%{height:30%}100%{height:100%}}'
-      + '@keyframes phoneCardPop{0%,15%{transform:translateY(4cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-2cqh);opacity:0}}',
-    html: function (o) {
-      var title = getP(o, "title", o.lines[0] || "How to 10X Retention");
-      var author = getP(o, "author", "@creator_pro");
-      return '<div class="sc-phone-wrap">'
-        + '<div class="sc-phone-glow"></div>'
-        + '<div class="sc-phone-device">'
-        + '<div class="sc-phone-screen">'
-        + '<div class="sc-phone-island">'
-        + '<div class="sc-island-dot"></div>'
-        + '<div class="sc-island-wave"><span></span><span style="animation-delay:.2s"></span><span style="animation-delay:.4s"></span></div>'
-        + '</div>'
-        + '<div class="sc-phone-content">'
-        + '<div class="sc-phone-card">'
-        + '<div class="sc-phone-title">' + esc(title) + '</div>'
-        + '<div class="sc-phone-author"><div class="sc-phone-av">✦</div><span>' + esc(author) + '</span></div>'
-        + '<div class="sc-phone-actions">'
-        + '<span class="sc-phone-btn">❤️ 42.8K</span>'
-        + '<span class="sc-phone-btn">💬 1.2K</span>'
-        + '</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>';
+        + '<div class="sw-tog-track"><div class="sw-tog-knob"></div></div>'
+        + '</div></div>';
     }
   };
 
@@ -4308,26 +2897,8 @@ window.SC_TPL2 = (function () {
 }`
   };
 
-  /* 6.9 OTP Passcode */
-  T["ui-otp"] = {
-    name: "OTP Passcode Security", cat: "ui", dark: true, accent: "#22c55e",
-    desc: "4-digit security OTP PIN boxes auto-populating and turning verified green",
-    css: '.otp{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}.otp h3{opacity:0;transform:translateY(.6cqh);animation:otpTitle var(--D) var(--sp) infinite}.otp .row{display:flex;gap:3cqw}.otp .box{opacity:0;transform:translateY(1cqh) scale(.6);animation:otpBox var(--D) var(--ov) infinite,otpGlow calc(var(--D) / 4) ease-in-out infinite alternate}.otp .box:nth-child(2){animation-delay:90ms,90ms}.otp .box:nth-child(3){animation-delay:180ms,180ms}.otp .box:nth-child(4){animation-delay:270ms,270ms}@keyframes otpTitle{0%,4%{opacity:0;transform:translateY(.6cqh)}18%,100%{opacity:1;transform:translateY(0)}}@keyframes otpBox{0%{opacity:0;transform:translateY(1cqh) scale(.6)}55%{opacity:1;transform:translateY(0) scale(1.15)}68%,100%{opacity:1;transform:translateY(0) scale(1)}}@keyframes otpGlow{0%{box-shadow:0 0 0 rgba(34,197,94,0)}100%{box-shadow:0 0 2.2cqw rgba(34,197,94,.6)}}',
-    html: function (o) {
-      return '<div class="otp"><h3 style="font-size:5.6cqw;font-weight:800;color:#fff;margin-bottom:3cqh">' + esc(o.lines[0] || "Security Code Verified") + '</h3><div class="row"><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">9</div><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">4</div><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">2</div><div class="box" style="width:14cqw;height:16cqw;border-radius:3cqw;border:2px solid #22c55e;color:#22c55e;font-size:8cqw;font-weight:900;display:grid;place-items:center">0</div></div></div>';
-    }
-  };
-
-  /* 6.10 App Store Rating */
-  T["ui-store-badges"] = {
-    name: "5-Star Rating Badges", cat: "ui", dark: true, accent: "#ffd700",
-    desc: "Official App Store & Google Play badges with glowing 5-star rating",
-    css: '.asb{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;text-align:center}.asb .stars{display:flex;gap:.6cqw;margin-bottom:2cqh}.asb .stars span{font-size:7cqw;color:#ffd700;opacity:0;transform:scale(0) rotate(-90deg);display:inline-block;animation:starPop var(--D) var(--ov) infinite}.asb .stars span:nth-child(2){animation-delay:90ms}.asb .stars span:nth-child(3){animation-delay:180ms}.asb .stars span:nth-child(4){animation-delay:270ms}.asb .stars span:nth-child(5){animation-delay:360ms}.asb h2{opacity:0;transform:translateY(1cqh);animation:asbH2 var(--D) var(--sp) infinite,asbGlow calc(var(--D) / 3) ease-in-out infinite alternate}@keyframes starPop{0%{opacity:0;transform:scale(0) rotate(-90deg)}60%{opacity:1;transform:scale(1.3) rotate(8deg)}75%,100%{opacity:1;transform:scale(1) rotate(0)}}@keyframes asbH2{0%,40%{opacity:0;transform:translateY(1cqh)}56%,100%{opacity:1;transform:translateY(0)}}@keyframes asbGlow{0%{text-shadow:0 0 0 rgba(255,215,0,0)}100%{text-shadow:0 0 2cqw rgba(255,215,0,.55)}}',
-    html: function (o) {
-      return '<div class="asb"><div class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><h2 style="font-size:8cqw;font-weight:900;color:#fff">' + esc(o.lines[0] || "5.0 Rated by 100K+ Creators") + '</h2></div>';
-    }
-  };
-
+  
+  
   /* ============================================================
      CATEGORY 7: SOCIAL PROOF & VIRAL (10 templates)
      ============================================================ */
@@ -4413,7 +2984,7 @@ window.SC_TPL2 = (function () {
       + '.sc-sub-av{width:6.8cqw;height:6.8cqw;border-radius:50%;background:#fff;color:#ff0000;display:grid;place-items:center;font-size:3.6cqw;font-weight:900}'
       + '.sc-sub-bell{font-size:5.4cqw;animation:bellRinging 1.5s ease-in-out infinite}'
       + '@keyframes subCtaDrop{0%,12%{transform:translateY(-2cqh);opacity:0}24%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(1cqh);opacity:0}}'
-      + '@keyframes subBtnTransform{0%,16%{transform:scale(.85);opacity:0}28%{transform:scale(1.08);background:#ff0000;box-shadow:0 0 40px rgba(255,0,0,.8)}45%,85%{transform:scale(1);background:#27272a;box-shadow:0 4px 18px rgba(0,0,0,.6)}100%{transform:scale(.95);opacity:0}}'
+      + '@keyframes subBtnTransform{0%,16%{transform:scale(.85);opacity:0}28%{transform:scale(1.08);background:#ff0000;box-shadow:0 0 40px rgba(255,0,0,.8)}45%{transform:scale(1);background:#27272a;box-shadow:0 4px 18px rgba(0,0,0,.6)}65%{transform:scale(1.04);background:#27272a;box-shadow:0 6px 24px rgba(255,0,0,.4)}85%{transform:scale(1);background:#27272a;box-shadow:0 4px 18px rgba(0,0,0,.6)}100%{transform:scale(.95);opacity:0}}'
       + '@keyframes bellRinging{0%,100%{transform:rotate(0)}20%{transform:rotate(-18deg)}40%{transform:rotate(18deg)}60%{transform:rotate(-12deg)}80%{transform:rotate(12deg)}}',
     html: function (o) {
       var cta = getP(o, "cta", o.lines[0] || "Join 500,000+ Creators");
@@ -4910,256 +3481,11 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 8.2 Circular Progress Ring */
-  T["charts-ring"] = {
-    name: "Progress Ring 83%", cat: "charts", dark: true, accent: "#34d17a",
-    desc: "Circular SVG ring progress sweep with central large percentage and cybernetic glow",
-    css: '.sc-ring-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#092015 0%,#030a06 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-ring-stage{position:relative;width:56cqw;height:56cqw;display:grid;place-items:center}'
-      + '.sc-ring-svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}'
-      + '.sc-ring-track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:14}'
-      + '.sc-ring-bar{fill:none;stroke:#34d17a;stroke-width:14;stroke-linecap:round;filter:drop-shadow(0 0 16px rgba(52,209,122,.7));stroke-dasharray:440;stroke-dashoffset:440;animation:ringSweep var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}'
-      + '.sc-ring-pct{font-family:"Space Grotesk",sans-serif;font-size:12cqw;font-weight:900;letter-spacing:-.04em;line-height:1;color:#fff;text-shadow:0 0 25px rgba(52,209,122,.5)}'
-      + '.sc-ring-label{font-size:3.6cqw;font-weight:700;color:#86efac;letter-spacing:.08em;margin-top:.8cqh}'
-      + '@keyframes ringSweep{0%,15%{stroke-dashoffset:440}35%,85%{stroke-dashoffset:75}100%{stroke-dashoffset:440}}',
-    html: function (o) {
-      var pct = getP(o, "pct", o.lines[0] || "83%");
-      var label = getP(o, "label", o.lines[1] || "Average Retention");
-      return '<div class="sc-ring-wrap">'
-        + '<div class="sc-ring-stage">'
-        + '<svg class="sc-ring-svg" viewBox="0 0 160 160">'
-        + '<circle class="sc-ring-track" cx="80" cy="80" r="70" />'
-        + '<circle class="sc-ring-bar" cx="80" cy="80" r="70" />'
-        + '</svg>'
-        + '<div class="sc-ring-center">'
-        + '<div class="sc-ring-pct">' + esc(pct) + '</div>'
-        + '<div class="sc-ring-label">' + esc(label) + '</div>'
-        + '</div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 8.3 Growth Chart */
-  T["charts-stock-trend"] = {
-    name: "Growth Chart", cat: "charts", dark: true, accent: "#38bdf8",
-    desc: "Dynamic curved SVG path drawing with spring interpolation, glowing area gradient, and live metric surge badge",
-    css: '.sc-growth-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw;background:#070a12;font-family:Inter,sans-serif;overflow:hidden}.sc-growth-head{margin-bottom:2cqh}.sc-growth-tag{font-size:3cqw;letter-spacing:.25em;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase}.sc-growth-valrow{display:flex;align-items:baseline;gap:2.5cqw;margin-top:.8cqh}.sc-growth-val{font-size:10cqw;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1}.sc-growth-badge{background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);border-radius:99px;padding:1cqw 2.5cqw;font-size:2.8cqw;font-weight:700;color:#38bdf8;animation:badgePop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-growth-sub{font-size:3.2cqw;color:rgba(255,255,255,.6);margin-top:.8cqh}.sc-growth-box{position:relative;width:100%;height:32cqh;background:rgba(255,255,255,.02);border-radius:3cqw;border:1px solid rgba(255,255,255,.08);padding:3cqw;overflow:hidden}.sc-growth-box svg{width:100%;height:100%;overflow:visible}.sc-growth-curve{fill:none;stroke:var(--ac);stroke-width:4;stroke-linecap:round;stroke-dasharray:600;stroke-dashoffset:600;animation:drawCurve var(--D) cubic-bezier(.16,1,.3,1) infinite;filter:drop-shadow(0 0 8px var(--ac))}@keyframes badgePop{0%,30%{transform:scale(0);opacity:0}45%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}@keyframes drawCurve{0%,10%{stroke-dashoffset:600}45%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:0}}',
-    html: function (o) {
-      var metric = getP(o, "metric", "AUDIENCE RETENTION");
-      var val = getP(o, "val", o.lines[0] || "+384.2%");
-      var subtitle = getP(o, "subtitle", o.lines[1] || "Breakout Viral Surge");
-      var lineColor = getP(o, "lineColor", "#38bdf8");
-      return '<div class="sc-growth-wrap" style="--ac:' + esc(lineColor) + '">'
-        + '<div class="sc-growth-head">'
-        + '<div class="sc-growth-tag">' + esc(metric) + '</div>'
-        + '<div class="sc-growth-valrow">'
-        + '<div class="sc-growth-val">' + esc(val) + '</div>'
-        + '<div class="sc-growth-badge">▲ SURGE</div>'
-        + '</div>'
-        + '<div class="sc-growth-sub">' + esc(subtitle) + '</div>'
-        + '</div>'
-        + '<div class="sc-growth-box">'
-        + '<svg viewBox="0 0 400 200">'
-        + '<defs><linearGradient id="scGlowG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + esc(lineColor) + '" stop-opacity="0.4"/><stop offset="100%" stop-color="' + esc(lineColor) + '" stop-opacity="0"/></linearGradient></defs>'
-        + '<line x1="0" y1="50" x2="400" y2="50" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 4"/>'
-        + '<line x1="0" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 4"/>'
-        + '<line x1="0" y1="150" x2="400" y2="150" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 4"/>'
-        + '<path d="M 10 180 Q 80 170, 140 130 T 260 90 T 390 20 L 390 200 L 10 200 Z" fill="url(#scGlowG)"/>'
-        + '<path class="sc-growth-curve" d="M 10 180 Q 80 170, 140 130 T 260 90 T 390 20"/>'
-        + '<circle cx="390" cy="20" r="5" fill="#ffffff" stroke="' + esc(lineColor) + '" stroke-width="2"/>'
-        + '</svg>'
-        + '</div>'
-        + '</div>';
-    },
-    reactCode: `function Scene(props) {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const metric = (props && props.metric) || "AUDIENCE RETENTION";
-  const val = (props && props.val) || "+384.2%";
-  const subtitle = (props && props.subtitle) || "Breakout Viral Surge";
-  const lineColor = (props && props.lineColor) || "#38bdf8";
-
-  const chartProgress = spring({ frame: Math.max(0, frame - 10), fps, config: { damping: 16, stiffness: 80 } });
-  const badgeScale = spring({ frame: Math.max(0, frame - 40), fps, config: { damping: 12, stiffness: 120 } });
-  const pathDashOffset = interpolate(chartProgress, [0, 1], [600, 0]);
-
-  return (
-    <AbsoluteFill style={{
-      backgroundColor: '#070a12',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: '8%',
-      fontFamily: 'Inter, system-ui, sans-serif'
-    }}>
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 13, letterSpacing: '0.25em', color: 'rgba(255,255,255,0.4)', fontWeight: 700, textTransform: 'uppercase' }}>
-          {metric}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 6 }}>
-          <div style={{ fontSize: 44, fontWeight: 900, color: '#ffffff', letterSpacing: '-0.03em' }}>
-            {val}
-          </div>
-          <div style={{
-            backgroundColor: 'rgba(56,189,248,0.15)',
-            border: '1px solid rgba(56,189,248,0.3)',
-            borderRadius: 99,
-            padding: '4px 10px',
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#38bdf8',
-            transform: "scale(" + badgeScale + ")",
-            transformOrigin: 'left center'
-          }}>
-            ▲ SURGE
-          </div>
-        </div>
-        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>
-          {subtitle}
-        </div>
-      </div>
-
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        height: 240,
-        backgroundColor: 'rgba(255,255,255,0.02)',
-        borderRadius: 16,
-        border: '1px solid rgba(255,255,255,0.08)',
-        padding: 16,
-        overflow: 'hidden'
-      }}>
-        <svg viewBox="0 0 400 200" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-          <defs>
-            <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={lineColor} stopOpacity="0.4" />
-              <stop offset="100%" stopColor={lineColor} stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
-
-          <line x1="0" y1="50" x2="400" y2="50" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-          <line x1="0" y1="100" x2="400" y2="100" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-          <line x1="0" y1="150" x2="400" y2="150" stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
-
-          <path
-            d="M 10 180 Q 80 170, 140 130 T 260 90 T 390 20 L 390 200 L 10 200 Z"
-            fill="url(#chartFill)"
-            opacity={chartProgress}
-          />
-
-          <path
-            d="M 10 180 Q 80 170, 140 130 T 260 90 T 390 20"
-            fill="none"
-            stroke={lineColor}
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeDasharray="600"
-            strokeDashoffset={pathDashOffset}
-          />
-
-          {chartProgress > 0.85 && (
-            <circle cx="390" cy="20" r="5" fill="#ffffff" stroke={lineColor} strokeWidth="3" />
-          )}
-        </svg>
-      </div>
-    </AbsoluteFill>
-  );
-}`
-  };
-
-  /* 8.4 3-Slice Donut Metric */
-  T["charts-donut"] = {
-    name: "Donut Traffic Split", cat: "charts", dark: true, accent: "#f59e0b",
-    desc: "3-slice 3D circular donut breakdown with colored legend pills and percentage tags",
-    css: '.sc-donut-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 40%,#181429 0%,#080612 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff;perspective:900px}'
-      + '.sc-donut-stage{position:relative;width:54cqw;height:54cqw;display:grid;place-items:center;transform-style:preserve-3d;transform:rotateX(18deg);animation:donutFloat 5s ease-in-out infinite alternate}'
-      + '.sc-donut-svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}'
-      + '.sc-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}'
-      + '.sc-donut-num{font-family:"Space Grotesk",sans-serif;font-size:9.5cqw;font-weight:900;line-height:1;color:#fff;text-shadow:0 0 20px rgba(245,158,11,.4)}'
-      + '.sc-donut-lbl{font-size:2.8cqw;letter-spacing:.2em;text-transform:uppercase;color:#94a3b8;margin-top:.4cqh}'
-      + '.sc-donut-legend{width:100%;display:flex;flex-direction:column;gap:1.5cqh;z-index:3}'
-      + '.sc-donut-pill{display:flex;justify-content:space-between;align-items:center;padding:1.8cqh 4cqw;border-radius:2.5cqw;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(16px);animation:donutPillPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-donut-p1{animation-delay:.05s}'
-      + '.sc-donut-p2{animation-delay:.15s}'
-      + '@keyframes donutFloat{0%{transform:rotateX(14deg)}100%{transform:rotateX(22deg) translateY(-1cqh)}}'
-      + '@keyframes donutPillPop{0%,12%{transform:scale(.92);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      var title = getP(o, "title", o.lines[0] || "Audience Breakdown");
-      var sub = getP(o, "sub", "Traffic Channels");
-      return '<div class="sc-donut-wrap">'
-        + '<div style="text-align:center"><div style="font-size:3cqw;letter-spacing:.25em;text-transform:uppercase;color:#94a3b8;font-weight:700">' + esc(sub) + '</div><div style="font-size:6.4cqw;font-weight:900;color:#fff;margin-top:.4cqh">' + esc(title) + '</div></div>'
-        + '<div class="sc-donut-stage">'
-        + '<svg class="sc-donut-svg" viewBox="0 0 140 140">'
-        + '<circle cx="70" cy="70" r="50" fill="none" stroke="#7952ff" stroke-width="20" stroke-dasharray="180 300" filter="drop-shadow(0 0 8px rgba(121,82,255,.6))"/>'
-        + '<circle cx="70" cy="70" r="50" fill="none" stroke="#38bdf8" stroke-width="20" stroke-dasharray="80 300" stroke-dashoffset="-180"/>'
-        + '<circle cx="70" cy="70" r="50" fill="none" stroke="#f59e0b" stroke-width="20" stroke-dasharray="40 300" stroke-dashoffset="-260"/>'
-        + '</svg>'
-        + '<div class="sc-donut-center"><div class="sc-donut-num">100%</div><div class="sc-donut-lbl">VERIFIED</div></div>'
-        + '</div>'
-        + '<div class="sc-donut-legend">'
-        + '<div class="sc-donut-pill sc-donut-p1"><span style="display:flex;align-items:center;gap:2cqw"><span style="width:3cqw;height:3cqw;border-radius:50%;background:#7952ff"></span><b>YouTube Shorts</b></span><b>60%</b></div>'
-        + '<div class="sc-donut-pill sc-donut-p2"><span style="display:flex;align-items:center;gap:2cqw"><span style="width:3cqw;height:3cqw;border-radius:50%;background:#38bdf8"></span><b>Instagram Reels</b></span><b>28%</b></div>'
-        + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 8.5 Area Sparkline Wave */
-  T["charts-area-wave"] = {
-    name: "Area Sparkline Wave", cat: "charts", dark: true, accent: "#8b5cf6",
-    desc: "Gradient-filled area wave chart undulating with glowing baseline and live peak badge",
-    css: '.sc-wave-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8cqh 7cqw;background:radial-gradient(ellipse at 50% 40%,#1a1033 0%,#080414 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-wave-head{display:flex;justify-content:space-between;align-items:flex-start}'
-      + '.sc-wave-title{font-size:7.2cqw;font-weight:900;letter-spacing:-.03em;color:#fff;line-height:1.15;text-shadow:0 0 25px rgba(139,92,246,.5)}'
-      + '.sc-wave-badge{padding:.8cqh 2.8cqw;border-radius:999px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4);color:#c4b5fd;font-size:3.6cqw;font-weight:800;white-space:nowrap}'
-      + '.sc-wave-box{position:relative;width:100%;height:38cqh;display:grid;place-items:center}'
-      + '.sc-wave-box svg{width:100%;height:100%;overflow:visible}'
-      + '.sc-wave-curve{fill:none;stroke:#8b5cf6;stroke-width:4;filter:drop-shadow(0 0 12px #8b5cf6);stroke-dasharray:500;stroke-dashoffset:500;animation:waveDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '@keyframes waveDraw{0%,12%{stroke-dashoffset:500}35%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:500}}',
-    html: function (o) {
-      return '<div class="sc-wave-wrap">'
-        + '<div class="sc-wave-head">'
-        + '<div class="sc-wave-title">' + esc(o.lines[0] || "User Engagement Surge") + '</div>'
-        + '<div class="sc-wave-badge">▲ +420%</div>'
-        + '</div>'
-        + '<div class="sc-wave-box">'
-        + '<svg viewBox="0 0 300 150">'
-        + '<defs><linearGradient id="awG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.6"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></linearGradient></defs>'
-        + '<path d="M0,150 L0,90 Q50,40 100,80 T200,50 T300,20 L300,150 Z" fill="url(#awG)"/>'
-        + '<path class="sc-wave-curve" d="M0,90 Q50,40 100,80 T200,50 T300,20"/>'
-        + '</svg>'
-        + '</div>'
-        + '<div style="display:flex;justify-content:space-between;font-size:3.2cqw;color:#94a3b8;border-top:1px solid rgba(255,255,255,.08);padding-top:1.5cqh"><span>WEEK 1</span><span>WEEK 2</span><span>PEAK VIRALITY</span></div>'
-        + '</div>';
-    }
-  };
-
-  /* 8.6 Big KPI Milestone */
-  T["charts-kpi-counter"] = {
-    name: "Big KPI Milestone", cat: "charts", dark: true, accent: "#ffffff",
-    desc: "Gigantic KPI metric counter spinning from zero to target number with particle glow",
-    css: '.sc-kpi-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw;background:radial-gradient(ellipse at 50% 50%,#18182b 0%,#090912 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-kpi-tag{font-family:"Space Grotesk",sans-serif;font-size:3.4cqw;letter-spacing:.3em;color:#94a3b8;text-transform:uppercase;margin-bottom:2cqh;font-weight:700}'
-      + '.sc-kpi-val{font-family:"Space Grotesk",sans-serif;font-size:18cqw;font-weight:900;letter-spacing:-.04em;line-height:.9;color:#fff;text-shadow:0 0 45px rgba(255,255,255,.6),0 10px 25px rgba(0,0,0,.8);animation:kpiPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-kpi-sub{font-size:4.8cqw;color:#38bdf8;font-weight:800;margin-top:2.5cqh;letter-spacing:.02em}'
-      + '@keyframes kpiPop{0%,12%{transform:scale(.85);opacity:0}24%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}',
-    html: function (o) {
-      var val = o.lines[0] || "$10,000,000";
-      /* 18cqw is sized for a short figure like "1.2M". The default copy is
-         eleven characters wide and ran 25px off both edges of a 9:16 frame, so
-         the headline number scales down once it stops fitting. 150 is the
-         usable width in cqw divided by this face's average advance. */
-      var fs = Math.min(18, 150 / Math.max(String(val).length, 1));
-      return '<div class="sc-kpi-wrap">'
-        + '<div class="sc-kpi-tag">ANNUAL RECORD MILESTONE</div>'
-        + '<div class="sc-kpi-val" style="font-size:' + fs.toFixed(2) + 'cqw">' + esc(val) + '</div>'
-        + '<div class="sc-kpi-sub">' + esc(o.lines[1] || "ARR in Record Time") + '</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
+  
+  
+  
   /* 8.7 Versus Battle Bars */
   T["charts-versus-bars"] = {
     name: "A/B Versus Battle", cat: "charts", dark: true, accent: "#ec4899",
@@ -5186,90 +3512,9 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 8.8 Apple 30s Activity Ring Timer */
-  T["charts-speedometer"] = {
-    name: "Apple 30s Activity Timer", cat: "charts", dark: true, accent: "#22c55e",
-    desc: "Apple Watch style activity ring timer drawing smooth circular progress with dynamic seconds countdown",
-    css: '.sc-ap-timer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center,#0c1a14 0%,#040806 70%,#000 100%);font-family:-apple-system,BlinkMacSystemFont,Inter,sans-serif;overflow:hidden}.sc-ap-ring-wrap{position:relative;width:64cqw;height:64cqw;display:grid;place-items:center}.sc-ap-svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}.sc-ap-track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:12}.sc-ap-bar{fill:none;stroke:url(#apGrad);stroke-width:12;stroke-linecap:round;stroke-dasharray:628;stroke-dashoffset:628;animation:apRing var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-ap-center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.sc-ap-sec{font-size:16cqw;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}.sc-ap-ms{font-size:6cqw;color:var(--ac);font-weight:700}.sc-ap-tag{display:inline-flex;align-items:center;gap:1.5cqw;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:1.5cqw 3.5cqw;border-radius:99px;font-size:3cqw;font-weight:700;margin-top:3cqh}.sc-ap-sub{font-size:3.6cqw;color:rgba(255,255,255,.6);margin-top:1.5cqh;font-weight:600}@keyframes apRing{0%,12%{stroke-dashoffset:628}35%,85%{stroke-dashoffset:120}100%{stroke-dashoffset:0}}',
-    html: function (o) {
-      var sec = getP(o, "sec", o.lines[0] || "00:30");
-      var tag = getP(o, "tag", o.lines[1] || "FOCUS SESSION");
-      var goal = getP(o, "goal", o.lines[2] || "500 KCAL BURN");
-      var ringColor = getP(o, "ringColor", "#22c55e");
-      return '<div class="sc-ap-timer">'
-        + '<div class="sc-ap-ring-wrap">'
-        + '<svg class="sc-ap-svg" viewBox="0 0 220 220">'
-        + '<defs><linearGradient id="apGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="' + esc(ringColor) + '"/></linearGradient></defs>'
-        + '<circle class="sc-ap-track" cx="110" cy="110" r="95"/>'
-        + '<circle class="sc-ap-bar" cx="110" cy="110" r="95"/>'
-        + '</svg>'
-        + '<div class="sc-ap-center">'
-        + '<div class="sc-ap-sec">' + esc(sec) + '</div>'
-        + '<div class="sc-ap-ms">.00</div>'
-        + '</div>'
-        + '</div>'
-        + '<div class="sc-ap-tag">⚡ ' + esc(tag) + '</div>'
-        + '<div class="sc-ap-sub">' + esc(goal) + '</div>'
-        + '</div>';
-    }
-  };
-
-  /* 8.9 Activity Matrix */
-  T["charts-activity-matrix"] = {
-    name: "Streak Activity Heatmap", cat: "charts", dark: true, accent: "#22c55e",
-    desc: "7x5 matrix of activity squares illuminating in sequential spring wave with glowing intensity",
-    css: '.sc-heat-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#092416 0%,#020b06 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-heat-head{text-align:center}'
-      + '.sc-heat-tag{font-size:3cqw;letter-spacing:.25em;text-transform:uppercase;color:#86efac;font-weight:700}'
-      + '.sc-heat-title{font-size:6.6cqw;font-weight:900;letter-spacing:-.03em;color:#fff;margin-top:.4cqh;text-shadow:0 0 25px rgba(34,197,94,.4)}'
-      + '.sc-heat-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2.5cqw;width:74cqw;padding:4cqw;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:4cqw;box-shadow:0 20px 50px rgba(0,0,0,.8)}'
-      + '.sc-heat-cell{width:8cqw;height:8cqw;border-radius:2cqw;background:rgba(255,255,255,.06);animation:cellGlow var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-heat-c1{background:#15803d;box-shadow:0 0 8px rgba(21,128,61,.5)}'
-      + '.sc-heat-c2{background:#22c55e;box-shadow:0 0 16px rgba(34,197,94,.7)}'
-      + '.sc-heat-c3{background:#4ade80;box-shadow:0 0 22px rgba(74,222,128,.9)}'
-      + '.sc-heat-badge{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35);padding:1cqh 4cqw;border-radius:999px;font-size:3.6cqw;font-weight:800;color:#86efac}'
-      + '@keyframes cellGlow{0%,15%{transform:scale(.8);opacity:.4}30%,85%{transform:scale(1);opacity:1}100%{transform:scale(.8);opacity:.4}}',
-    html: function (o) {
-      return '<div class="sc-heat-wrap">'
-        + '<div class="sc-heat-head">'
-        + '<div class="sc-heat-tag">CONSISTENCY SCORE</div>'
-        + '<div class="sc-heat-title">' + esc(o.lines[0] || "365-Day Daily Post Streak") + '</div>'
-        + '</div>'
-        + '<div class="sc-heat-grid">'
-        + '<div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c3"></div>'
-        + '<div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div>'
-        + '<div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c3"></div><div class="sc-heat-cell sc-heat-c1"></div><div class="sc-heat-cell sc-heat-c2"></div><div class="sc-heat-cell sc-heat-c3"></div>'
-        + '</div>'
-        + '<div class="sc-heat-badge">🔥 100% Top 1% Creator Retention</div>'
-        + '</div>';
-    }
-  };
-
-  /* 8.10 Conversion Funnel */
-  T["charts-funnel"] = {
-    name: "Conversion Funnel", cat: "charts", dark: true, accent: "#38bdf8",
-    desc: "3-tier customer conversion funnel with drop-off analytics and glowing neon tiers",
-    css: '.sc-funnel-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:7cqh 6cqw;background:radial-gradient(ellipse at 50% 50%,#091d36 0%,#020b17 100%);overflow:hidden;font-family:Inter,sans-serif;color:#fff}'
-      + '.sc-funnel-title{font-size:6.8cqw;font-weight:900;letter-spacing:-.03em;color:#fff;text-shadow:0 0 25px rgba(56,189,248,.4);text-align:center}'
-      + '.sc-funnel-stages{width:100%;display:flex;flex-direction:column;align-items:center;gap:1.8cqh}'
-      + '.sc-funnel-bar{border-radius:2.5cqw;padding:2.2cqh 4cqw;font-weight:800;font-size:3.8cqw;display:flex;justify-content:space-between;align-items:center;gap:2cqw;white-space:nowrap;box-shadow:0 15px 35px rgba(0,0,0,.7);animation:funnelPop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
-      + '.sc-funnel-b1{width:90%;background:linear-gradient(135deg,#38bdf8 0%,#0284c7 100%);color:#fff;box-shadow:0 0 25px rgba(56,189,248,.4);animation-delay:.05s}'
-      + '.sc-funnel-b2{width:70%;font-size:3.3cqw;background:linear-gradient(135deg,#7952ff 0%,#4338ca 100%);color:#fff;box-shadow:0 0 25px rgba(121,82,255,.4);animation-delay:.15s}'
-      + '.sc-funnel-b3{width:50%;font-size:2.7cqw;background:linear-gradient(135deg,#10b981 0%,#047857 100%);color:#fff;box-shadow:0 0 25px rgba(16,185,129,.4);animation-delay:.25s}'
-      + '@keyframes funnelPop{0%,12%{transform:scale(.9);opacity:0}25%{transform:scale(1);opacity:1}45%{transform:scale(1.012);opacity:1}65%{transform:scale(.996);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
-    html: function (o) {
-      return '<div class="sc-funnel-wrap">'
-        + '<h3 class="sc-funnel-title">' + esc(o.lines[0] || "Audience Conversion") + '</h3>'
-        + '<div class="sc-funnel-stages">'
-        + '<div class="sc-funnel-bar sc-funnel-b1"><span>1. Impressions</span><b>1,000,000</b></div>'
-        + '<div class="sc-funnel-bar sc-funnel-b2"><span>2. Clicks (42%)</span><b>420,000</b></div>'
-        + '<div class="sc-funnel-bar sc-funnel-b3"><span>3. Converts (18%)</span><b>180,000</b></div>'
-        + '</div>'
-        + '<div style="font-size:3.4cqw;color:#94a3b8;font-family:monospace">ROI // 18X REVENUE MULTIPLIER</div>'
-        + '</div>';
-    }
-  };
-
+  
+  
+  
   /* ── Demo Strings (Tailored for Video Creators) ───────── */
   var DEMO = {
     "blank":                  ["Blank Canvas", "Choose a template or generate with AI.", ""],
@@ -5375,99 +3620,6 @@ window.SC_TPL2 = (function () {
     "social-poll":            ["Which style gets more retention?", "", ""],
     "social-share":           ["Share Video", "", ""],
     "social-live":            ["Editing Masterclass", "64,200 viewers", ""],
-
-    // Charts
-    "charts-bar-race":        ["300% Growth Surge", "", ""],
-    "charts-ring":            ["83% Retention", "", ""],
-    "charts-stock-trend":     ["REVENUE METRIC", "$148,290", ""],
-    "charts-donut":           ["Audience Breakdown", "", ""],
-    "charts-area-wave":       ["User Engagement Surge", "", ""],
-    "charts-kpi-counter":     ["$10,000,000", "ARR in record time", ""],
-    "charts-versus-bars":     ["Shorts vs Long Form", "", ""],
-    "charts-speedometer":     ["00:30", "FOCUS SESSION", "500 KCAL BURN"],
-    "charts-activity-matrix": ["365-Day Daily Post Streak", "", ""],
-    "charts-funnel":          ["Audience Conversion", "", ""]
-  };
-
-  var FIELDS = {
-    "blank":                  ["Title", "Subtitle", ""],
-    "docu-confidential":      ["Header Tag", "Stamp Word", ""],
-    "docu-red-string":        ["Card 1 Label", "Card 2 Label", ""],
-    "docu-highlighter":       ["Highlighted Text", "Source Note", ""],
-    "docu-redacted":          ["Blackout Name 1", "Blackout Name 2", "File Reference"],
-    "docu-polaroid-pin":      ["Handwritten Caption", "", ""],
-    "docu-magnifying":        ["Sticky Note Label", "Target Subtitle", "Main Clue Heading"],
-    "docu-newspaper":         ["Chapter Kicker", "Monarch Title", "Subtitle"],
-    "docu-microfilm":         ["Archive Heading", "Status", ""],
-    "docu-timeline":          ["Year", "Historical Event", "Description"],
-    "docu-folder":            ["Archive Tag", "Sculpture Title", "Subtitle"],
-
-    "paper-torn-rip":         ["Paper Top Tag", "Main Torn Heading", ""],
-    "paper-tape-strip":       ["Note Heading", "Body Text", ""],
-    "paper-sticker":          ["Badge Text", "", ""],
-    "paper-notebook":         ["Rule Title", "Note Text", ""],
-    "paper-postit":           ["Top Note", "Main Post-It Text", ""],
-    "paper-cardboard":        ["Stencil Text", "Handling Note", ""],
-    "paper-binder":           ["Card Title", "Card Subtitle", ""],
-    "paper-receipt":          ["Receipt Header", "", ""],
-    "paper-double-pol":       ["Title", "", ""],
-    "paper-collage":          ["Hook Word", "Caption", ""],
-
-    "text-highlight-box":     ["Kicker", "Highlighted Phrase", ""],
-    "text-scribble":          ["Pre-heading", "Main Hook", ""],
-    "text-word-punch":        ["Tag", "Punch Word", "Subtitle"],
-    "text-subtitle-pill":     ["Active Word", "", ""],
-    "text-cascade":           ["Top line", "Big word", "Bottom line"],
-    "text-terminal":          ["Command", "Output", ""],
-    "text-glitch":            ["Pill 1", "Pill 2 (Invert)", "Pill 3"],
-    "text-editorial":         ["Top Kicker Tag", "Main Editorial Title", "Accent Subtitle"],
-    "text-skew":              ["Main Brand Title", "Tagline / Subtitle", ""],
-    "text-split":             ["Terminal Prompt", "Logo Brand Title", ""],
-
-    "maps-gps-pin":           ["City / Target", "Coordinates", "Status Subtitle"],
-    "maps-flight-path":       ["Origin IATA", "Destination IATA", "Flight Info"],
-    "maps-radar-sweep":       ["Threat Status", "Target Telemetry", ""],
-    "maps-border":            ["Territory Name", "Area / Buffer Detail", ""],
-    "maps-satellite":         ["Lock Status", "Coordinates", ""],
-    "maps-route":             ["Turn Instruction", "Duration", "Distance Info"],
-    "maps-compass":           ["Azimuth Heading", "Alignment Info", ""],
-    "maps-transit":           ["Next Station", "Transfer Info", ""],
-    "maps-topo":              ["Summit Peak Name", "Elevation Data", ""],
-    "maps-trade-route":       ["Chokepoint / Strait", "Trade Volume", ""],
-
-    "money-candlestick":      ["Ticker", "Market Cap", ""],
-    "money-cash-stack":       ["Amount", "Label", ""],
-    "money-titanium-card":    ["Brand Header", "Stat Percentage", "Subtext"],
-    "money-crypto-surge":     ["Coin Price", "Growth Percentage", ""],
-    "money-gold-vault":       ["Bullion Weight", "Vault Label", ""],
-    "money-burn":             ["Burn Amount", "Metric Name", ""],
-    "money-receipt":          ["Invoice Header", "", ""],
-    "money-wallet-unlock":    ["Net Worth", "Status", ""],
-    "money-sale-slash":       ["Old Price", "New Price", "Badge Label"],
-    "money-atm":              ["Bill Amount", "Payout Note", ""],
-
-    "ui-ios-notify":          ["App Name", "Notification Body", ""],
-    "ui-safari-scroll":       ["Website Title", "", ""],
-    "ui-google-search":       ["Search Query", "", ""],
-    "ui-imessage":            ["Incoming Message", "Outgoing Reply", ""],
-    "ui-toggle":              ["Toggle Status", "", ""],
-    "ui-range-slider":        ["Quality Label", "", ""],
-    "ui-slider":              ["Main Heading", "Sub-headline", ""],
-    "ui-phone-mockup":        ["Brand Title", "", ""],
-    "ui-tabs":                ["Header Title", "App 1 Status", ""],
-    "ui-otp":                 ["Security Status", "", ""],
-    "ui-store-badges":        ["Rating Text", "", ""],
-
-    "social-tweet-card":      ["Profile Name", "Tweet Content", ""],
-    "social-like-burst":      ["Like Count", "", ""],
-    "social-sub-bell":        ["Subscribe CTA", "", ""],
-    "social-comment-stream":  ["Comment 1", "Comment 2", ""],
-    "social-views-counter":   ["Song Title", "Artist / Album", ""],
-    "social-story-progress":  ["Username", "Story Title", ""],
-    "social-verified-badge":  ["Profile Handle", "Bio Description", ""],
-    "social-poll":            ["Poll Question", "", ""],
-    "social-share":           ["Share Title", "", ""],
-    "social-live":            ["Stream Title", "Viewer Count", ""],
 
     // Charts
     "charts-bar-race":        ["300% Growth Surge", "", ""],

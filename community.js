@@ -22,6 +22,17 @@ function loadValidTplIds() {
 }
 const VALID_TPL_IDS = loadValidTplIds();
 
+function parseLines(val) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+  }
+  return [];
+}
+
 function toTemplate(row) {
   return {
     id: row.id,
@@ -29,7 +40,7 @@ function toTemplate(row) {
     description: row.description,
     category: row.category,
     tpl: row.tpl,
-    lines: Array.isArray(row.lines) ? row.lines : [],
+    lines: parseLines(row.lines),
     accent: row.accent,
     font: row.font,
     dur: row.dur,
