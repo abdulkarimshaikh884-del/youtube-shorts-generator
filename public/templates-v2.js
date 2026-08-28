@@ -3010,7 +3010,7 @@ window.SC_TPL2 = (function () {
       + '@keyframes subBtnTransform{0%,16%{transform:scale(.85);opacity:0}28%{transform:scale(1.08);background:#ff0000;box-shadow:0 0 40px rgba(255,0,0,.8)}45%{transform:scale(1);background:#27272a;box-shadow:0 4px 18px rgba(0,0,0,.6)}65%{transform:scale(1.04);background:#27272a;box-shadow:0 6px 24px rgba(255,0,0,.4)}85%{transform:scale(1);background:#27272a;box-shadow:0 4px 18px rgba(0,0,0,.6)}100%{transform:scale(.95);opacity:0}}'
       + '@keyframes bellRinging{0%,100%{transform:rotate(0)}20%{transform:rotate(-18deg)}40%{transform:rotate(18deg)}60%{transform:rotate(-12deg)}80%{transform:rotate(12deg)}}',
     html: function (o) {
-      var cta = getP(o, "cta", o.lines[0] || "Join 500,000+ Creators");
+      var cta = getP(o, "cta", o.lines[0] || "Subscribe for Daily Shorts");
       var btnText = getP(o, "btnText", "Subscribe");
       var avatar = getP(o, "avatar", "▶");
       return '<div class="sc-sub-wrap">'
@@ -3643,12 +3643,12 @@ window.SC_TPL2 = (function () {
     "ui-phone-mockup":        ["ShortsCraft", "", ""],
     "ui-tabs":                ["ShortsCraft Apps", "Calendar · 2 upcoming events", ""],
     "ui-otp":                 ["Security Code Verified", "", ""],
-    "ui-store-badges":        ["5.0 Rated by 100K+ Creators", "", ""],
+    "ui-store-badges":        ["App Store & Google Play", "", ""],
 
     // Social
     "social-tweet-card":      ["Creator Insights", "The top 1% of creators use motion graphics to double their retention.", ""],
     "social-like-burst":      ["1,248,000", "", ""],
-    "social-sub-bell":        ["Join 500,000+ Creators", "", ""],
+    "social-sub-bell":        ["Subscribe for Daily Shorts", "", ""],
     "social-comment-stream":  ["How did you animate this?! 🔥", "ShortsCraft AI is insane! 🚀", ""],
     "social-views-counter":   ["Synthetic Dreams", "Echo Labs · Side A", ""],
     "social-story-progress":  ["shortscraft.ai", "Behind The Viral Edit", ""],
@@ -4186,7 +4186,7 @@ window.SC_TPL2 = (function () {
         "key": "cta",
         "label": "Channel CTA Heading",
         "type": "text",
-        "default": "Join 500,000+ Creators"
+        "default": "Subscribe for Daily Shorts"
       },
       {
         "key": "btnText",
@@ -4202,7 +4202,7 @@ window.SC_TPL2 = (function () {
       }
     ],
     "defaults": {
-      "cta": "Join 500,000+ Creators",
+      "cta": "Subscribe for Daily Shorts",
       "btnText": "Subscribe",
       "avatar": "▶"
     }

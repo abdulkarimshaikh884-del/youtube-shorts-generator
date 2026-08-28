@@ -20,23 +20,13 @@
   var currentAuthor = null;
 
   function getAuthor(t) {
-    if (t.isCommunity && t.authorHandle) {
+    if (t && t.isCommunity && t.authorHandle) {
       var name = t.authorName || t.authorHandle;
       var handle = t.authorHandle.replace(/^@/, "");
       var initials = handle.slice(0, 2).toUpperCase();
-      return { name: name, handle: "@" + handle, initials: initials };
+      return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft." };
     }
-    var catMap = {
-      docu: { name: "Crime Stories", handle: "@crimedocu", initials: "CD", bio: "Creating high-retention dark documentary hooks, investigation evidence boards, and true crime storytelling templates for YouTube Shorts." },
-      paper: { name: "Aman Motion FX", handle: "@aman_fx", initials: "AF", bio: "Procedural paper craft, cutting mat collage textures, deckle edges and viral kinetic transitions." },
-      ui: { name: "Sarah Creative", handle: "@sarah_motion", initials: "SC", bio: "Clean 3D UI toggles, iOS notifications, Google search widgets, and modern device mockups." },
-      social: { name: "Vikram Shorts", handle: "@vikram_creations", initials: "VS", bio: "Viral social counter animations, live views tickers, subscriber milestones, and engagement overlays." },
-      charts: { name: "Kabir Motion", handle: "@kabir_motion", initials: "KM", bio: "Cyberpunk neon rings, data visualizations, circular progress meters and futuristic HUD graphics." },
-      money: { name: "Finance Pulse", handle: "@finance_pulse", initials: "FP", bio: "Titanium cards, market candlestick charts, crypto surges, and luxury finance motion graphics." },
-      text: { name: "Kinetic Studio", handle: "@typography_pro", initials: "KS", bio: "High-impact kinetic text, word-by-word cascades, 3D typography and punchy dialogue animations." },
-      maps: { name: "Geo Explorer", handle: "@geo_explorer", initials: "GE", bio: "Tactical map route animations, radar pulses, satellite coordinates and geo-location documentary graphics." }
-    };
-    return catMap[t.cat] || { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC", bio: "Official curated ShortsCraft animation library presets for viral YouTube Shorts and Reels." };
+    return { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC", bio: "Official ShortsCraft motion graphics library preset." };
   }
 
   function mountStage(t) {
@@ -90,7 +80,7 @@
         cat: found.cat,
         dur: 4600,
         isCommunity: false,
-        likes: 420
+        likes: 0
       };
       renderDetails();
     } else {
@@ -113,7 +103,7 @@
               isCommunity: true,
               authorHandle: cFound.authorHandle || "creator",
               authorName: cFound.authorName || "Creator",
-              likes: cFound.likes || 45
+              likes: Number(cFound.likes || 0)
             };
           } else {
             // fallback
@@ -124,7 +114,7 @@
               cat: "docu",
               dur: 4600,
               isCommunity: false,
-              likes: 120
+              likes: 0
             };
           }
           renderDetails();
@@ -137,7 +127,7 @@
             cat: "docu",
             dur: 4600,
             isCommunity: false,
-            likes: 120
+            likes: 0
           };
           renderDetails();
         });

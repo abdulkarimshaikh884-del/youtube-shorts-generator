@@ -1736,17 +1736,17 @@ const templatePage = {
           </div>
 
           <a href="/creator" class="sh-m-creator" id="detailCreatorCard">
-            <div class="sh-m-c-av td-creator-avatar">CD</div>
+            <div class="sh-m-c-av td-creator-avatar">SC</div>
             <div class="sh-m-c-info">
-              <span class="sh-m-c-name td-creator-name">Crime Stories</span>
-              <span class="sh-m-c-handle td-creator-handle">@crimedocu</span>
-              <span class="sh-m-c-bio td-creator-bio">Creating high-retention true crime and investigation templates.</span>
+              <span class="sh-m-c-name td-creator-name">ShortsCraft Studio</span>
+              <span class="sh-m-c-handle td-creator-handle">@shortscraft</span>
+              <span class="sh-m-c-bio td-creator-bio">Official curated ShortsCraft animation library presets.</span>
             </div>
             <span style="color:var(--sh-ink3);font-size:16px;font-weight:700;">→</span>
           </a>
 
           <div class="sh-m-comments" id="comments">
-            <h2 class="sh-m-comm-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink3);font-size:13px;">(3)</span></h2>
+            <h2 class="sh-m-comm-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink3);font-size:13px;"></span></h2>
             <form class="sh-m-comm-form" id="commentForm">
               <textarea class="sh-m-comm-input" id="commentInput" placeholder="Write a comment or question about this template..." required></textarea>
               <button type="submit" class="sh-m-comm-btn">Post Comment</button>
@@ -1787,11 +1787,10 @@ const creatorPage = {
           <div class="cp-info">
             <h1 id="creatorName">Creator Name</h1>
             <span class="cp-handle" id="creatorHandle">@creator</span>
-            <p class="cp-bio" id="creatorBio">Motion graphics designer creating templates for YouTube Shorts and Instagram Reels on ShortsCraft.</p>
+            <p class="cp-bio" id="creatorBio">Motion graphics creator on ShortsCraft.</p>
             <div class="cp-stats">
-              <span class="cp-stat"><b id="creatorTplCount">8</b> Templates</span>
-              <span class="cp-stat"><b id="creatorLikes">24.5k</b> Total Likes</span>
-              <span class="cp-stat"><b id="creatorFollowers">8.2k</b> Followers</span>
+              <span class="cp-stat"><b id="creatorTplCount">0</b> Templates</span>
+              <span class="cp-stat"><b id="creatorLikes">0</b> Total Likes</span>
             </div>
           </div>
         </section>

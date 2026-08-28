@@ -52,10 +52,8 @@
           name: handle.charAt(0).toUpperCase() + handle.slice(1),
           handle: "@" + handle,
           initials: handle.slice(0, 2).toUpperCase(),
-          bio: "Motion graphics designer creating templates for ShortsCraft.",
-          followers: "5.2k",
-          likes: "14.8k",
-          cat: "docu"
+          bio: "Motion graphics creator on ShortsCraft.",
+          cat: "all"
         }, []);
       });
   }
@@ -75,29 +73,22 @@
     var bi = $("#creatorBio");
     if (bi) bi.textContent = c.bio;
 
-    var lk = $("#creatorLikes");
-    if (lk) lk.textContent = c.likes || "24.5k";
-
-    var fl = $("#creatorFollowers");
-    if (fl) fl.textContent = c.followers || "8.2k";
-
     // Gather all templates associated with this creator
     var e = window.SC_TPL2;
     var allTpls = [];
 
-    if (e) {
-      var catTemplates = e.list().filter(function (t) {
-        return c.cat === "all" || t.cat === c.cat;
-      });
-      allTpls = catTemplates.map(function (t, idx) {
-        return {
-          tpl: t.id,
-          name: t.name,
-          desc: t.desc,
-          cat: t.cat,
-          likes: Math.max(25, 120 - idx * 5)
-        };
-      });
+    if (handle === "shortscraft" || !handle) {
+      if (e) {
+        allTpls = e.list().map(function (t) {
+          return {
+            tpl: t.id,
+            name: t.name,
+            desc: t.desc,
+            cat: t.cat,
+            likes: 0
+          };
+        });
+      }
     }
 
     commTpls.forEach(function (ct) {
@@ -106,11 +97,15 @@
         name: ct.title || "Community Template",
         desc: ct.description || "Custom creator design",
         cat: ct.category || "text",
-        likes: ct.likes || 42,
+        likes: Number(ct.likes || 0),
         isComm: true,
         commId: ct.id
       });
     });
+
+    var totalLikes = allTpls.reduce(function (sum, t) { return sum + (Number(t.likes) || 0); }, 0);
+    var lk = $("#creatorLikes");
+    if (lk) lk.textContent = String(totalLikes);
 
     var countEl = $("#creatorTplCount");
     if (countEl) countEl.textContent = String(allTpls.length);

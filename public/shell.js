@@ -18,23 +18,13 @@
   function engine() { return window.SC_TPL2; }
 
   function getAuthor(t) {
-    if (t.isCommunity && t.authorHandle) {
+    if (t && t.isCommunity && t.authorHandle) {
       var name = t.authorName || t.authorHandle;
       var handle = t.authorHandle.replace(/^@/, "");
       var initials = handle.slice(0, 2).toUpperCase();
       return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft." };
     }
-    var catMap = {
-      docu: { name: "Crime Stories", handle: "@crimedocu", initials: "CD", bio: "Creating high-retention dark documentary hooks, investigation evidence boards, and true crime storytelling templates for YouTube Shorts." },
-      paper: { name: "Aman Motion FX", handle: "@aman_fx", initials: "AF", bio: "Procedural paper craft, cutting mat collage textures, deckle edges and viral kinetic transitions." },
-      ui: { name: "Sarah Creative", handle: "@sarah_motion", initials: "SC", bio: "Clean 3D UI toggles, iOS notifications, Google search widgets, and modern device mockups." },
-      social: { name: "Vikram Shorts", handle: "@vikram_creations", initials: "VS", bio: "Viral social counter animations, live views tickers, subscriber milestones, and engagement overlays." },
-      charts: { name: "Kabir Motion", handle: "@kabir_motion", initials: "KM", bio: "Cyberpunk neon rings, data visualizations, circular progress meters and futuristic HUD graphics." },
-      money: { name: "Finance Pulse", handle: "@finance_pulse", initials: "FP", bio: "Titanium cards, market candlestick charts, crypto surges, and luxury finance motion graphics." },
-      text: { name: "Kinetic Studio", handle: "@typography_pro", initials: "KS", bio: "High-impact kinetic text, word-by-word cascades, 3D typography and punchy dialogue animations." },
-      maps: { name: "Geo Explorer", handle: "@geo_explorer", initials: "GE", bio: "Tactical map route animations, radar pulses, satellite coordinates and geo-location documentary graphics." }
-    };
-    return catMap[t.cat] || { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC", bio: "Official curated ShortsCraft animation library presets for viral YouTube Shorts and Reels." };
+    return { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC", bio: "Official ShortsCraft motion graphics library preset." };
   }
 
   /* ── Modal Dialog Logic (Compact Centered Size) ────────── */
@@ -386,7 +376,7 @@
         seenIds[tplId] = true;
       });
 
-      // 2. Built-in 80+ Templates
+      // 2. Built-in Templates
       e.list().forEach(function (t, idx) {
         allItems.push({
           id: t.id,
@@ -395,9 +385,9 @@
           desc: t.desc,
           cat: t.cat,
           isCommunity: false,
-          likes: Math.max(18, 95 - idx),
-          downloads: Math.max(30, 180 - (idx * 2)),
-          score: (Math.max(18, 95 - idx) * 10) + (Math.max(30, 180 - (idx * 2)) * 5)
+          likes: 0,
+          downloads: 0,
+          score: 1000 - idx
         });
       });
 
@@ -562,14 +552,15 @@
         likeBtn.type = "button";
         likeBtn.className = "sh-tact-btn like";
         likeBtn.title = "Like template";
-        likeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="sh-like-count">' + t.likes + '</span>';
+        var likeText = t.likes > 0 ? String(t.likes) : "Like";
+        likeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="sh-like-count">' + likeText + '</span>';
         likeBtn.addEventListener("click", function (ev) {
           ev.preventDefault();
           ev.stopPropagation();
           if (likeBtn.dataset.liked === "1") return;
           likeBtn.dataset.liked = "1";
           likeBtn.classList.add("liked");
-          t.likes++;
+          t.likes = (t.likes || 0) + 1;
           var sp = likeBtn.querySelector(".sh-like-count");
           if (sp) sp.textContent = String(t.likes);
 
@@ -583,7 +574,7 @@
         commentBtn.className = "sh-tact-btn comment";
         commentBtn.href = detailUrl + "#comments";
         commentBtn.title = "View comments & discussions";
-        commentBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>' + Math.max(2, Math.floor(t.likes / 6)) + '</span>';
+        commentBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Comment</span>';
         commentBtn.addEventListener("click", function (ev) {
           ev.preventDefault();
           openTemplateModal(t);
