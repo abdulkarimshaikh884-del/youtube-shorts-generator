@@ -1187,6 +1187,24 @@
     }
 
     function openModal() {
+      if (!currentUser) {
+        if (window.SC_UI && typeof window.SC_UI.confirm === "function") {
+          SC_UI.confirm({
+            title: "Log in to Upload & Publish",
+            body: "You must be signed in with an account to upload and publish templates to the Community Gallery. Accounts are free and include daily credits!",
+            confirmLabel: "Log In / Sign Up",
+            cancelLabel: "Maybe later"
+          }).then(function (yes) {
+            if (yes) {
+              location.href = "/login?next=" + encodeURIComponent(location.pathname);
+            }
+          });
+        } else {
+          location.href = "/login?next=" + encodeURIComponent(location.pathname);
+        }
+        return;
+      }
+
       if (!inputTitle.value) {
         inputTitle.value = "Kinetic Hook Highlight";
         inputLine1.value = "FIRST 3 SECONDS";

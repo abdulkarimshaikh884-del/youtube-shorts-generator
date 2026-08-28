@@ -1859,16 +1859,46 @@
     if (!modal || !openBtn || !form) return;
 
     openBtn.addEventListener("click", function () {
-      var c = cur();
-      var tName = c.spec ? c.spec.name : (meta[c.tpl] ? meta[c.tpl].name : "Custom");
-      var tCat = meta[c.tpl] ? meta[c.tpl].cat : "text";
-      var tDesc = meta[c.tpl] ? meta[c.tpl].desc : "";
+      fetch("/api/credits", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (cred) {
+          if (!cred || !cred.signedIn) {
+            if (window.SC_UI && typeof window.SC_UI.confirm === "function") {
+              SC_UI.confirm({
+                title: "Log in to Publish Template",
+                body: "You must be signed in with an account to publish your custom animations to the Community Gallery.",
+                confirmLabel: "Log In / Sign Up",
+                cancelLabel: "Maybe later"
+              }).then(function (yes) {
+                if (yes) {
+                  location.href = "/login?next=" + encodeURIComponent(location.pathname + location.search);
+                }
+              });
+            } else {
+              if (confirm("You must be logged in to publish templates. Go to login page?")) {
+                location.href = "/login?next=" + encodeURIComponent(location.pathname + location.search);
+              }
+            }
+            return;
+          }
 
-      $("#pubTitle").value = tName + " Custom";
-      $("#pubCategory").value = tCat;
-      $("#pubDesc").value = tDesc;
-      if (msg) { msg.textContent = ""; msg.className = "ed-modal-msg"; }
-      modal.hidden = false;
+          var c = cur();
+          var tName = c.spec ? c.spec.name : (meta[c.tpl] ? meta[c.tpl].name : "Custom");
+          var tCat = meta[c.tpl] ? meta[c.tpl].cat : "text";
+          var tDesc = meta[c.tpl] ? meta[c.tpl].desc : "";
+
+          $("#pubTitle").value = tName + " Custom";
+          $("#pubCategory").value = tCat;
+          $("#pubDesc").value = tDesc;
+          if (cred.email) {
+            $("#pubAuthor").value = cred.email.split("@")[0];
+          }
+          if (msg) { msg.textContent = ""; msg.className = "ed-modal-msg"; }
+          modal.hidden = false;
+        })
+        .catch(function () {
+          modal.hidden = false;
+        });
     });
 
     function close() { modal.hidden = true; }

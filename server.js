@@ -310,6 +310,9 @@ app.delete("/api/user/creations/:id", async (req, res) => {
 
 app.post("/api/community-templates", express.json(), async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, error: "You must be logged in to upload or publish templates." });
+    }
     const result = await community.publish(req.body, req.user);
     if (result.error) return res.status(400).json({ success: false, error: result.error });
     res.json(result);
