@@ -141,6 +141,15 @@ async function like(id) {
   return { success: true, likes: rows[0].likes };
 }
 
+async function unlike(id) {
+  const { rows } = await db.query(
+    `update public.community_templates set likes = greatest(0, likes - 1) where id = $1 returning likes`,
+    [id]
+  );
+  if (!rows[0]) return { error: "Template not found" };
+  return { success: true, likes: rows[0].likes };
+}
+
 async function listByAuthor(userId, userHandle) {
   if (userId) {
     const { rows } = await db.query(

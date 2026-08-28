@@ -914,11 +914,17 @@ const community = {
         ev.preventDefault();
         ev.stopPropagation();
         var id = btn.dataset.id;
-        fetch("/api/community-templates/" + id + "/like", { method: "POST" })
+        var isLiked = btn.classList.contains("liked");
+        var endpoint = isLiked ? "/api/community-templates/" + id + "/unlike" : "/api/community-templates/" + id + "/like";
+        fetch(endpoint, { method: "POST" })
           .then(function(r) { return r.json(); })
           .then(function(res) {
             if (res && res.success) {
-              btn.classList.add("liked");
+              if (isLiked) {
+                btn.classList.remove("liked");
+              } else {
+                btn.classList.add("liked");
+              }
               btn.querySelector("span").textContent = res.likes;
             }
           });

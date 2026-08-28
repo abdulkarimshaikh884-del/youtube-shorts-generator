@@ -344,6 +344,17 @@ app.post("/api/community-templates/:id/like", async (req, res) => {
   }
 });
 
+app.post("/api/community-templates/:id/unlike", async (req, res) => {
+  try {
+    const result = await community.unlike(req.params.id);
+    if (result.error) return res.status(404).json({ success: false, error: result.error });
+    res.json(result);
+  } catch (err) {
+    console.error("[POST /api/community-templates/:id/unlike]", err.message);
+    res.status(500).json({ success: false, error: "Could not unlike that template." });
+  }
+});
+
 // AI Video-to-Template ("deconstruct a video into a template") is not a real
 // feature yet - it had no analysis behind it and its ffprobe path took a raw
 // client-supplied file path into a shell command (command injection). Removed

@@ -191,13 +191,23 @@
       if (lCount) lCount.textContent = String(currentTpl.likes);
 
       likeBtn.addEventListener("click", function () {
-        if (likeBtn.dataset.liked === "1") return;
-        likeBtn.dataset.liked = "1";
-        likeBtn.classList.add("liked");
-        currentTpl.likes++;
-        if (lCount) lCount.textContent = String(currentTpl.likes);
-        if (commId) {
-          fetch("/api/community-templates/" + encodeURIComponent(commId) + "/like", { method: "POST" }).catch(function () {});
+        var isLiked = likeBtn.classList.contains("liked");
+        if (isLiked) {
+          likeBtn.classList.remove("liked");
+          likeBtn.dataset.liked = "0";
+          currentTpl.likes = Math.max(0, (currentTpl.likes || 0) - 1);
+          if (lCount) lCount.textContent = String(currentTpl.likes);
+          if (commId) {
+            fetch("/api/community-templates/" + encodeURIComponent(commId) + "/unlike", { method: "POST" }).catch(function () {});
+          }
+        } else {
+          likeBtn.classList.add("liked");
+          likeBtn.dataset.liked = "1";
+          currentTpl.likes = (currentTpl.likes || 0) + 1;
+          if (lCount) lCount.textContent = String(currentTpl.likes);
+          if (commId) {
+            fetch("/api/community-templates/" + encodeURIComponent(commId) + "/like", { method: "POST" }).catch(function () {});
+          }
         }
       });
     }

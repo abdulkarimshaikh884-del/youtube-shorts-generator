@@ -141,6 +141,29 @@
       openTemplateModal(t);
     };
 
+    // Wire Like Button
+    var mLikeBtn = $("#modalLikeBtn");
+    if (mLikeBtn) {
+      mLikeBtn.onclick = function () {
+        var isLiked = mLikeBtn.classList.contains("liked");
+        if (isLiked) {
+          mLikeBtn.classList.remove("liked");
+          t.likes = Math.max(0, (t.likes || 0) - 1);
+          if (t.commId) {
+            fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/unlike", { method: "POST" }).catch(function () {});
+          }
+        } else {
+          mLikeBtn.classList.add("liked");
+          t.likes = (t.likes || 0) + 1;
+          if (t.commId) {
+            fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/like", { method: "POST" }).catch(function () {});
+          }
+        }
+        var lkSpan = modal.querySelector(".sh-m-like-num");
+        if (lkSpan) lkSpan.textContent = String(t.likes);
+      };
+    }
+
     // Wire Share
     $("#modalShareBtn").onclick = function () {
       var url = window.location.origin + "/template?id=" + encodeURIComponent(t.tpl);
@@ -557,15 +580,25 @@
         likeBtn.addEventListener("click", function (ev) {
           ev.preventDefault();
           ev.stopPropagation();
-          if (likeBtn.dataset.liked === "1") return;
-          likeBtn.dataset.liked = "1";
-          likeBtn.classList.add("liked");
-          t.likes = (t.likes || 0) + 1;
-          var sp = likeBtn.querySelector(".sh-like-count");
-          if (sp) sp.textContent = String(t.likes);
-
-          if (t.commId) {
-            fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/like", { method: "POST" }).catch(function () {});
+          var isLiked = likeBtn.classList.contains("liked");
+          if (isLiked) {
+            likeBtn.classList.remove("liked");
+            likeBtn.dataset.liked = "0";
+            t.likes = Math.max(0, (t.likes || 0) - 1);
+            var sp = likeBtn.querySelector(".sh-like-count");
+            if (sp) sp.textContent = t.likes > 0 ? String(t.likes) : "Like";
+            if (t.commId) {
+              fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/unlike", { method: "POST" }).catch(function () {});
+            }
+          } else {
+            likeBtn.classList.add("liked");
+            likeBtn.dataset.liked = "1";
+            t.likes = (t.likes || 0) + 1;
+            var sp = likeBtn.querySelector(".sh-like-count");
+            if (sp) sp.textContent = String(t.likes);
+            if (t.commId) {
+              fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/like", { method: "POST" }).catch(function () {});
+            }
           }
         });
 
