@@ -2630,17 +2630,21 @@ window.SC_TPL2 = (function () {
       + '.sc-safari-title{font-size:7.2cqw;font-weight:900;color:#fff;letter-spacing:-.03em;line-height:1.15}'
       + '@keyframes safariFloat{0%{transform:rotateX(10deg) rotateY(-6deg)}100%{transform:rotateX(15deg) rotateY(-10deg) translateY(-1.5cqh)}}',
     html: function (o) {
+      var url = getP(o, "url", "https://shortscraft.online");
+      var title = getP(o, "title", o.lines[0] || "AI Motion Graphics Studio");
+      var subtitle = getP(o, "subtitle", o.lines[1] || "Create Viral Animations in 60s");
+      var subColor = getP(o, "subColor", "#38bdf8");
       return '<div class="sc-safari-wrap">'
         + '<div class="sc-safari-win">'
         + '<div class="sc-safari-top">'
         + '<div class="sc-safari-dot" style="background:#ef4444"></div>'
         + '<div class="sc-safari-dot" style="background:#f59e0b"></div>'
         + '<div class="sc-safari-dot" style="background:#10b981"></div>'
-        + '<div style="flex:1;background:#111827;border-radius:99px;font-size:2.6cqw;color:var(--dim);text-align:center;padding:1cqw;border:1px solid rgba(255,255,255,.08)">https://shortscraft.online</div>'
+        + '<div style="flex:1;background:#111827;border-radius:99px;font-size:2.6cqw;color:var(--dim);text-align:center;padding:1cqw;border:1px solid rgba(255,255,255,.08)">' + esc(url) + '</div>'
         + '</div>'
         + '<div class="sc-safari-body">'
-        + '<div class="sc-safari-title">' + esc(o.lines[0] || "AI Motion Graphics Studio") + '</div>'
-        + '<div style="font-size:3.6cqw;color:#38bdf8;font-weight:700;margin-top:1.5cqh">' + esc(o.lines[1] || "Create Viral Animations in 60s") + '</div>'
+        + '<div class="sc-safari-title">' + esc(title) + '</div>'
+        + '<div style="font-size:3.6cqw;color:' + esc(subColor) + ';font-weight:700;margin-top:1.5cqh">' + esc(subtitle) + '</div>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -2653,7 +2657,9 @@ window.SC_TPL2 = (function () {
     desc: "Google search bar typing query with instant autocomplete dropdown",
     css: '.ui-sch{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:8cqw;background:#ffffff;color:#202124}.ui-sch .bar{display:flex;align-items:center;gap:3cqw;border:1px solid #dfe1e5;border-radius:99px;padding:3.2cqw 6cqw;box-shadow:0 1px 6px rgba(32,33,36,.28);opacity:0;transform:translateY(-1cqh);animation:schBarIn var(--D) var(--sp) infinite}.ui-sch .bar b{position:relative;padding-right:1cqw}.ui-sch .bar b::after{content:"";position:absolute;right:-.4cqw;top:.3cqh;width:.5cqw;height:4.2cqw;background:#4285f4;animation:schCaret calc(var(--D) / 8) steps(1) infinite}.ui-sch .drop{border:1px solid #dfe1e5;border-radius:3cqw;padding:4cqw;margin-top:2cqh;box-shadow:0 4px 12px rgba(0,0,0,.1);opacity:0;transform:translateY(-1cqh);animation:schDropIn var(--D) var(--sp) infinite}@keyframes schBarIn{0%,5%{opacity:0;transform:translateY(-1cqh)}20%,100%{opacity:1;transform:translateY(0)}}@keyframes schCaret{0%,50%{opacity:1}50.01%,100%{opacity:0}}@keyframes schDropIn{0%,32%{opacity:0;transform:translateY(-1cqh)}48%,100%{opacity:1;transform:translateY(0)}}',
     html: function (o) {
-      return '<div class="ui-sch"><div class="bar"><span style="font-size:4cqw">🔍</span><b style="font-size:4cqw">' + esc(o.lines[0] || "how to make viral motion graphics") + '</b></div><div class="drop"><div style="font-size:3.4cqw;padding:1.5cqw 0">↳ <b>shortscraft.online</b> (best AI generator)</div></div></div>';
+      var query = getP(o, "query", o.lines[0] || "how to make viral motion graphics");
+      var suggest1 = getP(o, "suggest1", o.lines[1] || "shortscraft.online (best AI generator)");
+      return '<div class="ui-sch"><div class="bar"><span style="font-size:4cqw">🔍</span><b style="font-size:4cqw">' + esc(query) + '</b></div><div class="drop"><div style="font-size:3.4cqw;padding:1.5cqw 0">↳ <b>' + esc(suggest1) + '</b></div></div></div>';
     }
   };
 
@@ -2703,24 +2709,41 @@ window.SC_TPL2 = (function () {
   T["ui-tabs"] = {
     name: "Apple iOS App List", cat: "ui", dark: true, accent: "#007aff",
     desc: "Cascading Apple iOS settings and widgets list with smooth spring reveal and app icons",
-    css: '.sc-ios-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-ios-sheet{width:86cqw;background:#ffffff;color:#000000;border-radius:5cqw;padding:6cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:iosPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-ios-hdr{display:flex;align-items:center;gap:3cqw;margin-bottom:3cqh}.sc-ios-av{width:11cqw;height:11cqw;border-radius:50%;background:#e4e4e7;display:grid;place-items:center;font-size:5cqw}.sc-ios-title{font-size:4.8cqw;font-weight:800}.sc-ios-list{display:flex;flex-direction:column;gap:1.5cqh}.sc-ios-item{display:flex;align-items:center;justify-content:space-between;padding:2cqh 3cqw;background:#f4f4f5;border-radius:3cqw}.sc-ios-left{display:flex;align-items:center;gap:3cqw}.sc-ios-icon{width:8cqw;height:8cqw;border-radius:2cqw;display:grid;place-items:center;font-size:4cqw}.sc-ios-name{font-size:3.6cqw;font-weight:700}.sc-ios-sub{font-size:2.6cqw;color:#71717a}.sc-ios-chevron{color:#a1a1aa;font-size:4cqw}@keyframes iosPop{0%,15%{transform:scale(.88) translateY(3cqh);opacity:0}30%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}',
+    css: '.sc-ios-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-ios-sheet{width:86cqw;background:#ffffff;color:#000000;border-radius:5cqw;padding:6cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:iosPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-ios-hdr{display:flex;align-items:center;gap:3cqw;margin-bottom:3cqh}.sc-ios-av{width:11cqw;height:11cqw;border-radius:50%;background:#e4e4e7;display:grid;place-items:center;font-size:5cqw;overflow:hidden}.sc-ios-title{font-size:4.8cqw;font-weight:800}.sc-ios-list{display:flex;flex-direction:column;gap:1.5cqh}.sc-ios-item{display:flex;align-items:center;justify-content:space-between;padding:2cqh 3cqw;background:#f4f4f5;border-radius:3cqw}.sc-ios-left{display:flex;align-items:center;gap:3cqw}.sc-ios-icon{width:8cqw;height:8cqw;border-radius:2cqw;display:grid;place-items:center;font-size:4cqw;overflow:hidden}.sc-ios-name{font-size:3.6cqw;font-weight:700}.sc-ios-sub{font-size:2.6cqw;color:#71717a}.sc-ios-chevron{color:#a1a1aa;font-size:4cqw}@keyframes iosPop{0%,15%{transform:scale(.88) translateY(3cqh);opacity:0}30%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
       var user = getP(o, "user", o.lines[0] || "ShortsCraft Apps");
-      var a1 = getP(o, "app1", "Calendar · 2 upcoming events");
-      var a2 = getP(o, "app2", "Photos · 128 memories");
-      var a3 = getP(o, "app3", "Music · Now playing");
-      var a4 = getP(o, "app4", "Fitness · Goal 10,000 steps");
+      var avatar = getP(o, "avatar", "👤");
+      var a1Name = getP(o, "app1Name", "Calendar");
+      var a1Sub = getP(o, "app1Sub", getP(o, "app1", o.lines[1] || "Calendar · 2 upcoming events"));
+      var a1Icon = getP(o, "app1Icon", "📅");
+      var a1Color = getP(o, "app1Color", "#fee2e2");
+
+      var a2Name = getP(o, "app2Name", "Photos");
+      var a2Sub = getP(o, "app2Sub", getP(o, "app2", "Photos · 128 memories"));
+      var a2Icon = getP(o, "app2Icon", "📸");
+      var a2Color = getP(o, "app2Color", "#e0e7ff");
+
+      var a3Name = getP(o, "app3Name", "Music");
+      var a3Sub = getP(o, "app3Sub", getP(o, "app3", "Music · Now playing"));
+      var a3Icon = getP(o, "app3Icon", "🎵");
+      var a3Color = getP(o, "app3Color", "#fce7f3");
+
+      var a4Name = getP(o, "app4Name", "Fitness");
+      var a4Sub = getP(o, "app4Sub", getP(o, "app4", "Fitness · Goal 10,000 steps"));
+      var a4Icon = getP(o, "app4Icon", "🏃");
+      var a4Color = getP(o, "app4Color", "#dcfce7");
+
       return '<div class="sc-ios-wrap">'
         + '<div class="sc-ios-sheet">'
         + '<div class="sc-ios-hdr">'
-        + '<div class="sc-ios-av">👤</div>'
+        + '<div class="sc-ios-av">' + renderAvatar(avatar, "👤") + '</div>'
         + '<div class="sc-ios-title">' + esc(user) + '</div>'
         + '</div>'
         + '<div class="sc-ios-list">'
-        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:#fee2e2">📅</div><div><div class="sc-ios-name">Calendar</div><div class="sc-ios-sub">' + esc(a1) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
-        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:#e0e7ff">📸</div><div><div class="sc-ios-name">Photos</div><div class="sc-ios-sub">' + esc(a2) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
-        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:#fce7f3">🎵</div><div><div class="sc-ios-name">Music</div><div class="sc-ios-sub">' + esc(a3) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
-        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:#dcfce7">🏃</div><div><div class="sc-ios-name">Fitness</div><div class="sc-ios-sub">' + esc(a4) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
+        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:' + esc(a1Color) + '">' + renderAvatar(a1Icon, "📅") + '</div><div><div class="sc-ios-name">' + esc(a1Name) + '</div><div class="sc-ios-sub">' + esc(a1Sub) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
+        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:' + esc(a2Color) + '">' + renderAvatar(a2Icon, "📸") + '</div><div><div class="sc-ios-name">' + esc(a2Name) + '</div><div class="sc-ios-sub">' + esc(a2Sub) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
+        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:' + esc(a3Color) + '">' + renderAvatar(a3Icon, "🎵") + '</div><div><div class="sc-ios-name">' + esc(a3Name) + '</div><div class="sc-ios-sub">' + esc(a3Sub) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
+        + '<div class="sc-ios-item"><div class="sc-ios-left"><div class="sc-ios-icon" style="background:' + esc(a4Color) + '">' + renderAvatar(a4Icon, "🏃") + '</div><div><div class="sc-ios-name">' + esc(a4Name) + '</div><div class="sc-ios-sub">' + esc(a4Sub) + '</div></div></div><span class="sc-ios-chevron">›</span></div>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -3198,9 +3221,12 @@ window.SC_TPL2 = (function () {
   T["social-story-progress"] = {
     name: "Instagram Story Timer", cat: "social", dark: true, accent: "#ffffff",
     desc: "Segmented Instagram story progress bars with creator avatar",
-    css: '.stb{position:absolute;inset:0;padding:6cqh 5cqw;display:flex;flex-direction:column}.stb .segs{display:flex;gap:1.5cqw}.stb .seg{flex:1;height:2px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden;position:relative}.stb .seg.done{background:#fff}.stb .seg.active .fill{position:absolute;inset:0;background:#fff;width:0;animation:stbFill var(--D) linear infinite}.stb .av{width:8cqw;height:8cqw;border-radius:50%;background:#e11d48;animation:stbAv calc(var(--D) / 3) ease-in-out infinite alternate}.stb h2{opacity:0;transform:scale(.92);animation:stbH2 var(--D) var(--sp) infinite}@keyframes stbFill{0%,4%{width:0}96%,100%{width:100%}}@keyframes stbAv{0%{box-shadow:0 0 0 rgba(225,29,72,0)}100%{box-shadow:0 0 1.6cqw rgba(225,29,72,.8)}}@keyframes stbH2{0%,14%{opacity:0;transform:scale(.92)}30%,100%{opacity:1;transform:scale(1)}}',
+    css: '.stb{position:absolute;inset:0;padding:6cqh 5cqw;display:flex;flex-direction:column}.stb .segs{display:flex;gap:1.5cqw}.stb .seg{flex:1;height:2px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden;position:relative}.stb .seg.done{background:#fff}.stb .seg.active .fill{position:absolute;inset:0;background:#fff;width:0;animation:stbFill var(--D) linear infinite}.stb .av{width:8cqw;height:8cqw;border-radius:50%;background:#e11d48;animation:stbAv calc(var(--D) / 3) ease-in-out infinite alternate;display:grid;place-items:center;overflow:hidden;font-size:4cqw;color:#fff}.stb h2{opacity:0;transform:scale(.92);animation:stbH2 var(--D) var(--sp) infinite}@keyframes stbFill{0%,4%{width:0}96%,100%{width:100%}}@keyframes stbAv{0%{box-shadow:0 0 0 rgba(225,29,72,0)}100%{box-shadow:0 0 1.6cqw rgba(225,29,72,.8)}}@keyframes stbH2{0%,14%{opacity:0;transform:scale(.92)}30%,100%{opacity:1;transform:scale(1)}}',
     html: function (o) {
-      return '<div class="stb"><div class="segs"><div class="seg done"></div><div class="seg active"><div class="fill"></div></div><div class="seg"></div></div><div style="display:flex;align-items:center;gap:3cqw;margin-top:2cqh"><div class="av"></div><b style="font-size:3.6cqw;color:#fff">' + esc(o.lines[0] || "shortscraft.ai") + '</b></div><div style="flex:1;display:grid;place-items:center"><h2 style="font-size:9cqw;font-weight:900;color:#fff;text-align:center">' + esc(o.lines[1] || "Behind The Viral Edit") + '</h2></div></div>';
+      var handle = getP(o, "handle", o.lines[0] || "shortscraft.ai");
+      var title = getP(o, "title", o.lines[1] || "Behind The Viral Edit");
+      var avatar = getP(o, "avatar", "⚡");
+      return '<div class="stb"><div class="segs"><div class="seg done"></div><div class="seg active"><div class="fill"></div></div><div class="seg"></div></div><div style="display:flex;align-items:center;gap:3cqw;margin-top:2cqh"><div class="av">' + renderAvatar(avatar, "⚡") + '</div><b style="font-size:3.6cqw;color:#fff">' + esc(handle) + '</b></div><div style="flex:1;display:grid;place-items:center"><h2 style="font-size:9cqw;font-weight:900;color:#fff;text-align:center">' + esc(title) + '</h2></div></div>';
     }
   };
 
@@ -3401,7 +3427,7 @@ window.SC_TPL2 = (function () {
     }
   };
 
-  /* 7.9 Viral Share Modal */
+  /* 7.9 Viral Share Sheet */
   T["social-share"] = {
     name: "Viral Share Sheet", cat: "social", dark: true, accent: "#38bdf8",
     desc: "Floating share modal with AirDrop and social platform icons",
@@ -3409,16 +3435,20 @@ window.SC_TPL2 = (function () {
       + '.sc-share-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(24px);border-radius:5cqw;padding:6cqw;text-align:center;width:88%;box-shadow:0 25px 60px rgba(0,0,0,.85);animation:sharePop var(--D) cubic-bezier(.16,1,.3,1) infinite}'
       + '.sc-share-title{font-size:6.2cqw;font-weight:900;color:#fff;margin-bottom:2cqh}'
       + '.sc-share-icons{display:flex;justify-content:center;gap:4cqw;font-size:9cqw;margin-top:2cqh}'
-      + '.sc-share-btn{width:16cqw;height:16cqw;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;box-shadow:0 4px 15px rgba(0,0,0,.4)}'
+      + '.sc-share-btn{width:16cqw;height:16cqw;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);display:grid;place-items:center;box-shadow:0 4px 15px rgba(0,0,0,.4);overflow:hidden}'
       + '@keyframes sharePop{0%,12%{transform:translateY(4cqh) scale(.92);opacity:0}24%,85%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-2cqh);opacity:0}}',
     html: function (o) {
+      var title = getP(o, "title", o.lines[0] || "Share Video");
+      var icon1 = getP(o, "icon1", "📱");
+      var icon2 = getP(o, "icon2", "💬");
+      var icon3 = getP(o, "icon3", "🔗");
       return '<div class="sc-share-wrap">'
         + '<div class="sc-share-card">'
-        + '<div class="sc-share-title">' + esc(o.lines[0] || "Share Video") + '</div>'
+        + '<div class="sc-share-title">' + esc(title) + '</div>'
         + '<div class="sc-share-icons">'
-        + '<div class="sc-share-btn">📱</div>'
-        + '<div class="sc-share-btn">💬</div>'
-        + '<div class="sc-share-btn">🔗</div>'
+        + '<div class="sc-share-btn">' + renderAvatar(icon1, "📱") + '</div>'
+        + '<div class="sc-share-btn">' + renderAvatar(icon2, "💬") + '</div>'
+        + '<div class="sc-share-btn">' + renderAvatar(icon3, "🔗") + '</div>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -3437,10 +3467,13 @@ window.SC_TPL2 = (function () {
       + '@keyframes liveTitlePop{0%,12%{transform:scale(.9);opacity:0}24%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}'
       + '@keyframes liveViewsPop{0%,16%{transform:translateY(2cqh);opacity:0}28%,85%{transform:translateY(0);opacity:1}100%{transform:translateY(-1cqh);opacity:0}}',
     html: function (o) {
+      var badge = getP(o, "badge", "● LIVE STREAM");
+      var title = getP(o, "title", o.lines[0] || "Editing Masterclass");
+      var views = getP(o, "views", o.lines[1] || "64,200 Viewers");
       return '<div class="sc-live-wrap">'
-        + '<div class="sc-live-badge">● LIVE STREAM</div>'
-        + '<div class="sc-live-title">' + esc(o.lines[0] || "Editing Masterclass") + '</div>'
-        + '<div class="sc-live-views">👁️ ' + esc(o.lines[1] || "64,200 Viewers") + '</div>'
+        + '<div class="sc-live-badge">' + esc(badge) + '</div>'
+        + '<div class="sc-live-title">' + esc(title) + '</div>'
+        + '<div class="sc-live-views">👁️ ' + esc(views) + '</div>'
         + '</div>';
     }
   };
@@ -3467,15 +3500,18 @@ window.SC_TPL2 = (function () {
     html: function (o) {
       var tag = getP(o, "tag", "PERFORMANCE BENCHMARK");
       var title = getP(o, "title", o.lines[0] || "+320% Retention Surge");
+      var val1 = getP(o, "val1", "1.2X");
+      var val2 = getP(o, "val2", "2.8X");
+      var val3 = getP(o, "val3", "4.5X");
       return '<div class="sc-barrace-wrap">'
         + '<div class="sc-barrace-head">'
         + '<div class="sc-barrace-tag">' + esc(tag) + '</div>'
         + '<div class="sc-barrace-title">' + esc(title) + '</div>'
         + '</div>'
         + '<div class="sc-barrace-stage">'
-        + '<div class="sc-bar-col sc-bar-b1" style="height:38%"><span class="sc-bar-val">1.2X</span></div>'
-        + '<div class="sc-bar-col sc-bar-b2" style="height:65%"><span class="sc-bar-val">2.8X</span></div>'
-        + '<div class="sc-bar-col sc-bar-b3" style="height:95%"><span class="sc-bar-val">4.5X</span></div>'
+        + '<div class="sc-bar-col sc-bar-b1" style="height:38%"><span class="sc-bar-val">' + esc(val1) + '</span></div>'
+        + '<div class="sc-bar-col sc-bar-b2" style="height:65%"><span class="sc-bar-val">' + esc(val2) + '</span></div>'
+        + '<div class="sc-bar-col sc-bar-b3" style="height:95%"><span class="sc-bar-val">' + esc(val3) + '</span></div>'
         + '</div>'
         + '</div>';
     }
@@ -3728,385 +3764,1914 @@ window.SC_TPL2 = (function () {
 
   /* ── Component Schemas for Deep Customization ─────────── */
   var SCHEMAS = {
-    // 1. Documentary & Retro
-    "docu-folder": {
-      fields: [
-        { key: "tag", label: "Archive Header Tag", type: "text", default: "ARCHIVE // 340 BC", placeholder: "e.g. ARCHIVE // 340 BC" },
-        { key: "title", label: "Main Sculpture Headline", type: "text", default: "EFFORTLESS MOTION", placeholder: "e.g. EFFORTLESS MOTION" },
-        { key: "subtitle", label: "Philosophical Subtitle", type: "text", default: "PHILOSOPHY OF DESIGN", placeholder: "e.g. PHILOSOPHY OF DESIGN" },
-        { key: "image", label: "Sculpture / Artwork Photo (Upload Image)", type: "image", default: "/assets/statue_bust.jpg" },
-        { key: "beamColor", label: "Spotlight Beam Color", type: "select", options: [
-          { val: "rgba(255,255,255,.22)", label: "⚪ Studio White Chiaroscuro" },
-          { val: "rgba(245,158,11,.22)", label: "🟡 Warm Amber Spotlight" },
-          { val: "rgba(56,189,248,.22)", label: "🔵 Cyan Blue Cinematic Beam" }
-        ], default: "rgba(255,255,255,.22)" }
-      ],
-      defaults: {
-        tag: "ARCHIVE // 340 BC",
-        title: "EFFORTLESS MOTION",
-        subtitle: "PHILOSOPHY OF DESIGN",
-        image: "/assets/statue_bust.jpg",
-        beamColor: "rgba(255,255,255,.22)"
+  "ui-tabs": {
+    "fields": [
+      {
+        "key": "user",
+        "label": "Header Title",
+        "type": "text",
+        "default": "ShortsCraft Apps",
+        "placeholder": "e.g. ShortsCraft Apps, Creator Tools"
+      },
+      {
+        "key": "avatar",
+        "label": "Header Avatar (Emoji or Upload)",
+        "type": "image",
+        "default": "👤"
+      },
+      {
+        "key": "app1Name",
+        "label": "Row 1 App Title",
+        "type": "text",
+        "default": "Calendar"
+      },
+      {
+        "key": "app1Sub",
+        "label": "Row 1 Detail Subtitle",
+        "type": "text",
+        "default": "Calendar · 2 upcoming events"
+      },
+      {
+        "key": "app1Icon",
+        "label": "Row 1 Icon (Emoji or Upload)",
+        "type": "image",
+        "default": "📅"
+      },
+      {
+        "key": "app1Color",
+        "label": "Row 1 Icon Background",
+        "type": "color",
+        "default": "#fee2e2"
+      },
+      {
+        "key": "app2Name",
+        "label": "Row 2 App Title",
+        "type": "text",
+        "default": "Photos"
+      },
+      {
+        "key": "app2Sub",
+        "label": "Row 2 Detail Subtitle",
+        "type": "text",
+        "default": "Photos · 128 memories"
+      },
+      {
+        "key": "app2Icon",
+        "label": "Row 2 Icon (Emoji or Upload)",
+        "type": "image",
+        "default": "📸"
+      },
+      {
+        "key": "app2Color",
+        "label": "Row 2 Icon Background",
+        "type": "color",
+        "default": "#e0e7ff"
+      },
+      {
+        "key": "app3Name",
+        "label": "Row 3 App Title",
+        "type": "text",
+        "default": "Music"
+      },
+      {
+        "key": "app3Sub",
+        "label": "Row 3 Detail Subtitle",
+        "type": "text",
+        "default": "Music · Now playing"
+      },
+      {
+        "key": "app3Icon",
+        "label": "Row 3 Icon (Emoji or Upload)",
+        "type": "image",
+        "default": "🎵"
+      },
+      {
+        "key": "app3Color",
+        "label": "Row 3 Icon Background",
+        "type": "color",
+        "default": "#fce7f3"
+      },
+      {
+        "key": "app4Name",
+        "label": "Row 4 App Title",
+        "type": "text",
+        "default": "Fitness"
+      },
+      {
+        "key": "app4Sub",
+        "label": "Row 4 Detail Subtitle",
+        "type": "text",
+        "default": "Fitness · Goal 10,000 steps"
+      },
+      {
+        "key": "app4Icon",
+        "label": "Row 4 Icon (Emoji or Upload)",
+        "type": "image",
+        "default": "🏃"
+      },
+      {
+        "key": "app4Color",
+        "label": "Row 4 Icon Background",
+        "type": "color",
+        "default": "#dcfce7"
       }
-    },
-
-    "docu-confidential": {
-      fields: [
-        { key: "dossier", label: "Dossier Tag / File Number", type: "text", default: "RESTRICTED", placeholder: "e.g. RESTRICTED, CLASSIFIED" },
-        { key: "stamp", label: "Rubber Stamp Text", type: "text", default: "TOP SECRET", placeholder: "e.g. TOP SECRET, CONFIDENTIAL, APPROVED" },
-        { key: "stampColor", label: "Stamp Ink Color", type: "select", options: [
-          { val: "#ef4444", label: "🔴 Crimson Red" },
-          { val: "#f59e0b", label: "🟠 Amber Orange" },
-          { val: "#10b981", label: "🟢 Emerald Green" },
-          { val: "#1e293b", label: "⚫ Dark Black Ink" }
-        ], default: "#ef4444" },
-        { key: "paperTone", label: "Document Paper Background", type: "select", options: [
-          { val: "#e6e1d6", label: "📜 Aged Sepia Parchment" },
-          { val: "#fef3c7", label: "📂 Manila Folder" },
-          { val: "#0f172a", label: "📐 Blueprint Dark" },
-          { val: "#fafaf9", label: "⚪ Clean Paper" }
-        ], default: "#e6e1d6" }
-      ],
-      defaults: {
-        dossier: "RESTRICTED",
-        stamp: "TOP SECRET",
-        stampColor: "#ef4444",
-        paperTone: "#e6e1d6"
-      }
-    },
-
-    "docu-red-string": {
-      fields: [
-        { key: "card1", label: "Evidence Card 1 Title", type: "text", default: "Suspect Alpha" },
-        { key: "card1Icon", label: "Card 1 Photo / Icon (Upload Image)", type: "image", default: "📁" },
-        { key: "card2", label: "Evidence Card 2 Title", type: "text", default: "Shell Company" },
-        { key: "card2Icon", label: "Card 2 Photo / Icon (Upload Image)", type: "image", default: "🏢" },
-        { key: "stringColor", label: "Yarn String Color", type: "color", default: "#ef4444" },
-        { key: "boardTheme", label: "Pinboard Background Style", type: "select", options: [
-          { val: "#2a2521", label: "📌 Natural Corkboard" },
-          { val: "#1c1917", label: "🌑 Dark Noir Board" },
-          { val: "#0c1a2e", label: "📐 Blueprint Grid" }
-        ], default: "#2a2521" }
-      ],
-      defaults: {
-        card1: "Suspect Alpha",
-        card1Icon: "📁",
-        card2: "Shell Company",
-        card2Icon: "🏢",
-        stringColor: "#ef4444",
-        boardTheme: "#2a2521"
-      }
-    },
-
-    "docu-highlighter": {
-      fields: [
-        { key: "tag", label: "Evidence Category Tag", type: "text", default: "// EXHIBIT A: FINANCIAL AUDIT" },
-        { key: "highlight", label: "Highlighted Evidence Text", type: "textarea", default: "$42,000,000 offshore" },
-        { key: "source", label: "Footnote / Source Attribution", type: "text", default: "Source: Internal Investigation Report" },
-        { key: "markerColor", label: "Highlighter Marker Color", type: "select", options: [
-          { val: "#facc15", label: "🟡 Fluorescent Yellow" },
-          { val: "#4ade80", label: "🟢 Neon Green" },
-          { val: "#38bdf8", label: "🔵 Bright Cyan" },
-          { val: "#f472b6", label: "💖 Hot Pink" }
-        ], default: "#facc15" }
-      ],
-      defaults: {
-        tag: "// EXHIBIT A: FINANCIAL AUDIT",
-        highlight: "$42,000,000 offshore",
-        source: "Source: Internal Investigation Report",
-        markerColor: "#facc15"
-      }
-    },
-
-    "docu-redacted": {
-      fields: [
-        { key: "header", label: "Archive Header Tag", type: "text", default: "DECLASSIFIED UNDER FOIA" },
-        { key: "name1", label: "Censored Name / Target 1", type: "text", default: "ROBERT VANCE" },
-        { key: "name2", label: "Censored Name / Target 2", type: "text", default: "KREMLIN OFFICIALS" },
-        { key: "body", label: "Meeting Context Location", type: "text", default: "in Vienna." },
-        { key: "ref", label: "File Reference ID", type: "text", default: "File Ref: CIA-2026-X" }
-      ],
-      defaults: {
-        header: "DECLASSIFIED UNDER FOIA",
-        name1: "ROBERT VANCE",
-        name2: "KREMLIN OFFICIALS",
-        body: "in Vienna.",
-        ref: "File Ref: CIA-2026-X"
-      }
-    },
-
-    "docu-polaroid-pin": {
-      fields: [
-        { key: "caption", label: "Handwritten Marker Caption", type: "text", default: "Zurich, May 1998" },
-        { key: "photo", label: "Polaroid Photo / Image (Upload Image)", type: "image", default: "📸" },
-        { key: "pinColor", label: "Pushpin Color", type: "color", default: "#ef4444" }
-      ],
-      defaults: {
-        caption: "Zurich, May 1998",
-        photo: "📸",
-        pinColor: "#ef4444"
-      }
-    },
-
-    "docu-magnifying": {
-      fields: [
-        { key: "note", label: "Sticky Note Label (with tape)", type: "text", default: "SUSPECT #04", placeholder: "e.g. SUSPECT #04, EVIDENCE" },
-        { key: "subtext", label: "Target Subtitle", type: "text", default: "PRIMARY TARGET", placeholder: "e.g. PRIMARY TARGET" },
-        { key: "maintext", label: "Main Clue Headline", type: "text", default: "MAIN CLUE", placeholder: "e.g. MAIN CLUE" },
-        { key: "markerColor", label: "Hand-Drawn Circle Marker Color", type: "select", options: [
-          { val: "#ef4444", label: "🔴 Crimson Red Glow" },
-          { val: "#f59e0b", label: "🟠 Bright Amber" },
-          { val: "#38bdf8", label: "🔵 Cyan Blue" },
-          { val: "#22c55e", label: "🟢 Neon Green" }
-        ], default: "#ef4444" }
-      ],
-      defaults: {
-        note: "SUSPECT #04",
-        subtext: "PRIMARY TARGET",
-        maintext: "MAIN CLUE",
-        markerColor: "#ef4444"
-      }
-    },
-
-    // 2. Paper & Cutout
-    "paper-torn-rip": {
-      fields: [
-        { key: "tag", label: "Paper Top Tag", type: "text", default: "CONFIDENTIAL", placeholder: "e.g. CONFIDENTIAL, TOP SECRET" },
-        { key: "heading", label: "Main Headline", type: "textarea", default: "UNCOVER THE TRUTH", placeholder: "e.g. UNCOVER THE TRUTH" },
-        { key: "paperColor", label: "Torn Paper Color", type: "select", options: [
-          { val: "#d32f2f", label: "🔴 Studio Red Textured" },
-          { val: "#18181b", label: "⚫ Dark Obsidian" },
-          { val: "#ffffff", label: "⚪ Clean White Paper" },
-          { val: "#f59e0b", label: "🟠 Amber Kraft" }
-        ], default: "#d32f2f" },
-        { key: "matColor", label: "Cutting Mat Grid Color", type: "select", options: [
-          { val: "#0d2818", label: "🟩 Studio Forest Green" },
-          { val: "#0c1a2e", label: "🟦 Dark Navy Blueprint" },
-          { val: "#18181b", label: "⬛ Charcoal Dark Mat" }
-        ], default: "#0d2818" }
-      ],
-      defaults: {
-        tag: "CONFIDENTIAL",
-        heading: "UNCOVER THE TRUTH",
-        paperColor: "#d32f2f",
-        matColor: "#0d2818"
-      }
-    },
-
-    // 3. Kinetic Text & Hooks
-    "text-editorial": {
-      fields: [
-        { key: "kicker", label: "Top Category Tag // Year", type: "text", default: "COLLECTION // 2026", placeholder: "e.g. COLLECTION // 2026" },
-        { key: "title", label: "Main Editorial Title", type: "text", default: "MAJESTIC", placeholder: "e.g. MAJESTIC" },
-        { key: "subtitle", label: "Accent Subtitle", type: "text", default: "MONARCH", placeholder: "e.g. MONARCH" },
-        { key: "barcode", label: "Barcode Serial Number", type: "text", default: "8 49204 11092 3", placeholder: "e.g. 8 49204 11092 3" }
-      ],
-      defaults: {
-        kicker: "COLLECTION // 2026",
-        title: "MAJESTIC",
-        subtitle: "MONARCH",
-        barcode: "8 49204 11092 3"
-      }
-    },
-
-    "text-skew": {
-      fields: [
-        { key: "title", label: "Main Cinema Title", type: "text", default: "NETFLIX", placeholder: "e.g. NETFLIX, HBO, SHORTSCRAFT" },
-        { key: "tagline", label: "Tagline / Subtitle", type: "text", default: "ORIGINAL SERIES", placeholder: "e.g. ORIGINAL SERIES" },
-        { key: "ribbonColor", label: "Cinema Ribbon Glow Color", type: "select", options: [
-          { val: "#e50914", label: "🔴 Netflix Crimson Red" },
-          { val: "#38bdf8", label: "🔵 Cyberpunk Cyan" },
-          { val: "#a855f7", label: "🟣 Electric Purple" },
-          { val: "#f59e0b", label: "🟠 Amber Gold" }
-        ], default: "#e50914" }
-      ],
-      defaults: {
-        title: "NETFLIX",
-        tagline: "ORIGINAL SERIES",
-        ribbonColor: "#e50914"
-      }
-    },
-
-    "text-split": {
-      fields: [
-        { key: "icon", label: "Core Emblem Icon (Emoji or Text)", type: "text", default: "⚡" },
-        { key: "cmd", label: "Terminal Command Prompt", type: "text", default: "> INITIALIZE_ENGINE()", placeholder: "e.g. > INITIALIZE_ENGINE()" },
-        { key: "title", label: "Main Brand Headline", type: "text", default: "SHORTSCRAFT", placeholder: "e.g. SHORTSCRAFT" },
-        { key: "glitchColor", label: "Matrix Glitch Glow Color", type: "select", options: [
-          { val: "#00ffaa", label: "🟢 Matrix Neon Green" },
-          { val: "#00f0ff", label: "🔵 Cyan Blue Flare" },
-          { val: "#ff0055", label: "💖 Cyber Magenta" },
-          { val: "#ffd700", label: "🟡 Electric Gold" }
-        ], default: "#00ffaa" }
-      ],
-      defaults: {
-        icon: "⚡",
-        cmd: "> INITIALIZE_ENGINE()",
-        title: "SHORTSCRAFT",
-        glitchColor: "#00ffaa"
-      }
-    },
-
-    // 6. UI & Devices
-    "ui-slider": {
-      fields: [
-        { key: "title", label: "Main Floating Word", type: "text", default: "SWISHY", placeholder: "e.g. SWISHY, MOTION, CREATE" },
-        { key: "sub", label: "Sub-headline Tagline", type: "text", default: "Fluid Motion Design Reimagined", placeholder: "e.g. Fluid Motion Design Reimagined" },
-        { key: "blobGradient", label: "Fluid Metaball Blob Palette", type: "select", options: [
-          { val: "linear-gradient(135deg,#7928ca,#ff0080,#00dfd8)", label: "🔮 Neon Purple, Rose & Cyan" },
-          { val: "linear-gradient(135deg,#f59e0b,#ef4444,#ec4899)", label: "🌅 Sunset Amber & Crimson" },
-          { val: "linear-gradient(135deg,#10b981,#3b82f6,#8b5cf6)", label: "🌌 Emerald & Indigo Aurora" }
-        ], default: "linear-gradient(135deg,#7928ca,#ff0080,#00dfd8)" }
-      ],
-      defaults: {
-        title: "SWISHY",
-        sub: "Fluid Motion Design Reimagined",
-        blobGradient: "linear-gradient(135deg,#7928ca,#ff0080,#00dfd8)"
-      }
-    },
-
-    // 8. Charts & Infographics
-    "charts-speedometer": {
-      fields: [
-        { key: "sec", label: "Timer Countdown Seconds", type: "text", default: "00:30", placeholder: "e.g. 00:30, 00:45, 01:00" },
-        { key: "tag", label: "Activity Badge Tag", type: "text", default: "FOCUS SESSION", placeholder: "e.g. FOCUS SESSION, SPRINT" },
-        { key: "goal", label: "Metric Goal Subtitle", type: "text", default: "500 KCAL BURN", placeholder: "e.g. 500 KCAL BURN, 100% COMPLETE" },
-        { key: "ringColor", label: "Apple Activity Ring Color", type: "select", options: [
-          { val: "#22c55e", label: "🟢 Apple Activity Green" },
-          { val: "#38bdf8", label: "🔵 Cyan Precision" },
-          { val: "#ef4444", label: "🔴 Flame Red" },
-          { val: "#a855f7", label: "🟣 Ultraviolet" }
-        ], default: "#22c55e" }
-      ],
-      defaults: {
-        sec: "00:30",
-        tag: "FOCUS SESSION",
-        goal: "500 KCAL BURN",
-        ringColor: "#22c55e"
-      }
-    },
-
-    // 7. Social Proof & Viral
-    "social-tweet-card": {
-      fields: [
-        { key: "name", label: "Profile Display Name", type: "text", default: "Creator Insights", placeholder: "e.g. Creator Insights" },
-        { key: "handle", label: "Username Handle", type: "text", default: "@creatorgrowth", placeholder: "e.g. @creatorgrowth" },
-        { key: "verified", label: "Verified Blue Badge", type: "toggle", default: true },
-        { key: "avatar", label: "Profile Avatar (Upload Image or Emoji)", type: "image", default: "✦" },
-        { key: "body", label: "Post / Tweet Content", type: "textarea", default: "The top 1% of creators use motion graphics to double their retention." },
-        { key: "comments", label: "Comments Count", type: "text", default: "1.4K" },
-        { key: "retweets", label: "Retweets Count", type: "text", default: "8.9K" },
-        { key: "likes", label: "Likes Count", type: "text", default: "42.5K" },
-        { key: "cardBg", label: "Card Background Style", type: "select", options: [
-          { val: "#000000", label: "🌑 Pitch Black (OLED)" },
-          { val: "#0f172a", label: "🌌 Dark Slate Navy" },
-          { val: "#18181b", label: "🔘 Zinc Charcoal" },
-          { val: "#ffffff", label: "⚪ Clean White" }
-        ], default: "#000000" }
-      ],
-      defaults: {
-        name: "Creator Insights",
-        handle: "@creatorgrowth",
-        verified: true,
-        avatar: "✦",
-        body: "The top 1% of creators use motion graphics to double their retention.",
-        comments: "1.4K",
-        retweets: "8.9K",
-        likes: "42.5K",
-        cardBg: "#000000"
-      }
-    },
-
-    "social-like-burst": {
-      fields: [
-        { key: "count", label: "Like Counter Milestone", type: "text", default: "1,248,000" },
-        { key: "label", label: "Action Sub-label", type: "text", default: "Likes & Shares" },
-        { key: "icon", label: "Reaction Emoji / Icon", type: "text", default: "❤️" }
-      ],
-      defaults: {
-        count: "1,248,000",
-        label: "Likes & Shares",
-        icon: "❤️"
-      }
-    },
-
-    "social-sub-bell": {
-      fields: [
-        { key: "cta", label: "Channel CTA Heading", type: "text", default: "Join 500,000+ Creators" },
-        { key: "btnText", label: "Subscribe Button Label", type: "text", default: "Subscribe" },
-        { key: "avatar", label: "Channel Avatar (Upload Image)", type: "image", default: "▶" },
-        { key: "btnColor", label: "Button Color", type: "select", options: [
-          { val: "#ff0000", label: "🔴 YouTube Red" },
-          { val: "#ffffff", label: "⚪ Clean White" },
-          { val: "#000000", label: "⚫ Pitch Black" },
-          { val: "#38bdf8", label: "🔵 Neon Cyan" }
-        ], default: "#ff0000" }
-      ],
-      defaults: {
-        cta: "Join 500,000+ Creators",
-        btnText: "Subscribe",
-        avatar: "▶",
-        btnColor: "#ff0000"
-      }
-    },
-
-    "social-comment-stream": {
-      fields: [
-        { key: "comment1User", label: "Comment 1 Username", type: "text", default: "@alex" },
-        { key: "comment1Text", label: "Comment 1 Message", type: "text", default: "How did you animate this?! 🔥" },
-        { key: "comment2User", label: "Comment 2 Username", type: "text", default: "@sam" },
-        { key: "comment2Text", label: "Comment 2 Message", type: "text", default: "ShortsCraft AI is insane! 🚀" }
-      ],
-      defaults: {
-        comment1User: "@alex",
-        comment1Text: "How did you animate this?! 🔥",
-        comment2User: "@sam",
-        comment2Text: "ShortsCraft AI is insane! 🚀"
-      }
-    },
-
-    "social-verified-badge": {
-      fields: [
-        { key: "name", label: "Creator Name", type: "text", default: "ShortsCraft Studio" },
-        { key: "subscribers", label: "Subscriber / Follower Count", type: "text", default: "1.5 Million Subscribers" },
-        { key: "avatar", label: "Profile Avatar (Upload Image)", type: "image", default: "⚡" }
-      ],
-      defaults: {
-        name: "ShortsCraft Studio",
-        subscribers: "1.5 Million Subscribers",
-        avatar: "⚡"
-      }
-    },
-
-    // 6. UI & Devices
-    "ui-ios-notify": {
-      fields: [
-        { key: "app", label: "App Name", type: "text", default: "SHORTSCRAFT" },
-        { key: "icon", label: "App Icon (Upload or Emoji)", type: "image", default: "⚡" },
-        { key: "time", label: "Timestamp Tag", type: "text", default: "now" },
-        { key: "body", label: "Notification Message Preview", type: "textarea", default: "Your 4K Short is ready to post 🚀" }
-      ],
-      defaults: {
-        app: "SHORTSCRAFT",
-        icon: "⚡",
-        time: "now",
-        body: "Your 4K Short is ready to post 🚀"
-      }
-    },
-
-    "ui-imessage": {
-      fields: [
-        { key: "inMsg", label: "Incoming Message Bubble", type: "textarea", default: "How did you get 1M views?!" },
-        { key: "outMsg", label: "Outgoing Reply Bubble", type: "textarea", default: "Used ShortsCraft motion graphics! ⚡" },
-        { key: "bubbleColor", label: "Outgoing Bubble Accent", type: "color", default: "#3b82f6" }
-      ],
-      defaults: {
-        inMsg: "How did you get 1M views?!",
-        outMsg: "Used ShortsCraft motion graphics! ⚡",
-        bubbleColor: "#3b82f6"
-      }
+    ],
+    "defaults": {
+      "user": "ShortsCraft Apps",
+      "avatar": "👤",
+      "app1Name": "Calendar",
+      "app1Sub": "Calendar · 2 upcoming events",
+      "app1Icon": "📅",
+      "app1Color": "#fee2e2",
+      "app2Name": "Photos",
+      "app2Sub": "Photos · 128 memories",
+      "app2Icon": "📸",
+      "app2Color": "#e0e7ff",
+      "app3Name": "Music",
+      "app3Sub": "Music · Now playing",
+      "app3Icon": "🎵",
+      "app3Color": "#fce7f3",
+      "app4Name": "Fitness",
+      "app4Sub": "Fitness · Goal 10,000 steps",
+      "app4Icon": "🏃",
+      "app4Color": "#dcfce7"
     }
-  };
+  },
+  "ui-ios-notify": {
+    "fields": [
+      {
+        "key": "app",
+        "label": "App Name",
+        "type": "text",
+        "default": "SHORTSCRAFT"
+      },
+      {
+        "key": "icon",
+        "label": "Notification Icon (Upload or Emoji)",
+        "type": "image",
+        "default": "⚡"
+      },
+      {
+        "key": "time",
+        "label": "Timestamp Tag",
+        "type": "text",
+        "default": "now"
+      },
+      {
+        "key": "body",
+        "label": "Notification Message Preview",
+        "type": "textarea",
+        "default": "Your 4K Short is ready to post 🚀"
+      }
+    ],
+    "defaults": {
+      "app": "SHORTSCRAFT",
+      "icon": "⚡",
+      "time": "now",
+      "body": "Your 4K Short is ready to post 🚀"
+    }
+  },
+  "ui-safari-scroll": {
+    "fields": [
+      {
+        "key": "url",
+        "label": "Browser URL Address",
+        "type": "text",
+        "default": "https://shortscraft.online"
+      },
+      {
+        "key": "title",
+        "label": "Main Headline",
+        "type": "text",
+        "default": "AI Motion Graphics Studio"
+      },
+      {
+        "key": "subtitle",
+        "label": "Sub-Headline Tagline",
+        "type": "text",
+        "default": "Create Viral Animations in 60s"
+      },
+      {
+        "key": "subColor",
+        "label": "Sub-Headline Accent Color",
+        "type": "color",
+        "default": "#38bdf8"
+      }
+    ],
+    "defaults": {
+      "url": "https://shortscraft.online",
+      "title": "AI Motion Graphics Studio",
+      "subtitle": "Create Viral Animations in 60s",
+      "subColor": "#38bdf8"
+    }
+  },
+  "ui-google-search": {
+    "fields": [
+      {
+        "key": "query",
+        "label": "Search Bar Query",
+        "type": "text",
+        "default": "how to make viral motion graphics"
+      },
+      {
+        "key": "suggest1",
+        "label": "Top Search Autocomplete Suggestion",
+        "type": "text",
+        "default": "shortscraft.online (best AI generator)"
+      }
+    ],
+    "defaults": {
+      "query": "how to make viral motion graphics",
+      "suggest1": "shortscraft.online (best AI generator)"
+    }
+  },
+  "ui-imessage": {
+    "fields": [
+      {
+        "key": "inMsg",
+        "label": "Incoming Message Bubble",
+        "type": "textarea",
+        "default": "How did you get 1M views?!"
+      },
+      {
+        "key": "outMsg",
+        "label": "Outgoing Reply Bubble",
+        "type": "textarea",
+        "default": "Used ShortsCraft motion graphics! ⚡"
+      },
+      {
+        "key": "bubbleColor",
+        "label": "Outgoing Bubble Accent",
+        "type": "color",
+        "default": "#3b82f6"
+      }
+    ],
+    "defaults": {
+      "inMsg": "How did you get 1M views?!",
+      "outMsg": "Used ShortsCraft motion graphics! ⚡",
+      "bubbleColor": "#3b82f6"
+    }
+  },
+  "ui-toggle": {
+    "fields": [
+      {
+        "key": "title",
+        "label": "Switch Feature Headline",
+        "type": "text",
+        "default": "VIRAL MODE"
+      },
+      {
+        "key": "sub",
+        "label": "Switch Description Subtitle",
+        "type": "text",
+        "default": "High-retention animations"
+      },
+      {
+        "key": "status",
+        "label": "Active Status Tag",
+        "type": "text",
+        "default": "ACTIVE"
+      }
+    ],
+    "defaults": {
+      "title": "VIRAL MODE",
+      "sub": "High-retention animations",
+      "status": "ACTIVE"
+    }
+  },
+  "swishy-alarm-toggle": {
+    "fields": [
+      {
+        "key": "time",
+        "label": "Alarm Time Display",
+        "type": "text",
+        "default": "6:30 AM"
+      },
+      {
+        "key": "label",
+        "label": "Alarm Label / Purpose",
+        "type": "text",
+        "default": "Workout & Grind"
+      },
+      {
+        "key": "repeat",
+        "label": "Repeat Schedule Tag",
+        "type": "text",
+        "default": "Every Weekday"
+      }
+    ],
+    "defaults": {
+      "time": "6:30 AM",
+      "label": "Workout & Grind",
+      "repeat": "Every Weekday"
+    }
+  },
+  "social-tweet-card": {
+    "fields": [
+      {
+        "key": "name",
+        "label": "Profile Display Name",
+        "type": "text",
+        "default": "Creator Insights"
+      },
+      {
+        "key": "handle",
+        "label": "Username Handle",
+        "type": "text",
+        "default": "@creatorgrowth"
+      },
+      {
+        "key": "verified",
+        "label": "Verified Blue Badge",
+        "type": "toggle",
+        "default": true
+      },
+      {
+        "key": "avatar",
+        "label": "Profile Avatar (Upload Image or Emoji)",
+        "type": "image",
+        "default": "✦"
+      },
+      {
+        "key": "body",
+        "label": "Post / Tweet Content",
+        "type": "textarea",
+        "default": "The top 1% of creators use motion graphics to double their retention."
+      },
+      {
+        "key": "comments",
+        "label": "Comments Count",
+        "type": "text",
+        "default": "1.4K"
+      },
+      {
+        "key": "retweets",
+        "label": "Retweets Count",
+        "type": "text",
+        "default": "8.9K"
+      },
+      {
+        "key": "likes",
+        "label": "Likes Count",
+        "type": "text",
+        "default": "42.5K"
+      },
+      {
+        "key": "cardBg",
+        "label": "Card Background Style",
+        "type": "select",
+        "options": [
+          {
+            "val": "#000000",
+            "label": "🌑 Pitch Black (OLED)"
+          },
+          {
+            "val": "#0f172a",
+            "label": "🌌 Dark Slate Navy"
+          },
+          {
+            "val": "#18181b",
+            "label": "🔘 Zinc Charcoal"
+          },
+          {
+            "val": "#ffffff",
+            "label": "⚪ Clean White"
+          }
+        ],
+        "default": "#000000"
+      }
+    ],
+    "defaults": {
+      "name": "Creator Insights",
+      "handle": "@creatorgrowth",
+      "verified": true,
+      "avatar": "✦",
+      "body": "The top 1% of creators use motion graphics to double their retention.",
+      "comments": "1.4K",
+      "retweets": "8.9K",
+      "likes": "42.5K",
+      "cardBg": "#000000"
+    }
+  },
+  "social-like-burst": {
+    "fields": [
+      {
+        "key": "count",
+        "label": "Like Counter Milestone",
+        "type": "text",
+        "default": "1,248,000"
+      },
+      {
+        "key": "label",
+        "label": "Action Sub-label",
+        "type": "text",
+        "default": "Likes & Shares"
+      },
+      {
+        "key": "icon",
+        "label": "Reaction Emoji / Icon",
+        "type": "image",
+        "default": "❤️"
+      }
+    ],
+    "defaults": {
+      "count": "1,248,000",
+      "label": "Likes & Shares",
+      "icon": "❤️"
+    }
+  },
+  "social-sub-bell": {
+    "fields": [
+      {
+        "key": "cta",
+        "label": "Channel CTA Heading",
+        "type": "text",
+        "default": "Join 500,000+ Creators"
+      },
+      {
+        "key": "btnText",
+        "label": "Subscribe Button Label",
+        "type": "text",
+        "default": "Subscribe"
+      },
+      {
+        "key": "avatar",
+        "label": "Channel Avatar (Upload Image)",
+        "type": "image",
+        "default": "▶"
+      }
+    ],
+    "defaults": {
+      "cta": "Join 500,000+ Creators",
+      "btnText": "Subscribe",
+      "avatar": "▶"
+    }
+  },
+  "social-comment-stream": {
+    "fields": [
+      {
+        "key": "comment1User",
+        "label": "Comment 1 Username",
+        "type": "text",
+        "default": "@alex_motion"
+      },
+      {
+        "key": "comment1Text",
+        "label": "Comment 1 Message",
+        "type": "text",
+        "default": "How did you animate this?! 🔥"
+      },
+      {
+        "key": "comment2User",
+        "label": "Comment 2 Username",
+        "type": "text",
+        "default": "@sam_creator"
+      },
+      {
+        "key": "comment2Text",
+        "label": "Comment 2 Message",
+        "type": "text",
+        "default": "ShortsCraft AI is insane! 🚀"
+      }
+    ],
+    "defaults": {
+      "comment1User": "@alex_motion",
+      "comment1Text": "How did you animate this?! 🔥",
+      "comment2User": "@sam_creator",
+      "comment2Text": "ShortsCraft AI is insane! 🚀"
+    }
+  },
+  "social-views-counter": {
+    "fields": [
+      {
+        "key": "song",
+        "label": "Song / Track Title",
+        "type": "text",
+        "default": "Synthetic Dreams"
+      },
+      {
+        "key": "artist",
+        "label": "Artist / Album Name",
+        "type": "text",
+        "default": "Echo Labs · Side A"
+      },
+      {
+        "key": "coverIcon",
+        "label": "Album Artwork (Emoji or Upload)",
+        "type": "image",
+        "default": "🎵"
+      }
+    ],
+    "defaults": {
+      "song": "Synthetic Dreams",
+      "artist": "Echo Labs · Side A",
+      "coverIcon": "🎵"
+    }
+  },
+  "social-story-progress": {
+    "fields": [
+      {
+        "key": "handle",
+        "label": "Creator Username",
+        "type": "text",
+        "default": "shortscraft.ai"
+      },
+      {
+        "key": "avatar",
+        "label": "Creator Avatar (Upload or Emoji)",
+        "type": "image",
+        "default": "⚡"
+      },
+      {
+        "key": "title",
+        "label": "Story Hook Headline",
+        "type": "text",
+        "default": "Behind The Viral Edit"
+      }
+    ],
+    "defaults": {
+      "handle": "shortscraft.ai",
+      "avatar": "⚡",
+      "title": "Behind The Viral Edit"
+    }
+  },
+  "social-verified-badge": {
+    "fields": [
+      {
+        "key": "handle",
+        "label": "Profile Handle",
+        "type": "text",
+        "default": "artzenmedia"
+      },
+      {
+        "key": "bio",
+        "label": "Profile Bio Text",
+        "type": "textarea",
+        "default": "Helping you make better content · Editing tips / tutorials"
+      },
+      {
+        "key": "posts",
+        "label": "Posts Count",
+        "type": "text",
+        "default": "178"
+      },
+      {
+        "key": "followers",
+        "label": "Followers Count",
+        "type": "text",
+        "default": "143K"
+      },
+      {
+        "key": "following",
+        "label": "Following Count",
+        "type": "text",
+        "default": "275"
+      },
+      {
+        "key": "avatar",
+        "label": "Profile Avatar (Upload Image)",
+        "type": "image",
+        "default": "⚡"
+      }
+    ],
+    "defaults": {
+      "handle": "artzenmedia",
+      "bio": "Helping you make better content · Editing tips / tutorials",
+      "posts": "178",
+      "followers": "143K",
+      "following": "275",
+      "avatar": "⚡"
+    }
+  },
+  "social-poll": {
+    "fields": [
+      {
+        "key": "question",
+        "label": "Poll Question",
+        "type": "textarea",
+        "default": "Which style gets more retention?"
+      },
+      {
+        "key": "opt1",
+        "label": "Winning Option Label",
+        "type": "text",
+        "default": "Motion Graphics"
+      },
+      {
+        "key": "opt2",
+        "label": "Losing Option Label",
+        "type": "text",
+        "default": "Static Talking Head"
+      }
+    ],
+    "defaults": {
+      "question": "Which style gets more retention?",
+      "opt1": "Motion Graphics",
+      "opt2": "Static Talking Head"
+    }
+  },
+  "social-share": {
+    "fields": [
+      {
+        "key": "title",
+        "label": "Share Sheet Title",
+        "type": "text",
+        "default": "Share Video"
+      },
+      {
+        "key": "icon1",
+        "label": "App Icon 1 (Upload or Emoji)",
+        "type": "image",
+        "default": "📱"
+      },
+      {
+        "key": "icon2",
+        "label": "App Icon 2 (Upload or Emoji)",
+        "type": "image",
+        "default": "💬"
+      },
+      {
+        "key": "icon3",
+        "label": "App Icon 3 (Upload or Emoji)",
+        "type": "image",
+        "default": "🔗"
+      }
+    ],
+    "defaults": {
+      "title": "Share Video",
+      "icon1": "📱",
+      "icon2": "💬",
+      "icon3": "🔗"
+    }
+  },
+  "social-live": {
+    "fields": [
+      {
+        "key": "badge",
+        "label": "Live Broadcast Badge",
+        "type": "text",
+        "default": "● LIVE STREAM"
+      },
+      {
+        "key": "title",
+        "label": "Stream Event Headline",
+        "type": "text",
+        "default": "Editing Masterclass"
+      },
+      {
+        "key": "views",
+        "label": "Active Viewers Readout",
+        "type": "text",
+        "default": "64,200 Viewers"
+      }
+    ],
+    "defaults": {
+      "badge": "● LIVE STREAM",
+      "title": "Editing Masterclass",
+      "views": "64,200 Viewers"
+    }
+  },
+  "swishy-creator-card": {
+    "fields": [
+      {
+        "key": "name",
+        "label": "Creator Name",
+        "type": "text",
+        "default": "Alex Rivers"
+      },
+      {
+        "key": "handle",
+        "label": "Social Handle",
+        "type": "text",
+        "default": "@alexrivers"
+      },
+      {
+        "key": "role",
+        "label": "Tagline / Niche",
+        "type": "text",
+        "default": "Motion Designer & 3D Artist"
+      },
+      {
+        "key": "stats",
+        "label": "Audience Stat Tag",
+        "type": "text",
+        "default": "1.2M Community"
+      },
+      {
+        "key": "avatar",
+        "label": "Creator Avatar (Upload or Emoji)",
+        "type": "image",
+        "default": "⚡"
+      }
+    ],
+    "defaults": {
+      "name": "Alex Rivers",
+      "handle": "@alexrivers",
+      "role": "Motion Designer & 3D Artist",
+      "stats": "1.2M Community",
+      "avatar": "⚡"
+    }
+  },
+  "swishy-github-stars": {
+    "fields": [
+      {
+        "key": "repo",
+        "label": "Repository Name",
+        "type": "text",
+        "default": "shortscraft/motion-ai"
+      },
+      {
+        "key": "stars",
+        "label": "Star Count",
+        "type": "text",
+        "default": "24.8k"
+      },
+      {
+        "key": "forks",
+        "label": "Fork Count",
+        "type": "text",
+        "default": "3.2k"
+      },
+      {
+        "key": "desc",
+        "label": "Repository Description",
+        "type": "text",
+        "default": "CSS-only viral motion graphics generator"
+      }
+    ],
+    "defaults": {
+      "repo": "shortscraft/motion-ai",
+      "stars": "24.8k",
+      "forks": "3.2k",
+      "desc": "CSS-only viral motion graphics generator"
+    }
+  },
+  "charts-bar-race": {
+    "fields": [
+      {
+        "key": "tag",
+        "label": "Metric Benchmark Tag",
+        "type": "text",
+        "default": "PERFORMANCE BENCHMARK"
+      },
+      {
+        "key": "title",
+        "label": "Main Surge Headline",
+        "type": "text",
+        "default": "+320% Retention Surge"
+      },
+      {
+        "key": "val1",
+        "label": "Column 1 Multiplier",
+        "type": "text",
+        "default": "1.2X"
+      },
+      {
+        "key": "val2",
+        "label": "Column 2 Multiplier",
+        "type": "text",
+        "default": "2.8X"
+      },
+      {
+        "key": "val3",
+        "label": "Column 3 Multiplier",
+        "type": "text",
+        "default": "4.5X"
+      }
+    ],
+    "defaults": {
+      "tag": "PERFORMANCE BENCHMARK",
+      "title": "+320% Retention Surge",
+      "val1": "1.2X",
+      "val2": "2.8X",
+      "val3": "4.5X"
+    }
+  },
+  "charts-versus-bars": {
+    "fields": [
+      {
+        "key": "title",
+        "label": "Battle Title",
+        "type": "text",
+        "default": "Shorts vs Long Form"
+      },
+      {
+        "key": "item1Name",
+        "label": "Option A Name",
+        "type": "text",
+        "default": "Motion Graphic Shorts"
+      },
+      {
+        "key": "item1Val",
+        "label": "Option A Percentage",
+        "type": "text",
+        "default": "86%"
+      },
+      {
+        "key": "item1Color",
+        "label": "Option A Color",
+        "type": "color",
+        "default": "#38bdf8"
+      },
+      {
+        "key": "item2Name",
+        "label": "Option B Name",
+        "type": "text",
+        "default": "Static Talking Head"
+      },
+      {
+        "key": "item2Val",
+        "label": "Option B Percentage",
+        "type": "text",
+        "default": "14%"
+      },
+      {
+        "key": "item2Color",
+        "label": "Option B Color",
+        "type": "color",
+        "default": "#ec4899"
+      }
+    ],
+    "defaults": {
+      "title": "Shorts vs Long Form",
+      "item1Name": "Motion Graphic Shorts",
+      "item1Val": "86%",
+      "item1Color": "#38bdf8",
+      "item2Name": "Static Talking Head",
+      "item2Val": "14%",
+      "item2Color": "#ec4899"
+    }
+  },
+  "docu-folder": {
+    "fields": [
+      {
+        "key": "tag",
+        "label": "Archive Header Tag",
+        "type": "text",
+        "default": "ARCHIVE // 340 BC"
+      },
+      {
+        "key": "title",
+        "label": "Main Headline",
+        "type": "text",
+        "default": "EFFORTLESS MOTION"
+      },
+      {
+        "key": "subtitle",
+        "label": "Philosophical Subtitle",
+        "type": "text",
+        "default": "PHILOSOPHY OF DESIGN"
+      },
+      {
+        "key": "image",
+        "label": "Sculpture / Artwork (Upload Image)",
+        "type": "image",
+        "default": "/assets/statue_bust.jpg"
+      },
+      {
+        "key": "beamColor",
+        "label": "Spotlight Beam Color",
+        "type": "select",
+        "options": [
+          {
+            "val": "rgba(255,255,255,.22)",
+            "label": "⚪ Studio White Chiaroscuro"
+          },
+          {
+            "val": "rgba(245,158,11,.22)",
+            "label": "🟡 Warm Amber Spotlight"
+          },
+          {
+            "val": "rgba(56,189,248,.22)",
+            "label": "🔵 Cyan Blue Cinematic Beam"
+          }
+        ],
+        "default": "rgba(255,255,255,.22)"
+      }
+    ],
+    "defaults": {
+      "tag": "ARCHIVE // 340 BC",
+      "title": "EFFORTLESS MOTION",
+      "subtitle": "PHILOSOPHY OF DESIGN",
+      "image": "/assets/statue_bust.jpg",
+      "beamColor": "rgba(255,255,255,.22)"
+    }
+  },
+  "docu-confidential": {
+    "fields": [
+      {
+        "key": "dossier",
+        "label": "Dossier Tag / File Number",
+        "type": "text",
+        "default": "RESTRICTED"
+      },
+      {
+        "key": "stamp",
+        "label": "Rubber Stamp Text",
+        "type": "text",
+        "default": "TOP SECRET"
+      },
+      {
+        "key": "stampColor",
+        "label": "Stamp Ink Color",
+        "type": "select",
+        "options": [
+          {
+            "val": "#ef4444",
+            "label": "🔴 Crimson Red"
+          },
+          {
+            "val": "#f59e0b",
+            "label": "🟠 Amber Orange"
+          },
+          {
+            "val": "#10b981",
+            "label": "🟢 Emerald Green"
+          },
+          {
+            "val": "#1e293b",
+            "label": "⚫ Dark Black Ink"
+          }
+        ],
+        "default": "#ef4444"
+      },
+      {
+        "key": "paperTone",
+        "label": "Document Paper Background",
+        "type": "select",
+        "options": [
+          {
+            "val": "#e6e1d6",
+            "label": "📜 Aged Sepia Parchment"
+          },
+          {
+            "val": "#fef3c7",
+            "label": "📂 Manila Folder"
+          },
+          {
+            "val": "#0f172a",
+            "label": "📐 Blueprint Dark"
+          },
+          {
+            "val": "#fafaf9",
+            "label": "⚪ Clean Paper"
+          }
+        ],
+        "default": "#e6e1d6"
+      }
+    ],
+    "defaults": {
+      "dossier": "RESTRICTED",
+      "stamp": "TOP SECRET",
+      "stampColor": "#ef4444",
+      "paperTone": "#e6e1d6"
+    }
+  },
+  "docu-red-string": {
+    "fields": [
+      {
+        "key": "card1",
+        "label": "Evidence Card 1 Title",
+        "type": "text",
+        "default": "Suspect Alpha"
+      },
+      {
+        "key": "card1Icon",
+        "label": "Card 1 Photo / Icon (Upload)",
+        "type": "image",
+        "default": "📁"
+      },
+      {
+        "key": "card2",
+        "label": "Evidence Card 2 Title",
+        "type": "text",
+        "default": "Shell Company"
+      },
+      {
+        "key": "card2Icon",
+        "label": "Card 2 Photo / Icon (Upload)",
+        "type": "image",
+        "default": "🏢"
+      },
+      {
+        "key": "stringColor",
+        "label": "Yarn String Color",
+        "type": "color",
+        "default": "#ef4444"
+      },
+      {
+        "key": "boardTheme",
+        "label": "Pinboard Background Style",
+        "type": "select",
+        "options": [
+          {
+            "val": "#2a2521",
+            "label": "📌 Natural Corkboard"
+          },
+          {
+            "val": "#1c1917",
+            "label": "🌑 Dark Noir Board"
+          },
+          {
+            "val": "#0c1a2e",
+            "label": "📐 Blueprint Grid"
+          }
+        ],
+        "default": "#2a2521"
+      }
+    ],
+    "defaults": {
+      "card1": "Suspect Alpha",
+      "card1Icon": "📁",
+      "card2": "Shell Company",
+      "card2Icon": "🏢",
+      "stringColor": "#ef4444",
+      "boardTheme": "#2a2521"
+    }
+  },
+  "docu-highlighter": {
+    "fields": [
+      {
+        "key": "tag",
+        "label": "Evidence Category Tag",
+        "type": "text",
+        "default": "// EXHIBIT A: FINANCIAL AUDIT"
+      },
+      {
+        "key": "highlight",
+        "label": "Highlighted Evidence Text",
+        "type": "textarea",
+        "default": "$42,000,000 offshore"
+      },
+      {
+        "key": "source",
+        "label": "Footnote / Source Attribution",
+        "type": "text",
+        "default": "Source: Internal Investigation Report"
+      },
+      {
+        "key": "markerColor",
+        "label": "Highlighter Marker Color",
+        "type": "select",
+        "options": [
+          {
+            "val": "#facc15",
+            "label": "🟡 Fluorescent Yellow"
+          },
+          {
+            "val": "#4ade80",
+            "label": "🟢 Neon Green"
+          },
+          {
+            "val": "#38bdf8",
+            "label": "🔵 Bright Cyan"
+          },
+          {
+            "val": "#f472b6",
+            "label": "💖 Hot Pink"
+          }
+        ],
+        "default": "#facc15"
+      }
+    ],
+    "defaults": {
+      "tag": "// EXHIBIT A: FINANCIAL AUDIT",
+      "highlight": "$42,000,000 offshore",
+      "source": "Source: Internal Investigation Report",
+      "markerColor": "#facc15"
+    }
+  },
+  "docu-redacted": {
+    "fields": [
+      {
+        "key": "header",
+        "label": "Archive Header Tag",
+        "type": "text",
+        "default": "DECLASSIFIED UNDER FOIA"
+      },
+      {
+        "key": "name1",
+        "label": "Censored Name / Target 1",
+        "type": "text",
+        "default": "ROBERT VANCE"
+      },
+      {
+        "key": "name2",
+        "label": "Censored Name / Target 2",
+        "type": "text",
+        "default": "KREMLIN OFFICIALS"
+      },
+      {
+        "key": "body",
+        "label": "Meeting Context Location",
+        "type": "text",
+        "default": "in Vienna."
+      },
+      {
+        "key": "ref",
+        "label": "File Reference ID",
+        "type": "text",
+        "default": "File Ref: CIA-2026-X"
+      }
+    ],
+    "defaults": {
+      "header": "DECLASSIFIED UNDER FOIA",
+      "name1": "ROBERT VANCE",
+      "name2": "KREMLIN OFFICIALS",
+      "body": "in Vienna.",
+      "ref": "File Ref: CIA-2026-X"
+    }
+  },
+  "docu-polaroid-pin": {
+    "fields": [
+      {
+        "key": "caption",
+        "label": "Handwritten Marker Caption",
+        "type": "text",
+        "default": "Zurich, May 1998"
+      },
+      {
+        "key": "photo",
+        "label": "Polaroid Photo / Image (Upload Image)",
+        "type": "image",
+        "default": "📸"
+      },
+      {
+        "key": "pinColor",
+        "label": "Pushpin Color",
+        "type": "color",
+        "default": "#ef4444"
+      }
+    ],
+    "defaults": {
+      "caption": "Zurich, May 1998",
+      "photo": "📸",
+      "pinColor": "#ef4444"
+    }
+  },
+  "docu-magnifying": {
+    "fields": [
+      {
+        "key": "note",
+        "label": "Sticky Note Label",
+        "type": "text",
+        "default": "SUSPECT #04"
+      },
+      {
+        "key": "subtext",
+        "label": "Target Subtitle",
+        "type": "text",
+        "default": "PRIMARY TARGET"
+      },
+      {
+        "key": "maintext",
+        "label": "Main Clue Headline",
+        "type": "text",
+        "default": "MAIN CLUE"
+      },
+      {
+        "key": "markerColor",
+        "label": "Circle Color",
+        "type": "select",
+        "options": [
+          {
+            "val": "#ef4444",
+            "label": "🔴 Crimson Red Glow"
+          },
+          {
+            "val": "#f59e0b",
+            "label": "🟠 Bright Amber"
+          },
+          {
+            "val": "#38bdf8",
+            "label": "🔵 Cyan Blue"
+          },
+          {
+            "val": "#22c55e",
+            "label": "🟢 Neon Green"
+          }
+        ],
+        "default": "#ef4444"
+      }
+    ],
+    "defaults": {
+      "note": "SUSPECT #04",
+      "subtext": "PRIMARY TARGET",
+      "maintext": "MAIN CLUE",
+      "markerColor": "#ef4444"
+    }
+  },
+  "docu-newspaper": {
+    "fields": [
+      {
+        "key": "kicker",
+        "label": "Chapter Header Tag",
+        "type": "text",
+        "default": "CHAPTER IV // REIGN"
+      },
+      {
+        "key": "headline",
+        "label": "Main Newspaper Headline",
+        "type": "text",
+        "default": "THE MONARCH"
+      },
+      {
+        "key": "sub",
+        "label": "Sub-headline Tagline",
+        "type": "text",
+        "default": "Born To Rule · Destined For Glory"
+      }
+    ],
+    "defaults": {
+      "kicker": "CHAPTER IV // REIGN",
+      "headline": "THE MONARCH",
+      "sub": "Born To Rule · Destined For Glory"
+    }
+  },
+  "docu-microfilm": {
+    "fields": [
+      {
+        "key": "header",
+        "label": "Wiretap Header Tag",
+        "type": "text",
+        "default": "CONVERSATION RECORDED"
+      },
+      {
+        "key": "transcript",
+        "label": "Transcript Verified Stamp",
+        "type": "text",
+        "default": "TRANSCRIPT VERIFIED // 100%"
+      }
+    ],
+    "defaults": {
+      "header": "CONVERSATION RECORDED",
+      "transcript": "TRANSCRIPT VERIFIED // 100%"
+    }
+  },
+  "docu-timeline": {
+    "fields": [
+      {
+        "key": "year",
+        "label": "Milestone Year",
+        "type": "text",
+        "default": "2008"
+      },
+      {
+        "key": "event",
+        "label": "Event Title",
+        "type": "text",
+        "default": "The Housing Crisis"
+      },
+      {
+        "key": "desc",
+        "label": "Event Description",
+        "type": "text",
+        "default": "Where it all began"
+      }
+    ],
+    "defaults": {
+      "year": "2008",
+      "event": "The Housing Crisis",
+      "desc": "Where it all began"
+    }
+  },
+  "paper-tape-strip": {
+    "fields": [
+      {
+        "key": "title",
+        "label": "Washi Tape Punch Hook",
+        "type": "text",
+        "default": "FIRST 3 SECONDS"
+      },
+      {
+        "key": "subtitle",
+        "label": "Pinned Paper Note",
+        "type": "text",
+        "default": "Hook your viewer or lose the click"
+      }
+    ],
+    "defaults": {
+      "title": "FIRST 3 SECONDS",
+      "subtitle": "Hook your viewer or lose the click"
+    }
+  },
+  "paper-notebook": {
+    "fields": [
+      {
+        "key": "header",
+        "label": "Legal Pad Header",
+        "type": "text",
+        "default": "RETENTION RULES"
+      },
+      {
+        "key": "body",
+        "label": "Rules List Content",
+        "type": "textarea",
+        "default": "First-principles thinking to engineer impossible products."
+      }
+    ],
+    "defaults": {
+      "header": "RETENTION RULES",
+      "body": "First-principles thinking to engineer impossible products."
+    }
+  },
+  "paper-postit": {
+    "fields": [
+      {
+        "key": "note",
+        "label": "Sticky Note Punchline",
+        "type": "text",
+        "default": "DON'T SCROLL!"
+      },
+      {
+        "key": "sub",
+        "label": "Sticky Note Sub-reminder",
+        "type": "text",
+        "default": "This secret changes everything"
+      }
+    ],
+    "defaults": {
+      "note": "DON'T SCROLL!",
+      "sub": "This secret changes everything"
+    }
+  },
+  "paper-double-pol": {
+    "fields": [
+      {
+        "key": "card1Title",
+        "label": "Photo 1 Caption",
+        "type": "text",
+        "default": "Before (Zero views)"
+      },
+      {
+        "key": "card2Title",
+        "label": "Photo 2 Caption",
+        "type": "text",
+        "default": "After (100k views/day)"
+      },
+      {
+        "key": "badge",
+        "label": "Comparison Badge Tag",
+        "type": "text",
+        "default": "10X CHANNEL GROWTH"
+      }
+    ],
+    "defaults": {
+      "card1Title": "Before (Zero views)",
+      "card2Title": "After (100k views/day)",
+      "badge": "10X CHANNEL GROWTH"
+    }
+  },
+  "maps-gps-pin": {
+    "fields": [
+      {
+        "key": "locName",
+        "label": "Location Headline",
+        "type": "text",
+        "default": "Zurich Safe House"
+      },
+      {
+        "key": "coords",
+        "label": "GPS Coordinates",
+        "type": "text",
+        "default": "47.3769° N, 8.5417° E"
+      },
+      {
+        "key": "pinEmoji",
+        "label": "Pin Marker Emoji",
+        "type": "text",
+        "default": "📍"
+      }
+    ],
+    "defaults": {
+      "locName": "Zurich Safe House",
+      "coords": "47.3769° N, 8.5417° E",
+      "pinEmoji": "📍"
+    }
+  },
+  "swishy-flight-route": {
+    "fields": [
+      {
+        "key": "fromCity",
+        "label": "Departure City",
+        "type": "text",
+        "default": "SAN FRANCISCO"
+      },
+      {
+        "key": "fromCode",
+        "label": "Departure Code",
+        "type": "text",
+        "default": "SFO"
+      },
+      {
+        "key": "toCity",
+        "label": "Destination City",
+        "type": "text",
+        "default": "TOKYO"
+      },
+      {
+        "key": "toCode",
+        "label": "Destination Code",
+        "type": "text",
+        "default": "HND"
+      },
+      {
+        "key": "flightNum",
+        "label": "Flight Number Tag",
+        "type": "text",
+        "default": "FLIGHT JL001"
+      },
+      {
+        "key": "status",
+        "label": "Flight Status",
+        "type": "text",
+        "default": "IN TRANSIT · 9h 45m"
+      }
+    ],
+    "defaults": {
+      "fromCity": "SAN FRANCISCO",
+      "fromCode": "SFO",
+      "toCity": "TOKYO",
+      "toCode": "HND",
+      "flightNum": "FLIGHT JL001",
+      "status": "IN TRANSIT · 9h 45m"
+    }
+  },
+  "money-cash-stack": {
+    "fields": [
+      {
+        "key": "amount",
+        "label": "Revenue / Cash Amount",
+        "type": "text",
+        "default": "$100,000"
+      },
+      {
+        "key": "tag",
+        "label": "Category Badge",
+        "type": "text",
+        "default": "MONTHLY REVENUE"
+      },
+      {
+        "key": "sub",
+        "label": "Growth Subtitle",
+        "type": "text",
+        "default": "+240% MRR Surge"
+      }
+    ],
+    "defaults": {
+      "amount": "$100,000",
+      "tag": "MONTHLY REVENUE",
+      "sub": "+240% MRR Surge"
+    }
+  },
+  "money-gold-vault": {
+    "fields": [
+      {
+        "key": "title",
+        "label": "Vault Asset Title",
+        "type": "text",
+        "default": "GOLD RESERVES"
+      },
+      {
+        "key": "value",
+        "label": "Total Valuation Figure",
+        "type": "text",
+        "default": "$4,250,000,000"
+      },
+      {
+        "key": "purity",
+        "label": "Asset Purity / Tag",
+        "type": "text",
+        "default": "99.99% FINE GOLD"
+      }
+    ],
+    "defaults": {
+      "title": "GOLD RESERVES",
+      "value": "$4,250,000,000",
+      "purity": "99.99% FINE GOLD"
+    }
+  },
+  "money-sale-slash": {
+    "fields": [
+      {
+        "key": "discount",
+        "label": "Discount Badge",
+        "type": "text",
+        "default": "50% OFF"
+      },
+      {
+        "key": "oldPrice",
+        "label": "Original Slashed Price",
+        "type": "text",
+        "default": "$199"
+      },
+      {
+        "key": "newPrice",
+        "label": "Special Sale Price",
+        "type": "text",
+        "default": "$99"
+      },
+      {
+        "key": "tag",
+        "label": "Offer Tagline",
+        "type": "text",
+        "default": "LIFETIME ACCESS · LIMITED TIME"
+      }
+    ],
+    "defaults": {
+      "discount": "50% OFF",
+      "oldPrice": "$199",
+      "newPrice": "$99",
+      "tag": "LIFETIME ACCESS · LIMITED TIME"
+    }
+  },
+  "text-vox-impact": {
+    "fields": [
+      {
+        "key": "line1",
+        "label": "Hook Line 1",
+        "type": "text",
+        "default": "THE REASON"
+      },
+      {
+        "key": "line2",
+        "label": "Impact Punchline",
+        "type": "text",
+        "default": "YOU ARE BROKE"
+      },
+      {
+        "key": "line3",
+        "label": "Sub-hook Line 3",
+        "type": "text",
+        "default": "IS NOT WHAT YOU THINK"
+      }
+    ],
+    "defaults": {
+      "line1": "THE REASON",
+      "line2": "YOU ARE BROKE",
+      "line3": "IS NOT WHAT YOU THINK"
+    }
+  },
+  "text-elastic-wave": {
+    "fields": [
+      {
+        "key": "line1",
+        "label": "Elastic Line 1",
+        "type": "text",
+        "default": "STOP WASTING"
+      },
+      {
+        "key": "line2",
+        "label": "Elastic Line 2",
+        "type": "text",
+        "default": "YOUR 20s"
+      },
+      {
+        "key": "sub",
+        "label": "Subtitle Callout",
+        "type": "text",
+        "default": "Daily Discipline > Motivation"
+      }
+    ],
+    "defaults": {
+      "line1": "STOP WASTING",
+      "line2": "YOUR 20s",
+      "sub": "Daily Discipline > Motivation"
+    }
+  },
+  "text-slot-machine": {
+    "fields": [
+      {
+        "key": "pre",
+        "label": "Top Pre-roll Word",
+        "type": "text",
+        "default": "UNLOCK YOUR"
+      },
+      {
+        "key": "slot1",
+        "label": "Reel Word 1",
+        "type": "text",
+        "default": "FREEDOM"
+      },
+      {
+        "key": "slot2",
+        "label": "Reel Word 2",
+        "type": "text",
+        "default": "FOCUS"
+      },
+      {
+        "key": "slot3",
+        "label": "Reel Word 3",
+        "type": "text",
+        "default": "WEALTH"
+      }
+    ],
+    "defaults": {
+      "pre": "UNLOCK YOUR",
+      "slot1": "FREEDOM",
+      "slot2": "FOCUS",
+      "slot3": "WEALTH"
+    }
+  },
+  "swishy-squiggle-stream": {
+    "fields": [
+      {
+        "key": "line1",
+        "label": "Stream Title",
+        "type": "text",
+        "default": "THE ALGORITHM"
+      },
+      {
+        "key": "line2",
+        "label": "Stream Punchline",
+        "type": "text",
+        "default": "REWARDS CONSISTENCY"
+      },
+      {
+        "key": "tag",
+        "label": "Pill Tag",
+        "type": "text",
+        "default": "VIRAL HOOK"
+      }
+    ],
+    "defaults": {
+      "line1": "THE ALGORITHM",
+      "line2": "REWARDS CONSISTENCY",
+      "tag": "VIRAL HOOK"
+    }
+  },
+  "swishy-stretchy-pill": {
+    "fields": [
+      {
+        "key": "pill1",
+        "label": "Pill 1 Text",
+        "type": "text",
+        "default": "99% QUIT"
+      },
+      {
+        "key": "pill2",
+        "label": "Pill 2 Text",
+        "type": "text",
+        "default": "1% DOMINATE"
+      },
+      {
+        "key": "footer",
+        "label": "Footnote Question",
+        "type": "text",
+        "default": "WHICH SIDE ARE YOU ON?"
+      }
+    ],
+    "defaults": {
+      "pill1": "99% QUIT",
+      "pill2": "1% DOMINATE",
+      "footer": "WHICH SIDE ARE YOU ON?"
+    }
+  },
+  "swishy-vinyl-player": {
+    "fields": [
+      {
+        "key": "song",
+        "label": "Track / Song Title",
+        "type": "text",
+        "default": "Synthetic Dreams"
+      },
+      {
+        "key": "artist",
+        "label": "Artist / Channel Name",
+        "type": "text",
+        "default": "Echo Labs · Side A"
+      },
+      {
+        "key": "coverIcon",
+        "label": "Album Art (Upload or Emoji)",
+        "type": "image",
+        "default": "🎵"
+      }
+    ],
+    "defaults": {
+      "song": "Synthetic Dreams",
+      "artist": "Echo Labs · Side A",
+      "coverIcon": "🎵"
+    }
+  },
+  "swishy-upwork-ad": {
+    "fields": [
+      {
+        "key": "rate",
+        "label": "Hourly Rate",
+        "type": "text",
+        "default": "$120/hr"
+      },
+      {
+        "key": "badge",
+        "label": "Upwork Badge",
+        "type": "text",
+        "default": "TOP RATED PLUS"
+      },
+      {
+        "key": "role",
+        "label": "Professional Title",
+        "type": "text",
+        "default": "Senior Motion Graphics Editor"
+      },
+      {
+        "key": "earned",
+        "label": "Earnings Stat",
+        "type": "text",
+        "default": "$200K+ Earned"
+      }
+    ],
+    "defaults": {
+      "rate": "$120/hr",
+      "badge": "TOP RATED PLUS",
+      "role": "Senior Motion Graphics Editor",
+      "earned": "$200K+ Earned"
+    }
+  },
+  "swishy-terminal-typing": {
+    "fields": [
+      {
+        "key": "cmd",
+        "label": "Terminal Command",
+        "type": "text",
+        "default": "npm install @shortscraft/viral"
+      },
+      {
+        "key": "output",
+        "label": "Command Execution Output",
+        "type": "text",
+        "default": "✔ Generated 1080p 60fps Short in 1.4s"
+      },
+      {
+        "key": "status",
+        "label": "Status Badge",
+        "type": "text",
+        "default": "SUCCESS 200 OK"
+      }
+    ],
+    "defaults": {
+      "cmd": "npm install @shortscraft/viral",
+      "output": "✔ Generated 1080p 60fps Short in 1.4s",
+      "status": "SUCCESS 200 OK"
+    }
+  },
+  "swishy-notion-kinetic": {
+    "fields": [
+      {
+        "key": "title",
+        "label": "Notion Page Title",
+        "type": "text",
+        "default": "2026 Content Blueprint"
+      },
+      {
+        "key": "icon",
+        "label": "Page Icon (Upload or Emoji)",
+        "type": "image",
+        "default": "🚀"
+      },
+      {
+        "key": "item1",
+        "label": "Task Line 1",
+        "type": "text",
+        "default": "Script 10 YouTube Shorts"
+      },
+      {
+        "key": "item2",
+        "label": "Task Line 2",
+        "type": "text",
+        "default": "Animate kinetic typography hooks"
+      },
+      {
+        "key": "item3",
+        "label": "Task Line 3",
+        "type": "text",
+        "default": "Publish 4K exports to Reels"
+      }
+    ],
+    "defaults": {
+      "title": "2026 Content Blueprint",
+      "icon": "🚀",
+      "item1": "Script 10 YouTube Shorts",
+      "item2": "Animate kinetic typography hooks",
+      "item3": "Publish 4K exports to Reels"
+    }
+  },
+  "text-cascade": {
+    "fields": [
+      {
+        "key": "line1",
+        "label": "Cascade Header 1",
+        "type": "text",
+        "default": "FIRST 3 SECONDS"
+      },
+      {
+        "key": "line2",
+        "label": "Cascade Header 2",
+        "type": "text",
+        "default": "DON'T SCROLL AWAY"
+      },
+      {
+        "key": "line3",
+        "label": "Bottom Callout",
+        "type": "text",
+        "default": "shortscraft.online"
+      }
+    ],
+    "defaults": {
+      "line1": "FIRST 3 SECONDS",
+      "line2": "DON'T SCROLL AWAY",
+      "line3": "shortscraft.online"
+    }
+  },
+  "text-subtitle-pill": {
+    "fields": [
+      {
+        "key": "line1",
+        "label": "Subtitle Hook Line 1",
+        "type": "text",
+        "default": "THIS ONE HABIT"
+      },
+      {
+        "key": "line2",
+        "label": "Punch Word Line 2",
+        "type": "text",
+        "default": "CHANGES EVERYTHING"
+      },
+      {
+        "key": "punchColor",
+        "label": "Punch Word Highlight Color",
+        "type": "color",
+        "default": "#fbbf24"
+      }
+    ],
+    "defaults": {
+      "line1": "THIS ONE HABIT",
+      "line2": "CHANGES EVERYTHING",
+      "punchColor": "#fbbf24"
+    }
+  },
+  "text-terminal": {
+    "fields": [
+      {
+        "key": "prompt",
+        "label": "Hacker Terminal Prompt",
+        "type": "text",
+        "default": "root@shortscraft:~$ start_render"
+      },
+      {
+        "key": "line1",
+        "label": "Terminal Output Line 1",
+        "type": "text",
+        "default": "> Analyzing video retention hooks..."
+      },
+      {
+        "key": "line2",
+        "label": "Terminal Output Line 2",
+        "type": "text",
+        "default": "> Boosting engagement by 340%..."
+      },
+      {
+        "key": "status",
+        "label": "Status Stamp",
+        "type": "text",
+        "default": "[RENDER COMPLETE]"
+      }
+    ],
+    "defaults": {
+      "prompt": "root@shortscraft:~$ start_render",
+      "line1": "> Analyzing video retention hooks...",
+      "line2": "> Boosting engagement by 340%...",
+      "status": "[RENDER COMPLETE]"
+    }
+  },
+  "text-glitch": {
+    "fields": [
+      {
+        "key": "title",
+        "label": "Glitch Main Headline",
+        "type": "text",
+        "default": "SYSTEM BREACH"
+      },
+      {
+        "key": "sub",
+        "label": "Warning Sub-headline",
+        "type": "text",
+        "default": "UNAUTHORIZED ACCESS DETECTED"
+      },
+      {
+        "key": "code",
+        "label": "Glitch Error Code",
+        "type": "text",
+        "default": "ERROR 0x4F92B"
+      }
+    ],
+    "defaults": {
+      "title": "SYSTEM BREACH",
+      "sub": "UNAUTHORIZED ACCESS DETECTED",
+      "code": "ERROR 0x4F92B"
+    }
+  }
+};
 
   function defaultSchema(id) {
     var f = FIELDS[id] || ["Line 1", "Line 2", "Line 3"];
