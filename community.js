@@ -67,14 +67,26 @@ async function list(category) {
       `select * from public.community_templates order by created_at desc`
     ));
   }
-  return rows.map(toTemplate);
+  return rows.filter(livesInEngine).map(toTemplate);
+}
+
+/* A published row points at a built-in template by id. If that template is
+   later removed from the engine, the row survives in the database and the
+   gallery renders it as an empty card — which is what "the templates are
+   broken" looked like from the outside. Publishing already refuses unknown
+   ids; this is the same check on the way out, so a template retired after
+   the fact disappears from the gallery instead of leaving a hole in it. */
+function livesInEngine(row) {
+  if (VALID_TPL_IDS.has(row.tpl)) return true;
+  console.warn("[community] hiding %s — its template %s no longer exists", row.id, row.tpl);
+  return false;
 }
 
 async function get(id) {
   const { rows } = await db.query(
     `select * from public.community_templates where id = $1`, [id]
   );
-  return rows[0] ? toTemplate(rows[0]) : null;
+  return rows[0] && livesInEngine(rows[0]) ? toTemplate(rows[0]) : null;
 }
 
 async function publish(data, user) {
@@ -135,7 +147,7 @@ async function listByAuthor(userId, userHandle) {
       `select * from public.community_templates where author_id = $1 order by created_at desc`,
       [userId]
     );
-    if (rows.length) return rows.map(toTemplate);
+    if (rows.length) return rows.filter(livesInEngine).map(toTemplate);
   }
   if (userHandle) {
     const handleNorm = userHandle.toLowerCase().replace(/^@/, "");
@@ -145,14 +157,15 @@ async function listByAuthor(userId, userHandle) {
         order by created_at desc`,
       [handleNorm]
     );
-    if (rows.length) return rows.map(toTemplate);
+    if (rows.length) return rows.filter(livesInEngine).map(toTemplate);
   }
   // If the account has not published anything yet, return a curated starter
-  // set of creator templates rather than an empty gallery.
+  // set of creator templates rather than an empty gallery. Fetch a few extra
+  // and filter, so retired ones do not eat into the three on show.
   const { rows } = await db.query(
-    `select * from public.community_templates order by created_at desc limit 3`
+    `select * from public.community_templates order by created_at desc limit 12`
   );
-  return rows.map(toTemplate);
+  return rows.filter(livesInEngine).slice(0, 3).map(toTemplate);
 }
 
 async function remove(id, user) {
