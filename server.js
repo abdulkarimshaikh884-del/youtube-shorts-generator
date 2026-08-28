@@ -297,6 +297,17 @@ app.get("/api/user/creations", async (req, res) => {
   }
 });
 
+app.delete("/api/user/creations/:id", async (req, res) => {
+  try {
+    const result = await community.remove(req.params.id, req.user);
+    if (result.error) return res.status(400).json({ success: false, error: result.error });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[DELETE /api/user/creations/:id]", err.message);
+    res.status(500).json({ success: false, error: "Could not delete that creation." });
+  }
+});
+
 app.post("/api/community-templates", express.json(), async (req, res) => {
   try {
     const result = await community.publish(req.body, req.user);
@@ -454,7 +465,31 @@ app.get("/api/creator", async (req, res) => {
     }
   };
 
-  const prof = creatorProfiles[handle] || {
+  let dbUser = null;
+  if (handle) {
+    try {
+      const { rows } = await db.query(
+        `select id, email, display_name, handle, bio, youtube, instagram, stars, created_at
+         from public.users
+         where lower(handle) = $1 or lower(handle) = $2 or lower(email) = $3 or lower(email) like $4
+         limit 1`,
+        ["@" + handle, handle, handle, handle + "@%"]
+      );
+      if (rows[0]) dbUser = rows[0];
+    } catch (e) {}
+  }
+
+  const prof = dbUser ? {
+    name: dbUser.display_name || (dbUser.email ? dbUser.email.split("@")[0] : "ShortsCraft Creator"),
+    handle: dbUser.handle || ("@" + (dbUser.email ? dbUser.email.split("@")[0] : "creator")),
+    initials: (dbUser.display_name || dbUser.email || "SC").slice(0, 2).toUpperCase(),
+    bio: dbUser.bio || "Passionate motion designer crafting animated templates for YouTube Shorts and Instagram Reels on ShortsCraft.",
+    youtube: dbUser.youtube || "",
+    instagram: dbUser.instagram || "",
+    followers: "4.5k",
+    likes: (dbUser.stars ? dbUser.stars + " Stars" : "18.2k"),
+    cat: "all"
+  } : (creatorProfiles[handle] || {
     name: handle ? (handle.charAt(0).toUpperCase() + handle.slice(1)) : "ShortsCraft Creator",
     handle: "@" + (handle || "creator"),
     initials: (handle ? handle.slice(0, 2).toUpperCase() : "SC"),
@@ -464,10 +499,10 @@ app.get("/api/creator", async (req, res) => {
     followers: "4.5k",
     likes: "18.2k",
     cat: "all"
-  };
+  });
 
   try {
-    const commTemplates = await community.listByAuthor(null, "@" + handle);
+    const commTemplates = await community.listByAuthor(dbUser?.id || null, "@" + handle);
     res.json({ success: true, creator: prof, communityTemplates: commTemplates });
   } catch (err) {
     console.error("[/api/creator]", err.message);

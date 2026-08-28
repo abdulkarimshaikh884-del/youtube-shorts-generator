@@ -101,10 +101,10 @@ async function publish(data, user) {
   }
 
   const id = "comm_" + crypto.randomBytes(6).toString("hex");
-  const authorName = user.email
+  const authorName = user.displayName || (user.email
     ? user.email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "")
-    : (data.authorName || "Creator");
-  const authorHandle = (data.authorHandle || authorName).toLowerCase().replace(/[^a-z0-9_]/g, "");
+    : (data.authorName || "Creator"));
+  const authorHandle = (user.handle || data.authorHandle || authorName).toLowerCase().replace(/[^a-z0-9_]/g, "");
   const lines = Array.isArray(data.lines) ? data.lines.map((l) => String(l || "").slice(0, 120)) : ["", "", ""];
 
   const { rows } = await db.query(
