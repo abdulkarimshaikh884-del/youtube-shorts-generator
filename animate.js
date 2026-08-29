@@ -1,12 +1,12 @@
 /* ============================================================
    animate.js — turn a user prompt into a real animation.
 
-   How it works: the model does NOT write a web page. It returns JSON with only
-   `css` and `body`, authored against the same design system our built-in
-   templates use (container units, --ac/--fg/--dim/--hair/--surf, --D, --sp).
-   The document itself is assembled by SC_TPL2.buildCustom, so an AI scene is
-   structurally identical to a shipped template — same canvas, same safe box,
-   same watermark, and the existing frame-stepped export works unchanged.
+   How it works: the model does NOT write code. It returns a small scene
+   definition containing approved layout, theme, motion and editable content
+   choices. compileDefinition() turns that definition into house-owned markup
+   and CSS, then SC_TPL2.buildCustom assembles the final document. AI scenes
+   therefore use the same canvas, safe box, watermark and frame-stepped export
+   path as shipped templates without executing model-authored code.
 
    SECURITY: model output is untrusted input, exactly like user-submitted HTML.
    `sanitise()` is a closed allowlist of tags, attributes and CSS constructs and
@@ -164,142 +164,232 @@ function cleanImage(img) {
   return s;
 }
 
+/* ── Constrained scene definition ─────────────────────────
+   The model chooses from this vocabulary. It never gets to invent selectors,
+   markup, URLs or animation code; compileDefinition() owns all of that. */
+const DEFINITION_VERSION = 1;
+const LAYOUTS = new Set(["centered-hero", "metric-card", "comparison", "ranked-list", "chat", "product-showcase"]);
+const THEMES = {
+  "dark-futuristic": { dark: true, bg: "#070812", accent: "#7c5cff" },
+  midnight: { dark: true, bg: "#080b14", accent: "#5b8cff" },
+  emerald: { dark: true, bg: "#07100f", accent: "#35d39a" },
+  "warm-editorial": { dark: true, bg: "#120d0a", accent: "#ffb44c" },
+  light: { dark: false, bg: "#f5f3ed", accent: "#3157e5" }
+};
+const ENTRANCES = new Set(["fade-up", "blur-reveal", "scale-in", "spring-pop"]);
+const INTENSITIES = new Set(["subtle", "balanced", "bold"]);
+const CONTENT_KEYS = ["kicker", "title", "subtitle", "primary", "secondary", "footer"];
+const CONTENT_LIMITS = { kicker: 30, title: 72, subtitle: 140, primary: 52, secondary: 52, footer: 64 };
+
+function cleanPlainText(value, max) {
+  return String(value == null ? "" : value)
+    .replace(/[<>{}]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
+}
+
+function normaliseDefinition(raw, options = {}) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new BadScene("scene definition missing");
+  const themeName = Object.prototype.hasOwnProperty.call(THEMES, raw.theme) ? raw.theme : "dark-futuristic";
+  const theme = THEMES[themeName];
+  const layout = LAYOUTS.has(raw.layout) ? raw.layout : "centered-hero";
+  const motionRaw = raw.motion && typeof raw.motion === "object" ? raw.motion : {};
+  const contentRaw = raw.content && typeof raw.content === "object" && !Array.isArray(raw.content) ? raw.content : {};
+  const content = {};
+  CONTENT_KEYS.forEach((key) => {
+    content[key] = cleanPlainText(contentRaw[key], CONTENT_LIMITS[key]);
+  });
+  if (!content.title) content.title = cleanPlainText(options.prompt || "A premium motion story", CONTENT_LIMITS.title);
+  if (!content.kicker) content.kicker = "ShortsCraft AI";
+  if (!content.subtitle) content.subtitle = "Built from approved premium motion primitives.";
+  if (!content.primary) content.primary = layout === "metric-card" ? "+248%" : "Option A";
+  if (!content.secondary) content.secondary = layout === "metric-card" ? "Growth this month" : "Option B";
+  if (!content.footer) content.footer = "Ready to customize";
+
+  return {
+    version: DEFINITION_VERSION,
+    name: cleanPlainText(raw.name || "AI Original", 60),
+    theme: themeName,
+    layout,
+    accent: /^#[0-9a-f]{6}$/i.test(String(raw.accent || "")) ? String(raw.accent) : theme.accent,
+    content,
+    motion: {
+      entrance: ENTRANCES.has(motionRaw.entrance) ? motionRaw.entrance : "blur-reveal",
+      stagger: motionRaw.stagger !== false,
+      intensity: INTENSITIES.has(motionRaw.intensity) ? motionRaw.intensity : "balanced"
+    },
+    hasImage: !!options.image
+  };
+}
+
+function definitionSchema(content) {
+  const labels = {
+    kicker: "Eyebrow label", title: "Main headline", subtitle: "Supporting copy",
+    primary: "Primary value or item", secondary: "Secondary value or item", footer: "Footer or call to action"
+  };
+  return {
+    version: 1,
+    fields: CONTENT_KEYS.map((key) => ({
+      key,
+      label: labels[key],
+      type: key === "subtitle" ? "textarea" : "text",
+      default: content[key],
+      maxLength: CONTENT_LIMITS[key]
+    })),
+    defaults: { ...content }
+  };
+}
+
+function compileDefinition(definition, image) {
+  const def = normaliseDefinition(definition, { image, prompt: definition && definition.content && definition.content.title });
+  const theme = THEMES[def.theme];
+  const entranceClass = {
+    "fade-up": "ai-fade", "blur-reveal": "ai-blur", "scale-in": "ai-scale", "spring-pop": "ai-pop"
+  }[def.motion.entrance];
+  const staggerClass = def.motion.stagger ? " ai-stagger" : "";
+  const intensity = { subtle: ".55", balanced: "1", bold: "1.3" }[def.motion.intensity];
+
+  const css = `.ai-scene{position:absolute;inset:0;overflow:hidden;background:${theme.bg};color:${theme.dark ? "#fff" : "#111827"};--ai-intensity:${intensity}}`
+    + `.ai-mesh{position:absolute;inset:-20%;background:radial-gradient(circle at 22% 22%,color-mix(in srgb,var(--ac) 28%,transparent),transparent 34%),radial-gradient(circle at 78% 76%,rgba(84,115,255,.18),transparent 34%);filter:blur(7cqw)}`
+    + `.ai-grid{position:absolute;inset:0;opacity:.35;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:6cqw 6cqw;mask-image:linear-gradient(black,transparent 94%)}`
+    + `.ai-safe{position:absolute;inset:0;padding:7cqw;display:flex;align-items:center;justify-content:center}.ai-inner{position:relative;z-index:2;width:min(90cqw,880px)}`
+    + `.ai-kicker{display:inline-flex;padding:1.2cqw 2.4cqw;border-radius:999px;background:color-mix(in srgb,var(--ac) 17%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);color:var(--ac);font-size:2.25cqw;font-weight:800;letter-spacing:.14em;text-transform:uppercase}`
+    + `.ai-title{font-size:8cqw;line-height:.94;letter-spacing:-.05em;font-weight:900;margin:3cqw 0 2cqw;overflow-wrap:anywhere}.ai-sub{font-size:3.2cqw;line-height:1.42;color:var(--dim);max-width:78cqw}`
+    + `.ai-card{padding:4cqw;border-radius:4cqw;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.13);box-shadow:0 4cqw 13cqw rgba(0,0,0,.36);backdrop-filter:blur(16px)}`
+    + `.ai-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3cqw;margin-top:5cqw}.ai-value{font-size:7cqw;line-height:.95;font-weight:900;color:var(--ac);overflow-wrap:anywhere}.ai-label{font-size:2.7cqw;line-height:1.3;color:var(--dim);margin-top:1.3cqw}`
+    + `.ai-list{display:flex;flex-direction:column;gap:2cqw;margin-top:5cqw}.ai-list .ai-card{display:flex;align-items:center;gap:3cqw;padding:2.6cqw 3.2cqw}.ai-rank{font-size:4.5cqw;font-weight:900;color:var(--ac)}`
+    + `.ai-chat{display:flex;flex-direction:column;gap:2.4cqw;margin-top:5cqw}.ai-bubble{max-width:82%;padding:2.8cqw 3.4cqw;border-radius:3.5cqw;background:rgba(255,255,255,.1);font-size:3.2cqw;line-height:1.4}.ai-bubble.out{align-self:flex-end;background:var(--ac);color:#fff}`
+    + `.ai-browser{margin-top:5cqw;padding:1.2cqw;border-radius:5cqw;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);box-shadow:0 5cqw 16cqw rgba(0,0,0,.42)}.ai-browserbar{height:5cqh;display:flex;align-items:center;gap:1cqw;padding:0 2cqw}.ai-dot{width:1.3cqw;height:1.3cqw;border-radius:50%;background:rgba(255,255,255,.3)}.ai-image{height:34cqh;border-radius:4cqw;background:${image ? "linear-gradient(rgba(5,8,15,.08),rgba(5,8,15,.2)),url(var(--img)) center/cover" : "linear-gradient(145deg,color-mix(in srgb,var(--ac) 42%,#111827),#111827)"};display:grid;place-items:center}`
+    + `.ai-footer{margin-top:4cqw;font-size:2.4cqw;color:var(--dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase}`
+    + `.ai-enter{animation-duration:var(--D);animation-timing-function:var(--sp);animation-iteration-count:infinite}.ai-stagger .ai-enter{animation-delay:calc(var(--i,0)*90ms)}`
+    + `.ai-fade{animation-name:aiFade}.ai-blur{animation-name:aiBlur}.ai-scale{animation-name:aiScale}.ai-pop{animation-name:aiPop}`
+    + `@keyframes aiFade{0%,10%{opacity:0;transform:translateY(calc(3cqh*var(--ai-intensity)))}28%,84%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-1cqh)}}`
+    + `@keyframes aiBlur{0%,10%{opacity:0;filter:blur(calc(1.8cqw*var(--ai-intensity)));transform:translateY(2cqh)}28%,84%{opacity:1;filter:blur(0);transform:none}100%{opacity:0;filter:blur(.4cqw)}}`
+    + `@keyframes aiScale{0%,10%{opacity:0;transform:scale(.92)}28%,84%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.02)}}`
+    + `@keyframes aiPop{0%,12%{opacity:0;transform:scale(.82)}30%,84%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.025)}}`
+    + `@container (min-aspect-ratio:1/1){.ai-inner{width:76cqw}.ai-title{font-size:6cqw}.ai-sub{font-size:2.4cqw}.ai-browser{display:grid;grid-template-columns:1fr}.ai-image{height:42cqh}}`;
+
+  const head = `<span class="ai-kicker">{{kicker}}</span><h2 class="ai-title">{{title}}</h2><p class="ai-sub">{{subtitle}}</p>`;
+  let content;
+  if (def.layout === "comparison") {
+    content = `${head}<div class="ai-row ai-stagger"><div class="ai-card ai-enter ${entranceClass}" style="--i:1"><div class="ai-value">{{primary}}</div><p class="ai-label">Option A</p></div><div class="ai-card ai-enter ${entranceClass}" style="--i:2"><div class="ai-value">{{secondary}}</div><p class="ai-label">Option B</p></div></div>`;
+  } else if (def.layout === "metric-card") {
+    content = `${head}<div class="ai-card ai-enter ${entranceClass}" style="margin-top:5cqw"><div class="ai-value">{{primary}}</div><p class="ai-label">{{secondary}}</p></div>`;
+  } else if (def.layout === "ranked-list") {
+    content = `${head}<div class="ai-list ai-stagger"><div class="ai-card ai-enter ${entranceClass}" style="--i:1"><b class="ai-rank">01</b><span>{{primary}}</span></div><div class="ai-card ai-enter ${entranceClass}" style="--i:2"><b class="ai-rank">02</b><span>{{secondary}}</span></div><div class="ai-card ai-enter ${entranceClass}" style="--i:3"><b class="ai-rank">03</b><span>{{footer}}</span></div></div>`;
+  } else if (def.layout === "chat") {
+    content = `${head}<div class="ai-chat ai-stagger"><div class="ai-bubble ai-enter ${entranceClass}" style="--i:1">{{primary}}</div><div class="ai-bubble out ai-enter ${entranceClass}" style="--i:2">{{secondary}}</div></div>`;
+  } else if (def.layout === "product-showcase") {
+    content = `${head}<div class="ai-browser ai-enter ${entranceClass}"><div class="ai-browserbar"><i class="ai-dot"></i><i class="ai-dot"></i><i class="ai-dot"></i></div><div class="ai-image"><b class="ai-value">{{primary}}</b></div></div>`;
+  } else {
+    content = `<div style="text-align:center">${head}<div class="ai-card ai-enter ${entranceClass}" style="margin:5cqw auto 0;max-width:72cqw"><div class="ai-value">{{primary}}</div><p class="ai-label">{{secondary}}</p></div></div>`;
+  }
+  const body = `<div class="ai-scene"><div class="ai-mesh"></div><div class="ai-grid"></div><div class="ai-safe"><div class="ai-inner${staggerClass}">${content}<p class="ai-footer">{{footer}}</p></div></div></div>`;
+  return {
+    name: def.name,
+    accent: def.accent,
+    dark: theme.dark,
+    css,
+    body,
+    img: cleanImage(image),
+    schema: definitionSchema(def.content),
+    definition: def
+  };
+}
+
+function cleanEditableSchema(schema) {
+  if (!schema || typeof schema !== "object" || !Array.isArray(schema.fields)) return null;
+  const fields = schema.fields.slice(0, 12).map((field) => {
+    const key = String(field && field.key || "");
+    if (!/^[A-Za-z][A-Za-z0-9_-]{0,39}$/.test(key)) throw new BadScene("editable field has an invalid key");
+    return {
+      key,
+      label: cleanPlainText(field.label || key, 60),
+      type: field.type === "textarea" ? "textarea" : "text",
+      default: cleanPlainText(field.default, Number(field.maxLength) || 140),
+      maxLength: Math.max(1, Math.min(Number(field.maxLength) || 140, 600))
+    };
+  });
+  const defaults = {};
+  fields.forEach((field) => { defaults[field.key] = field.default; });
+  return { version: 1, fields, defaults };
+}
+
 /* Full check of a scene spec, used by /api/animate AND /api/export. */
 function sanitise(spec) {
   if (!spec || typeof spec !== "object") throw new BadScene("no scene");
-  const name = String(spec.name || "Custom animation").replace(/[<>&"]/g, "").slice(0, 60);
-  const accent = /^#[0-9a-fA-F]{6}$/.test(String(spec.accent || "")) ? spec.accent : "#ffffff";
+  const compiled = spec.definition ? compileDefinition(spec.definition, spec.img) : spec;
+  const name = String(compiled.name || "Custom animation").replace(/[<>&"]/g, "").slice(0, 60);
+  const accent = /^#[0-9a-fA-F]{6}$/.test(String(compiled.accent || "")) ? compiled.accent : "#ffffff";
   return {
     name,
     accent,
-    dark: spec.dark !== false,
-    css: cleanCss(spec.css),
-    body: cleanBody(spec.body),
-    img: cleanImage(spec.img)
+    dark: compiled.dark !== false,
+    css: cleanCss(compiled.css),
+    body: cleanBody(compiled.body),
+    img: cleanImage(compiled.img),
+    schema: cleanEditableSchema(compiled.schema),
+    definition: compiled.definition || null
   };
 }
 
 /* ── the prompt ───────────────────────────────────────────
-   Everything the model needs to produce something that looks like our
-   templates: the variables, the units, the easing, and the house rules that
-   made the v2 set work (animate an object, one accent, spring easing). */
+   The model is a smart arranger, not an unrestricted web designer. It returns
+   content plus choices from the approved vocabulary above; ShortsCraft owns
+   every rendered pixel and keyframe in compileDefinition(). */
 function scenePrompt({ prompt, dur, hasImage }) {
-  return `Design ONE looping motion-graphics scene for a vertical short video (9:16 aspect ratio).
+  return `Arrange ONE premium, editable ShortsCraft motion scene.
 
 USER BRIEF: ${prompt}
+LOOP DURATION: ${dur}ms
+ATTACHED IMAGE: ${hasImage ? "yes" : "no"}
 
-EXAMPLE SHAPE & STRUCTURE:
-{"name":"Motion Scene","dark":true,"accent":"#00e5ff","css":".sc-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}.sc-card{width:82cqw;padding:6cqw;background:var(--surf);border:1px solid var(--hair);border-radius:4cqw;text-align:center}.sc-elem{width:100%;height:30cqh;margin-top:2cqh;animation:scAnim var(--D) var(--sp) infinite}@keyframes scAnim{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}","body":"<div class='sc-wrap'><div class='sc-card'><h2>100K</h2><p>Subscribers</p><svg class='sc-elem' viewBox='0 0 100 50'><polyline points='0,45 25,35 50,30 75,15 100,5' fill='none' stroke='var(--ac)' stroke-width='4'/></svg></div></div>"}
+RETURN EXACTLY THIS JSON SHAPE:
+{"name":"Short scene name","theme":"dark-futuristic","layout":"comparison","accent":"#7c5cff","content":{"kicker":"AI COMPARISON","title":"Claude vs ChatGPT","subtitle":"Which one is best for creators?","primary":"Claude","secondary":"ChatGPT","footer":"Pick your winner"},"motion":{"entrance":"blur-reveal","stagger":true,"intensity":"balanced"}}
 
 RULES:
-1. Animate an OBJECT or UI card (e.g., metric card, subscriber milestone counter, line graph with 4-6 points, pulse ring, or dynamic bar).
-2. Monochrome base (#08080a) with EXACTLY ONE accent colour, used via var(--ac).
-3. Spring easing: animation: animName var(--D) var(--sp) infinite. var(--D) is loop duration (${dur}ms).
-4. Size everything with container units: cqw and cqh (9:16 viewport).
-5. Output raw JSON ONLY with double quotes (") around all keys and values. No markdown fences.
-6. ${hasImage
-    ? "The user attached an image. Use it as the subject: reference it as " +
-      "background-image:url(var(--img)) with background-size:cover, and animate " +
-      "it (a slow parallax drift, a masked reveal, or a scale-in). url(var(--img)) " +
-      "is the ONLY url() you may write."
-    : "Do not reference any image. No url(), no <img>, no background-image."}`;
+1. layout MUST be one of: centered-hero, metric-card, comparison, ranked-list, chat, product-showcase.
+2. theme MUST be one of: dark-futuristic, midnight, emerald, warm-editorial, light.
+3. motion.entrance MUST be one of: fade-up, blur-reveal, scale-in, spring-pop.
+4. motion.intensity MUST be subtle, balanced or bold.
+5. Keep title under 72 characters and subtitle under 140. Write clear creator-facing copy.
+6. Use product-showcase when an attached image is central; otherwise choose the layout that best serves the brief.
+7. Output raw JSON only. Never output HTML, CSS, React, JavaScript, URLs or markdown.`;
 }
 
 /* ── model call ───────────────────────────────────────────── */
 async function generateScene({ prompt, dur, image, model, callModel }) {
   const hasImage = !!image;
   const text = await callModel({
-    system: "You are a senior motion designer who writes flawless, concise CSS animations and replies with strict JSON only.",
+    system: "You are the ShortsCraft scene planner. Choose only from the approved layout, theme and motion vocabulary. Reply with strict JSON only; never write code.",
     user: scenePrompt({ prompt, dur, hasImage }),
     model,
-    maxTokens: 3500,
-    temperature: 0.4
+    maxTokens: 1200,
+    temperature: 0.25
   });
 
   let raw = String(text || "").trim();
-  let start = raw.indexOf('{"name"');
-  if (start < 0) start = raw.indexOf('{ "name"');
-  if (start < 0) start = raw.indexOf('{"');
-  if (start < 0) start = raw.indexOf("{");
-  let end = raw.lastIndexOf("}");
-  if (start < 0) throw new BadScene("the model did not return JSON");
-  if (end <= start) {
-    // If cut off, append closing
-    raw += '"}';
-    end = raw.lastIndexOf("}");
-  }
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start < 0 || end <= start) throw new BadScene("the model did not return a scene definition");
 
-  let spec;
-  let jsonSlice = raw.slice(start, end + 1);
-
-  // Normalize unquoted keys like body: -> "body":
-  jsonSlice = jsonSlice.replace(/([,{]\s*)(name|dark|accent|css|body)\s*:/g, '$1"$2":');
-
-  // Normalize JS template backticks to valid JSON double-quoted strings
-  jsonSlice = jsonSlice.replace(/:\s*`([\s\S]*?)`/g, function (m, content) {
-    const escaped = content.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r?\n/g, "\\n").replace(/\t/g, "\\t");
-    return ': "' + escaped + '"';
-  });
-
+  let parsed;
   try {
-    spec = JSON.parse(jsonSlice);
-  } catch (e) {
-    try {
-      // LLMs often put raw unescaped newlines in JSON strings: replace unescaped newlines in string properties
-      const cleaned = jsonSlice.replace(/"(css|body|name|accent)":\s*"([\s\S]*?)"(?=\s*,\s*"|\s*})/g, function (m, k, v) {
-        var fix = v.replace(/\r?\n/g, "\\n").replace(/\t/g, "\\t");
-        return '"' + k + '":"' + fix + '"';
-      });
-      spec = JSON.parse(cleaned);
-    } catch (e2) {
-      try {
-        const nameMatch = raw.match(/"name"\s*:\s*["`]([^"`]+)["`]/);
-        const darkMatch = raw.match(/"dark"\s*:\s*(true|false)/);
-        const accentMatch = raw.match(/"accent"\s*:\s*["`]([^"`]+)["`]/);
-        const cssMatch = raw.match(/"css"\s*:\s*["`]([\s\S]*?)["`](?=\s*,\s*"body"|\s*,\s*"dark"|\s*,\s*"accent"|\s*})/);
-        const bodyMatch = raw.match(/"body"\s*:\s*["`]([\s\S]*?)["`](?=\s*})/);
-        if (cssMatch && (bodyMatch || cssMatch[1])) {
-          spec = {
-            name: nameMatch ? nameMatch[1] : "Custom animation",
-            dark: darkMatch ? darkMatch[1] === "true" : true,
-            accent: accentMatch ? accentMatch[1] : "#ffffff",
-            css: (cssMatch ? cssMatch[1] : "").replace(/\\n/g, "\n").replace(/\\"/g, '"'),
-            body: (bodyMatch ? bodyMatch[1] : "").replace(/\\n/g, "\n").replace(/\\"/g, '"')
-          };
-        } else {
-          throw e2;
-        }
-      } catch (e3) {
-        console.error("[generateScene] JSON parse error:", e.message, "\nRaw snippet:", jsonSlice.slice(0, 300));
-        throw new BadScene("the model returned invalid JSON");
-      }
-    }
+    parsed = JSON.parse(raw.slice(start, end + 1));
+  } catch (err) {
+    throw new BadScene("the model returned invalid JSON");
   }
 
-  spec.img = image || null;
-
-  /* Quality gate.
-
-     A near-miss is repaired: if the model wrote a real animation but hardcoded
-     its duration ("3s") instead of using var(--D), rewrite it so the scene
-     honours the clip length. That produces exactly what the user asked for.
-
-     Anything worse is refused, not patched. Bolting a generic pulse onto a
-     static card would hand back a scene the user did not ask for while still
-     charging them 5 credits; throwing BadScene makes /api/animate refund the
-     credit and tell them to reword. */
-  if (spec.css && /@keyframes/i.test(spec.css) && !/var\(--D\)/.test(spec.css)) {
-    spec.css = spec.css.replace(/\b\d+(?:\.\d+)?s\b/gi, "var(--D)");
-    spec.css = spec.css.replace(/\b\d+ms\b/gi, "var(--D)");
+  // Code-shaped responses are a hard failure. Do not quietly accept a legacy
+  // css/body payload and undo the constrained architecture through fallback.
+  if (Object.prototype.hasOwnProperty.call(parsed, "css") || Object.prototype.hasOwnProperty.call(parsed, "body")) {
+    throw new BadScene("the model attempted to return code instead of an approved scene definition");
   }
 
-  if (!spec.css || !/@keyframes/i.test(spec.css)) {
-    throw new BadScene("the model returned no animation — the scene has no @keyframes");
-  }
-
-  // Hostile output is refused outright rather than quietly swapped for a
-  // fallback — a silent swap hides that the model produced something unsafe.
-  return sanitise(spec);
+  const definition = normaliseDefinition(parsed, { prompt, image });
+  const compiled = compileDefinition(definition, image || null);
+  return sanitise(compiled);
 }
 
 function createFallbackScene(prompt, dur) {
@@ -307,32 +397,36 @@ function createFallbackScene(prompt, dur) {
   const isChart = pLower.includes("chart") || pLower.includes("graph") || pLower.includes("subscriber") || pLower.includes("count");
   const isMoney = pLower.includes("money") || pLower.includes("dollar") || pLower.includes("price") || pLower.includes("crypto") || pLower.includes("sale");
   const isTech = pLower.includes("ai") || pLower.includes("neon") || pLower.includes("cyber") || pLower.includes("heart") || pLower.includes("code");
-  
+
   const accent = isMoney ? "#00E676" : (isTech ? "#00E5FF" : (isChart ? "#3B82F6" : "#FF5252"));
-  const title = prompt.length > 30 ? prompt.slice(0, 27) + "…" : prompt;
-
-  if (isChart) {
-    return {
-      name: "Metric Growth Pulse",
-      dark: true,
-      accent,
-      css: `.sc-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6cqw}.sc-card{width:86cqw;padding:7cqw 6cqw;background:var(--surf);border:1px solid var(--hair);border-radius:5cqw;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.6)}.sc-val{font-size:10cqw;font-weight:900;color:var(--fg);letter-spacing:-.03em;margin:0 0 1cqh;animation:scCount var(--D) var(--sp) infinite}.sc-label{font-size:3.6cqw;color:var(--dim);text-transform:uppercase;letter-spacing:.14em;margin:0 0 3cqh}.sc-chart{width:100%;height:22cqh;overflow:visible}.sc-line{fill:none;stroke:var(--ac);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 12px var(--ac));animation:scLineAnim var(--D) var(--sp) infinite}.sc-grid{stroke:var(--hair);stroke-dasharray:3 3;stroke-width:1}@keyframes scCount{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}@keyframes scLineAnim{0%,100%{stroke-dashoffset:0}50%{stroke-dashoffset:15}}`,
-      body: `<div class="sc-wrap"><div class="sc-card"><h1 class="sc-val">100,000+</h1><p class="sc-label">${title}</p><svg class="sc-chart" viewBox="0 0 100 50"><line x1="0" y1="45" x2="100" y2="45" class="sc-grid"/><line x1="0" y1="25" x2="100" y2="25" class="sc-grid"/><polyline points="5,42 25,32 50,28 75,14 95,6" class="sc-line"/></svg></div></div>`,
-      img: null
-    };
-  }
-
-  return {
-    name: "Motion Visualizer",
-    dark: true,
+  const definition = normaliseDefinition({
+    name: isChart ? "Metric Growth Pulse" : "Motion Visualizer",
+    theme: isMoney ? "emerald" : "midnight",
+    layout: (isChart || isMoney) ? "metric-card" : "centered-hero",
     accent,
-    css: `.sc-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6cqw}.sc-orb{width:36cqw;height:36cqw;border-radius:50%;background:radial-gradient(circle,var(--ac) 0%,transparent 70%);border:2px solid var(--ac);box-shadow:0 0 40px var(--ac);animation:scOrb var(--D) var(--sp) infinite;display:grid;place-items:center;margin-bottom:4cqh}.sc-title{font-size:6.8cqw;font-weight:800;letter-spacing:-.02em;color:var(--fg);text-align:center;max-width:90%}.sc-sub{font-size:3.5cqw;color:var(--dim);margin-top:1.5cqh;letter-spacing:.08em}@keyframes scOrb{0%,100%{transform:scale(1) rotate(0deg);box-shadow:0 0 30px var(--ac)}50%{transform:scale(1.15) rotate(180deg);box-shadow:0 0 60px var(--ac)}}`,
-    body: `<div class="sc-wrap"><div class="sc-orb"><span style="font-size:12cqw">✦</span></div><h2 class="sc-title">${title}</h2><p class="sc-sub">ShortsCraft AI Studio</p></div>`,
-    img: null
-  };
+    content: {
+      kicker: "ShortsCraft AI",
+      title: String(prompt || "Premium motion visual"),
+      subtitle: "A safe fallback built from approved motion primitives.",
+      primary: isChart ? "100K+" : (isMoney ? "+248%" : "✦"),
+      secondary: isChart ? "Audience growth" : (isMoney ? "Creator revenue" : "Ready to animate"),
+      footer: `${Math.max(500, Math.min(Number(dur) || 4000, 30000))}ms loop`
+    },
+    motion: { entrance: "spring-pop", stagger: true, intensity: "balanced" }
+  }, { prompt });
+  return sanitise(compileDefinition(definition, null));
 }
 
 module.exports = {
-  sanitise, generateScene, scenePrompt, createFallbackScene, BadScene,
+  sanitise, generateScene, scenePrompt, createFallbackScene,
+  normaliseDefinition, compileDefinition, BadScene,
+  VOCABULARY: {
+    version: DEFINITION_VERSION,
+    layouts: Array.from(LAYOUTS),
+    themes: Object.keys(THEMES),
+    entrances: Array.from(ENTRANCES),
+    intensities: Array.from(INTENSITIES),
+    contentKeys: CONTENT_KEYS.slice()
+  },
   LIMITS: { MAX_CSS, MAX_BODY, MAX_IMG_BYTES }
 };

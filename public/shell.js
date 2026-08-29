@@ -167,6 +167,9 @@
     // Wire Share
     $("#modalShareBtn").onclick = function () {
       var url = window.location.origin + "/template?id=" + encodeURIComponent(t.tpl);
+      if (t.isCommunity && t.commId) {
+        url += "&comm=1&commId=" + encodeURIComponent(t.commId);
+      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function () {
           var sp = $("#modalShareBtn");
@@ -184,16 +187,27 @@
       var inp = $("#modalCommInput");
       var val = inp.value.trim();
       if (!val) return;
+      var send = this.querySelector("button[type=submit]");
+      if (send) send.disabled = true;
       fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tpl: t.tpl, text: val, authorName: "You", authorHandle: "@creator" })
+        body: JSON.stringify({ tpl: t.tpl, text: val })
       })
+        .then(function (r) {
+          return r.json().then(function (d) {
+            if (!r.ok || !d.success) throw new Error(d.error || "Could not post that comment.");
+            return d;
+          });
+        })
         .then(function () {
           inp.value = "";
           loadModalComments(t.tpl);
         })
-        .catch(function () { loadModalComments(t.tpl); });
+        .catch(function (err) {
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message || "Could not post that comment.", true);
+        })
+        .finally(function () { if (send) send.disabled = false; });
     };
 
     modal.classList.add("open");
@@ -233,12 +247,12 @@
           item.className = "sh-m-comm-item";
           var initials = (c.authorHandle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
           item.innerHTML = [
-            '<div class="sh-m-c-item-av">' + initials + '</div>',
+            '<div class="sh-m-c-item-av">' + escapeHtml(initials) + '</div>',
             '<div class="sh-m-c-item-body">',
             '  <div class="sh-m-c-item-head">',
-            '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="sh-m-c-item-name">' + (c.authorName || "Creator") + '</a>',
-            '    <span class="sh-m-c-item-handle">' + (c.authorHandle || "@creator") + '</span>',
-            '    <span class="sh-m-c-item-time">' + (c.time || "Recently") + '</span>',
+            '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="sh-m-c-item-name">' + escapeHtml(c.authorName || "Creator") + '</a>',
+            '    <span class="sh-m-c-item-handle">' + escapeHtml(c.authorHandle || "@creator") + '</span>',
+            '    <span class="sh-m-c-item-time">' + escapeHtml(c.time || "Recently") + '</span>',
             '  </div>',
             '  <p class="sh-m-c-item-text">' + escapeHtml(c.text || "") + '</p>',
             '</div>'
@@ -322,9 +336,10 @@
       var name = (tile.dataset.name || "").toLowerCase();
       var desc = (tile.dataset.desc || "").toLowerCase();
       var tCat = tile.dataset.cat || "";
+      var collection = tile.dataset.collection || "";
       var tpl = (tile.dataset.tpl || "").toLowerCase();
 
-      var matchCat = (cat === "all" || tCat === cat);
+      var matchCat = (cat === "all" || tCat === cat || (cat === "originals" && collection === "originals"));
       var matchSearch = !q || name.indexOf(q) !== -1 || desc.indexOf(q) !== -1 || tpl.indexOf(q) !== -1;
 
       var show = matchCat && matchSearch;
@@ -353,15 +368,23 @@
 
     grid.innerHTML = "";
 
-    fetch("/api/community-templates")
-      .then(function (r) { return r.json(); })
+    // Built-in templates are the core product and do not depend on Postgres.
+    // Paint them immediately, then enrich the grid if community data arrives.
+    renderAllTemplates([]);
+
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8_000);
+    fetch("/api/community-templates", ctrl ? { signal: ctrl.signal } : undefined)
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
       .then(function (d) {
         var commList = (d && d.templates) || [];
-        renderAllTemplates(commList);
+        if (commList.length) renderAllTemplates(commList);
       })
-      .catch(function () {
-        renderAllTemplates([]);
-      });
+      .catch(function () {})
+      .finally(function () { clearTimeout(bail); });
 
     function renderAllTemplates(commList) {
       var allItems = [];
@@ -407,10 +430,11 @@
           name: t.name,
           desc: t.desc,
           cat: t.cat,
+          collection: t.collection,
           isCommunity: false,
           likes: 0,
           downloads: 0,
-          score: 1000 - idx
+          score: (t.collection === "originals" ? 2000 : 1000) - idx
         });
       });
 
@@ -430,6 +454,7 @@
         tile.dataset.name = t.name;
         tile.dataset.desc = t.desc;
         tile.dataset.cat = t.cat;
+        tile.dataset.collection = t.collection || (t.isCommunity ? "community" : "classic");
 
         if (t.isCommunity) {
           tile.dataset.comm = "1";
@@ -473,8 +498,13 @@
           var commBadge = document.createElement("a");
           commBadge.className = "sh-comm-badge";
           commBadge.href = creatorUrl;
-          commBadge.innerHTML = '✦ @' + author.handle.replace(/^@/, "");
+          commBadge.textContent = "✦ @" + author.handle.replace(/^@/, "");
           stage.appendChild(commBadge);
+        } else if (t.collection === "originals") {
+          var originalBadge = document.createElement("span");
+          originalBadge.className = "sh-pro-badge";
+          originalBadge.textContent = "ORIGINAL";
+          stage.appendChild(originalBadge);
         } else if (t.cat === "paper" || t.cat === "docu") {
           var proBadge = document.createElement("span");
           proBadge.className = "sh-pro-badge";
@@ -690,7 +720,7 @@
       charts: "Charts & Data"
     };
 
-    var cats = [{ id: "all", label: "All" }].concat(e.cats().map(function (c) {
+    var cats = [{ id: "all", label: "All" }, { id: "originals", label: "✦ Originals" }].concat(e.cats().map(function (c) {
       return { id: c.id, label: categoryLabels[c.id] || c.label };
     }));
 
@@ -909,6 +939,9 @@
           if (sRates && j.cost) {
             sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
           }
+          document.querySelectorAll(".sh-upop-credits-pill").forEach(function (el) {
+            el.textContent = "⚡ " + j.left + " / " + j.perDay + " Credits";
+          });
           if (up && j.plan !== "free") {
             up.textContent = "Manage your plan ↗";
           }

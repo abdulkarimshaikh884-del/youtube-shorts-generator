@@ -72,8 +72,8 @@
     var list = e.list();
     var found = list.find(function (item) { return item.id === tplId; });
 
-    if (found) {
-      currentTpl = {
+    function showBuiltInOrFallback() {
+      currentTpl = found ? {
         tpl: found.id,
         name: found.name,
         desc: found.desc,
@@ -81,57 +81,55 @@
         dur: 4600,
         isCommunity: false,
         likes: 0
+      } : {
+        tpl: tplId,
+        name: "Motion Graphics Preset",
+        desc: "Dynamic motion graphic template for YouTube Shorts and Instagram Reels.",
+        cat: "docu",
+        dur: 4600,
+        isCommunity: false,
+        likes: 0
       };
       renderDetails();
-    } else {
-      // Check community templates API
-      fetch("/api/community-templates")
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          var commList = (d && d.templates) || [];
-          var cFound = commList.find(function (ct) { return ct.id === commId || ct.tpl === tplId; });
-          if (cFound) {
-            currentTpl = {
-              tpl: cFound.tpl,
-              name: cFound.title || "Community Template",
-              desc: cFound.description || "Custom creator animation preset",
-              cat: cFound.category || "text",
-              dur: cFound.dur || 4600,
-              accent: cFound.accent || "#ffffff",
-              font: cFound.font || "inter",
-              lines: cFound.lines || [],
-              isCommunity: true,
-              authorHandle: cFound.authorHandle || "creator",
-              authorName: cFound.authorName || "Creator",
-              likes: Number(cFound.likes || 0)
-            };
-          } else {
-            // fallback
-            currentTpl = {
-              tpl: tplId,
-              name: "Motion Graphics Preset",
-              desc: "Dynamic motion graphic template for YouTube Shorts and Instagram Reels.",
-              cat: "docu",
-              dur: 4600,
-              isCommunity: false,
-              likes: 0
-            };
-          }
-          renderDetails();
+    }
+
+    /* Every community row points at a built-in template id, so looking up the
+       built-in first made this branch unreachable and silently discarded the
+       creator's custom title, colours and lines. Community URLs must resolve
+       their row by id first; the built-in is only the offline fallback. */
+    if (isComm && commId) {
+      var ctrl = ("AbortController" in window) ? new AbortController() : null;
+      var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8_000);
+      fetch("/api/community-templates/" + encodeURIComponent(commId), ctrl ? { signal: ctrl.signal } : undefined)
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
         })
-        .catch(function () {
+        .then(function (d) {
+          var cFound = d && d.template;
+          if (!cFound) throw new Error("Template not found");
           currentTpl = {
-            tpl: tplId,
-            name: "Motion Graphics Preset",
-            desc: "Dynamic motion graphic template for YouTube Shorts and Instagram Reels.",
-            cat: "docu",
-            dur: 4600,
-            isCommunity: false,
-            likes: 0
+            tpl: cFound.tpl,
+            name: cFound.title || "Community Template",
+            desc: cFound.description || "Custom creator animation preset",
+            cat: cFound.category || "text",
+            dur: cFound.dur || 4600,
+            accent: cFound.accent || "#ffffff",
+            font: cFound.font || "inter",
+            lines: cFound.lines || [],
+            isCommunity: true,
+            authorHandle: cFound.authorHandle || "creator",
+            authorName: cFound.authorName || "Creator",
+            likes: Number(cFound.likes || 0)
           };
           renderDetails();
-        });
+        })
+        .catch(showBuiltInOrFallback)
+        .finally(function () { clearTimeout(bail); });
+      return;
     }
+
+    showBuiltInOrFallback();
   }
 
   function renderDetails() {
@@ -278,12 +276,12 @@
         var initials = (c.authorHandle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
 
         item.innerHTML = [
-          '<div class="sh-m-c-item-av">' + initials + '</div>',
+          '<div class="sh-m-c-item-av">' + escapeHtml(initials) + '</div>',
           '<div class="sh-m-c-item-body">',
           '  <div class="sh-m-c-item-head">',
-          '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="sh-m-c-item-name">' + (c.authorName || "Creator") + '</a>',
-          '    <span class="sh-m-c-item-handle">' + (c.authorHandle || "@creator") + '</span>',
-          '    <span class="sh-m-c-item-time">' + (c.time || "Recently") + '</span>',
+          '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="sh-m-c-item-name">' + escapeHtml(c.authorName || "Creator") + '</a>',
+          '    <span class="sh-m-c-item-handle">' + escapeHtml(c.authorHandle || "@creator") + '</span>',
+          '    <span class="sh-m-c-item-time">' + escapeHtml(c.time || "Recently") + '</span>',
           '  </div>',
           '  <p class="sh-m-c-item-text">' + escapeHtml(c.text || "") + '</p>',
           '</div>'
@@ -314,20 +312,23 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tpl: tplId,
-          text: text,
-          authorName: "You",
-          authorHandle: "@creator"
+          text: text
         })
       })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          return r.json().then(function (d) {
+            if (!r.ok || !d.success) throw new Error(d.error || "Could not post that comment.");
+            return d;
+          });
+        })
         .then(function (d) {
           input.value = "";
           if (sendBtn) sendBtn.disabled = false;
           loadComments();
         })
-        .catch(function () {
+        .catch(function (err) {
           if (sendBtn) sendBtn.disabled = false;
-          loadComments();
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message || "Could not post that comment.", true);
         });
     });
   }

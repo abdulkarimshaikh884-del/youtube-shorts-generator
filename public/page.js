@@ -7,6 +7,18 @@
   "use strict";
 
   var $ = function (s) { return document.querySelector(s); };
+  function safeNext(value) {
+    if (!value || value.charAt(0) !== "/" || value.slice(0, 2) === "//" || value.indexOf("\\") !== -1) {
+      return null;
+    }
+    try {
+      var url = new URL(value, location.origin);
+      if (url.origin !== location.origin) return null;
+      return url.pathname + url.search + url.hash;
+    } catch (e) {
+      return null;
+    }
+  }
 
   /* ── mobile nav ───────────────────────────────────────── */
   var burger = $("#navBurger"), menu = $("#navMobile");
@@ -30,9 +42,10 @@
        deciding to sign up instead used to drop the destination and land you
        on the home page. */
     var nextParam = new URLSearchParams(location.search).get("next");
-    if (nextParam && /^\/[a-z0-9\-/?=&]*$/i.test(nextParam)) {
+    var safeNextParam = safeNext(nextParam);
+    if (safeNextParam) {
       var cross = af.querySelector('.pg-fine a[href="/login"], .pg-fine a[href="/signup"]');
-      if (cross) cross.href = cross.getAttribute("href") + "?next=" + encodeURIComponent(nextParam);
+      if (cross) cross.href = cross.getAttribute("href") + "?next=" + encodeURIComponent(safeNextParam);
     }
     var say = function (msg, bad) {
       note.textContent = msg;
@@ -69,7 +82,7 @@
       }).then(function () {
         // land somewhere useful: back where they came from, or the home page
         var next = new URLSearchParams(location.search).get("next");
-        location.href = next && /^\/[a-z0-9\-/?=&]*$/i.test(next) ? next : "/";
+        location.href = safeNext(next) || "/";
       }).catch(function (err) {
         say(err.message, true);
         send.disabled = false;
@@ -107,6 +120,9 @@
           if (sRates && j.cost) {
             sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
           }
+          document.querySelectorAll(".sh-upop-credits-pill").forEach(function (el) {
+            el.textContent = "⚡ " + j.left + " / " + j.perDay + " Credits";
+          });
           if (up && j.plan !== "free") {
             up.textContent = "Manage your plan ↗";
           }

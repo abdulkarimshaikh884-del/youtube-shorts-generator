@@ -4,13 +4,13 @@
   "description": "ShortsCraft — Premium AI YouTube Shorts content generator (Hinglish)",
   "main": "server.js",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.9.0"
   },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "build": "node generate-favicons.js",
-    "test": "node verify_shell.js && node verify_editor.js && node verify_timeline.js && node verify_templates_v2.js && node verify_pages.js && node verify_auth.js && node verify_export.js && node verify_credits.js",
+    "test": "node verify_shell.js && node verify_editor.js && node verify_timeline.js && node verify_templates_v2.js && node verify_ai_definition.js && node verify_pages.js && node verify_auth.js && node verify_export.js && node verify_credits.js",
     "test:shell": "node verify_shell.js",
     "test:templates": "node verify_templates_v2.js",
     "test:export": "node verify_export.js",
@@ -18,6 +18,7 @@
     "test:timeline": "node verify_timeline.js",
     "test:pages": "node verify_pages.js",
     "test:credits": "node verify_credits.js",
+    "test:ai": "node verify_ai_definition.js",
     "test:auth": "node verify_auth.js",
     "test:legacy": "node verify_studio_redesign.js && node verify_generator_restore.js",
     "test:studio": "node verify_studio_redesign.js"
@@ -27,9 +28,12 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "4.22.2",
     "pg": "^8.23.0",
     "puppeteer": "^25.3.0",
-    "sharp": "^0.33.3"
+    "sharp": "0.35.4"
+  },
+  "overrides": {
+    "body-parser": "1.20.6"
   }
 }

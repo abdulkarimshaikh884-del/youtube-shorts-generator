@@ -22,7 +22,9 @@
   /* Until the gateway is switched on the page reserves seats instead of
      charging. The server decides which mode we are in, so turning payments on
      needs no edit here. */
-  var paymentsLive = true;
+  // Fail closed: until the server positively confirms live payments, buttons
+  // reserve a seat instead of attempting a checkout that may not be configured.
+  var paymentsLive = false;
 
   function paintReserveMode(o, keepNote) {
     var banner = $("#offerBanner");
@@ -61,7 +63,12 @@
      Pro Max is lifetime for the first N members. Once they are gone the same
      price buys a year, so the page must say which one the visitor is getting. */
   function paintOffer(keepNote) {
-    fetch("/api/offer", { headers: { Accept: "application/json" } })
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8_000);
+    fetch("/api/offer", {
+      headers: { Accept: "application/json" },
+      signal: ctrl ? ctrl.signal : undefined
+    })
       .then(function (r) { return r.json(); })
       .then(function (o) {
         if (!o || !o.success) return;
@@ -98,7 +105,8 @@
           if (btn) btn.textContent = "Get Pro Max · ₹" + o.price + "/year";
         }
       })
-      .catch(function () { /* the static copy on the page stays as the fallback */ });
+      .catch(function () { /* reserve mode stays as the safe fallback */ })
+      .finally(function () { clearTimeout(bail); });
   }
 
   /* ── Buy ──────────────────────────────────────────────────
@@ -178,8 +186,7 @@
             body: JSON.stringify({
               razorpay_order_id: resp.razorpay_order_id,
               razorpay_payment_id: resp.razorpay_payment_id,
-              razorpay_signature: resp.razorpay_signature,
-              plan: planId
+              razorpay_signature: resp.razorpay_signature
             })
           }).then(function (r) { return r.json(); });
         });
@@ -267,6 +274,7 @@
 
   function init() {
     note = $("#buyNote");
+    paintReserveMode({ reserved: 0, opensOn: "" });
     paintOffer();
     Array.prototype.forEach.call(document.querySelectorAll(".pg-buy"), function (btn) {
       btn.addEventListener("click", function () {

@@ -7,6 +7,7 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
+const db = require("./db");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -115,7 +116,14 @@ app.use(
 );
 
 // ── Body parsing ────────────────────────────────────────────
-app.use(express.json({ limit: "100kb" }));
+const jsonSmall = express.json({ limit: "100kb" });
+app.use((req, res, next) => {
+  // These two routes accept an attached base64 image. Let their route-level
+  // 2 MB parser handle the body; parsing globally at 100 KB first made the
+  // larger parser unreachable and every real image upload failed with 413.
+  if (req.path === "/api/animate" || req.path === "/api/export") return next();
+  return jsonSmall(req, res, next);
+});
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 
 // ── Simple in-memory rate limiter (per IP) ──────────────────
@@ -153,6 +161,10 @@ setInterval(() => {
 }, 600_000);
 
 // ── Static files (with cache control) ───────────────────────
+// The legacy generator remains in /public only as a historical implementation
+// reference. Do not let its obsolete unlimited-credit/4K promises surface via
+// the direct .html URL; both old entry points lead to the maintained SEO tools.
+app.get(["/generator", "/generator.html"], (req, res) => res.redirect(302, "/seo-tools"));
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: NODE_ENV === "production" ? "7d" : 0,
@@ -191,7 +203,7 @@ app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), async 
     const { email, password } = req.body || {};
     const out = await auth.signUp(res, email, password);
     if (out.error) return res.status(400).json({ success: false, error: out.error });
-    console.log("[auth] new account", out.user.email, "· total", await auth.count());
+    console.log("[auth] new account · total", await auth.count());
     return res.json({ success: true, user: out.user });
   } catch (err) {
     console.error("[/api/auth/signup]", err.message);
@@ -284,11 +296,26 @@ app.get("/api/community-templates", async (req, res) => {
   }
 });
 
+app.get("/api/community-templates/:id", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    const template = await community.get(String(req.params.id || "").slice(0, 80));
+    if (!template) return res.status(404).json({ success: false, error: "Template not found." });
+    return res.json({ success: true, template });
+  } catch (err) {
+    console.error("[GET /api/community-templates/:id]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load that template." });
+  }
+});
+
 app.get("/api/user/creations", async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
-    const userId = req.user?.id || null;
-    const userHandle = req.user?.handle || (req.user?.email ? req.user.email.split("@")[0] : null);
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, error: "Please log in first." });
+    }
+    const userId = req.user.id;
+    const userHandle = req.user.handle || (req.user.email ? req.user.email.split("@")[0] : null);
     const items = await community.listByAuthor(userId, userHandle);
     return res.json({ success: true, creations: items });
   } catch (err) {
@@ -377,6 +404,11 @@ app.post("/api/comments", express.json(), async (req, res) => {
   try {
     const tplId = req.body?.tpl;
     if (!tplId) return res.status(400).json({ success: false, error: "Template id is required." });
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ success: false, error: "Please log in to comment." });
+    }
+    const text = String(req.body?.text || "").trim();
+    if (!text) return res.status(400).json({ success: false, error: "Comment text is required." });
     const newC = await comments.addComment(tplId, req.body, req.user);
     res.json({ success: true, comment: newC });
   } catch (err) {
@@ -402,15 +434,15 @@ app.get("/api/creator", async (req, res) => {
       likes: "",
       cat: "all"
     };
-    try {
-      const commTemplates = await community.listByAuthor(null, "@shortscraft");
-      return res.json({ success: true, creator: prof, communityTemplates: commTemplates });
-    } catch (err) {
-      return res.json({ success: true, creator: prof, communityTemplates: [] });
-    }
+    // The official page is backed by the shipped template library and should
+    // never wait for Postgres. Community items remain discoverable on the
+    // Community page; returning the official shell immediately keeps this
+    // profile useful during a database outage as well.
+    return res.json({ success: true, creator: prof, communityTemplates: [] });
   }
 
   let dbUser = null;
+  let creatorDbUnavailable = false;
   try {
     const { rows } = await db.query(
       `select id, email, display_name, handle, bio, youtube, instagram, stars, created_at
@@ -420,7 +452,14 @@ app.get("/api/creator", async (req, res) => {
       ["@" + handle, handle, handle, handle + "@%"]
     );
     if (rows[0]) dbUser = rows[0];
-  } catch (e) {}
+  } catch (e) {
+    creatorDbUnavailable = true;
+    console.error("[/api/creator lookup]", e.message);
+  }
+
+  if (!dbUser && !creatorDbUnavailable) {
+    return res.status(404).json({ success: false, error: "Creator not found." });
+  }
 
   const prof = dbUser ? {
     name: dbUser.display_name || (dbUser.email ? dbUser.email.split("@")[0] : "ShortsCraft Creator"),
@@ -432,17 +471,11 @@ app.get("/api/creator", async (req, res) => {
     followers: "",
     likes: dbUser.stars ? (dbUser.stars + " Stars") : "",
     cat: "all"
-  } : {
-    name: handle.charAt(0).toUpperCase() + handle.slice(1),
-    handle: "@" + handle,
-    initials: handle.slice(0, 2).toUpperCase(),
-    bio: "Creator on ShortsCraft.",
-    youtube: "",
-    instagram: "",
-    followers: "",
-    likes: "",
-    cat: "all"
-  };
+  } : null;
+
+  if (creatorDbUnavailable) {
+    return res.status(503).json({ success: false, error: "Creator profiles are temporarily unavailable." });
+  }
 
   try {
     const commTemplates = await community.listByAuthor(dbUser?.id || null, "@" + handle);
@@ -969,7 +1002,7 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
     const userId = req.user.id;
 
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
-    const r = await fetch("https://api.razorpay.com/v1/orders", {
+    const r = await fetchWithTimeout("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -981,7 +1014,7 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
         receipt: `sc_${Date.now()}_${userId.slice(0, 12)}`,
         notes: { product: `ShortsCraft ${plan.label}`, userId, plan: planId, term },
       }),
-    });
+    }, 10_000);
 
     if (!r.ok) {
       const t = await r.text().catch(() => "");
@@ -1003,11 +1036,12 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
 app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
+    const keyId = process.env.RAZORPAY_KEY_ID;
     const secret = process.env.RAZORPAY_KEY_SECRET;
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ success: false, error: "Missing payment details." });
     }
-    if (!secret) return res.status(503).json({ success: false, error: "Payment service not configured." });
+    if (!keyId || !secret) return res.status(503).json({ success: false, error: "Payment service not configured." });
 
     const expected = crypto
       .createHmac("sha256", secret)
@@ -1026,8 +1060,53 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
     if (!req.user) {
       return res.status(401).json({ success: false, error: "Please log in to activate your plan." });
     }
-    const planId = credits.PLANS[String(req.body?.plan || "")] ? String(req.body.plan) : "pro";
-    const term = await planTermFor(planId);
+
+    /* Never trust the plan echoed by the browser. A valid ₹99 Pro payment used
+       to be reusable with body.plan="promax", granting the ₹499 lifetime tier.
+       Read the signed order back from Razorpay and deliver exactly the plan,
+       term, user and amount stored in that order's server-authored notes. */
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10_000);
+    let order;
+    try {
+      const orderRes = await fetch(
+        "https://api.razorpay.com/v1/orders/" + encodeURIComponent(razorpay_order_id),
+        {
+          headers: { Authorization: "Basic " + Buffer.from(keyId + ":" + secret).toString("base64") },
+          signal: ctrl.signal
+        }
+      );
+      if (!orderRes.ok) {
+        const detail = await orderRes.text().catch(() => "");
+        console.error("[razorpay/verify order]", orderRes.status, detail.slice(0, 200));
+        return res.status(502).json({ success: false, error: "Could not verify the payment order." });
+      }
+      order = await orderRes.json();
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const notes = order && order.notes && typeof order.notes === "object" ? order.notes : {};
+    const planId = String(notes.plan || "");
+    const term = String(notes.term || "");
+    const plan = credits.PLANS[planId];
+    const expectedAmount = plan ? plan.price * 100 : 0;
+    const orderPaid = order && order.status === "paid" && Number(order.amount_paid) >= Number(order.amount);
+    const orderMatches =
+      plan && plan.price > 0 &&
+      String(notes.userId || "") === String(req.user.id) &&
+      ["month", "year", "lifetime"].includes(term) &&
+      order.currency === "INR" &&
+      Number(order.amount) === expectedAmount &&
+      orderPaid;
+
+    if (!orderMatches) {
+      console.error("[razorpay/verify] order metadata mismatch", razorpay_order_id);
+      return res.status(409).json({
+        success: false,
+        error: "This payment does not match the selected account and plan. Contact support if money was deducted."
+      });
+    }
 
     await auth.changePlan(req.user.id, planId, term);
     await credits.setPlan(req, planId);
@@ -1081,7 +1160,7 @@ app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 20 }), async (req, 
   const supaSrv = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (supaUrl && supaSrv && typeof fetch === "function") {
     try {
-      const r = await fetch(`${supaUrl.replace(/\/$/, "")}/rest/v1/feedback`, {
+      const r = await fetchWithTimeout(`${supaUrl.replace(/\/$/, "")}/rest/v1/feedback`, {
         method: "POST",
         headers: {
           apikey: supaSrv,
@@ -1090,7 +1169,7 @@ app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 20 }), async (req, 
           Prefer: "return=minimal",
         },
         body: JSON.stringify(feedback),
-      });
+      }, 8_000);
       if (!r.ok) {
         const t = await r.text().catch(() => "");
         console.warn("[feedback supabase non-fatal]", r.status, t.slice(0, 200));
@@ -1141,6 +1220,94 @@ const EXPORT_LIMITS = {
   }
 };
 
+const EXPORT_PROP_LIMITS = {
+  maxFields: 40,
+  maxText: 600,
+  maxImageDataUrl: 1_250_000,
+  maxImageDataTotal: 6_000_000
+};
+
+function normaliseTemplateProps(raw, imageBudget) {
+  if (raw == null) return {};
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Template properties must be an object.");
+  }
+
+  const entries = Object.entries(raw);
+  if (entries.length > EXPORT_PROP_LIMITS.maxFields) {
+    throw new Error(`A template can contain at most ${EXPORT_PROP_LIMITS.maxFields} editable properties.`);
+  }
+
+  const out = {};
+  for (const [key, value] of entries) {
+    if (!/^[A-Za-z][A-Za-z0-9_-]{0,39}$/.test(key)) {
+      throw new Error("A template property has an invalid name.");
+    }
+    if (typeof value === "boolean") {
+      out[key] = value;
+      continue;
+    }
+    if (typeof value === "number") {
+      if (!Number.isFinite(value)) throw new Error(`Property ${key} is not a finite number.`);
+      out[key] = value;
+      continue;
+    }
+
+    const text = String(value == null ? "" : value);
+    if (/^data:/i.test(text)) {
+      if (!/^data:image\/(?:png|jpe?g|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/i.test(text)) {
+        throw new Error(`Property ${key} contains an unsupported image.`);
+      }
+      if (text.length > EXPORT_PROP_LIMITS.maxImageDataUrl) {
+        throw new Error(`The image in ${key} is too large.`);
+      }
+      imageBudget.used += text.length;
+      if (imageBudget.used > EXPORT_PROP_LIMITS.maxImageDataTotal) {
+        throw new Error("The project contains too much embedded image data.");
+      }
+      out[key] = text;
+      continue;
+    }
+    if (text.length > EXPORT_PROP_LIMITS.maxText) {
+      throw new Error(`Property ${key} is too long.`);
+    }
+    out[key] = text;
+  }
+  return out;
+}
+
+async function loadRenderDocument(page, html) {
+  /* page.setContent() creates a LifecycleWatcher around document.open/write.
+     Under the long-lived server browser that watcher intermittently saw the
+     main frame detach, including on single-clip exports. CDP's document setter
+     performs the same replacement without coupling correctness to a navigation
+     lifecycle, then we explicitly wait for the document, fonts and images. */
+  const session = await page.createCDPSession();
+  try {
+    const tree = await session.send("Page.getFrameTree");
+    await session.send("Page.setDocumentContent", {
+      frameId: tree.frameTree.frame.id,
+      html
+    });
+  } finally {
+    await session.detach().catch(() => {});
+  }
+
+  await page.waitForFunction(() => document.readyState === "complete", { timeout: 10_000 });
+  await page.evaluate(async () => {
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    await Promise.all(Array.from(document.images).map((img) => {
+      if (img.complete) return Promise.resolve();
+      return new Promise((resolve) => {
+        const done = () => resolve();
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+        setTimeout(done, 5_000);
+      });
+    }));
+  });
+}
+
 let _browser = null;
 async function getBrowser() {
   if (_browser && _browser.connected) return _browser;
@@ -1168,7 +1335,7 @@ function serialise(job) {
 // even dimensions are required by yuv420p
 const even = (n) => (n % 2 === 0 ? n : n + 1);
 
-function encodeMp4(frames, fps) {
+function encodeMp4(fps, renderFrames) {
   return new Promise((resolve, reject) => {
     const ff = spawn("ffmpeg", [
       "-y",
@@ -1186,22 +1353,32 @@ function encodeMp4(frames, fps) {
 
     const out = [];
     let err = "";
+    let settled = false;
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      if (ff.exitCode === null) ff.kill();
+      reject(error);
+    };
     ff.stdout.on("data", (d) => out.push(d));
     ff.stderr.on("data", (d) => { err += d.toString(); });
-    ff.on("error", (e) => reject(new Error("ffmpeg not available: " + e.message)));
+    ff.on("error", (e) => fail(new Error("ffmpeg not available: " + e.message)));
+    ff.stdin.on("error", (e) => fail(new Error("ffmpeg input failed: " + e.message)));
     ff.on("close", (code) => {
-      if (code !== 0) return reject(new Error("ffmpeg exited " + code + ": " + err.slice(-400)));
+      if (settled) return;
+      if (code !== 0) return fail(new Error("ffmpeg exited " + code + ": " + err.slice(-400)));
+      settled = true;
       resolve(Buffer.concat(out));
     });
 
     (async () => {
-      for (const f of frames) {
-        if (!ff.stdin.write(f)) {
+      await renderFrames(async (frame) => {
+        if (!ff.stdin.write(frame)) {
           await new Promise((r) => ff.stdin.once("drain", r));
         }
-      }
+      });
       ff.stdin.end();
-    })().catch(reject);
+    })().catch(fail);
   });
 }
 
@@ -1214,10 +1391,12 @@ function encodeMp4(frames, fps) {
 // Costs credits.animate because it burns a model call.
 const anim = require("./animate");
 
-// bigger body than the 100kb global limit: an attached image travels as a data URL
-const jsonBig = express.json({ limit: "2mb" });
+// Attached images travel as data URLs. Rate-limit before parsing so a client
+// cannot make the server repeatedly parse multi-megabyte JSON for free.
+const jsonImage = express.json({ limit: "2mb" });
+const jsonExport = express.json({ limit: "8mb" });
 
-app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async (req, res) => {
+app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, async (req, res) => {
   const b = req.body || {};
   const prompt = String(b.prompt || "").trim().slice(0, 600);
   const dur = Math.min(Math.max(Number(b.dur) || 4600, 1500), AI_MAX_DUR_MS);
@@ -1298,14 +1477,14 @@ app.post("/api/animate", jsonBig, rateLimit({ windowMs: 60_000, max: 8 }), async
   }
 });
 
-app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async (req, res) => {
+app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, async (req, res) => {
   const b = req.body || {};
 
   // A project is a sequence of clips. `clips` is the current payload; the flat
   // tpl/lines/dur fields are still accepted as a single-clip request.
   const rawClips = Array.isArray(b.clips) && b.clips.length
     ? b.clips.slice(0, EXPORT_LIMITS.maxClips)
-    : [{ tpl: b.tpl, lines: b.lines, accent: b.accent, font: b.font, dur: b.dur }];
+    : [{ tpl: b.tpl, lines: b.lines, props: b.props, accent: b.accent, font: b.font, dur: b.dur }];
 
   const aspect = EXPORT_LIMITS.aspects[b.aspect] ? b.aspect : "9:16";
   const fps = EXPORT_LIMITS.fps.includes(Number(b.fps)) ? Number(b.fps) : 30;
@@ -1313,17 +1492,23 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
      request. A crafted POST asking for 1440p without a watermark is simply
      clamped to whatever the account actually pays for. */
   const ent = await credits.entitlements(req);
-  const askedHeight = EXPORT_LIMITS.heights.includes(Number(b.height)) ? Number(b.height) : 1080;
+  // `height` is the canonical field. `res` keeps exports made by older editor
+  // bundles working while cached clients roll over to the fixed payload.
+  const requestedHeight = Number(b.height == null ? b.res : b.height);
+  const askedHeight = EXPORT_LIMITS.heights.includes(requestedHeight) ? requestedHeight : 1080;
   const height = Math.min(askedHeight, ent.maxHeight);
 
   const clips = [];
+  const imageBudget = { used: 0 };
   for (const c of rawClips) {
     // a clip is either a shipped template id or an AI-authored scene. The scene
     // is re-sanitised here: /api/animate is not the only way to reach this route.
     if (c && c.spec) {
       let spec;
+      let props;
       try {
         spec = anim.sanitise(c.spec);
+        props = normaliseTemplateProps(c.props, imageBudget);
       } catch (err) {
         return res.status(400).json({ success: false, error: "Scene rejected: " + err.message });
       }
@@ -1333,13 +1518,20 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
         dur: Math.min(Math.max(Number(c.dur) || 4600, 1000), EXPORT_LIMITS.maxDurMs),
         font: String((c && c.font) || "inter").slice(0, 24),
         accent: /^#[0-9a-fA-F]{6}$/.test(String((c && c.accent) || "")) ? c.accent : undefined,
-        lines: []
+        lines: [],
+        props
       });
       continue;
     }
     const tpl = String((c && c.tpl) || "").slice(0, 40);
     if (!/^[a-z0-9-]{2,40}$/.test(tpl)) {
       return res.status(400).json({ success: false, error: "Invalid template id." });
+    }
+    let props;
+    try {
+      props = normaliseTemplateProps(c && c.props, imageBudget);
+    } catch (err) {
+      return res.status(400).json({ success: false, error: "Invalid template properties: " + err.message });
     }
     clips.push({
       tpl,
@@ -1348,7 +1540,8 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
       accent: /^#[0-9a-fA-F]{6}$/.test(String((c && c.accent) || "")) ? c.accent : undefined,
       lines: Array.isArray(c && c.lines)
         ? c.lines.slice(0, 3).map((l) => String(l == null ? "" : l).slice(0, 160))
-        : []
+        : [],
+      props
     });
   }
 
@@ -1396,67 +1589,89 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
   try {
     const mp4 = await serialise(async () => {
       const browser = await getBrowser();
-      const page = await browser.newPage();
+      const compiler = await browser.newPage();
       try {
-        await page.setViewport({ width: w, height: h, deviceScaleFactor: 1 });
-
-        // Build the documents with the very same engine the editor uses.
-        await page.goto("about:blank");
-        await page.addScriptTag({ path: path.join(__dirname, "public", "templates-v2.js") });
+        // Compile with the very same engine the editor uses. Rendering happens
+        // on a fresh page per clip below so a document replacement can never
+        // detach the page that owns the template runtime.
+        await compiler.goto("about:blank");
+        await compiler.addScriptTag({ path: path.join(__dirname, "public", "templates-v2.js") });
         const docs = [];
         for (const c of clips) {
           const html = c.spec
-            ? await page.evaluate(
+            ? await compiler.evaluate(
               (spec, opts) => window.SC_TPL2.buildCustom(spec, opts),
               c.spec,
               {
-                aspect, dur: c.dur, font: c.font,
+                props: c.props, aspect, dur: c.dur, font: c.font,
                 accent: c.accent || c.spec.accent,
                 watermark: ent.watermark
               }
             )
-            : await page.evaluate(
+            : await compiler.evaluate(
               (id, opts) => window.SC_TPL2.build(id, opts),
               c.tpl,
               {
-                lines: c.lines, accent: c.accent, aspect, dur: c.dur, font: c.font,
+                lines: c.lines, props: c.props, accent: c.accent, aspect, dur: c.dur, font: c.font,
                 watermark: ent.watermark
               }
             );
           if (!html) throw new Error("Unknown template.");
-          docs.push(html);
+          // Preview srcdoc resolves /assets against the app. Export documents
+          // are about:blank, so give them the same explicit local asset base.
+          const renderOrigin = `http://127.0.0.1:${Number(PORT) || 3000}/`;
+          docs.push(html.replace("<head>", `<head><base href="${renderOrigin}">`));
         }
+        await compiler.close();
 
-        const frames = [];
-        let done = 0;
-        for (let ci = 0; ci < clips.length; ci++) {
-          const c = clips[ci];
-          // last clip absorbs the rounding remainder
-          const n = ci === clips.length - 1
-            ? total - done
-            : Math.round((c.dur / 1000) * fps);
+        /* Feed each frame to ffmpeg as soon as Chromium produces it. Keeping
+           450 full-resolution PNG buffers in an array could exhaust a small
+           production instance before encoding even began. Backpressure keeps
+           memory bounded to the encoder's pipe plus the final MP4. */
+        return encodeMp4(fps, async (writeFrame) => {
+          let done = 0;
+          for (let ci = 0; ci < clips.length; ci++) {
+            const c = clips[ci];
+            // last clip absorbs the rounding remainder
+            const n = ci === clips.length - 1
+              ? total - done
+              : Math.round((c.dur / 1000) * fps);
 
-          await page.setContent(docs[ci], { waitUntil: "load" });
-          await page.evaluateHandle("document.fonts.ready");
+            const page = await browser.newPage();
+            try {
+              await page.setViewport({ width: w, height: h, deviceScaleFactor: 1 });
+              await page.setRequestInterception(true);
+              page.on("request", (request) => {
+                const url = request.url();
+                const allowed = url === "about:blank" || url.startsWith("data:") ||
+                  url.startsWith(`http://127.0.0.1:${Number(PORT) || 3000}/`) ||
+                  url.startsWith(`http://localhost:${Number(PORT) || 3000}/`);
+                if (allowed) request.continue().catch(() => {});
+                else request.abort("blockedbyclient").catch(() => {});
+              });
 
-          // Freeze the timeline: from here every frame is positioned explicitly.
-          await page.evaluate(() => {
-            document.getAnimations().forEach((a) => a.pause());
-          });
+              await loadRenderDocument(page, docs[ci]);
 
-          const step = c.dur / Math.max(1, n);
-          for (let i = 0; i < n; i++) {
-            await page.evaluate((t) => {
-              document.getAnimations().forEach((a) => { a.currentTime = t; });
-            }, i * step);
-            frames.push(await page.screenshot({ type: "png", optimizeForSpeed: true }));
+              // Freeze the timeline: from here every frame is positioned explicitly.
+              await page.evaluate(() => {
+                document.getAnimations().forEach((a) => a.pause());
+              });
+
+              const step = c.dur / Math.max(1, n);
+              for (let i = 0; i < n; i++) {
+                await page.evaluate((t) => {
+                  document.getAnimations().forEach((a) => { a.currentTime = t; });
+                }, i * step);
+                await writeFrame(await page.screenshot({ type: "png", optimizeForSpeed: true }));
+              }
+            } finally {
+              await page.close().catch(() => {});
+            }
+            done += n;
           }
-          done += n;
-        }
-
-        return encodeMp4(frames, fps);
+        });
       } finally {
-        await page.close().catch(() => {});
+        await compiler.close().catch(() => {});
       }
     });
 
@@ -1469,7 +1684,7 @@ app.post("/api/export", jsonBig, rateLimit({ windowMs: 120_000, max: 6 }), async
     return res.end(mp4);
   } catch (err) {
     await credits.refund(req, "export");
-    console.error("[/api/export]", err.message);
+    console.error("[/api/export]", err && err.stack ? err.stack : err.message);
     if (/Unknown template/.test(err.message)) {
       return res.status(400).json({ success: false, error: "Unknown template." });
     }
@@ -1603,12 +1818,6 @@ const PAGES = {
   "/ai-thumbnail-prompt-generator": "seo-tools.html",
 };
 
-// /generator was the old Studio on the legacy stylesheet stack. Its only unique
-// feature — AI script writing — now lives in the rebuilt /seo-tools, so the URL
-// is kept alive as a redirect instead of serving the old theme. 302, not 301,
-// because nothing is deployed yet and a permanent redirect is cached hard.
-app.get("/generator", (req, res) => res.redirect(302, "/seo-tools"));
-
 for (const [route, file] of Object.entries(PAGES)) {
   app.get(route, (req, res) => {
     if (file === "seo-tools.html") {
@@ -1640,6 +1849,13 @@ app.use((req, res) => {
 // ── Global error handler ────────────────────────────────────
 app.use((err, req, res, next) => {
   console.error("[server error]", err);
+  if (res.headersSent) return next(err);
+  if (err && (err.status === 413 || err.type === "entity.too.large")) {
+    return res.status(413).json({ success: false, error: "That upload is too large." });
+  }
+  if (err && err.type === "entity.parse.failed") {
+    return res.status(400).json({ success: false, error: "The request body is not valid JSON." });
+  }
   res.status(500).json({ success: false, error: "Internal server error." });
 });
 
@@ -1647,7 +1863,7 @@ app.use((err, req, res, next) => {
    otherwise boot happily and only fall over on the first visitor. Check here
    instead: a misconfigured deploy dies at startup, where the logs get read. */
 try {
-  require("./db").assertReady();
+  db.assertReady();
 } catch (err) {
   console.error("[boot]", err.message);
   process.exit(1);

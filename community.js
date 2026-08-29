@@ -21,6 +21,8 @@ function loadValidTplIds() {
   }
 }
 const VALID_TPL_IDS = loadValidTplIds();
+const VALID_CATEGORIES = new Set(["docu", "paper", "text", "maps", "money", "ui", "social", "charts"]);
+const VALID_FONTS = new Set(["inter", "grotesk", "roboto", "serif", "mono"]);
 
 function parseLines(val) {
   if (Array.isArray(val)) return val;
@@ -99,6 +101,12 @@ async function publish(data, user) {
   if (!VALID_TPL_IDS.has(data.tpl)) {
     return { error: "Unknown template type." };
   }
+  const title = String(data.title).trim();
+  if (!title) return { error: "Template title is required." };
+  const category = VALID_CATEGORIES.has(String(data.category)) ? String(data.category) : "text";
+  const font = VALID_FONTS.has(String(data.font)) ? String(data.font) : "inter";
+  const accent = /^#[0-9a-fA-F]{6}$/.test(String(data.accent || "")) ? String(data.accent) : "#ffffff";
+  const dur = Math.min(Math.max(Number(data.dur) || 4600, 1000), 12000);
 
   const id = "comm_" + crypto.randomBytes(6).toString("hex");
   const authorName = user.displayName || (user.email
@@ -115,14 +123,14 @@ async function publish(data, user) {
      returning *`,
     [
       id,
-      String(data.title).trim().slice(0, 80),
+      title.slice(0, 80),
       String(data.description || "").trim().slice(0, 300),
-      data.category || "text",
+      category,
       data.tpl,
       JSON.stringify(lines),
-      data.accent || "#ffffff",
-      data.font || "inter",
-      Number(data.dur) || 4600,
+      accent,
+      font,
+      dur,
       user.id,
       authorName || "Creator",
       authorHandle || "creator"
@@ -168,13 +176,10 @@ async function listByAuthor(userId, userHandle) {
     );
     if (rows.length) return rows.filter(livesInEngine).map(toTemplate);
   }
-  // If the account has not published anything yet, return a curated starter
-  // set of creator templates rather than an empty gallery. Fetch a few extra
-  // and filter, so retired ones do not eat into the three on show.
-  const { rows } = await db.query(
-    `select * from public.community_templates order by created_at desc limit 12`
-  );
-  return rows.filter(livesInEngine).slice(0, 3).map(toTemplate);
+  // A creator with no published work must have an honest empty state. Returning
+  // somebody else's latest templates here made Account say they belonged to
+  // the signed-in user and made empty creator profiles impersonate other users.
+  return [];
 }
 
 async function remove(id, user) {
@@ -192,4 +197,4 @@ async function remove(id, user) {
   return { success: true };
 }
 
-module.exports = { list, get, publish, like, listByAuthor, remove };
+module.exports = { list, get, publish, like, unlike, listByAuthor, remove };

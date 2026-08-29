@@ -40,6 +40,27 @@ window.SC_TPL2 = (function () {
     { id: "mono",    label: "Monospace",     stack: 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace' }
   ];
 
+  /* ── ShortsCraft Design System v1 ───────────────────────
+     Legacy templates keep their own styling for compatibility. Originals and
+     every new template compose these tokens/primitives instead of inventing a
+     new spacing scale, type hierarchy, shadow stack and easing vocabulary. */
+  var DESIGN = Object.freeze({
+    version: "1.0.0",
+    spacing: { xs: ".75cqw", sm: "1.5cqw", md: "3cqw", lg: "5cqw", xl: "8cqw", xxl: "12cqw" },
+    radius: { sm: "1.5cqw", md: "2.5cqw", lg: "4cqw", xl: "6cqw", pill: "999px" },
+    timing: { fast: "320ms", normal: "640ms", slow: "1100ms", cinematic: "1600ms" },
+    easing: {
+      standard: "cubic-bezier(.2,.8,.2,1)", smooth: "cubic-bezier(.4,0,.2,1)",
+      snappy: "cubic-bezier(.12,.9,.15,1)", spring: "cubic-bezier(.34,1.42,.64,1)",
+      overshoot: "cubic-bezier(.34,1.56,.64,1)", cinematic: "cubic-bezier(.16,1,.3,1)"
+    }
+  });
+
+  function compactText(value, max) {
+    var text = String(value == null ? "" : value).replace(/\s+/g, " ").trim();
+    return text.length <= max ? text : text.slice(0, Math.max(1, max - 1)).trim() + "…";
+  }
+
   function fontStack(id) {
     for (var i = 0; i < FONTS.length; i++) if (FONTS[i].id === id) return FONTS[i].stack;
     return FONTS[0].stack;
@@ -86,6 +107,7 @@ window.SC_TPL2 = (function () {
   /* ── Shared base CSS ──────────────────────────────────── */
   function base(t, o) {
     var ar = AR[o.aspect] || AR["9:16"];
+    var original = t.collection === "originals";
     return ''
       + '*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}'
       + 'html,body{width:100%;height:100%;overflow:hidden;background:#08080a}'
@@ -112,6 +134,21 @@ window.SC_TPL2 = (function () {
       + '--ae-snap:cubic-bezier(.12,.9,.15,1);'
       + '--ae-smooth:cubic-bezier(.4,0,.2,1);'
       + '--ae-recoil:cubic-bezier(.68,-.6,.32,1.6);'
+      + '--sc-xs:' + DESIGN.spacing.xs + ';--sc-sm:' + DESIGN.spacing.sm + ';'
+      + '--sc-md:' + DESIGN.spacing.md + ';--sc-lg:' + DESIGN.spacing.lg + ';'
+      + '--sc-xl:' + DESIGN.spacing.xl + ';--sc-2xl:' + DESIGN.spacing.xxl + ';'
+      + '--sc-r-sm:' + DESIGN.radius.sm + ';--sc-r-md:' + DESIGN.radius.md + ';'
+      + '--sc-r-lg:' + DESIGN.radius.lg + ';--sc-r-xl:' + DESIGN.radius.xl + ';'
+      + '--sc-pill:' + DESIGN.radius.pill + ';'
+      + '--sc-fast:' + DESIGN.timing.fast + ';--sc-normal:' + DESIGN.timing.normal + ';'
+      + '--sc-slow:' + DESIGN.timing.slow + ';--sc-cinematic:' + DESIGN.timing.cinematic + ';'
+      + '--sc-standard:' + DESIGN.easing.standard + ';--sc-smooth:' + DESIGN.easing.smooth + ';'
+      + '--sc-snappy:' + DESIGN.easing.snappy + ';--sc-spring:' + DESIGN.easing.spring + ';'
+      + '--sc-overshoot:' + DESIGN.easing.overshoot + ';--sc-cine:' + DESIGN.easing.cinematic + ';'
+      + '--sc-shadow-soft:0 1.5cqw 5cqw rgba(0,0,0,.18);'
+      + '--sc-shadow-medium:0 3cqw 9cqw rgba(0,0,0,.28);'
+      + '--sc-shadow-floating:0 5cqw 16cqw rgba(0,0,0,.38);'
+      + '--sc-shadow-dramatic:0 8cqw 24cqw rgba(0,0,0,.52);'
       + 'transform-style:preserve-3d;perspective:1000px;'
       + '}'
       + '@keyframes swFadeUp{0%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:translateY(0)}}'
@@ -120,8 +157,50 @@ window.SC_TPL2 = (function () {
       + '@keyframes swFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5cqh)}}'
       + '@keyframes swPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.05);opacity:1}}'
       + '.cv{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);'
-      + 'width:auto;height:100%;aspect-ratio:9/16;max-width:100%;max-height:100%;'
+      + (original
+        ? 'width:100%;height:100%;aspect-ratio:' + ar[0] + '/' + ar[1] + ';'
+        : 'width:auto;height:100%;aspect-ratio:9/16;')
+      + 'max-width:100%;max-height:100%;'
       + 'container-type:size;overflow:hidden;display:flex;align-items:center;justify-content:center}'
+      /* Typography */
+      + '.sc-display,.sc-hero,.sc-heading,.sc-subheading,.sc-body,.sc-label,.sc-caption,.sc-number{margin:0;overflow-wrap:anywhere}'
+      + '.sc-display{font-size:clamp(28px,10cqw,104px);line-height:.9;font-weight:900;letter-spacing:-.055em}'
+      + '.sc-hero{font-size:clamp(24px,7.6cqw,82px);line-height:.98;font-weight:860;letter-spacing:-.045em}'
+      + '.sc-heading{font-size:clamp(18px,5.2cqw,58px);line-height:1.05;font-weight:820;letter-spacing:-.035em}'
+      + '.sc-subheading{font-size:clamp(14px,3.5cqw,36px);line-height:1.25;font-weight:650}'
+      + '.sc-body{font-size:clamp(12px,3cqw,29px);line-height:1.45;font-weight:500}'
+      + '.sc-label{font-size:clamp(10px,2.25cqw,22px);line-height:1.15;font-weight:760;letter-spacing:.13em;text-transform:uppercase}'
+      + '.sc-caption{font-size:clamp(9px,1.9cqw,18px);line-height:1.35;font-weight:600}'
+      + '.sc-number{font-size:clamp(28px,9cqw,96px);line-height:.88;font-weight:900;letter-spacing:-.06em;font-variant-numeric:tabular-nums}'
+      /* Layout */
+      + '.sc-safe{position:absolute;inset:0;padding:clamp(22px,7cqw,76px);display:flex;overflow:hidden}'
+      + '.sc-stack{display:flex;flex-direction:column;gap:var(--sc-md)}'
+      + '.sc-row{display:flex;align-items:center;gap:var(--sc-md)}'
+      + '.sc-grid{display:grid;gap:var(--sc-md)}'
+      + '.sc-center-hero{margin:auto;width:min(100%,92cqw);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:var(--sc-lg)}'
+      + '.sc-split{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sc-md);align-items:stretch}'
+      + '.sc-card{position:relative;border-radius:var(--sc-r-lg);padding:var(--sc-lg);background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.14);box-shadow:var(--sc-shadow-medium)}'
+      + '.sc-glass{background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(255,255,255,.045));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}'
+      + '.sc-media{position:relative;overflow:hidden;border-radius:var(--sc-r-md);background:rgba(255,255,255,.07);display:grid;place-items:center}'
+      + '.sc-media>img{width:100%;height:100%;object-fit:cover}'
+      + '.sc-badge{display:inline-flex;align-items:center;gap:var(--sc-xs);width:max-content;padding:1.15cqw 2.4cqw;border-radius:var(--sc-pill);background:color-mix(in srgb,var(--ac) 16%,transparent);border:1px solid color-mix(in srgb,var(--ac) 45%,transparent);color:var(--ac)}'
+      /* Controlled effects */
+      + '.sc-fx-mesh{position:absolute;inset:-25%;background:radial-gradient(circle at 20% 24%,color-mix(in srgb,var(--ac) 30%,transparent),transparent 34%),radial-gradient(circle at 82% 74%,rgba(113,82,255,.2),transparent 34%);filter:blur(5cqw);opacity:.9}'
+      + '.sc-fx-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:6cqw 6cqw;mask-image:linear-gradient(to bottom,black,transparent 92%)}'
+      + '.sc-fx-noise{position:absolute;inset:0;opacity:.035;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox=%270 0 180 180%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.8%27 numOctaves=%272%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%27.7%27/%3E%3C/svg%3E")}'
+      + '.sc-fx-vignette{position:absolute;inset:0;box-shadow:inset 0 0 18cqw rgba(0,0,0,.62);pointer-events:none}'
+      /* Motion */
+      + '.sc-m-fade-up{animation:scFadeUp var(--D) var(--sc-cine) infinite}'
+      + '.sc-m-scale{animation:scScaleIn var(--D) var(--sc-cine) infinite}'
+      + '.sc-m-blur{animation:scBlurReveal var(--D) var(--sc-cine) infinite}'
+      + '.sc-m-pop{animation:scSpringPop var(--D) var(--sc-spring) infinite}'
+      + '.sc-m-float{animation:scFloat calc(var(--D)*1.25) var(--sc-smooth) infinite}'
+      + '.sc-stagger>*{animation-delay:calc(var(--sc-i,0)*90ms)}'
+      + '@keyframes scFadeUp{0%,10%{opacity:0;transform:translateY(3cqh)}25%,82%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-1cqh)}}'
+      + '@keyframes scScaleIn{0%,10%{opacity:0;transform:scale(.94)}26%,84%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.015)}}'
+      + '@keyframes scBlurReveal{0%,10%{opacity:0;filter:blur(1.8cqw);transform:translateY(2cqh)}28%,84%{opacity:1;filter:blur(0);transform:none}100%{opacity:0;filter:blur(.5cqw)}}'
+      + '@keyframes scSpringPop{0%,14%{opacity:0;transform:scale(.82)}30%,82%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.02)}}'
+      + '@keyframes scFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.2cqh)}}'
       + '.wm{position:absolute;left:0;right:0;bottom:2.2cqh;text-align:center;'
       + 'font-size:1.8cqw;letter-spacing:.25em;text-transform:uppercase;font-weight:700;'
       + 'color:var(--dim);opacity:.45;pointer-events:none;z-index:90}'
@@ -2604,7 +2683,7 @@ window.SC_TPL2 = (function () {
       var app = getP(o, "app", o.lines[0] || "SHORTSCRAFT");
       var icon = getP(o, "icon", "⚡");
       var time = getP(o, "time", "now");
-      var body = getP(o, "body", o.lines[1] || "Your 4K Short is ready to post 🚀");
+      var body = getP(o, "body", o.lines[1] || "Your HD Short is ready to post 🚀");
       return '<div class="sc-notify-wrap">'
         + '<div class="sc-notify-time">9:41</div>'
         + '<div class="sc-notify-card">'
@@ -2709,7 +2788,7 @@ window.SC_TPL2 = (function () {
   T["ui-tabs"] = {
     name: "Apple iOS App List", cat: "ui", dark: true, accent: "#007aff",
     desc: "Cascading Apple iOS settings and widgets list with smooth spring reveal and app icons",
-    css: '.sc-ios-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-ios-sheet{width:86cqw;background:#ffffff;color:#000000;border-radius:5cqw;padding:6cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:iosPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-ios-hdr{display:flex;align-items:center;gap:3cqw;margin-bottom:3cqh}.sc-ios-av{width:11cqw;height:11cqw;border-radius:50%;background:#e4e4e7;display:grid;place-items:center;font-size:5cqw;overflow:hidden}.sc-ios-title{font-size:4.8cqw;font-weight:800}.sc-ios-list{display:flex;flex-direction:column;gap:1.5cqh}.sc-ios-item{display:flex;align-items:center;justify-content:space-between;padding:2cqh 3cqw;background:#f4f4f5;border-radius:3cqw}.sc-ios-left{display:flex;align-items:center;gap:3cqw}.sc-ios-icon{width:8cqw;height:8cqw;border-radius:2cqw;display:grid;place-items:center;font-size:4cqw;overflow:hidden}.sc-ios-name{font-size:3.6cqw;font-weight:700}.sc-ios-sub{font-size:2.6cqw;color:#71717a}.sc-ios-chevron{color:#a1a1aa;font-size:4cqw}@keyframes iosPop{0%,15%{transform:scale(.88) translateY(3cqh);opacity:0}30%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}',
+    css: '.sc-ios-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:#09090b;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.sc-ios-sheet{width:86cqw;background:#ffffff;color:#000000;border-radius:5cqw;padding:6cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.85);animation:iosPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-ios-hdr{display:flex;align-items:center;gap:3cqw;margin-bottom:3cqh}.sc-ios-av{width:11cqw;height:11cqw;border-radius:50%;background:#e4e4e7;display:grid;place-items:center;font-size:5cqw;overflow:hidden}.sc-ios-title{font-size:4.8cqw;font-weight:800}.sc-ios-list{display:flex;flex-direction:column;gap:1.5cqh}.sc-ios-item{display:flex;align-items:center;justify-content:space-between;padding:2cqh 3cqw;background:#f4f4f5;border-radius:3cqw;animation:iosRow var(--D) var(--ae-spring) infinite}.sc-ios-item:nth-child(2){animation-delay:calc(var(--D)*.05)}.sc-ios-item:nth-child(3){animation-delay:calc(var(--D)*.1)}.sc-ios-left{display:flex;align-items:center;gap:3cqw}.sc-ios-icon{width:8cqw;height:8cqw;border-radius:2cqw;display:grid;place-items:center;font-size:4cqw;overflow:hidden}.sc-ios-name{font-size:3.6cqw;font-weight:700}.sc-ios-sub{font-size:2.6cqw;color:#71717a}.sc-ios-chevron{color:#a1a1aa;font-size:4cqw}@keyframes iosPop{0%,10%{transform:scale(.88) translateY(3cqh);opacity:0}26%,78%{transform:scale(1) translateY(0);opacity:1}90%,100%{transform:scale(.96) translateY(-2cqh);opacity:0}}@keyframes iosRow{0%,16%{transform:translateX(-6cqw);opacity:0}32%,72%{transform:translateX(0);opacity:1}84%,100%{transform:translateX(4cqw);opacity:0}}',
     html: function (o) {
       var user = getP(o, "user", o.lines[0] || "ShortsCraft Apps");
       var avatar = getP(o, "avatar", "👤");
@@ -3548,6 +3627,180 @@ window.SC_TPL2 = (function () {
     }
   };
 
+  /* ========================================================
+     SHORTSCRAFT ORIGINALS — curated flagship collection
+     Built on the shared Design System above. These intentionally contain
+     only composition-specific CSS; typography, surfaces, spacing, effects and
+     motion all come from the reusable sc-* primitives.
+     ======================================================== */
+
+  T["original-ai-compare"] = {
+    name: "AI Product Comparison", cat: "ui", collection: "originals", version: "1.0.0",
+    dark: true, accent: "#7c5cff",
+    desc: "Premium side-by-side AI product comparison with editable logos, verdict and scores",
+    css: '.ocmp{position:absolute;inset:0;background:#070812;color:#fff;overflow:hidden}'
+      + '.ocmp .sc-safe{align-items:center;justify-content:center}'
+      + '.ocmp-inner{position:relative;z-index:2;width:100%;max-width:92cqw;margin:auto}'
+      + '.ocmp-head{text-align:center;align-items:center;margin-bottom:var(--sc-lg)}'
+      + '.ocmp-cards{grid-template-columns:repeat(2,minmax(0,1fr))}'
+      + '.ocmp-card{min-width:0;text-align:left;overflow:hidden}'
+      + '.ocmp-logo{width:14cqw;height:14cqw;min-width:42px;min-height:42px;margin-bottom:var(--sc-md);font-size:7cqw;font-weight:900;background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.05))}'
+      + '.ocmp-logo img{width:100%;height:100%;object-fit:cover}'
+      + '.ocmp-score{margin-top:var(--sc-lg);color:var(--ac)}'
+      + '.ocmp-bar{height:1.1cqw;min-height:4px;margin-top:var(--sc-sm);border-radius:var(--sc-pill);background:rgba(255,255,255,.1);overflow:hidden}'
+      + '.ocmp-fill{height:100%;width:var(--score);border-radius:inherit;background:linear-gradient(90deg,var(--ac),#56d7ff);animation:ocmpFill var(--D) var(--sc-cine) infinite;transform-origin:left}'
+      + '.ocmp-winner{position:absolute;top:var(--sc-md);right:var(--sc-md);padding:.9cqw 1.8cqw;border-radius:var(--sc-pill);background:var(--ac);color:#fff}'
+      + '@keyframes ocmpFill{0%,20%{transform:scaleX(0)}42%,86%{transform:scaleX(1)}100%{transform:scaleX(1);opacity:.2}}'
+      + '@container (max-aspect-ratio:4/5){.ocmp .sc-safe{padding:7cqw 6cqw}.ocmp-inner{max-width:100%}.ocmp-card{padding:4cqw}.ocmp-head{margin-bottom:4cqh}.ocmp-logo{width:16cqw;height:16cqw}.ocmp-winner{position:static;margin-top:var(--sc-sm)}}',
+    html: function (o) {
+      var title = compactText(getP(o, "title", "Claude vs ChatGPT"), 54);
+      var subtitle = compactText(getP(o, "subtitle", "Which AI should creators use in 2026?"), 90);
+      var left = compactText(getP(o, "leftName", "Claude"), 24);
+      var right = compactText(getP(o, "rightName", "ChatGPT"), 24);
+      var leftNote = compactText(getP(o, "leftNote", "Deep reasoning · Natural writing"), 55);
+      var rightNote = compactText(getP(o, "rightNote", "Fast tools · Broad ecosystem"), 55);
+      var leftScore = Math.max(0, Math.min(100, Number(getP(o, "leftScore", 92)) || 0));
+      var rightScore = Math.max(0, Math.min(100, Number(getP(o, "rightScore", 88)) || 0));
+      var winner = String(getP(o, "winner", "left"));
+      function logo(value, fallback) {
+        var v = value || fallback;
+        return renderAvatar(v, fallback, "");
+      }
+      function card(side, name, note, score, image, fallback) {
+        var win = winner === side ? '<span class="ocmp-winner sc-label">Winner</span>' : '';
+        return '<article class="ocmp-card sc-card sc-glass sc-m-scale" style="--sc-i:' + (side === "left" ? 1 : 2) + '">'
+          + win + '<div class="ocmp-logo sc-media">' + logo(image, fallback) + '</div>'
+          + '<h3 class="sc-heading">' + esc(name) + '</h3><p class="sc-body" style="color:var(--dim);margin-top:var(--sc-sm)">' + esc(note) + '</p>'
+          + '<div class="ocmp-score sc-number">' + esc(score) + '<span class="sc-caption"> / 100</span></div>'
+          + '<div class="ocmp-bar"><div class="ocmp-fill" style="--score:' + score + '%"></div></div></article>';
+      }
+      return '<div class="ocmp"><div class="sc-fx-mesh"></div><div class="sc-fx-grid"></div><div class="sc-fx-noise"></div>'
+        + '<div class="sc-safe"><div class="ocmp-inner">'
+        + '<header class="ocmp-head sc-stack sc-m-blur"><span class="sc-badge sc-label">AI comparison</span><h2 class="sc-hero">' + esc(title) + '</h2><p class="sc-subheading" style="color:var(--dim)">' + esc(subtitle) + '</p></header>'
+        + '<div class="ocmp-cards sc-grid sc-stagger">'
+        + card("left", left, leftNote, leftScore, getP(o, "leftLogo", "C"), "C")
+        + card("right", right, rightNote, rightScore, getP(o, "rightLogo", "◎"), "◎")
+        + '</div></div></div><div class="sc-fx-vignette"></div></div>';
+    }
+  };
+
+  T["original-app-showcase"] = {
+    name: "App & Website Showcase", cat: "ui", collection: "originals", version: "1.0.0",
+    dark: true, accent: "#45e0b7",
+    desc: "Polished product launch scene with editable screenshot, URL, headline and call to action",
+    css: '.oapp{position:absolute;inset:0;overflow:hidden;background:linear-gradient(145deg,#07110f,#080a12 58%,#101024);color:#fff}'
+      + '.oapp .sc-safe{align-items:center}.oapp-copy{position:relative;z-index:3;flex:0 1 45%;max-width:45cqw}'
+      + '.oapp-copy .sc-hero{margin:var(--sc-md) 0}.oapp-cta{margin-top:var(--sc-lg);padding:2.2cqw 3.4cqw;border-radius:var(--sc-pill);background:var(--ac);color:#07110f;font-weight:850;width:max-content}'
+      + '.oapp-window{position:relative;z-index:2;flex:1;min-width:0;padding:1.4cqw;border-radius:var(--sc-r-xl);transform:perspective(900px) rotateY(-8deg) rotateX(3deg);box-shadow:var(--sc-shadow-dramatic)}'
+      + '.oapp-bar{height:5cqh;min-height:34px;display:flex;align-items:center;gap:1cqw;padding:0 2cqw;border-bottom:1px solid rgba(255,255,255,.1)}'
+      + '.oapp-dot{width:1.25cqw;height:1.25cqw;min-width:7px;min-height:7px;border-radius:50%;background:rgba(255,255,255,.25)}'
+      + '.oapp-url{margin-left:1cqw;padding:1cqw 2cqw;border-radius:var(--sc-pill);background:rgba(255,255,255,.07);color:var(--dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+      + '.oapp-screen{aspect-ratio:16/10;border-radius:0 0 calc(var(--sc-r-xl) - 1cqw) calc(var(--sc-r-xl) - 1cqw);background:linear-gradient(145deg,color-mix(in srgb,var(--ac) 45%,#14182a),#0d1020);overflow:hidden;display:grid;place-items:center}'
+      + '.oapp-screen img{width:100%;height:100%;object-fit:cover}.oapp-placeholder{text-align:center;padding:var(--sc-xl)}'
+      + '.oapp-placeholder b{display:block;font-size:13cqw;line-height:1;color:var(--ac)}'
+      + '@container (max-aspect-ratio:1/1){.oapp .sc-safe{flex-direction:column;justify-content:center;gap:5cqh}.oapp-copy{max-width:90cqw;text-align:center;align-items:center}.oapp-window{width:88cqw;flex:0 0 auto}.oapp-copy .sc-hero{font-size:8cqw}}',
+    html: function (o) {
+      var image = getP(o, "screenshot", "");
+      var visual = image && String(image).indexOf("data:image/") === 0
+        ? '<img src="' + esc(image) + '" alt="Product screenshot">'
+        : '<div class="oapp-placeholder"><b>✦</b><span class="sc-label">Drop your product screenshot</span></div>';
+      return '<div class="oapp"><div class="sc-fx-mesh"></div><div class="sc-fx-noise"></div><div class="sc-safe sc-row">'
+        + '<div class="oapp-copy sc-stack sc-m-blur"><span class="sc-badge sc-label">' + esc(compactText(getP(o, "kicker", "New release"), 28)) + '</span>'
+        + '<h2 class="sc-hero">' + esc(compactText(getP(o, "title", "Meet the faster way to create"), 60)) + '</h2>'
+        + '<p class="sc-body" style="color:var(--dim)">' + esc(compactText(getP(o, "subtitle", "Turn one idea into a polished short-form animation in minutes."), 110)) + '</p>'
+        + '<span class="oapp-cta sc-body">' + esc(compactText(getP(o, "cta", "Try it free →"), 24)) + '</span></div>'
+        + '<div class="oapp-window sc-glass sc-m-scale"><div class="oapp-bar"><i class="oapp-dot"></i><i class="oapp-dot"></i><i class="oapp-dot"></i><span class="oapp-url sc-caption">' + esc(compactText(getP(o, "url", "shortscraft.online"), 48)) + '</span></div>'
+        + '<div class="oapp-screen">' + visual + '</div></div></div><div class="sc-fx-vignette"></div></div>';
+    }
+  };
+
+  T["original-ranked-list"] = {
+    name: "Top 5 Ranked List", cat: "charts", collection: "originals", version: "1.0.0",
+    dark: true, accent: "#ffcf5a",
+    desc: "Editorial countdown template with five editable ranked items and a controlled winner reveal",
+    css: '.orank{position:absolute;inset:0;overflow:hidden;background:#0c0d11;color:#fff}'
+      + '.orank .sc-safe{align-items:center;justify-content:center}.orank-inner{position:relative;z-index:2;width:min(100%,88cqw)}'
+      + '.orank-head{margin-bottom:var(--sc-lg)}.orank-list{gap:var(--sc-sm)}'
+      + '.orank-row{display:grid;grid-template-columns:10cqw minmax(0,1fr) auto;align-items:center;gap:var(--sc-md);padding:2.5cqw 3cqw;border-radius:var(--sc-r-md);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);animation:scFadeUp var(--D) var(--sc-cine) infinite}'
+      + '.orank-row:first-child{background:linear-gradient(100deg,color-mix(in srgb,var(--ac) 24%,transparent),rgba(255,255,255,.06));border-color:color-mix(in srgb,var(--ac) 55%,transparent)}'
+      + '.orank-num{font-size:5cqw;font-weight:900;color:var(--dim);font-variant-numeric:tabular-nums}.orank-row:first-child .orank-num{color:var(--ac)}'
+      + '.orank-name{font-size:3.7cqw;font-weight:760;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.orank-score{font-size:3cqw;font-weight:850;color:var(--ac)}'
+      + '@container (min-aspect-ratio:1/1){.orank-inner{width:76cqw}.orank-row{grid-template-columns:7cqw minmax(0,1fr) auto;padding:1.8cqw 2.5cqw}.orank-head{text-align:center;align-items:center}}',
+    html: function (o) {
+      var items = [1, 2, 3, 4, 5].map(function (n) {
+        var defaults = ["ShortsCraft", "CapCut", "Canva", "Premiere Pro", "After Effects"];
+        return compactText(getP(o, "item" + n, defaults[n - 1]), 38);
+      });
+      var scores = ["9.6", "9.1", "8.8", "8.5", "8.3"];
+      var rows = items.map(function (item, i) {
+        return '<div class="orank-row" style="--sc-i:' + i + ';animation-delay:' + (i * 90) + 'ms"><span class="orank-num">0' + (i + 1) + '</span><span class="orank-name">' + esc(item) + '</span><span class="orank-score">' + scores[i] + '</span></div>';
+      }).join("");
+      return '<div class="orank"><div class="sc-fx-grid"></div><div class="sc-fx-noise"></div><div class="sc-safe"><div class="orank-inner">'
+        + '<header class="orank-head sc-stack sc-m-blur"><span class="sc-badge sc-label">Top five</span><h2 class="sc-hero">' + esc(compactText(getP(o, "title", "Best creator tools ranked"), 58)) + '</h2><p class="sc-body" style="color:var(--dim)">' + esc(compactText(getP(o, "subtitle", "Speed, polish and value—scored for short-form creators."), 95)) + '</p></header>'
+        + '<div class="orank-list sc-stack">' + rows + '</div></div></div><div class="sc-fx-vignette"></div></div>';
+    }
+  };
+
+  T["original-chat-story"] = {
+    name: "Animated Chat Story", cat: "social", collection: "originals", version: "1.0.0",
+    dark: true, accent: "#5b8cff",
+    desc: "Modern editable conversation scene with avatars, natural message rhythm and safe fallbacks",
+    css: '.ochat{position:absolute;inset:0;overflow:hidden;background:linear-gradient(160deg,#090b12,#111427);color:#fff}'
+      + '.ochat .sc-safe{align-items:center;justify-content:center}.ochat-phone{position:relative;z-index:2;width:min(88cqw,620px);padding:var(--sc-md);border-radius:var(--sc-r-xl)}'
+      + '.ochat-head{display:flex;align-items:center;gap:var(--sc-md);padding:var(--sc-md);border-bottom:1px solid rgba(255,255,255,.09)}'
+      + '.ochat-av{width:10cqw;height:10cqw;max-width:62px;max-height:62px;border-radius:50%;font-size:4.5cqw;background:linear-gradient(145deg,var(--ac),#8a63ff)}'
+      + '.ochat-feed{padding:var(--sc-lg) var(--sc-md);gap:var(--sc-md)}'
+      + '.ochat-bubble{max-width:78%;padding:2.7cqw 3.4cqw;border-radius:3.8cqw;font-size:3.3cqw;line-height:1.35;animation:scFadeUp var(--D) var(--sc-cine) infinite;box-shadow:var(--sc-shadow-soft)}'
+      + '.ochat-in{align-self:flex-start;background:rgba(255,255,255,.11);border-bottom-left-radius:1cqw}.ochat-out{align-self:flex-end;background:var(--ac);border-bottom-right-radius:1cqw;color:#fff}'
+      + '.ochat-typing{display:flex;gap:1cqw;align-self:flex-start;padding:2.4cqw 3cqw;background:rgba(255,255,255,.08);border-radius:var(--sc-pill)}'
+      + '.ochat-typing i{width:1.2cqw;height:1.2cqw;min-width:5px;min-height:5px;border-radius:50%;background:var(--dim);animation:ochatDot 1s ease-in-out infinite alternate}.ochat-typing i:nth-child(2){animation-delay:.15s}.ochat-typing i:nth-child(3){animation-delay:.3s}'
+      + '@keyframes ochatDot{to{opacity:.25;transform:translateY(-.5cqh)}}'
+      + '@container (min-aspect-ratio:1/1){.ochat-phone{width:64cqw}.ochat-bubble{font-size:2.6cqw;padding:1.7cqw 2.4cqw}.ochat-feed{padding:3cqw}}',
+    html: function (o) {
+      var name = compactText(getP(o, "name", "Alex · Creative lead"), 36);
+      var avatar = renderAvatar(getP(o, "avatar", "A"), "A", "");
+      var messages = [
+        ["in", compactText(getP(o, "message1", "Can we make the launch feel premium?"), 95)],
+        ["out", compactText(getP(o, "message2", "Already building it. Clean, fast, no visual noise."), 95)],
+        ["in", compactText(getP(o, "message3", "Perfect. Ship the reveal today ✦"), 95)]
+      ];
+      var bubbles = messages.map(function (m, i) {
+        return '<div class="ochat-bubble ochat-' + m[0] + '" style="animation-delay:' + (i * 180) + 'ms">' + esc(m[1]) + '</div>';
+      }).join("");
+      return '<div class="ochat"><div class="sc-fx-mesh"></div><div class="sc-fx-noise"></div><div class="sc-safe">'
+        + '<article class="ochat-phone sc-glass sc-card sc-m-scale"><header class="ochat-head"><div class="ochat-av sc-media">' + avatar + '</div><div><h3 class="sc-subheading">' + esc(name) + '</h3><span class="sc-caption" style="color:var(--ac)">online now</span></div></header>'
+        + '<div class="ochat-feed sc-stack">' + bubbles + '<span class="ochat-typing"><i></i><i></i><i></i></span></div></article>'
+        + '</div><div class="sc-fx-vignette"></div></div>';
+    }
+  };
+
+  T["original-growth-stats"] = {
+    name: "Growth & Numbers", cat: "charts", collection: "originals", version: "1.0.0",
+    dark: true, accent: "#35d39a",
+    desc: "Executive growth story with a hero metric, editable context and restrained animated chart",
+    css: '.ogrow{position:absolute;inset:0;overflow:hidden;background:#07100f;color:#fff}'
+      + '.ogrow .sc-safe{align-items:center;justify-content:center}.ogrow-card{position:relative;z-index:2;width:min(90cqw,900px)}'
+      + '.ogrow-top{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sc-lg)}.ogrow-number{color:var(--ac);margin-top:var(--sc-sm)}'
+      + '.ogrow-delta{padding:1.4cqw 2.4cqw;border-radius:var(--sc-pill);background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac);white-space:nowrap}'
+      + '.ogrow-chart{height:28cqh;min-height:120px;display:flex;align-items:flex-end;gap:1.8cqw;margin:var(--sc-xl) 0 var(--sc-lg);padding-top:var(--sc-md);border-bottom:1px solid rgba(255,255,255,.12)}'
+      + '.ogrow-bar{flex:1;height:var(--h);min-width:8px;border-radius:var(--sc-r-sm) var(--sc-r-sm) 0 0;background:linear-gradient(to top,color-mix(in srgb,var(--ac) 52%,#14201d),var(--ac));transform-origin:bottom;animation:ogrowRise var(--D) var(--sc-cine) infinite;animation-delay:calc(var(--i)*70ms)}'
+      + '.ogrow-foot{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sc-md)}.ogrow-stat{padding:var(--sc-md);border-left:2px solid color-mix(in srgb,var(--ac) 55%,transparent)}'
+      + '@keyframes ogrowRise{0%,16%{transform:scaleY(0);opacity:.2}38%,86%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:.25}}'
+      + '@container (min-aspect-ratio:1/1){.ogrow-card{width:76cqw}.ogrow-chart{height:25cqh;margin:4cqw 0}.ogrow-number{font-size:8cqw}}',
+    html: function (o) {
+      var heights = [24, 32, 29, 43, 52, 48, 64, 71, 67, 84, 92, 100];
+      var bars = heights.map(function (h, i) { return '<i class="ogrow-bar" style="--h:' + h + '%;--i:' + i + '"></i>'; }).join("");
+      function stat(valueKey, labelKey, value, label) {
+        return '<div class="ogrow-stat"><b class="sc-heading">' + esc(compactText(getP(o, valueKey, value), 14)) + '</b><span class="sc-caption" style="display:block;color:var(--dim);margin-top:var(--sc-xs)">' + esc(compactText(getP(o, labelKey, label), 32)) + '</span></div>';
+      }
+      return '<div class="ogrow"><div class="sc-fx-grid"></div><div class="sc-fx-mesh"></div><div class="sc-safe"><article class="ogrow-card sc-card sc-glass sc-m-blur">'
+        + '<div class="ogrow-top"><div><span class="sc-label" style="color:var(--dim)">' + esc(compactText(getP(o, "period", "Last 30 days"), 28)) + '</span><h2 class="sc-heading" style="margin-top:var(--sc-sm)">' + esc(compactText(getP(o, "title", "Audience growth"), 46)) + '</h2><div class="ogrow-number sc-number">' + esc(compactText(getP(o, "value", "+248%"), 14)) + '</div></div><span class="ogrow-delta sc-label">' + esc(compactText(getP(o, "delta", "↑ 38.4%"), 18)) + '</span></div>'
+        + '<div class="ogrow-chart">' + bars + '</div><div class="ogrow-foot">'
+        + stat("metric1", "metric1Label", "1.8M", "Total views") + stat("metric2", "metric2Label", "92K", "New followers") + stat("metric3", "metric3Label", "8.7%", "Engagement")
+        + '</div></article></div><div class="sc-fx-vignette"></div></div>';
+    }
+  };
+
   
   
   
@@ -3633,7 +3886,7 @@ window.SC_TPL2 = (function () {
     "money-atm":              ["$10,000 PAYOUT", "Instant Automated Transfer", ""],
 
     // UI
-    "ui-ios-notify":          ["SHORTSCRAFT", "Your 4K Short is ready to post 🚀", ""],
+    "ui-ios-notify":          ["SHORTSCRAFT", "Your HD Short is ready to post 🚀", ""],
     "ui-safari-scroll":       ["AI Motion Graphics Studio", "", ""],
     "ui-google-search":       ["how to make viral motion graphics", "", ""],
     "ui-imessage":            ["How did you get 1M views?!", "Used ShortsCraft motion graphics! ⚡", ""],
@@ -3921,14 +4174,14 @@ window.SC_TPL2 = (function () {
         "key": "body",
         "label": "Notification Message Preview",
         "type": "textarea",
-        "default": "Your 4K Short is ready to post 🚀"
+        "default": "Your HD Short is ready to post 🚀"
       }
     ],
     "defaults": {
       "app": "SHORTSCRAFT",
       "icon": "⚡",
       "time": "now",
-      "body": "Your 4K Short is ready to post 🚀"
+      "body": "Your HD Short is ready to post 🚀"
     }
   },
   "ui-safari-scroll": {
@@ -5545,7 +5798,7 @@ window.SC_TPL2 = (function () {
         "key": "item3",
         "label": "Task Line 3",
         "type": "text",
-        "default": "Publish 4K exports to Reels"
+        "default": "Publish HD exports to Reels"
       }
     ],
     "defaults": {
@@ -5553,7 +5806,7 @@ window.SC_TPL2 = (function () {
       "icon": "🚀",
       "item1": "Script 10 YouTube Shorts",
       "item2": "Animate kinetic typography hooks",
-      "item3": "Publish 4K exports to Reels"
+      "item3": "Publish HD exports to Reels"
     }
   },
   "text-cascade": {
@@ -5673,6 +5926,164 @@ window.SC_TPL2 = (function () {
   }
 };
 
+  var ORIGINAL_SCHEMAS = {
+    "original-ai-compare": {
+      fields: [
+        { key: "title", label: "Comparison headline", type: "text", default: "Claude vs ChatGPT", maxLength: 54 },
+        { key: "subtitle", label: "Context", type: "textarea", default: "Which AI should creators use in 2026?", maxLength: 90 },
+        { key: "leftName", label: "Left product", type: "text", default: "Claude", maxLength: 24 },
+        { key: "leftLogo", label: "Left logo", type: "logo", default: "C" },
+        { key: "leftNote", label: "Left strengths", type: "text", default: "Deep reasoning · Natural writing", maxLength: 55 },
+        { key: "leftScore", label: "Left score", type: "number", default: 92, min: 0, max: 100, step: 1 },
+        { key: "rightName", label: "Right product", type: "text", default: "ChatGPT", maxLength: 24 },
+        { key: "rightLogo", label: "Right logo", type: "logo", default: "◎" },
+        { key: "rightNote", label: "Right strengths", type: "text", default: "Fast tools · Broad ecosystem", maxLength: 55 },
+        { key: "rightScore", label: "Right score", type: "number", default: 88, min: 0, max: 100, step: 1 },
+        { key: "winner", label: "Winner badge", type: "select", default: "left", options: [{ val: "left", label: "Left product" }, { val: "right", label: "Right product" }, { val: "none", label: "No winner" }] }
+      ]
+    },
+    "original-app-showcase": {
+      fields: [
+        { key: "kicker", label: "Release label", type: "text", default: "New release", maxLength: 28 },
+        { key: "title", label: "Product headline", type: "text", default: "Meet the faster way to create", maxLength: 60 },
+        { key: "subtitle", label: "Product description", type: "textarea", default: "Turn one idea into a polished short-form animation in minutes.", maxLength: 110 },
+        { key: "screenshot", label: "App or website screenshot", type: "image", default: "" },
+        { key: "url", label: "Website address", type: "text", default: "shortscraft.online", maxLength: 48 },
+        { key: "cta", label: "Call to action", type: "text", default: "Try it free →", maxLength: 24 }
+      ]
+    },
+    "original-ranked-list": {
+      fields: [
+        { key: "title", label: "List headline", type: "text", default: "Best creator tools ranked", maxLength: 58 },
+        { key: "subtitle", label: "Ranking context", type: "textarea", default: "Speed, polish and value—scored for short-form creators.", maxLength: 95 },
+        { key: "item1", label: "#1 item", type: "text", default: "ShortsCraft", maxLength: 38 },
+        { key: "item2", label: "#2 item", type: "text", default: "CapCut", maxLength: 38 },
+        { key: "item3", label: "#3 item", type: "text", default: "Canva", maxLength: 38 },
+        { key: "item4", label: "#4 item", type: "text", default: "Premiere Pro", maxLength: 38 },
+        { key: "item5", label: "#5 item", type: "text", default: "After Effects", maxLength: 38 }
+      ]
+    },
+    "original-chat-story": {
+      fields: [
+        { key: "name", label: "Contact name", type: "text", default: "Alex · Creative lead", maxLength: 36 },
+        { key: "avatar", label: "Contact avatar", type: "image", default: "A" },
+        { key: "message1", label: "Incoming message", type: "textarea", default: "Can we make the launch feel premium?", maxLength: 95 },
+        { key: "message2", label: "Your reply", type: "textarea", default: "Already building it. Clean, fast, no visual noise.", maxLength: 95 },
+        { key: "message3", label: "Final message", type: "textarea", default: "Perfect. Ship the reveal today ✦", maxLength: 95 }
+      ]
+    },
+    "original-growth-stats": {
+      fields: [
+        { key: "period", label: "Time period", type: "text", default: "Last 30 days", maxLength: 28 },
+        { key: "title", label: "Metric headline", type: "text", default: "Audience growth", maxLength: 46 },
+        { key: "value", label: "Hero value", type: "text", default: "+248%", maxLength: 14 },
+        { key: "delta", label: "Change badge", type: "text", default: "↑ 38.4%", maxLength: 18 },
+        { key: "metric1", label: "Metric 1 value", type: "text", default: "1.8M", maxLength: 14 },
+        { key: "metric1Label", label: "Metric 1 label", type: "text", default: "Total views", maxLength: 32 },
+        { key: "metric2", label: "Metric 2 value", type: "text", default: "92K", maxLength: 14 },
+        { key: "metric2Label", label: "Metric 2 label", type: "text", default: "New followers", maxLength: 32 },
+        { key: "metric3", label: "Metric 3 value", type: "text", default: "8.7%", maxLength: 14 },
+        { key: "metric3Label", label: "Metric 3 label", type: "text", default: "Engagement", maxLength: 32 }
+      ]
+    }
+  };
+
+  Object.keys(ORIGINAL_SCHEMAS).forEach(function (id) {
+    var schema = ORIGINAL_SCHEMAS[id];
+    schema.version = 1;
+    schema.defaults = {};
+    schema.fields.forEach(function (field) { schema.defaults[field.key] = field.default; });
+    SCHEMAS[id] = schema;
+  });
+
+  var ORIGINAL_META = {
+    "original-ai-compare": { category: "comparison", niches: ["tech", "ai", "education"], purposes: ["comparison", "explainer"], styles: ["dark", "futuristic", "professional"], tags: ["ai", "versus", "score", "product"] },
+    "original-app-showcase": { category: "showcase", niches: ["tech", "saas", "business"], purposes: ["product-launch", "feature-showcase"], styles: ["dark", "minimal", "professional"], tags: ["app", "website", "screenshot", "launch"] },
+    "original-ranked-list": { category: "ranked-list", niches: ["tech", "education", "entertainment"], purposes: ["top-list", "recommendation"], styles: ["editorial", "dark", "minimal"], tags: ["top-5", "ranking", "countdown"] },
+    "original-chat-story": { category: "conversation", niches: ["business", "education", "entertainment"], purposes: ["storytelling", "conversation"], styles: ["modern", "dark", "minimal"], tags: ["chat", "messages", "dialogue"] },
+    "original-growth-stats": { category: "statistics", niches: ["business", "finance", "creator"], purposes: ["growth", "social-proof", "explainer"], styles: ["dark", "data", "professional"], tags: ["stats", "growth", "analytics", "numbers"] }
+  };
+
+  var FIELD_TYPES = ["text", "textarea", "number", "color", "image", "logo", "boolean", "toggle", "select", "font", "duration"];
+
+  function clone(value) { return JSON.parse(JSON.stringify(value)); }
+
+  function schemaFor(id) {
+    var source = SCHEMAS[id] || defaultSchema(id);
+    var schema = clone(source);
+    schema.version = Number(schema.version) || 1;
+    schema.fields = Array.isArray(schema.fields) ? schema.fields : [];
+    schema.defaults = schema.defaults && typeof schema.defaults === "object" ? schema.defaults : {};
+    return schema;
+  }
+
+  function validateSchema(id) {
+    var schema = schemaFor(id);
+    var errors = [];
+    var keys = {};
+    schema.fields.forEach(function (field, index) {
+      if (!field || !/^[A-Za-z][A-Za-z0-9_-]{0,39}$/.test(String(field.key || ""))) errors.push("Field " + index + " has an invalid key.");
+      if (!field || !field.label) errors.push("Field " + index + " needs a label.");
+      if (!field || FIELD_TYPES.indexOf(field.type || "text") < 0) errors.push("Field " + index + " has an unsupported type.");
+      if (field && keys[field.key]) errors.push("Field key " + field.key + " is duplicated.");
+      if (field) keys[field.key] = true;
+    });
+    return { valid: errors.length === 0, errors: errors, schema: schema };
+  }
+
+  function validateProps(id, raw) {
+    var checked = validateSchema(id);
+    var props = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+    var value = {};
+    var errors = checked.errors.slice();
+    var known = {};
+    checked.schema.fields.forEach(function (field) {
+      known[field.key] = true;
+      var current = props[field.key] != null ? props[field.key] : checked.schema.defaults[field.key];
+      if (field.type === "number" || field.type === "duration") {
+        var number = Number(current);
+        if (!Number.isFinite(number)) number = Number(field.default) || 0;
+        if (field.min != null) number = Math.max(Number(field.min), number);
+        if (field.max != null) number = Math.min(Number(field.max), number);
+        value[field.key] = number;
+      } else if (field.type === "boolean" || field.type === "toggle") {
+        value[field.key] = current === true || current === "true" || current === 1;
+      } else if (field.type === "color") {
+        value[field.key] = /^#[0-9a-f]{6}$/i.test(String(current || "")) ? String(current) : String(field.default || "#ffffff");
+      } else if (field.type === "select") {
+        var allowed = (field.options || []).map(function (option) { return String(option.val); });
+        value[field.key] = allowed.indexOf(String(current)) >= 0 ? String(current) : String(field.default || allowed[0] || "");
+      } else {
+        var text = String(current == null ? "" : current);
+        if (field.maxLength && text.length > field.maxLength) text = compactText(text, field.maxLength);
+        value[field.key] = text;
+      }
+    });
+    Object.keys(props).forEach(function (key) {
+      if (!known[key]) errors.push("Unsupported property: " + key);
+    });
+    return { valid: errors.length === 0, errors: errors, value: value };
+  }
+
+  function metaFor(id) {
+    var t = T[id];
+    var specific = ORIGINAL_META[id] || {};
+    var originals = t.collection === "originals";
+    return {
+      category: specific.category || t.cat,
+      niches: (specific.niches || [t.cat]).slice(),
+      purposes: (specific.purposes || ["motion-graphic"]).slice(),
+      platforms: ["youtube-shorts", "instagram-reels", "tiktok", "youtube"],
+      styles: (specific.styles || [t.dark ? "dark" : "light"]).slice(),
+      formats: Object.keys(AR),
+      orientation: ["portrait", "landscape", "square"],
+      premium: false,
+      difficulty: originals ? "easy" : "standard",
+      creator: originals ? "ShortsCraft Originals" : "ShortsCraft Official",
+      tags: (specific.tags || [t.cat, "motion", "editable"]).slice()
+    };
+  }
+
   function defaultSchema(id) {
     var f = FIELDS[id] || ["Line 1", "Line 2", "Line 3"];
     var d = DEMO[id] || ["", "", ""];
@@ -5685,7 +6096,7 @@ window.SC_TPL2 = (function () {
         defaults[key] = d[i] || "";
       }
     });
-    return { fields: fields, defaults: defaults };
+    return { version: 1, fields: fields, defaults: defaults };
   }
 
   /* ── Public API ───────────────────────────────────────── */
@@ -5693,15 +6104,27 @@ window.SC_TPL2 = (function () {
     return Object.keys(T).filter(function (id) {
       return includeBlank ? true : id !== "blank";
     }).map(function (id) {
-      var s = SCHEMAS[id] || defaultSchema(id);
-      return {
+      var s = schemaFor(id);
+      var metadata = metaFor(id);
+      var item = {
         id: id, name: T[id].name, cat: T[id].cat,
-        desc: T[id].desc, dark: !T[id].dark, accent: T[id].accent,
+        desc: T[id].desc, dark: T[id].dark === true, accent: T[id].accent,
+        version: T[id].version || "1.0.0",
+        collection: T[id].collection || (id === "blank" ? "system" : "classic"),
+        supportedRatios: metadata.formats.slice(),
         demo: (DEMO[id] || []).slice(),
         fields: (FIELDS[id] || ["Line 1", "Line 2", "Line 3"]).slice(),
-        schema: s
+        schema: s,
+        metadata: metadata
       };
+      Object.keys(metadata).forEach(function (key) { item[key] = metadata[key]; });
+      return item;
     });
+  }
+
+  function definition(id) {
+    var found = list(true).filter(function (item) { return item.id === id; })[0];
+    return found ? clone(found) : null;
   }
 
   function build(id, opts) {
@@ -5709,8 +6132,12 @@ window.SC_TPL2 = (function () {
     if (!t) return "";
 
     var o = opts || {};
-    var s = SCHEMAS[id] || defaultSchema(id);
-    var p = Object.assign({}, s.defaults, o.props || {});
+    var s = schemaFor(id);
+    // Only schema-declared properties enter the renderer. This keeps old
+    // projects compatible through defaults while unsupported keys cannot
+    // silently become an ad-hoc rendering API.
+    var checkedProps = validateProps(id, o.props || {});
+    var p = Object.assign({}, s.defaults, checkedProps.value);
 
     /* Seed the schema fields from the positional lines array — but never on
        top of a field the caller set explicitly in props. The editor sends both
@@ -5768,6 +6195,22 @@ window.SC_TPL2 = (function () {
   function fonts() { return FONTS.map(function (f) { return { id: f.id, label: f.label }; }); }
   function aspects() { return Object.keys(AR); }
 
+  function hydrateCustomBody(spec, rawProps) {
+    var schema = spec && spec.schema && Array.isArray(spec.schema.fields) ? spec.schema : null;
+    if (!schema) return spec.body;
+    var props = Object.assign({}, schema.defaults || {}, rawProps || {});
+    var allowed = {};
+    schema.fields.forEach(function (field) {
+      var value = props[field.key] != null ? props[field.key] : field.default;
+      var text = String(value == null ? "" : value);
+      var max = Math.max(1, Math.min(Number(field.maxLength) || 140, 600));
+      allowed[field.key] = compactText(text, max);
+    });
+    return String(spec.body || "").replace(/\{\{([A-Za-z][A-Za-z0-9_-]{0,39})\}\}/g, function (_, key) {
+      return esc(Object.prototype.hasOwnProperty.call(allowed, key) ? allowed[key] : "");
+    });
+  }
+
   function buildCustom(spec, opts) {
     if (!spec || typeof spec.css !== "string" || typeof spec.body !== "string") return "";
     var o = opts || {};
@@ -5792,7 +6235,7 @@ window.SC_TPL2 = (function () {
       + '<title>' + esc(t.name) + '</title><style>'
       + base(t, res) + img + spec.css
       + '</style></head><body><div class="vp">'
-      + '<div class="cv">' + spec.body + '</div>'
+      + '<div class="cv">' + hydrateCustomBody(spec, o.props) + '</div>'
       + wmHtml(o)
       + '</div></body></html>';
   }
@@ -5828,7 +6271,8 @@ window.SC_TPL2 = (function () {
 
   return {
     cats: cats, list: list, build: build, buildCustom: buildCustom,
-    fonts: fonts, aspects: aspects, getReactCode: getReactCode
+    fonts: fonts, aspects: aspects, getReactCode: getReactCode,
+    definition: definition, validateSchema: validateSchema, validateProps: validateProps,
+    design: function () { return clone(DESIGN); }, fieldTypes: function () { return FIELD_TYPES.slice(); }
   };
 })();
-

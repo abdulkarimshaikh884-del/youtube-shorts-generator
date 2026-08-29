@@ -6,9 +6,14 @@
   "use strict";
 
   function $(sel, root) { return (root || document).querySelector(sel); }
+  function escapeHtml(value) {
+    return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
 
   var params = new URLSearchParams(window.location.search);
-  var handle = (params.get("handle") || "crimedocu").replace(/^@/, "");
+  var handle = (params.get("handle") || "shortscraft").replace(/^@/, "");
 
   function mountStage(tile) {
     if (!tile || tile.dataset.mounted === "1" || !window.SC_TPL2) return;
@@ -40,22 +45,42 @@
   }
 
   function loadCreator() {
-    fetch("/api/creator?handle=" + encodeURIComponent(handle))
-      .then(function (r) { return r.json(); })
+    var ctrl = ("AbortController" in window) ? new AbortController() : null;
+    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8_000);
+    fetch("/api/creator?handle=" + encodeURIComponent(handle), ctrl ? { signal: ctrl.signal } : undefined)
+      .then(function (r) {
+        if (!r.ok) {
+          var err = new Error(r.status === 404 ? "Creator not found" : "Creator profiles are temporarily unavailable");
+          err.status = r.status;
+          throw err;
+        }
+        return r.json();
+      })
       .then(function (d) {
         var c = (d && d.creator) || {};
         var commTpls = (d && d.communityTemplates) || [];
         renderProfile(c, commTpls);
       })
-      .catch(function () {
-        renderProfile({
-          name: handle.charAt(0).toUpperCase() + handle.slice(1),
-          handle: "@" + handle,
-          initials: handle.slice(0, 2).toUpperCase(),
-          bio: "Motion graphics creator on ShortsCraft.",
-          cat: "all"
-        }, []);
-      });
+      .catch(function (err) {
+        renderUnavailable(err && err.status === 404);
+      })
+      .finally(function () { clearTimeout(bail); });
+  }
+
+  function renderUnavailable(notFound) {
+    document.title = (notFound ? "Creator not found" : "Creator unavailable") + " — ShortsCraft";
+    var nm = $("#creatorName");
+    var hd = $("#creatorHandle");
+    var bi = $("#creatorBio");
+    var grid = $("#creatorGrid");
+    if (nm) nm.textContent = notFound ? "Creator not found" : "Profiles temporarily unavailable";
+    if (hd) hd.textContent = "@" + handle;
+    if (bi) bi.textContent = notFound
+      ? "This creator profile does not exist or has been renamed."
+      : "Please try again in a moment.";
+    if (grid) grid.innerHTML = '<div class="cr-cre-empty"><h3>'
+      + (notFound ? "No profile at this address" : "Could not load this profile")
+      + '</h3><p><a href="/community">Browse Community templates</a></p></div>';
   }
 
   function renderProfile(c, commTpls) {
@@ -113,6 +138,10 @@
     var grid = $("#creatorGrid");
     if (!grid) return;
     grid.innerHTML = "";
+    if (!allTpls.length) {
+      grid.innerHTML = '<div class="cr-cre-empty"><h3>No published templates yet</h3><p>This creator has not shared a community template.</p></div>';
+      return;
+    }
 
     var frag = document.createDocumentFragment();
     allTpls.forEach(function (t) {
@@ -125,7 +154,7 @@
 
       tile.innerHTML = [
         '<div class="sh-stage">',
-        '  <a href="' + detailUrl + '" class="sh-stage-link" aria-label="View ' + t.name + '"></a>',
+        '  <a href="' + detailUrl + '" class="sh-stage-link" aria-label="View ' + escapeHtml(t.name) + '"></a>',
         '  <span class="sh-skel">Preview</span>',
         '  <div class="sh-card-hover-bar">',
         '    <button type="button" class="sh-card-btn play" aria-label="Replay"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>',
@@ -133,11 +162,11 @@
         '  </div>',
         '</div>',
         '<div class="sh-tmeta">',
-        '  <div class="sh-ttitle-row"><a href="' + detailUrl + '" class="sh-ttitle">' + t.name + '</a></div>',
-        '  <p class="sh-tdesc">' + t.desc + '</p>',
+        '  <div class="sh-ttitle-row"><a href="' + detailUrl + '" class="sh-ttitle">' + escapeHtml(t.name) + '</a></div>',
+        '  <p class="sh-tdesc">' + escapeHtml(t.desc) + '</p>',
         '  <div class="sh-tact-bar">',
-        '    <a href="' + detailUrl + '" class="sh-tact-btn like">♥ <span>' + t.likes + '</span></a>',
-        '    <a href="' + detailUrl + '#comments" class="sh-tact-btn comment">💬 <span>' + Math.max(2, Math.floor(t.likes / 6)) + '</span></a>',
+        '    <a href="' + detailUrl + '" class="sh-tact-btn like">♥ <span>' + (Number(t.likes) || 0) + '</span></a>',
+        '    <a href="' + detailUrl + '#comments" class="sh-tact-btn comment">💬 <span>' + Math.max(0, Math.floor((Number(t.likes) || 0) / 6)) + '</span></a>',
         '    <a href="' + detailUrl + '" class="sh-tact-btn share">View Details →</a>',
         '  </div>',
         '</div>'

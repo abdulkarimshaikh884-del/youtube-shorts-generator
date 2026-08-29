@@ -13,6 +13,30 @@
   var $ = function (s) { return document.querySelector(s); };
   var all = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
 
+  function safeProfileUrl(value, platform) {
+    var raw = String(value || "").trim();
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw)) {
+      try {
+        var url = new URL(raw);
+        var host = url.hostname.toLowerCase();
+        var valid = platform === "youtube"
+          ? (host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be")
+          : (host === "instagram.com" || host.endsWith(".instagram.com"));
+        if (!valid) return "";
+        url.protocol = "https:";
+        url.username = "";
+        url.password = "";
+        return url.toString();
+      } catch (e) { return ""; }
+    }
+    if (!/^@?[a-zA-Z0-9._-]{1,100}$/.test(raw)) return "";
+    var handle = raw.replace(/^@/, "");
+    return platform === "youtube"
+      ? "https://youtube.com/@" + handle
+      : "https://instagram.com/" + handle;
+  }
+
   function show(el, on) {
     if (on) el.removeAttribute("hidden"); else el.setAttribute("hidden", "");
   }
@@ -81,16 +105,18 @@
         // A social link with nothing behind it is worse than no link at all —
         // hide it until the creator has actually filled it in.
         if ($("#crYtLink")) {
-          if (user.youtube) {
-            $("#crYtLink").href = user.youtube.startsWith("http") ? user.youtube : "https://youtube.com/" + (user.youtube.startsWith("@") ? "" : "@") + user.youtube;
+          var youtubeUrl = safeProfileUrl(user.youtube, "youtube");
+          if (youtubeUrl) {
+            $("#crYtLink").href = youtubeUrl;
             $("#crYtLink").hidden = false;
           } else {
             $("#crYtLink").hidden = true;
           }
         }
         if ($("#crIgLink")) {
-          if (user.instagram) {
-            $("#crIgLink").href = user.instagram.startsWith("http") ? user.instagram : "https://instagram.com/" + user.instagram.replace(/^@/, "");
+          var instagramUrl = safeProfileUrl(user.instagram, "instagram");
+          if (instagramUrl) {
+            $("#crIgLink").href = instagramUrl;
             $("#crIgLink").hidden = false;
           } else {
             $("#crIgLink").hidden = true;
@@ -455,8 +481,19 @@
 
           var meta = document.createElement("div");
           meta.className = "cr-cre-meta";
-          meta.innerHTML = '<span class="cr-cre-tag">' + (t.category || "Motion") + '</span>'
-            + '<div class="cr-cre-stats"><span>❤️ ' + (t.likes || 1) + '</span><span>📥 ' + (t.downloads || 1) + '</span></div>';
+          var tag = document.createElement("span");
+          tag.className = "cr-cre-tag";
+          tag.textContent = t.category || "Motion";
+          var stats = document.createElement("div");
+          stats.className = "cr-cre-stats";
+          var likes = document.createElement("span");
+          likes.textContent = "❤️ " + (Number(t.likes) || 0);
+          var downloads = document.createElement("span");
+          downloads.textContent = "📥 " + (Number(t.downloads) || 0);
+          stats.appendChild(likes);
+          stats.appendChild(downloads);
+          meta.appendChild(tag);
+          meta.appendChild(stats);
 
           var title = document.createElement("h3");
           title.className = "cr-cre-title";
@@ -487,16 +524,26 @@
           btn.addEventListener("click", function () {
             var tid = btn.getAttribute("data-id");
             if (!tid) return;
-            if (!confirm("Are you sure you want to delete this creation?")) return;
-            fetch("/api/user/creations/" + encodeURIComponent(tid), { method: "DELETE" })
-              .then(function (r) { return r.json(); })
-              .then(function (j) {
-                if (j.success) {
-                  loadUserCreations();
-                  if (window.SC_UI && SC_UI.toast) SC_UI.toast("Creation deleted");
-                }
-              })
-              .catch(function () {});
+            var ask = window.SC_UI && SC_UI.confirm
+              ? SC_UI.confirm({
+                  title: "Delete this published template?",
+                  body: "It will disappear from your creator profile and the Community gallery.",
+                  confirmLabel: "Delete",
+                  danger: true
+                })
+              : Promise.resolve(false);
+            ask.then(function (yes) {
+              if (!yes) return;
+              fetch("/api/user/creations/" + encodeURIComponent(tid), { method: "DELETE" })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                  if (j.success) {
+                    loadUserCreations();
+                    if (window.SC_UI && SC_UI.toast) SC_UI.toast("Creation deleted");
+                  }
+                })
+                .catch(function () {});
+            });
           });
         });
 
@@ -569,7 +616,10 @@
     var shareBtn = $("#shareProfileBtn");
     if (shareBtn) {
       shareBtn.addEventListener("click", function () {
-        var url = location.origin + "/account";
+        var handle = currentUser && currentUser.handle
+          ? currentUser.handle.replace(/^@/, "")
+          : (currentUser && currentUser.email ? currentUser.email.split("@")[0] : "");
+        var url = location.origin + "/creator?handle=" + encodeURIComponent(handle || "shortscraft");
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(function () {
             if (window.SC_UI && SC_UI.toast) SC_UI.toast("Profile link copied to clipboard!");

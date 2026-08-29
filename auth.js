@@ -223,6 +223,34 @@ async function changePlan(userId, planId, term) {
   return rowCount > 0;
 }
 
+function normaliseSocial(value, platform) {
+  const raw = String(value || "").trim();
+  if (!raw) return { value: "" };
+  const hosts = platform === "youtube"
+    ? ["youtube.com", "youtu.be"]
+    : ["instagram.com"];
+
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const url = new URL(raw);
+      const host = url.hostname.toLowerCase();
+      const allowed = hosts.some((base) => host === base || host.endsWith("." + base));
+      if (!allowed) return { error: `Use a valid ${platform === "youtube" ? "YouTube" : "Instagram"} link.` };
+      url.protocol = "https:";
+      url.username = "";
+      url.password = "";
+      return { value: url.toString().slice(0, 150) };
+    } catch (e) {
+      return { error: "That profile link is not valid." };
+    }
+  }
+
+  if (!/^@?[a-zA-Z0-9._-]{1,100}$/.test(raw)) {
+    return { error: `Use a valid ${platform === "youtube" ? "YouTube" : "Instagram"} handle or link.` };
+  }
+  return { value: raw.startsWith("@") ? raw : "@" + raw };
+}
+
 async function updateProfile(userId, data) {
   const fields = [];
   const values = [userId];
@@ -230,12 +258,31 @@ async function updateProfile(userId, data) {
 
   if (typeof data.displayName === "string") push("display_name", data.displayName.trim().slice(0, 50));
   if (typeof data.handle === "string") {
-    const h = data.handle.trim().replace(/^@+/, "");
-    push("handle", h ? "@" + h.slice(0, 30) : "");
+    const h = data.handle.trim().replace(/^@+/, "").toLowerCase();
+    if (h && !/^[a-z0-9_]{3,30}$/.test(h)) {
+      return { error: "Use 3–30 letters, numbers, or underscores for the creator handle." };
+    }
+    const handle = h ? "@" + h : "";
+    if (handle) {
+      const { rows: taken } = await db.query(
+        "select 1 from public.users where lower(handle) = lower($1) and id <> $2 limit 1",
+        [handle, userId]
+      );
+      if (taken.length) return { error: "That creator handle is already taken." };
+    }
+    push("handle", handle);
   }
   if (typeof data.bio === "string") push("bio", data.bio.trim().slice(0, 200));
-  if (typeof data.youtube === "string") push("youtube", data.youtube.trim().slice(0, 150));
-  if (typeof data.instagram === "string") push("instagram", data.instagram.trim().slice(0, 150));
+  if (typeof data.youtube === "string") {
+    const youtube = normaliseSocial(data.youtube, "youtube");
+    if (youtube.error) return youtube;
+    push("youtube", youtube.value);
+  }
+  if (typeof data.instagram === "string") {
+    const instagram = normaliseSocial(data.instagram, "instagram");
+    if (instagram.error) return instagram;
+    push("instagram", instagram.value);
+  }
 
   if (!fields.length) {
     const { rows } = await db.query(`select * from public.users where id = $1`, [userId]);

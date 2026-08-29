@@ -52,7 +52,7 @@
   var meta = {}, order = [];
   var renderTimer = 0, rafId = 0, scrubbing = false;
   var mounted = -1, pps = 60;
-  var cost = { export: 1, animate: 5 };   // overwritten by GET /api/credits
+  var cost = { export: 1, animate: 2 };   // overwritten by GET /api/credits
   var attached = null;                    // {name, dataUrl} in the AI composer
   var creating = false;
 
@@ -273,6 +273,7 @@
           accent: c.accent,
           font: c.font,
           dur: c.dur,
+          props: Object.assign({}, c.props || {}),
           spec: c.spec || null
         };
       })
@@ -666,7 +667,7 @@
       hints: ["Label when switch is OFF", "Label when switch is ON", "Feature explanation caption"],
       presets: [
         ["OFF", "ON", "Turn your idea into a Short"],
-        ["FREE", "PRO AI", "Unlock full 4K motion graphics"],
+        ["FREE", "PRO AI", "Unlock watermark-free HD motion graphics"],
         ["DRAFT", "PUBLISHED", "Automate daily video posting"],
         ["BEFORE", "AFTER", "10x retention with motion typography"]
       ]
@@ -755,7 +756,8 @@
     if (!wrap || !c) return;
     wrap.innerHTML = "";
 
-    // An AI scene has no named content slots — the prompt is the content
+    // Structured AI scenes expose the same generated controls as templates.
+    // Legacy saved scenes had no schema, so they retain the re-roll workflow.
     if (c.spec) {
       var box = document.createElement("div");
       box.className = "ed-f";
@@ -774,7 +776,7 @@
       again.type = "button";
       again.className = "ed-pbtn";
       again.style.cssText = "width:100%;height:38px;border-radius:999px";
-      again.textContent = "Re-roll this scene · " + (cost.animate || 5) + " credits";
+      again.textContent = "Re-roll this scene · " + (cost.animate || 2) + " credits";
       again.addEventListener("click", function () {
         $("#edPrompt").value = c.prompt || "";
         createScene(state.sel);
@@ -783,12 +785,14 @@
 
       var note = document.createElement("p");
       note.className = "ed-note";
-      note.textContent = "Text and colours come from the prompt. Edit the prompt in the box below the stage and re-roll, or change the accent and length here.";
+      note.textContent = c.spec.schema
+        ? "This AI scene uses approved ShortsCraft primitives. Edit its content below, or re-roll the original prompt for a different arrangement."
+        : "This older AI scene has no editable schema. Re-roll its prompt, or change the accent and length here.";
       wrap.appendChild(note);
-      return;
+      if (!c.spec.schema || !Array.isArray(c.spec.schema.fields)) return;
     }
 
-    var m = meta[c.tpl];
+    var m = c.spec ? { schema: c.spec.schema } : meta[c.tpl];
     if (!m) return;
     if (!c.props) c.props = Object.assign({}, (m.schema && m.schema.defaults) || {});
 
@@ -817,6 +821,7 @@
           ta.rows = 3;
           ta.value = val;
           ta.placeholder = field.placeholder || "";
+          ta.maxLength = Number(field.maxLength) || 600;
           ta.addEventListener("input", function () {
             c.props[field.key] = ta.value;
             queueRender();
@@ -837,7 +842,22 @@
             queueRender();
           });
           f.appendChild(sel);
-        } else if (field.type === "toggle") {
+        } else if (field.type === "font") {
+          var fontSel = document.createElement("select");
+          fontSel.id = fid;
+          engine().fonts().forEach(function (font) {
+            var fontOpt = document.createElement("option");
+            fontOpt.value = font.id;
+            fontOpt.textContent = font.label;
+            if (String(font.id) === String(val)) fontOpt.selected = true;
+            fontSel.appendChild(fontOpt);
+          });
+          fontSel.addEventListener("change", function () {
+            c.props[field.key] = fontSel.value;
+            queueRender();
+          });
+          f.appendChild(fontSel);
+        } else if (field.type === "toggle" || field.type === "boolean") {
           var togWrap = document.createElement("label");
           togWrap.className = "ed-tog-wrap";
           togWrap.style.cssText = "display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:4px;";
@@ -857,6 +877,20 @@
           togWrap.appendChild(chk);
           togWrap.appendChild(togSpan);
           f.appendChild(togWrap);
+        } else if (field.type === "number" || field.type === "duration") {
+          var numInput = document.createElement("input");
+          numInput.id = fid;
+          numInput.type = "number";
+          numInput.value = Number(val) || 0;
+          if (field.min != null) numInput.min = field.min;
+          if (field.max != null) numInput.max = field.max;
+          numInput.step = field.step != null ? field.step : (field.type === "duration" ? 100 : 1);
+          numInput.addEventListener("input", function () {
+            var next = Number(numInput.value);
+            if (Number.isFinite(next)) c.props[field.key] = next;
+            queueRender();
+          });
+          f.appendChild(numInput);
         } else if (field.type === "color") {
           var colRow = document.createElement("div");
           colRow.style.cssText = "display:flex;align-items:center;gap:8px;";
@@ -884,7 +918,7 @@
           colRow.appendChild(colInput);
           colRow.appendChild(hexInput);
           f.appendChild(colRow);
-        } else if (field.type === "image") {
+        } else if (field.type === "image" || field.type === "logo") {
           var imgRow = document.createElement("div");
           imgRow.className = "ed-img-picker";
           imgRow.style.cssText = "display:flex;align-items:center;gap:10px;margin-top:4px;";
@@ -920,11 +954,21 @@
           fileBtn.innerHTML = '<span>📁 Upload</span>';
           var fileInput = document.createElement("input");
           fileInput.type = "file";
-          fileInput.accept = "image/*";
+          fileInput.accept = "image/png,image/jpeg,image/webp,image/gif";
           fileInput.style.display = "none";
           fileInput.addEventListener("change", function () {
             var file = fileInput.files && fileInput.files[0];
             if (file) {
+              if (!/^image\/(png|jpeg|jpg|webp|gif)$/.test(file.type)) {
+                status("Upload a png, jpeg, webp or gif.");
+                fileInput.value = "";
+                return;
+              }
+              if (file.size > 900 * 1024) {
+                status("That image is " + Math.round(file.size / 1024) + " KB — keep it under 900 KB.");
+                fileInput.value = "";
+                return;
+              }
               var reader = new FileReader();
               reader.onload = function (e) {
                 var dataUrl = e.target.result;
@@ -950,7 +994,7 @@
           input.type = "text";
           input.value = val;
           input.placeholder = field.placeholder || "";
-          input.maxLength = 140;
+          input.maxLength = Number(field.maxLength) || 140;
           input.addEventListener("input", function () {
             c.props[field.key] = input.value;
             queueRender();
@@ -1018,6 +1062,7 @@
     c.tpl = id;
     c.lines = m.demo.slice(0, 3);
     while (c.lines.length < 3) c.lines.push("");
+    c.props = Object.assign({}, (m.schema && m.schema.defaults) || {});
     c.accent = m.accent;
     var nameEl = $("#edProject") || $("#edName");
     if (id !== "blank") {
@@ -1050,14 +1095,14 @@
     if (!st) {
       // Graceful default so user never sees a bare dash
       var pill0 = $("#edCredits");
-      if (pill0 && $("#edCreditsN")) $("#edCreditsN").textContent = "10";
+      if (pill0 && $("#edCreditsN")) $("#edCreditsN").textContent = "8";
       return;
     }
     if (st.cost) cost = st.cost;
     var pill = $("#edCredits");
-    if ($("#edCreditsN")) $("#edCreditsN").textContent = String(st.left != null ? st.left : 10);
+    if ($("#edCreditsN")) $("#edCreditsN").textContent = String(st.left != null ? st.left : 8);
     if (pill) {
-      pill.title = (st.left != null ? st.left : 10) + " of " + (st.perDay || 10) + " credits left today · " +
+      pill.title = (st.left != null ? st.left : 8) + " of " + (st.perDay || 8) + " credits left today · " +
         (st.planLabel || "Free") + " plan · export " + cost.export + ", AI scene " + cost.animate;
       pill.setAttribute("data-low", (st.left < cost.animate) ? "1" : "0");
     }
@@ -1065,13 +1110,23 @@
     var dl = $("#edDownload");
     if (dl) dl.textContent = "Download MP4 · " + cost.export +
       (cost.export === 1 ? " credit" : " credits");
+
+    // Never let the selector promise a resolution the signed-in plan cannot
+    // receive. The server still enforces this; this makes the UI honest too.
+    var res = $("#edRes");
+    if (res && st.maxHeight) {
+      Array.prototype.forEach.call(res.options, function (option) {
+        option.disabled = Number(option.value) > Number(st.maxHeight);
+      });
+      if (Number(res.value) > Number(st.maxHeight)) res.value = String(st.maxHeight);
+    }
   }
 
   function refreshCredits() {
     return fetch("/api/credits", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
       .then(function (j) { if (j && j.success) paintCredits(j); })
-      .catch(function () { paintCredits({ left: 10, perDay: 10, planLabel: "Free" }); });
+      .catch(function () { paintCredits({ left: 8, perDay: 8, planLabel: "Free", maxHeight: 720 }); });
   }
 
   /* ── Chat history helper ────────────────────────────────── */
@@ -1229,7 +1284,8 @@
       var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       var clip = {
         tpl: null, spec: scene, prompt: prompt,
-        lines: [], accent: scene.accent || "#ffffff",
+        lines: [], props: Object.assign({}, (scene.schema && scene.schema.defaults) || {}),
+        accent: scene.accent || "#ffffff",
         font: cur() ? cur().font : "inter",
         // The server caps AI scenes, so trust the length it reports over the
         // one we asked for — otherwise the clip is labelled longer than it is.
@@ -1361,12 +1417,13 @@
 
     var payload = {
       aspect: state.aspect,
-      res: Number(($("#edRes") || {}).value || 1080),
+      height: Number(($("#edRes") || {}).value || 1080),
       fps: fps(),
       clips: state.clips.map(function (c) {
         if (c.spec) {
           return {
             spec: c.spec, accent: c.accent, dur: c.dur, font: c.font,
+            props: c.props,
             quality: c.quality || "mini"
           };
         }
@@ -1446,8 +1503,21 @@
       bOp.textContent = "✦ Blank Canvas";
       sel.appendChild(bOp);
 
+      var originals = list.filter(function (t) { return t.collection === "originals"; });
+      if (originals.length) {
+        var originalsGroup = document.createElement("optgroup");
+        originalsGroup.label = "✦ ShortsCraft Originals";
+        originals.forEach(function (t) {
+          var originalOption = document.createElement("option");
+          originalOption.value = t.id;
+          originalOption.textContent = t.name;
+          originalsGroup.appendChild(originalOption);
+        });
+        sel.appendChild(originalsGroup);
+      }
+
       e.cats().forEach(function (c) {
-        var group = list.filter(function (t) { return t.cat === c.id && t.id !== "blank"; });
+        var group = list.filter(function (t) { return t.cat === c.id && t.id !== "blank" && t.collection !== "originals"; });
         if (!group.length) return;
         var og = document.createElement("optgroup");
         og.label = c.label;
@@ -1465,8 +1535,26 @@
     var rail = $("#edRail");
     if (rail) {
       rail.innerHTML = "";
+      var railOriginals = list.filter(function (t) { return t.collection === "originals"; });
+      if (railOriginals.length) {
+        var originalsHead = document.createElement("div");
+        originalsHead.className = "ed-tgroup";
+        originalsHead.textContent = "✦ ShortsCraft Originals";
+        rail.appendChild(originalsHead);
+        railOriginals.forEach(function (t) {
+          var originalButton = document.createElement("button");
+          originalButton.type = "button";
+          originalButton.className = "ed-titem";
+          originalButton.dataset.tpl = t.id;
+          originalButton.setAttribute("aria-current", "false");
+          originalButton.innerHTML = '<span class="ed-tdot"></span>';
+          originalButton.appendChild(document.createTextNode(t.name));
+          originalButton.addEventListener("click", function () { setTemplate(t.id); });
+          rail.appendChild(originalButton);
+        });
+      }
       e.cats().forEach(function (c) {
-        var group = list.filter(function (t) { return t.cat === c.id && t.id !== "blank"; });
+        var group = list.filter(function (t) { return t.cat === c.id && t.id !== "blank" && t.collection !== "originals"; });
         if (!group.length) return;
         var h = document.createElement("div");
         h.className = "ed-tgroup"; h.textContent = c.label;
@@ -1618,17 +1706,7 @@
     if (imgInput) {
       imgInput.addEventListener("change", function () {
         var file = imgInput.files && imgInput.files[0];
-        if (!file) return;
-        if (file.size > 8 * 1024 * 1024) { status("Image is over 8MB limit."); return; }
-        var reader = new FileReader();
-        reader.onload = function () {
-          attached = { name: file.name, dataUrl: String(reader.result) };
-          var nameSpan = $("#edImgName");
-          if (nameSpan) nameSpan.textContent = file.name;
-          var clearBtn = $("#edImgClear");
-          if (clearBtn) clearBtn.hidden = false;
-        };
-        reader.readAsDataURL(file);
+        attachImage(file);
       });
     }
 
@@ -1772,6 +1850,7 @@
         base.accent = c.accent || base.accent;
         base.font = c.font || base.font;
         base.dur = Number(c.dur) > 0 ? Number(c.dur) : base.dur;
+        base.props = Object.assign({}, base.props, c.props || {});
         if (c.spec) base.spec = c.spec;
         return base;
       });

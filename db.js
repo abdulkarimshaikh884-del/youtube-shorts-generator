@@ -31,6 +31,14 @@ let pool = null;
 function getPool() {
   if (pool) return pool;
   if (!process.env.DATABASE_URL) throw new Error(MISSING_URL);
+  const connectionTimeoutMillis = Math.max(
+    1_000,
+    Math.min(Number(process.env.DB_CONNECTION_TIMEOUT_MS) || 8_000, 30_000)
+  );
+  const queryTimeoutMillis = Math.max(
+    1_000,
+    Math.min(Number(process.env.DB_QUERY_TIMEOUT_MS) || 10_000, 60_000)
+  );
   pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Supabase terminates TLS with a cert that isn't in Node's default trust
@@ -47,9 +55,12 @@ function getPool() {
      ours, and therefore silent. */
   idleTimeoutMillis: 30_000,
   keepAlive: true,
-  // A cold connection over a slow link occasionally passed 10s and surfaced as
-  // "Connection terminated due to connection timeout" during load.
-  connectionTimeoutMillis: 20_000
+  // Fail in a bounded time. Without query_timeout a dead socket or a queued
+  // pool request could leave API responses (and the template gallery) pending
+  // indefinitely even after the connection attempt itself had timed out.
+  connectionTimeoutMillis,
+  query_timeout: queryTimeoutMillis,
+  statement_timeout: queryTimeoutMillis
   });
 
   pool.on("error", (err) => {

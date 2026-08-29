@@ -43,8 +43,17 @@ async function getComments(tplId) {
 }
 
 async function addComment(tplId, commentData, user) {
-  const handle = (user && user.handle) || commentData.authorHandle || "@creator_" + Math.floor(Math.random() * 899 + 100);
-  const name = (user && user.displayName) || commentData.authorName || "Creator";
+  if (!user || !user.id) throw new Error("Authentication required to comment");
+  const fallbackHandle = user.email ? user.email.split("@")[0] : "creator";
+  const handleBase = String(user.handle || fallbackHandle)
+    .replace(/^@+/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "")
+    .slice(0, 30) || "creator";
+  const handle = "@" + handleBase;
+  const name = String(user.displayName || fallbackHandle || "Creator").trim().slice(0, 50) || "Creator";
+  const text = String(commentData.text || "").trim().slice(0, 500);
+  if (!text) throw new Error("Comment text is required");
   const id = "c_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
   const { rows } = await db.query(
@@ -53,9 +62,9 @@ async function addComment(tplId, commentData, user) {
      returning *`,
     [
       id, tplId,
-      name || "Creator",
-      handle.startsWith("@") ? handle : "@" + handle,
-      String(commentData.text || "").trim().slice(0, 500)
+      name,
+      handle,
+      text
     ]
   );
   return toComment(rows[0]);

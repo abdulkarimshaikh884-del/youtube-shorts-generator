@@ -7,7 +7,7 @@ const fs = require("fs");
 const path = require("path");
 
 const OUT = path.join(__dirname, "public");
-const V = "202608241";
+const V = "202608292";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -207,7 +207,7 @@ ${nav}
 
             <div class="sh-upop-badge-row">
               <span class="sh-upop-plan-pill" data-user-plan>✦ Free Plan</span>
-              <span class="sh-upop-credits-pill">⚡ 10 Credits</span>
+              <span class="sh-upop-credits-pill">⚡ ${P.free.perDay} Credits</span>
             </div>
 
             <div class="sh-upop-menu">
@@ -256,7 +256,7 @@ ${nav}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 <div class="sh-upop-item-txt">
                   <b>Subscription &amp; Plans</b>
-                  <span>Credits, 4K rendering</span>
+                  <span>Credits, up to 1440p rendering</span>
                 </div>
               </a>
 
@@ -1143,7 +1143,7 @@ ${pageHead("Legal", "Terms of Service", `Last updated ${UPDATED}. By using Short
         <p>Accounts or IPs doing any of this can be blocked without notice.</p>
 
         <h2>Free plan and fair use</h2>
-        <p>The free plan includes 10 generations per day and export limits that keep the render queue usable for everyone. Rate limits exist so one user cannot starve the server, and they may be adjusted.</p>
+        <p>The free plan includes ${P.free.perDay} credits per day. A video export costs ${C.export} credit and a custom AI scene costs ${C.animate}; editing and previewing do not spend credits. Resolution and queue limits keep rendering usable for everyone, and may be adjusted as capacity changes.</p>
 
         <h2>Pro plan, billing and refunds</h2>
         <p>Pro is ₹99 per month, billed through Razorpay. Cancel any time; access continues to the end of the period already paid for. If the service did not work for you, ask for a refund within 7 days of upgrading through <a href="/contact">Help &amp; Feedback</a>.</p>
@@ -1664,8 +1664,8 @@ const indexPage = {
             <div class="sh-workflow-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
             </div>
-            <h3>Export 4K &amp; Publish</h3>
-            <p>Render smooth 60FPS vertical 9:16 MP4s for YouTube Shorts &amp; Reels, or share as a community template.</p>
+            <h3>Export MP4 &amp; Publish</h3>
+            <p>Render H.264 MP4s at up to 1440p and 60 FPS for YouTube Shorts &amp; Reels, or share as a community template.</p>
           </div>
         </div>
       </section>
@@ -1691,7 +1691,7 @@ const indexPage = {
               <span>Silky Smooth Loops</span>
             </div>
             <div class="sh-stat-pill">
-              <b>4K Ready</b>
+              <b>Up to 1440p</b>
               <span>High-Res Rendering</span>
             </div>
           </div>
