@@ -10,6 +10,8 @@ data/
 shots/
 shot.js
 verify_*.js
+# The mobile journey is a release regression, not a disposable audit script.
+!verify_mobile.js
 diag_studio.js
 DEPENDENCY_REPORT.md
 

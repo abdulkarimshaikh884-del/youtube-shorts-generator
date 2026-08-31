@@ -23,10 +23,27 @@
   /* ── mobile nav ───────────────────────────────────────── */
   var burger = $("#navBurger"), menu = $("#navMobile");
   if (burger && menu) {
+    burger.setAttribute("aria-controls", "navMobile");
     burger.addEventListener("click", function () {
       var open = menu.hasAttribute("hidden");
       if (open) menu.removeAttribute("hidden"); else menu.setAttribute("hidden", "");
       burger.setAttribute("aria-expanded", String(open));
+      burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    });
+    menu.addEventListener("click", function (ev) {
+      if (ev.target && ev.target.closest("a")) {
+        menu.setAttribute("hidden", "");
+        burger.setAttribute("aria-expanded", "false");
+        burger.setAttribute("aria-label", "Open menu");
+      }
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !menu.hasAttribute("hidden")) {
+        menu.setAttribute("hidden", "");
+        burger.setAttribute("aria-expanded", "false");
+        burger.setAttribute("aria-label", "Open menu");
+        burger.focus();
+      }
     });
   }
 

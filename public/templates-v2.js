@@ -162,6 +162,16 @@ window.SC_TPL2 = (function () {
         : 'width:auto;height:100%;aspect-ratio:9/16;')
       + 'max-width:100%;max-height:100%;'
       + 'container-type:size;overflow:hidden;display:flex;align-items:center;justify-content:center}'
+      /* Every template is placed inside this non-animated user transform layer.
+         Keeping it outside the template root means layout controls do not
+         overwrite a composition's own transform animations. */
+      + '.sc-user-stage{position:absolute;inset:0;container-type:size;overflow:hidden;'
+      + 'transform-origin:center;transform:translate(calc(var(--sc-user-x)*1%),calc(var(--sc-user-y)*1%)) scale(calc(var(--sc-user-scale)/100));'
+      + 'filter:saturate(calc(var(--sc-user-intensity)/100))}'
+      + '.sc-user-stage.sc-user-bg{background:var(--sc-user-background)!important}'
+      + '.sc-user-stage.sc-user-bg>*:first-child{background:transparent!important}'
+      + '.sc-user-stage.sc-user-bg [class$="-bg"],.sc-user-stage.sc-user-bg .cork-bg{background:transparent!important}'
+      + '.sc-user-stage.sc-user-text,.sc-user-stage.sc-user-text *{color:var(--sc-user-color)!important}'
       /* Typography */
       + '.sc-display,.sc-hero,.sc-heading,.sc-subheading,.sc-body,.sc-label,.sc-caption,.sc-number{margin:0;overflow-wrap:anywhere}'
       + '.sc-display{font-size:clamp(28px,10cqw,104px);line-height:.9;font-weight:900;letter-spacing:-.055em}'
@@ -210,14 +220,22 @@ window.SC_TPL2 = (function () {
 
   /* ── Template Registry ────────────────────────────────── */
   var T = {};
+  /* Product-retired templates stay out of every public registry surface and
+     cannot be rebuilt through an old detail/editor URL. Keeping the historical
+     renderer definitions below avoids a destructive migration for old draft
+     records while making the templates unavailable to new or reopened work. */
+  var RETIRED_TEMPLATE_IDS = {
+    "original-ai-compare": true,
+    "original-app-showcase": true
+  };
 
   /* 0 ── Blank Canvas starter */
   T["blank"] = {
     name: "Blank Canvas", cat: "docu", dark: true, accent: "#ffffff",
     desc: "Start with a clean blank canvas or generate an animation with AI",
-    css: '.bk{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqh;padding:8cqw;text-align:center}.bk .icon{width:18cqw;height:18cqw;border-radius:50%;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);display:grid;place-items:center;font-size:7.5cqw;color:var(--dim);margin-bottom:1cqh}.bk h2{font-size:6.8cqw;font-weight:750;letter-spacing:-.03em;color:#fff;margin:0}.bk p{font-size:3.6cqw;color:var(--dim);margin:0;line-height:1.45;max-width:85%}',
+    css: '.bk{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5cqh;padding:8cqw;text-align:center}.bk .icon{width:18cqw;height:18cqw;border-radius:50%;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.2);display:grid;place-items:center;font-size:7.5cqw;color:var(--dim);margin-bottom:1cqh}.bk h2{font-size:6.8cqw;font-weight:750;letter-spacing:-.03em;color:#fff;margin:0}.bk p{font-size:3.6cqw;color:var(--dim);margin:0;line-height:1.45;max-width:85%}.bk .cta{margin-top:1cqh;padding:1.1cqh 4cqw;border:1px solid var(--hair);border-radius:999px;font-size:2.8cqw;color:var(--ac);font-weight:750}',
     html: function (o) {
-      return '<div class="bk"><div class="icon">✦</div><h2>' + esc(o.lines[0] || "Blank Canvas") + '</h2><p>' + esc(o.lines[1] || "Select a template or generate with AI.") + '</p></div>';
+      return '<div class="bk"><div class="icon">✦</div><h2>' + esc(o.lines[0] || "Blank Canvas") + '</h2><p>' + esc(o.lines[1] || "Select a template or generate with AI.") + '</p><span class="cta">' + esc(o.lines[2] || "Create something original") + '</span></div>';
     }
   };
 
@@ -296,9 +314,10 @@ window.SC_TPL2 = (function () {
       + '.sl-mc-word{font-size:8.5cqw;font-weight:950;letter-spacing:-.03em;text-transform:uppercase;color:#F59E0B;text-shadow:0 0 35px #F59E0B,0 0 70px rgba(245,158,11,0.6);animation:swPulse var(--D) infinite alternate}'
       + '.sl-mc-suffix{font-size:4.2cqw;font-weight:900;letter-spacing:.1em;color:#E2E8F0;text-transform:uppercase;margin-top:3.5cqh;text-shadow:0 4px 15px rgba(0,0,0,0.8);animation:swFadeUp var(--D) var(--sp) infinite alternate}',
     html: function (o) {
-      var prefix = getP(o, "prefix", o.lines[0] || "THE #1 SECRET TO");
-      var word = getP(o, "word", o.lines[1] || "RETENTION");
-      var suffix = getP(o, "suffix", o.lines[2] || "IS HOOK VELOCITY");
+      var prefix = getP(o, "pre", o.lines[0] || "UNLOCK YOUR");
+      var word = getP(o, "slot1", o.lines[1] || "FREEDOM");
+      var slot2 = getP(o, "slot2", o.lines[2] || "FOCUS");
+      var slot3 = getP(o, "slot3", o.lines[3] || "WEALTH");
       return '<div class="sl-mc-wrap">'
         + '<div class="sl-mc-grid"></div>'
         + '<div class="sl-mc-glow"></div>'
@@ -308,7 +327,7 @@ window.SC_TPL2 = (function () {
         + '<div class="sl-mc-word">' + esc(word) + '</div>'
         + '<div class="sl-mc-tick right">◀</div>'
         + '</div>'
-        + '<div class="sl-mc-suffix">' + esc(suffix) + '</div>'
+        + '<div class="sl-mc-suffix">' + esc(slot2) + ' · ' + esc(slot3) + '</div>'
         + '</div>';
     }
   };
@@ -361,14 +380,20 @@ window.SC_TPL2 = (function () {
       + '.sw-str-line{flex-grow:1;height:2px;background:#0F0F0F;margin:0 2cqw;opacity:0.8}'
       + '@keyframes swStretch{0%{width:65%}100%{width:95%}}',
     html: function (o) {
-      var l1 = getP(o, "l1", o.lines[0] || "SWISHY");
-      var l2 = getP(o, "l2", o.lines[1] || "CREATE");
-      var l3 = getP(o, "l3", o.lines[2] || "MOTION");
+      var l1 = getP(o, "pill1", o.lines[0] || "99% QUIT");
+      var l2 = getP(o, "pill2", o.lines[1] || "1% DOMINATE");
+      var l3 = getP(o, "footer", o.lines[2] || "WHICH SIDE ARE YOU ON?");
+      function elasticText(value) {
+        return String(value).split("").map(function (char, index) {
+          if (char === " ") return '<div class="sw-str-line"></div>';
+          return '<span>' + esc(char) + '</span>' + (index % 3 === 1 ? '<div class="sw-str-line"></div>' : '');
+        }).join("");
+      }
       return '<div class="sw-str-wrap">'
         + '<div class="sw-str-box">'
-        + '<div class="sw-str-pill" style="animation-delay:0s;"><span>S</span><div class="sw-str-line"></div><span>W</span><div class="sw-str-line"></div><span>I</span><span>S</span><div class="sw-str-line"></div><span>H</span><span>Y</span></div>'
-        + '<div class="sw-str-pill" style="animation-delay:0.2s;"><span>C</span><div class="sw-str-line"></div><span>R</span><span>E</span><div class="sw-str-line"></div><span>A</span><span>T</span><span>E</span></div>'
-        + '<div class="sw-str-pill" style="animation-delay:0.4s;"><span>M</span><div class="sw-str-line"></div><span>O</span><div class="sw-str-line"></div><span>T</span><span>I</span><span>O</span><span>N</span></div>'
+        + '<div class="sw-str-pill" style="animation-delay:0s;">' + elasticText(l1) + '</div>'
+        + '<div class="sw-str-pill" style="animation-delay:0.2s;">' + elasticText(l2) + '</div>'
+        + '<div class="sw-str-pill" style="animation-delay:0.4s;">' + elasticText(l3) + '</div>'
         + '</div>'
         + '</div>';
     }
@@ -397,11 +422,12 @@ window.SC_TPL2 = (function () {
     html: function (o) {
       var song = getP(o, "song", o.lines[0] || "Midnight City Vibes");
       var artist = getP(o, "artist", o.lines[1] || "ShortsCraft & Swishy");
+      var coverIcon = getP(o, "coverIcon", "🎵");
       return '<div class="sw-vn-wrap">'
         + '<div class="sw-vn-disc">'
         + '<div class="sw-vn-grooves"></div>'
         + '<div class="sw-vn-center">'
-        + '<div class="sw-vn-cover">🎵</div>'
+        + '<div class="sw-vn-cover">' + renderAvatar(coverIcon, "🎵") + '</div>'
         + '<div class="sw-vn-spindle"></div>'
         + '</div>'
         + '</div>'
@@ -437,12 +463,15 @@ window.SC_TPL2 = (function () {
     html: function (o) {
       var repo = getP(o, "repo", o.lines[0] || "ShortsCraft/engine");
       var stars = getP(o, "stars", "28,400 Stars");
+      var forks = getP(o, "forks", "2,180 forks");
+      var desc = getP(o, "desc", "Open-source motion engine for creators");
       return '<div class="sw-gh-wrap">'
         + '<div class="sw-gh-head">'
         + '<span style="font-size:6cqw;">⭐</span>'
         + '<div class="sw-gh-title">Star History</div>'
         + '</div>'
-        + '<div class="sw-gh-badge"><div class="sw-gh-dot"></div>' + esc(repo) + '</div>'
+        + '<div class="sw-gh-badge"><div class="sw-gh-dot"></div>' + esc(repo) + ' · ' + esc(forks) + '</div>'
+        + '<div style="font-size:2.8cqw;color:#6b7280;margin:-1.8cqh 0 2.2cqh;text-align:center">' + esc(desc) + '</div>'
         + '<div class="sw-gh-stage">'
         + '<svg class="sw-gh-svg" viewBox="0 0 800 500">'
         + '<line x1="50" y1="100" x2="750" y2="100" class="sw-gh-grid"/>'
@@ -475,21 +504,21 @@ window.SC_TPL2 = (function () {
       + '.sw-pr-btn.primary{background:#3B82F6;color:#ffffff;box-shadow:0 4px 15px rgba(59,130,246,0.3)}'
       + '.sw-pr-btn.sec{background:#E5E7EB;color:#111827}',
     html: function (o) {
-      var handle = getP(o, "handle", o.lines[0] || "ShortsCraft Official");
-      var bio = getP(o, "bio", o.lines[1] || "Automating cinematic motion graphics for 100K+ content creators.");
-      var followers = getP(o, "followers", "143K");
+      var name = getP(o, "name", o.lines[0] || "ShortsCraft Official");
+      var handle = getP(o, "handle", o.lines[1] || "@shortscraft");
+      var role = getP(o, "role", o.lines[2] || "Motion design creator");
+      var stats = getP(o, "stats", o.lines[3] || "143K followers · 184 posts");
+      var avatar = getP(o, "avatar", "⚡");
       return '<div class="sw-pr-wrap">'
         + '<div class="sw-pr-card">'
         + '<div class="sw-pr-top">'
-        + '<div class="sw-pr-avatar">⚡</div>'
+        + '<div class="sw-pr-avatar">' + renderAvatar(avatar, "⚡") + '</div>'
         + '<div class="sw-pr-stats">'
-        + '<div class="sw-pr-stat"><b>184</b><small>posts</small></div>'
-        + '<div class="sw-pr-stat"><b>' + esc(followers) + '</b><small>followers</small></div>'
-        + '<div class="sw-pr-stat"><b>320</b><small>following</small></div>'
+        + '<div class="sw-pr-stat"><b>✦</b><small>' + esc(stats) + '</small></div>'
         + '</div>'
         + '</div>'
-        + '<div class="sw-pr-name">@' + esc(handle.replace(/^@/,"")) + ' ✦</div>'
-        + '<div class="sw-pr-bio">' + esc(bio) + '</div>'
+        + '<div class="sw-pr-name">' + esc(name) + ' ✦</div>'
+        + '<div class="sw-pr-bio">' + esc(handle) + ' · ' + esc(role) + '</div>'
         + '<div class="sw-pr-btns">'
         + '<div class="sw-pr-btn primary">Follow</div>'
         + '<div class="sw-pr-btn sec">Message</div>'
@@ -515,16 +544,21 @@ window.SC_TPL2 = (function () {
       + '@keyframes swFlightPath{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}'
       + '@keyframes swPlaneHover{0%{transform:translate(-50%,-50%) rotate(20deg) scale(1)}100%{transform:translate(-50%,-50%) rotate(28deg) scale(1.15)}}',
     html: function (o) {
-      var from = getP(o, "from", o.lines[0] || "NEW YORK");
-      var to = getP(o, "to", o.lines[1] || "DUBAI");
+      var from = getP(o, "fromCity", o.lines[0] || "NEW YORK");
+      var fromCode = getP(o, "fromCode", o.lines[1] || "JFK");
+      var to = getP(o, "toCity", o.lines[2] || "DUBAI");
+      var toCode = getP(o, "toCode", o.lines[3] || "DXB");
+      var flightNum = getP(o, "flightNum", o.lines[4] || "SC 2026");
+      var flightStatus = getP(o, "status", o.lines[5] || "ON TIME");
       return '<div class="sw-fl-wrap">'
         + '<div class="sw-fl-map"></div>'
         + '<svg class="sw-fl-svg" viewBox="0 0 1000 1600">'
         + '<path d="M 180 750 Q 500 450 820 580" class="sw-fl-arc"/>'
         + '</svg>'
-        + '<div class="sw-fl-node n1"><div class="sw-fl-tag">' + esc(from) + '</div></div>'
-        + '<div class="sw-fl-node n2"><div class="sw-fl-tag">' + esc(to) + '</div></div>'
+        + '<div class="sw-fl-node n1"><div class="sw-fl-tag">' + esc(fromCode) + ' · ' + esc(from) + '</div></div>'
+        + '<div class="sw-fl-node n2"><div class="sw-fl-tag">' + esc(toCode) + ' · ' + esc(to) + '</div></div>'
         + '<div class="sw-fl-plane">✈️</div>'
+        + '<div style="position:absolute;left:50%;bottom:9cqh;transform:translateX(-50%);padding:1cqh 4cqw;border-radius:999px;background:rgba(59,130,246,.16);border:1px solid rgba(96,165,250,.45);font:700 2.8cqw ui-monospace;color:#bfdbfe;white-space:nowrap">' + esc(flightNum) + ' · ' + esc(flightStatus) + '</div>'
         + '</div>';
     }
   };
@@ -548,10 +582,10 @@ window.SC_TPL2 = (function () {
       + '@keyframes swFadeUp{0%,20%{opacity:0;transform:translateY(30px)}60%,100%{opacity:1;transform:translateY(0)}}'
       + '@keyframes swPop{0%,20%{opacity:0;transform:scale(0.85)}60%,100%{opacity:1;transform:scale(1)}}',
     html: function (o) {
-      var brand = getP(o, "brand", o.lines[0] || "Upwork");
-      var metric = getP(o, "metric", "41%");
-      var sub1 = getP(o, "sub1", o.lines[1] || "of top companies agree");
-      var sub2 = getP(o, "sub2", o.lines[2] || "AI works best when humans lead.");
+      var metric = getP(o, "rate", o.lines[0] || "$75/hr");
+      var brand = getP(o, "badge", o.lines[1] || "TOP RATED");
+      var sub2 = getP(o, "role", o.lines[2] || "Motion Designer");
+      var sub1 = getP(o, "earned", o.lines[3] || "$100K+ earned");
       return '<div class="sw-upwork-wrap">'
         + '<div class="sw-upwork-bg"></div>'
         + '<div class="sw-upwork-bloom"></div>'
@@ -583,18 +617,20 @@ window.SC_TPL2 = (function () {
       + '.sw-cursor{display:inline-block;width:.8cqw;height:4.5cqw;background:#00F2FE;margin-left:1cqw;vertical-align:middle;box-shadow:0 0 10px #00F2FE;animation:swBlink 0.9s infinite}'
       + '@keyframes swBlink{0%,49%{opacity:1}50%,100%{opacity:0}}',
     html: function (o) {
-      var file = getP(o, "file", "index.ts");
+      var cmd = getP(o, "cmd", o.lines[0] || "npm run create-short");
+      var output = getP(o, "output", o.lines[1] || "✓ Render complete");
+      var termStatus = getP(o, "status", o.lines[2] || "READY");
       return '<div class="sw-term-wrap">'
         + '<div class="sw-term-glow"></div>'
         + '<div class="sw-term-card">'
         + '<div class="sw-term-head">'
         + '<div class="sw-term-dots"><div class="sw-tdot red"></div><div class="sw-tdot yel"></div><div class="sw-tdot grn"></div></div>'
-        + '<div class="sw-term-title">' + esc(file) + '</div>'
+        + '<div class="sw-term-title">' + esc(termStatus) + '</div>'
         + '<div style="width:8cqw;"></div>'
         + '</div>'
         + '<div class="sw-term-body">'
-        + '<span class="sw-kw">const</span><span class="sw-var">var</span><span class="sw-op">=</span><span class="sw-str">\'hello world\'</span>'
-        + '<span class="sw-cursor"></span>'
+        + '<div><span class="sw-kw">$</span><span class="sw-var">' + esc(cmd) + '</span><span class="sw-cursor"></span></div>'
+        + '<div class="sw-str" style="margin-top:1.2cqh">' + esc(output) + '</div>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -620,7 +656,7 @@ window.SC_TPL2 = (function () {
     html: function (o) {
       var time = getP(o, "time", o.lines[0] || "9:40 AM");
       var lbl = getP(o, "label", "Alarm");
-      var sub = getP(o, "sub", "Every weekday");
+      var sub = getP(o, "repeat", "Every weekday");
       return '<div class="sw-alm-wrap">'
         + '<div class="sw-alm-glow"></div>'
         + '<div class="sw-alm-card">'
@@ -648,19 +684,27 @@ window.SC_TPL2 = (function () {
       + '.sw-not-text span.hl{background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.6);padding:.2cqh 2cqw;border-radius:2cqw;color:#ffffff;text-shadow:0 0 20px #6366F1;font-weight:900}'
       + '@keyframes swBlurIn{0%,15%{opacity:0;filter:blur(14px);transform:translateY(20px)}60%,100%{opacity:1;filter:blur(0);transform:translateY(0)}}',
     html: function (o) {
-      var badge = getP(o, "badge", "PRODUCTIVITY");
-      var text = getP(o, "text", o.lines[0] || "Supercharge your creative workflow with automated Remotion video pipelines.");
-      var hl = getP(o, "hl", "Remotion");
-      var words = text.split(/\s+/);
+      var title = getP(o, "title", o.lines[0] || "TODAY'S CREATOR PLAN");
+      var icon = getP(o, "icon", "✦");
+      var items = [
+        getP(o, "item1", o.lines[2] || "Write a stronger hook"),
+        getP(o, "item2", o.lines[3] || "Animate the key idea"),
+        getP(o, "item3", o.lines[4] || "Publish before 6 PM")
+      ];
+      var words = title.split(/\s+/);
       var wordsHtml = words.map(function (w, i) {
         var clean = w.replace(/[^a-zA-Z0-9]/g, "");
-        var isHl = clean.toLowerCase() === hl.toLowerCase();
+        var isHl = i === words.length - 1;
         return '<span style="animation-delay:' + (0.1 + i * 0.08) + 's;" class="' + (isHl ? 'hl' : '') + '">' + esc(w) + '</span>';
       }).join(" ");
+      var itemHtml = items.map(function (item, index) {
+        return '<div style="position:relative;z-index:5;margin-top:1.4cqh;font-size:3.2cqw;color:#cbd5e1;animation:swFadeUp var(--D) var(--ae-spring) infinite alternate;animation-delay:' + (index * .1) + 's">□ ' + esc(item) + '</div>';
+      }).join("");
       return '<div class="sw-not-wrap">'
         + '<div class="sw-not-glow"></div>'
-        + '<div class="sw-not-badge">✦ ' + esc(badge) + '</div>'
+        + '<div class="sw-not-badge">' + renderAvatar(icon, "✦") + ' NOTION BOARD</div>'
         + '<div class="sw-not-text">' + wordsHtml + '</div>'
+        + '<div style="margin-top:2cqh">' + itemHtml + '</div>'
         + '</div>';
     }
   };
@@ -705,8 +749,9 @@ window.SC_TPL2 = (function () {
       var dossier = getP(o, "dossier", o.lines[0] || "RESTRICTED");
       var stamp = getP(o, "stamp", o.lines[1] || "TOP SECRET");
       var stampColor = getP(o, "stampColor", "#dc2626");
+      var paperTone = getP(o, "paperTone", "#e6e1d6");
       return '<div class="sc-stamp-wrap">'
-        + '<div class="sc-stamp-folder">'
+        + '<div class="sc-stamp-folder" style="background:' + esc(paperTone) + '">'
         + '<div class="sc-stamp-clip"></div>'
         + '<div class="sc-stamp-meta"><span>CIA // SEC-04</span><span>' + esc(dossier) + '</span></div>'
         + '<div class="sc-stamp-line sc-stamp-l1"></div>'
@@ -816,21 +861,25 @@ window.SC_TPL2 = (function () {
     css: '.sc-cork-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#18120e url("/assets/corkboard.jpg") center/cover no-repeat;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);overflow:hidden;font-family:ui-monospace,monospace}.sc-cork-vignette{position:absolute;inset:0;background:radial-gradient(circle at center,transparent 20%,rgba(0,0,0,.8) 100%);pointer-events:none}.sc-cork-stage{position:relative;width:88cqw;height:72cqh}.sc-cork-card{position:absolute;background:#fff;padding:2.5cqw;border-radius:1.5cqw;box-shadow:0 3cqw 10cqw rgba(0,0,0,.85);z-index:2}.sc-c1{top:8cqh;left:4cqw;width:42cqw;transform:rotate(-6deg);animation:corkDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-c2{bottom:10cqh;right:4cqw;width:44cqw;transform:rotate(5deg);animation:corkDrop var(--D) cubic-bezier(.16,1,.3,1) infinite;animation-delay:.15s}.sc-cork-img{width:100%;height:22cqw;background:#18181b;border-radius:1cqw;overflow:hidden;display:grid;place-items:center}.sc-cork-img img{width:100%;height:100%;object-fit:cover}.sc-cork-cap{font-family:Georgia,serif;font-size:3.2cqw;font-weight:700;color:#18181b;margin-top:1cqh;text-align:center;word-break:break-word}.sc-cork-pin{position:absolute;width:4.8cqw;height:4.8cqw;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff6b6b,#dc2626);box-shadow:0 1.5cqw 3cqw rgba(0,0,0,.9);z-index:5}.sc-p1{top:6cqh;left:22cqw}.sc-p2{bottom:28cqh;right:24cqw}.sc-cork-svg{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}.sc-cork-line{stroke:#ef4444;stroke-width:3.5;stroke-linecap:round;filter:drop-shadow(0 2px 4px rgba(0,0,0,.8));stroke-dasharray:400;stroke-dashoffset:400;animation:yarnDraw var(--D) cubic-bezier(.16,1,.3,1) infinite}@keyframes corkDrop{0%,15%{transform:scale(.8) translateY(-4cqh);opacity:0}30%,85%{transform:scale(1) translateY(0);opacity:1}100%{transform:scale(1.04);opacity:0}}@keyframes yarnDraw{0%,20%{stroke-dashoffset:400}45%,85%{stroke-dashoffset:0}100%{stroke-dashoffset:400}}',
     html: function (o) {
       var card1 = getP(o, "card1", o.lines[0] || "Suspect Alpha");
-      var card2 = getP(o, "card2", o.lines[1] || "Shell Company");
-      return '<div class="sc-cork-wrap">'
+      var card1Icon = getP(o, "card1Icon", "📁");
+      var card2 = getP(o, "card2", o.lines[2] || "Shell Company");
+      var card2Icon = getP(o, "card2Icon", "🏢");
+      var stringColor = getP(o, "stringColor", "#ef4444");
+      var boardTheme = getP(o, "boardTheme", "#2a2521");
+      return '<div class="sc-cork-wrap" style="background-color:' + esc(boardTheme) + '">'
         + '<div class="sc-cork-vignette"></div>'
         + '<div class="sc-cork-stage">'
         + '<div class="sc-cork-pin sc-p1"></div>'
         + '<div class="sc-cork-pin sc-p2"></div>'
         + '<div class="sc-cork-card sc-c1">'
-        + '<div class="sc-cork-img"><img src="/assets/archival_suspect.jpg" alt="Suspect" /></div>'
+        + '<div class="sc-cork-img">' + renderAvatar(card1Icon, "📁") + '</div>'
         + '<div class="sc-cork-cap">' + esc(card1) + '</div>'
         + '</div>'
         + '<div class="sc-cork-card sc-c2">'
-        + '<div class="sc-cork-img" style="background:#27272a;color:#cbd5e1;font-size:8cqw;">🏢</div>'
+        + '<div class="sc-cork-img" style="background:#27272a;color:#cbd5e1;font-size:8cqw;">' + renderAvatar(card2Icon, "🏢") + '</div>'
         + '<div class="sc-cork-cap">' + esc(card2) + '</div>'
         + '</div>'
-        + '<svg class="sc-cork-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><line class="sc-cork-line" x1="28" y1="16" x2="72" y2="68"/></svg>'
+        + '<svg class="sc-cork-svg" viewBox="0 0 100 100" preserveAspectRatio="none"><line class="sc-cork-line" style="stroke:' + esc(stringColor) + '" x1="28" y1="16" x2="72" y2="68"/></svg>'
         + '</div>'
         + '</div>';
     },
@@ -956,9 +1005,10 @@ window.SC_TPL2 = (function () {
       var tag = getP(o, "tag", "// EXHIBIT A: FINANCIAL AUDIT");
       var highlight = getP(o, "highlight", o.lines[0] || "$42,000,000 offshore");
       var source = getP(o, "source", o.lines[1] || "Source: Internal Investigation Report");
+      var markerColor = getP(o, "markerColor", "#facc15");
       return '<div class="sc-hl-wrap">'
         + '<div class="sc-hl-tag">' + esc(tag) + '</div>'
-        + '<h2 class="sc-hl-body">The company secretly transferred <span class="sc-hl-mark">' + esc(highlight) + '</span> before the crash.</h2>'
+        + '<h2 class="sc-hl-body">The company secretly transferred <span class="sc-hl-mark" style="background-image:linear-gradient(to right,' + esc(markerColor) + ',' + esc(markerColor) + ')">' + esc(highlight) + '</span> before the crash.</h2>'
         + '<div class="sc-hl-source"><span>§</span> ' + esc(source) + '</div>'
         + '</div>';
     },
@@ -1044,10 +1094,11 @@ window.SC_TPL2 = (function () {
       var header = getP(o, "header", "DECLASSIFIED UNDER FOIA");
       var name1 = getP(o, "name1", o.lines[0] || "ROBERT VANCE");
       var name2 = getP(o, "name2", o.lines[1] || "KREMLIN OFFICIALS");
-      var ref = getP(o, "ref", o.lines[2] || "File Ref: CIA-2026-X");
+      var body = getP(o, "body", o.lines[3] || "in Vienna.");
+      var ref = getP(o, "ref", o.lines[4] || "File Ref: CIA-2026-X");
       return '<div class="sc-foia-wrap">'
         + '<div class="sc-foia-hdr"><span>' + esc(header) + '</span><span>TOP SECRET</span></div>'
-        + '<h2 class="sc-foia-body">Agent <span class="sc-foia-blackout">' + esc(name1) + '</span> met with <span class="sc-foia-blackout">' + esc(name2) + '</span> in Vienna.</h2>'
+        + '<h2 class="sc-foia-body">Agent <span class="sc-foia-blackout">' + esc(name1) + '</span> met with <span class="sc-foia-blackout">' + esc(name2) + '</span> ' + esc(body) + '</h2>'
         + '<div class="sc-foia-ref">' + esc(ref) + '</div>'
         + '</div>';
     },
@@ -1136,10 +1187,12 @@ window.SC_TPL2 = (function () {
     css: '.sc-pol-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1c1917 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-pol-card{position:relative;width:72cqw;background:#ffffff;padding:4cqw 4cqw 6cqw;border-radius:1.5cqw;box-shadow:0 4cqw 14cqw rgba(0,0,0,.9);transform:rotate(4deg);animation:polDrop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-pol-pin{position:absolute;top:-2.5cqw;left:50%;transform:translateX(-50%);width:5cqw;height:5cqw;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff6b6b,#dc2626);box-shadow:0 2cqw 4cqw rgba(0,0,0,.9);z-index:4}.sc-pol-imgbox{width:100%;height:52cqw;background:#18181b;border-radius:1cqw;overflow:hidden}.sc-pol-imgbox img{width:100%;height:100%;object-fit:cover}.sc-pol-caption{font-family:Georgia,serif;font-style:italic;font-size:4.2cqw;color:#18181b;margin-top:2cqh;text-align:center;font-weight:700}@keyframes polDrop{0%,10%{transform:translateY(-8cqh) rotate(10deg) scale(1.08);opacity:0}22%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}45%{transform:translateY(-.4cqh) rotate(4.9deg) scale(1.01);opacity:1}68%{transform:translateY(.25cqh) rotate(3.2deg) scale(.995);opacity:1}92%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}100%{transform:translateY(0) rotate(4deg) scale(1);opacity:1}}',
     html: function (o) {
       var caption = getP(o, "caption", o.lines[0] || "Zurich, May 1998");
+      var photo = getP(o, "photo", "📸");
+      var pinColor = getP(o, "pinColor", "#ef4444");
       return '<div class="sc-pol-wrap">'
         + '<div class="sc-pol-card">'
-        + '<div class="sc-pol-pin"></div>'
-        + '<div class="sc-pol-imgbox"><img src="/assets/archival_suspect.jpg" alt="Polaroid Still" /></div>'
+        + '<div class="sc-pol-pin" style="background:' + esc(pinColor) + '"></div>'
+        + '<div class="sc-pol-imgbox" style="display:grid;place-items:center;font-size:10cqw;color:#fff">' + renderAvatar(photo, "📸") + '</div>'
         + '<div class="sc-pol-caption">' + esc(caption) + '</div>'
         + '</div>'
         + '</div>';
@@ -1811,14 +1864,13 @@ window.SC_TPL2 = (function () {
     desc: "Aged textured manila card pinned by dual semi-transparent frosted scotch tape strips with animated neon marker sweep",
     css: '.sc-tape-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1b18 0%,#0c0a09 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-tape-card{position:relative;width:82cqw;background:#fff9e6;color:#1c1917;padding:8cqw 6cqw;border-radius:2px;box-shadow:0 3cqw 12cqw rgba(0,0,0,.8),0 .5cqw 2cqw rgba(0,0,0,.3);transform:rotate(-2.5deg);animation:tapeSettle var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-tape-strip{position:absolute;width:28%;height:5.5cqw;background:rgba(255,255,255,.55);backdrop-filter:blur(3px);box-shadow:0 1px 4px rgba(0,0,0,.25);border-left:1px dashed rgba(0,0,0,.15);border-right:1px dashed rgba(0,0,0,.15);z-index:4}.sc-ts-tl{top:-2.8cqw;left:8%;transform:rotate(-6deg)}.sc-ts-tr{top:-2.8cqw;right:8%;transform:rotate(5deg)}.sc-tape-tag{font-family:ui-monospace,monospace;font-size:2.8cqw;letter-spacing:.25em;color:#78716c;text-transform:uppercase;margin-bottom:1.5cqh}.sc-tape-title{font-size:7.2cqw;font-weight:900;color:#1c1917;line-height:1.2;margin:0 0 2cqh 0}.sc-tape-hl{position:relative;display:inline;background:linear-gradient(to right,#fde047,#facc15) no-repeat;background-size:0% 100%;padding:0 .2em;box-decoration-break:clone;-webkit-box-decoration-break:clone;animation:tapeHl var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-tape-desc{font-size:3.8cqw;color:#44403c;line-height:1.5;margin:0}@keyframes tapeSettle{0%,10%{transform:scale(.92) rotate(-5deg);opacity:0}22%,92%{transform:scale(1) rotate(-2.5deg);opacity:1}100%{transform:scale(1) rotate(-2.5deg);opacity:1}}@keyframes tapeHl{0%,18%{background-size:0% 100%}38%,90%{background-size:100% 100%}100%{background-size:100% 100%}}',
     html: function (o) {
-      var tag = getP(o, "tag", o.lines[0] || "KEY TAKEAWAY");
-      var title = getP(o, "title", o.lines[1] || "Attention is the new currency.");
-      var desc = getP(o, "desc", o.lines[2] || "Hook your audience in the first 3 seconds.");
+      var title = getP(o, "title", o.lines[0] || "FIRST 3 SECONDS");
+      var desc = getP(o, "subtitle", o.lines[1] || "Hook your viewer or lose the click");
       return '<div class="sc-tape-wrap">'
         + '<div class="sc-tape-card">'
         + '<div class="sc-tape-strip sc-ts-tl"></div>'
         + '<div class="sc-tape-strip sc-ts-tr"></div>'
-        + '<div class="sc-tape-tag">' + esc(tag) + '</div>'
+        + '<div class="sc-tape-tag">KEY TAKEAWAY</div>'
         + '<h2 class="sc-tape-title"><span class="sc-tape-hl">' + esc(title) + '</span></h2>'
         + '<p class="sc-tape-desc">' + esc(desc) + '</p>'
         + '</div>'
@@ -2139,12 +2191,14 @@ window.SC_TPL2 = (function () {
     desc: "Overlapping instant photos taped together with textured washi tape and handwritten production diary caption",
     css: '.sc-dpol-wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6cqw;background:radial-gradient(circle at center,#1e1e24 0%,#09090b 100%);overflow:hidden;box-shadow:inset 0 0 16cqw rgba(0,0,0,.95);font-family:Georgia,serif}.sc-dpol-stack{position:relative;width:82cqw;height:56cqw}.sc-dp1{position:absolute;left:0;top:0;width:48cqw;background:#ffffff;padding:2.5cqw 2.5cqw 5cqw;transform:rotate(-8deg);box-shadow:0 3cqw 10cqw rgba(0,0,0,.8);border-radius:1cqw;animation:polDrop1 var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-dp2{position:absolute;right:0;bottom:0;width:48cqw;background:#ffffff;padding:2.5cqw 2.5cqw 5cqw;transform:rotate(7deg);box-shadow:0 3cqw 10cqw rgba(0,0,0,.8);border-radius:1cqw;animation:polDrop2 var(--D) cubic-bezier(.16,1,.3,1) infinite;animation-delay:.1s}.sc-dp-img{width:100%;height:30cqw;border-radius:1cqw;overflow:hidden;background:#18181b}.sc-dp-img img{width:100%;height:100%;object-fit:cover}.sc-dp-washi{position:absolute;top:-2.5cqw;left:34%;width:34%;height:5cqw;background:rgba(234,179,8,.75);backdrop-filter:blur(2px);box-shadow:0 1px 4px rgba(0,0,0,.3);transform:rotate(10deg);z-index:4}.sc-dpol-cap{font-size:5.8cqw;font-weight:900;color:#ffffff;margin-top:4cqh;text-align:center;letter-spacing:.05em}@keyframes polDrop1{0%,10%{transform:scale(.85) rotate(-14deg);opacity:0}22%{transform:scale(1) rotate(-8deg);opacity:1}45%{transform:scale(1.015) rotate(-6.8deg);opacity:1}68%{transform:scale(.995) rotate(-9deg);opacity:1}92%{transform:scale(1) rotate(-8deg);opacity:1}100%{transform:scale(1) rotate(-8deg);opacity:1}}@keyframes polDrop2{0%,10%{transform:scale(.85) rotate(14deg);opacity:0}22%{transform:scale(1) rotate(7deg);opacity:1}45%{transform:scale(1.015) rotate(5.9deg);opacity:1}68%{transform:scale(.995) rotate(8.1deg);opacity:1}92%{transform:scale(1) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(7deg);opacity:1}}',
     html: function (o) {
-      var caption = getP(o, "caption", o.lines[0] || "Production Diary");
+      var card1Title = getP(o, "card1Title", o.lines[0] || "Before (Zero views)");
+      var card2Title = getP(o, "card2Title", o.lines[1] || "After (100k views/day)");
+      var caption = getP(o, "badge", o.lines[2] || "10X CHANNEL GROWTH");
       return '<div class="sc-dpol-wrap">'
         + '<div class="sc-dpol-stack">'
         + '<div class="sc-dp-washi"></div>'
-        + '<div class="sc-dp1"><div class="sc-dp-img"><img src="/assets/archival_suspect.jpg" alt="Shot 1" /></div></div>'
-        + '<div class="sc-dp2"><div class="sc-dp-img"><img src="/assets/statue_bust.jpg" alt="Shot 2" /></div></div>'
+        + '<div class="sc-dp1"><div class="sc-dp-img"><img src="/assets/archival_suspect.jpg" alt="Shot 1" /></div><div style="margin-top:1cqh;text-align:center;color:#18181b;font-size:2.8cqw;font-weight:800">' + esc(card1Title) + '</div></div>'
+        + '<div class="sc-dp2"><div class="sc-dp-img"><img src="/assets/statue_bust.jpg" alt="Shot 2" /></div><div style="margin-top:1cqh;text-align:center;color:#18181b;font-size:2.8cqw;font-weight:800">' + esc(card2Title) + '</div></div>'
         + '</div>'
         + '<div class="sc-dpol-cap">' + esc(caption) + '</div>'
         + '</div>';
@@ -2254,9 +2308,9 @@ window.SC_TPL2 = (function () {
       + '.tx-cas-l2{font-size:12.5cqw;font-weight:950;letter-spacing:-.04em;line-height:1;color:var(--ac);text-transform:uppercase;margin:0 0 2cqh;text-shadow:0 0 40px var(--ac);animation:swPop var(--D) var(--ov) infinite alternate}'
       + '.tx-cas-l3{font-size:4.5cqw;font-weight:600;color:#E2E8F0;letter-spacing:.05em;text-transform:uppercase;animation:swFadeUp var(--D) var(--sp) infinite alternate}',
     html: function (o) {
-      var l1 = getP(o, "line0", o.lines[0] || "HOW TO DOUBLE");
-      var l2 = getP(o, "line1", o.lines[1] || "YOUR VIEWS");
-      var l3 = getP(o, "line2", o.lines[2] || "WITH MOTION GRAPHICS");
+      var l1 = getP(o, "line1", o.lines[0] || "FIRST 3 SECONDS");
+      var l2 = getP(o, "line2", o.lines[1] || "DON'T SCROLL AWAY");
+      var l3 = getP(o, "line3", o.lines[2] || "shortscraft.online");
       return '<div class="tx-cas-wrap">'
         + '<div class="tx-cas-glow"></div>'
         + '<div class="tx-cas-l1">' + esc(l1) + '</div>'
@@ -2272,7 +2326,10 @@ window.SC_TPL2 = (function () {
     desc: "TikTok / Reels magnetic black pill badge with synchronized word highlight",
     css: '.tx-pill{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8cqw}.tx-pill .badge{background:rgba(0,0,0,.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);padding:3cqw 6cqw;border-radius:99px;font-size:5.4cqw;font-weight:800;color:#fff;box-shadow:0 2cqw 6cqw rgba(0,0,0,.6);opacity:0;transform:scale(.85);animation:pillPop var(--D) var(--sp) infinite}.tx-pill .active{color:var(--ac);text-shadow:0 0 1.5cqw var(--ac);display:inline-block;animation:activeGlow calc(var(--D) / 3) ease-in-out infinite alternate}@keyframes pillPop{0%,8%{transform:scale(.85);opacity:0}24%,100%{transform:scale(1);opacity:1}}@keyframes activeGlow{0%{text-shadow:0 0 1cqw var(--ac);transform:scale(1)}100%{text-shadow:0 0 3cqw var(--ac);transform:scale(1.06)}}',
     html: function (o) {
-      return '<div class="tx-pill"><div class="badge">Create <span class="active">' + esc(o.lines[0] || "insane videos") + '</span> in seconds</div></div>';
+      var line1 = getP(o, "line1", o.lines[0] || "THIS ONE HABIT");
+      var line2 = getP(o, "line2", o.lines[1] || "CHANGES EVERYTHING");
+      var punchColor = getP(o, "punchColor", "#fbbf24");
+      return '<div class="tx-pill"><div class="badge">' + esc(line1) + ' <span class="active" style="--ac:' + esc(punchColor) + '">' + esc(line2) + '</span></div></div>';
     }
   };
 
@@ -2283,9 +2340,10 @@ window.SC_TPL2 = (function () {
     desc: "MacOS terminal window with typing command effect using spring scale and glowing output",
     css: '.sc-term-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6cqw;background:#0a0d14;font-family:ui-monospace,monospace;overflow:hidden}.sc-term-win{width:92%;max-width:720px;background:#111827;border-radius:3cqw;border:1px solid rgba(255,255,255,.12);box-shadow:0 3cqw 8cqw rgba(0,0,0,.8),0 0 5cqw rgba(56,189,248,.15);overflow:hidden;animation:termPop var(--D) cubic-bezier(.16,1,.3,1) infinite}.sc-term-head{height:5.5cqh;background:#1e293b;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 3cqw;gap:1.5cqw;position:relative}.sc-dot{width:2.2cqw;height:2.2cqw;border-radius:50%}.sc-d-r{background:#ef4444}.sc-d-y{background:#f59e0b}.sc-d-g{background:#22c55e}.sc-term-title{position:absolute;inset:0;display:grid;place-items:center;font-size:2.8cqw;color:rgba(255,255,255,.5);letter-spacing:.05em}.sc-term-body{padding:4cqw;font-size:3.6cqw;line-height:1.6;color:#f8fafc}.sc-term-prompt{display:flex;align-items:center;gap:1.5cqw;flex-wrap:wrap}.sc-term-cur{display:inline-block;width:1.8cqw;height:3.6cqw;background:#38bdf8;animation:ttBlink .8s infinite}.sc-term-out{margin-top:2cqh;padding:2cqw 3cqw;background:rgba(34,197,94,.1);border-left:3px solid #22c55e;border-radius:1cqw;color:#4ade80;font-weight:700;animation:outFade var(--D) infinite}@keyframes termPop{0%,15%{transform:scale(.7);opacity:0}25%,85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}@keyframes ttBlink{0%,49%{opacity:1}50%,100%{opacity:0}}@keyframes outFade{0%,45%{opacity:0;transform:translateY(1cqh)}55%,85%{opacity:1;transform:translateY(0)}100%{opacity:0}}',
     html: function (o) {
-      var title = getP(o, "title", "zsh — 80x24");
-      var cmd = getP(o, "cmd", o.lines[0] || "npm install @shortscraft/motion");
-      var output = getP(o, "output", o.lines[1] || "✔ 80+ Motion Graphic Templates Loaded");
+      var cmd = getP(o, "prompt", o.lines[0] || "root@shortscraft:~$ start_render");
+      var output = getP(o, "line1", o.lines[1] || "> Analyzing video retention hooks...");
+      var output2 = getP(o, "line2", o.lines[2] || "> Boosting engagement by 340%...");
+      var title = getP(o, "status", o.lines[3] || "[RENDER COMPLETE]");
       return '<div class="sc-term-wrap">'
         + '<div class="sc-term-win">'
         + '<div class="sc-term-head">'
@@ -2294,7 +2352,7 @@ window.SC_TPL2 = (function () {
         + '</div>'
         + '<div class="sc-term-body">'
         + '<div class="sc-term-prompt"><span style="color:#22c55e;font-weight:bold">➜</span> <span style="color:#38bdf8">~</span> <span>' + esc(cmd) + '</span><span class="sc-term-cur"></span></div>'
-        + '<div class="sc-term-out">' + esc(output) + '</div>'
+        + '<div class="sc-term-out">' + esc(output) + '<br>' + esc(output2) + '</div>'
         + '</div>'
         + '</div>'
         + '</div>';
@@ -2395,11 +2453,11 @@ window.SC_TPL2 = (function () {
     desc: "Organic floating black and white sticker pills scattered and bouncing with physical collisions",
     css: '.sc-pills-wrap{position:absolute;inset:0;background:#000000;overflow:hidden;font-family:Impact,system-ui,sans-serif}.sc-pill-item{position:absolute;border:2px solid #ffffff;border-radius:999px;padding:2cqw 6cqw;color:#ffffff;font-size:5.6cqw;font-weight:900;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;box-shadow:0 2cqw 8cqw rgba(0,0,0,.9);animation:pillFloat var(--D) ease-in-out infinite alternate}.sc-p1{top:18cqh;left:8cqw;transform:rotate(-12deg);animation-delay:0s}.sc-p2{top:32cqh;right:10cqw;transform:rotate(15deg);animation-delay:.3s}.sc-p3{top:48cqh;left:14cqw;transform:rotate(-6deg);background:#ffffff;color:#000000;animation-delay:.6s}.sc-p4{top:62cqh;right:8cqw;transform:rotate(10deg);animation-delay:.9s}.sc-p5{top:76cqh;left:20cqw;transform:rotate(-18deg);animation-delay:1.2s}@keyframes pillFloat{0%{transform:translateY(0) rotate(var(--rot,-10deg)) scale(1)}50%{transform:translateY(-2cqh) rotate(var(--rot,10deg)) scale(1.04)}100%{transform:translateY(1.5cqh) rotate(var(--rot,-5deg)) scale(0.98)}}',
     html: function (o) {
-      var p1 = getP(o, "pill1", o.lines[0] || "DIFFERENT");
-      var p2 = getP(o, "pill2", "THINGS");
-      var p3 = getP(o, "pill3", o.lines[1] || "SWISHY");
-      var p4 = getP(o, "pill4", "CREATIVE");
-      var p5 = getP(o, "pill5", "MOTION");
+      var p1 = getP(o, "title", o.lines[0] || "SYSTEM BREACH");
+      var p2 = getP(o, "sub", o.lines[1] || "UNAUTHORIZED ACCESS DETECTED");
+      var p3 = getP(o, "code", o.lines[2] || "ERROR 0x4F92B");
+      var p4 = "WARNING";
+      var p5 = "RETRY";
       return '<div class="sc-pills-wrap">'
         + '<div class="sc-pill-item sc-p1">' + esc(p1) + '</div>'
         + '<div class="sc-pill-item sc-p2">' + esc(p2) + '</div>'
@@ -2533,6 +2591,9 @@ window.SC_TPL2 = (function () {
     desc: "Archival evidence map on corkboard with red pushpin drop and case coordinates",
     css: '.mp-pin{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 6cqw;background:#1c1917;color:#fff;overflow:hidden}.mp-pin .cork-bg{position:absolute;inset:0;opacity:.18;background:radial-gradient(circle,#78350f 10%,#1c1917 90%)}.mp-pin .doc-tag{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;background:#292524;border:1px solid #44403c;border-radius:2cqw;padding:2cqw 4cqw;font-family:monospace;font-size:2.8cqw;color:#fca5a5}.mp-pin .stage{position:relative;flex:1;display:grid;place-items:center;z-index:2}.mp-pin .parchment{position:relative;width:86%;height:38cqh;background:#e7e2d4;border:1px solid #d6cebe;border-radius:2cqw;box-shadow:0 3cqw 8cqw rgba(0,0,0,.7);display:grid;place-items:center;overflow:hidden;transform:rotate(-1.5deg)}.mp-pin svg.c-map{position:absolute;inset:0;width:100%;height:100%}.mp-pin .pulse-ring{position:absolute;width:32cqw;height:32cqw;border-radius:50%;border:2px solid var(--ac);animation:mpPulse 2s cubic-bezier(0,0,.2,1) infinite}.mp-pin .pin-svg{width:14cqw;height:22cqw;position:relative;z-index:4;filter:drop-shadow(0 3cqw 4cqw rgba(0,0,0,.8));animation:mpPinDrop var(--D) var(--ov) infinite}.mp-pin .card{position:relative;z-index:3;background:#fafaf9;color:#1c1917;border-radius:2.5cqw;padding:4cqw;text-align:center;box-shadow:0 3cqw 8cqw rgba(0,0,0,.8);border-left:4px solid var(--ac)}.mp-pin h2{font-family:Georgia,serif;font-size:7.2cqw;font-weight:900;margin:0;color:#1c1917}.mp-pin .meta{font-size:3.2cqw;color:#78716c;margin-top:.8cqh;font-family:monospace}@keyframes mpPinDrop{0%,15%{transform:translateY(-20cqh) scale(1.6);opacity:0}28%{transform:translateY(0) scale(0.92);opacity:1}34%,85%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(8cqh);opacity:0}}@keyframes mpPulse{0%{transform:scale(0.1);opacity:1}100%{transform:scale(1.5);opacity:0}}',
     html: function (o) {
+      var locationName = getP(o, "locName", o.lines[0] || "Zurich Safe House");
+      var coords = getP(o, "coords", o.lines[1] || "47.3769° N, 8.5417° E");
+      var pinEmoji = getP(o, "pinEmoji", "📍");
       return '<div class="mp-pin">'
         + '<div class="cork-bg"></div>'
         + '<div class="doc-tag"><span>EXHIBIT #4 // CRIME SCENE</span><span>CONFIDENTIAL</span></div>'
@@ -2549,11 +2610,12 @@ window.SC_TPL2 = (function () {
         + '<path d="M20,0 C8.95,0 0,8.95 0,20 C0,34 20,60 20,60 C20,60 40,34 40,20 C40,8.95 31.05,0 20,0 Z" fill="url(#pG2)"/>'
         + '<circle cx="20" cy="20" r="7" fill="#fff"/>'
         + '</svg>'
+        + '<div style="position:absolute;z-index:5;font-size:5cqw">' + renderAvatar(pinEmoji, "📍") + '</div>'
         + '</div>'
         + '</div>'
         + '<div class="card">'
-        + '<h2>' + esc(o.lines[0] || "Target Location Found") + '</h2>'
-        + '<div class="meta">' + esc(o.lines[1] || "Lat 47.3769° N, Lon 8.5417° E") + '</div>'
+        + '<h2>' + esc(locationName) + '</h2>'
+        + '<div class="meta">' + esc(coords) + '</div>'
         + '</div>'
         + '</div>';
     }
@@ -2592,8 +2654,9 @@ window.SC_TPL2 = (function () {
       + '@keyframes billSlam{0%,10%{transform:translateY(-8cqh) scale(.8);opacity:0}22%,88%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(0);opacity:0}}'
       + '@keyframes cashTotalPop{0%,18%{transform:scale(.85);opacity:0}28%,88%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}',
     html: function (o) {
-      var total = getP(o, "total", o.lines[0] || "$50,000");
-      var sub = getP(o, "sub", o.lines[1] || "Monthly Revenue");
+      var total = getP(o, "amount", o.lines[0] || "$100,000");
+      var tag = getP(o, "tag", o.lines[1] || "MONTHLY REVENUE");
+      var sub = getP(o, "sub", o.lines[2] || "+240% MRR Surge");
       return '<div class="sc-cash-wrap">'
         + '<div class="sc-cash-stage">'
         + '<div class="sc-cash-bill sc-cash-b1"><div class="sc-cash-circle">$</div><div class="sc-cash-val">100</div></div>'
@@ -2601,7 +2664,7 @@ window.SC_TPL2 = (function () {
         + '<div class="sc-cash-bill sc-cash-b3"><div class="sc-cash-circle">$</div><div class="sc-cash-val">100</div></div>'
         + '</div>'
         + '<div class="sc-cash-info">'
-        + '<div class="sc-cash-total">' + esc(total) + '</div>'
+        + '<div style="font-size:2.8cqw;letter-spacing:.2em;color:#86efac;margin-bottom:1cqh">' + esc(tag) + '</div><div class="sc-cash-total">' + esc(total) + '</div>'
         + '<div class="sc-cash-sub">' + esc(sub) + '</div>'
         + '</div>'
         + '</div>';
@@ -2623,14 +2686,15 @@ window.SC_TPL2 = (function () {
       + '@keyframes goldFloat{0%{transform:rotateX(10deg) translateY(0)}100%{transform:rotateX(-6deg) translateY(-1.5cqh)}}'
       + '@keyframes goldTextPop{0%,18%{transform:scale(.9);opacity:0}28%,85%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}',
     html: function (o) {
-      var title = getP(o, "title", o.lines[0] || "1,000 OUNCES");
-      var sub = getP(o, "sub", o.lines[1] || "Federal Reserve Bullion Asset");
+      var title = getP(o, "title", o.lines[0] || "GOLD RESERVES");
+      var value = getP(o, "value", o.lines[1] || "$4,250,000,000");
+      var sub = getP(o, "purity", o.lines[2] || "99.99% FINE GOLD");
       return '<div class="sc-gold-wrap">'
         + '<div class="sc-gold-stage">'
         + '<img src="/assets/gold_bullion_3d.png" class="sc-gold-3d-img" alt="3D Gold Bullion" />'
         + '</div>'
         + '<div class="sc-gold-info">'
-        + '<div class="sc-gold-title">' + esc(title) + '</div>'
+        + '<div style="font-size:2.8cqw;letter-spacing:.2em;color:#fde047;margin-bottom:1cqh">' + esc(title) + '</div><div class="sc-gold-title">' + esc(value) + '</div>'
         + '<div class="sc-gold-sub">' + esc(sub) + '</div>'
         + '</div>'
         + '</div>';
@@ -2654,13 +2718,15 @@ window.SC_TPL2 = (function () {
       + '@keyframes newPricePop{0%,22%{transform:scale(1.4);opacity:0}32%,85%{transform:scale(1);opacity:1}100%{opacity:0}}'
       + '@keyframes badgePop{0%,28%{transform:scale(0);opacity:0}38%,85%{transform:scale(1);opacity:1}100%{opacity:0}}',
     html: function (o) {
-      var oldPrice = getP(o, "oldPrice", o.lines[0] || "$99/mo");
-      var newPrice = getP(o, "newPrice", o.lines[1] || "$9/mo");
-      var badge = getP(o, "badge", o.lines[2] || "90% OFF LAUNCH SALE");
+      var badge = getP(o, "discount", o.lines[0] || "50% OFF");
+      var oldPrice = getP(o, "oldPrice", o.lines[1] || "$199");
+      var newPrice = getP(o, "newPrice", o.lines[2] || "$99");
+      var tag = getP(o, "tag", o.lines[3] || "LIFETIME ACCESS · LIMITED TIME");
       return '<div class="sc-slash-wrap">'
         + '<div class="sc-slash-old">' + esc(oldPrice) + '</div>'
         + '<div class="sc-slash-new">' + esc(newPrice) + '</div>'
         + '<div class="sc-slash-badge">' + esc(badge) + '</div>'
+        + '<div style="margin-top:1.5cqh;font-size:2.6cqw;letter-spacing:.14em;color:#fca5a5">' + esc(tag) + '</div>'
         + '</div>';
     }
   };
@@ -2772,12 +2838,14 @@ window.SC_TPL2 = (function () {
     html: function (o) {
       var title = getP(o, "title", o.lines[0] || "VIRAL MODE");
       var sub = getP(o, "sub", o.lines[1] || "High-retention animations");
+      var status = getP(o, "status", o.lines[2] || "ENABLED");
       return '<div class="sw-tog-wrap">'
         + '<div class="sw-tog-glow"></div>'
         + '<div class="sw-tog-card">'
         + '<div class="sw-tog-info">'
         + '<div class="sw-tog-title">' + esc(title) + '</div>'
         + '<div class="sw-tog-sub">' + esc(sub) + '</div>'
+        + '<div style="margin-top:.7cqh;font:800 2.5cqw ui-monospace;color:var(--ac)">' + esc(status) + '</div>'
         + '</div>'
         + '<div class="sw-tog-track"><div class="sw-tog-knob"></div></div>'
         + '</div></div>';
@@ -3613,15 +3681,26 @@ window.SC_TPL2 = (function () {
       + '.sc-vs-fill{height:100%;border-radius:999px;box-shadow:0 0 16px currentColor}'
       + '@keyframes vsBarPop{0%,12%{transform:scale(.92);opacity:0}24%{transform:scale(1);opacity:1}50%{transform:scale(1.015) translateY(-.4cqh);opacity:1}72%{transform:scale(.996) translateY(.25cqh);opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(1.04);opacity:0}}',
     html: function (o) {
+      var title = getP(o, "title", o.lines[0] || "Shorts vs Long Form");
+      var item1Name = getP(o, "item1Name", o.lines[1] || "Motion Graphic Shorts");
+      var item1Val = getP(o, "item1Val", o.lines[2] || "86%");
+      var item1Color = getP(o, "item1Color", "#38bdf8");
+      var item2Name = getP(o, "item2Name", o.lines[4] || "Static Talking Head");
+      var item2Val = getP(o, "item2Val", o.lines[5] || "14%");
+      var item2Color = getP(o, "item2Color", "#ec4899");
+      function barWidth(value) {
+        var found = String(value).match(/-?\d+(?:\.\d+)?/);
+        return Math.max(0, Math.min(100, found ? Number(found[0]) : 0));
+      }
       return '<div class="sc-vs-wrap">'
-        + '<h3 class="sc-vs-title">' + esc(o.lines[0] || "Shorts vs Long Form") + '</h3>'
+        + '<h3 class="sc-vs-title">' + esc(title) + '</h3>'
         + '<div class="sc-vs-barbox">'
-        + '<div class="sc-vs-label"><span>Motion Graphic Shorts</span><b style="color:#38bdf8">86%</b></div>'
-        + '<div class="sc-vs-track"><div class="sc-vs-fill" style="width:86%;background:#38bdf8;color:#38bdf8"></div></div>'
+        + '<div class="sc-vs-label"><span>' + esc(item1Name) + '</span><b style="color:' + esc(item1Color) + '">' + esc(item1Val) + '</b></div>'
+        + '<div class="sc-vs-track"><div class="sc-vs-fill" style="width:' + barWidth(item1Val) + '%;background:' + esc(item1Color) + ';color:' + esc(item1Color) + '"></div></div>'
         + '</div>'
         + '<div class="sc-vs-barbox">'
-        + '<div class="sc-vs-label"><span>Static Talking Head</span><b style="color:#ec4899">14%</b></div>'
-        + '<div class="sc-vs-track"><div class="sc-vs-fill" style="width:14%;background:#ec4899;color:#ec4899"></div></div>'
+        + '<div class="sc-vs-label"><span>' + esc(item2Name) + '</span><b style="color:' + esc(item2Color) + '">' + esc(item2Val) + '</b></div>'
+        + '<div class="sc-vs-track"><div class="sc-vs-fill" style="width:' + barWidth(item2Val) + '%;background:' + esc(item2Color) + ';color:' + esc(item2Color) + '"></div></div>'
         + '</div>'
         + '</div>';
     }
@@ -3701,7 +3780,9 @@ window.SC_TPL2 = (function () {
       + '@container (max-aspect-ratio:1/1){.oapp .sc-safe{flex-direction:column;justify-content:center;gap:5cqh}.oapp-copy{max-width:90cqw;text-align:center;align-items:center}.oapp-window{width:88cqw;flex:0 0 auto}.oapp-copy .sc-hero{font-size:8cqw}}',
     html: function (o) {
       var image = getP(o, "screenshot", "");
-      var visual = image && String(image).indexOf("data:image/") === 0
+      var imageValue = String(image || "");
+      var isSafeImage = imageValue.indexOf("data:image/") === 0 || imageValue.indexOf("http://") === 0 || imageValue.indexOf("https://") === 0;
+      var visual = image && isSafeImage
         ? '<img src="' + esc(image) + '" alt="Product screenshot">'
         : '<div class="oapp-placeholder"><b>✦</b><span class="sc-label">Drop your product screenshot</span></div>';
       return '<div class="oapp"><div class="sc-fx-mesh"></div><div class="sc-fx-noise"></div><div class="sc-safe sc-row">'
@@ -6014,6 +6095,26 @@ window.SC_TPL2 = (function () {
     schema.version = Number(schema.version) || 1;
     schema.fields = Array.isArray(schema.fields) ? schema.fields : [];
     schema.defaults = schema.defaults && typeof schema.defaults === "object" ? schema.defaults : {};
+    /* Useful controls shared by every shipped composition. These are appended
+       at runtime so a new template automatically receives the same layout and
+       palette freedom without duplicating schema boilerplate 59 times. */
+    var template = T[id] || { dark: true };
+    var shared = [
+      { key: "customBackground", label: "Use custom background", type: "toggle", default: false, group: "Style & layout" },
+      { key: "backgroundColor", label: "Background colour", type: "color", default: template.dark ? "#08080d" : "#f5f5f7", group: "Style & layout" },
+      { key: "customTextColor", label: "Use custom text colour", type: "toggle", default: false, group: "Style & layout" },
+      { key: "textColor", label: "Text colour", type: "color", default: template.dark ? "#ffffff" : "#101014", group: "Style & layout" },
+      { key: "contentScale", label: "Content scale (%)", type: "number", default: 100, min: 70, max: 130, step: 1, group: "Style & layout" },
+      { key: "offsetX", label: "Horizontal position (%)", type: "number", default: 0, min: -25, max: 25, step: 1, group: "Style & layout" },
+      { key: "offsetY", label: "Vertical position (%)", type: "number", default: 0, min: -25, max: 25, step: 1, group: "Style & layout" },
+      { key: "visualIntensity", label: "Colour intensity (%)", type: "number", default: 100, min: 0, max: 200, step: 5, group: "Style & layout" }
+    ];
+    var existing = {};
+    schema.fields.forEach(function (field) { existing[field.key] = true; });
+    shared.forEach(function (field) {
+      if (!existing[field.key]) schema.fields.push(field);
+      if (schema.defaults[field.key] == null) schema.defaults[field.key] = field.default;
+    });
     return schema;
   }
 
@@ -6102,6 +6203,7 @@ window.SC_TPL2 = (function () {
   /* ── Public API ───────────────────────────────────────── */
   function list(includeBlank) {
     return Object.keys(T).filter(function (id) {
+      if (RETIRED_TEMPLATE_IDS[id]) return false;
       return includeBlank ? true : id !== "blank";
     }).map(function (id) {
       var s = schemaFor(id);
@@ -6128,6 +6230,7 @@ window.SC_TPL2 = (function () {
   }
 
   function build(id, opts) {
+    if (RETIRED_TEMPLATE_IDS[id]) return "";
     var t = T[id];
     if (!t) return "";
 
@@ -6159,16 +6262,24 @@ window.SC_TPL2 = (function () {
     var given = o.lines || [];
     var demo = DEMO[id] || [];
     var lines = [];
-    for (var i = 0; i < 3; i++) {
-      // Precedence: explicit lines → edited props → demo copy.
-      // The props step is what makes the editor's content fields work: they
-      // write props.line0/1/2, while most templates read o.lines[i]. Without
-      // this bridge, typing in the editor changed nothing on screen.
-      var v = given[i];
-      var fromProps = p["line" + i];
-      if (v != null && String(v).trim() !== "") lines.push(String(v));
-      else if (fromProps != null && String(fromProps).trim() !== "") lines.push(String(fromProps));
-      else lines.push(demo[i] || "");
+    var explicitProps = o.props && typeof o.props === "object" ? o.props : {};
+    var lineCount = Math.max(3, s.fields.length, given.length, demo.length);
+    for (var i = 0; i < lineCount; i++) {
+      /* Classic renderers read positional `o.lines`, while the modern editor
+         writes named schema properties. Earlier this bridge only understood
+         line0/line1/line2, so a schema could advertise useful controls such as
+         `title`, `item1` or `status` that never reached the animation. Map each
+         schema field back to its positional slot; an explicitly edited named
+         property wins over the clip's stale demo lines. */
+      var field = s.fields[i];
+      var propKey = field && field.key ? field.key : ("line" + i);
+      var hasExplicitProp = Object.prototype.hasOwnProperty.call(explicitProps, propKey);
+      var fromProps = p[propKey];
+      var v = hasExplicitProp ? fromProps : given[i];
+      if (v == null || String(v).trim() === "") v = fromProps;
+      if (v == null || String(v).trim() === "") v = p["line" + i];
+      if (v == null || String(v).trim() === "") v = demo[i] || "";
+      lines.push(String(v));
     }
 
     var res = {
@@ -6181,12 +6292,22 @@ window.SC_TPL2 = (function () {
       font: o.font || "inter"
     };
 
+    var stageClasses = ["sc-user-stage"];
+    if (p.customBackground) stageClasses.push("sc-user-bg");
+    if (p.customTextColor) stageClasses.push("sc-user-text");
+    var stageStyle = "--sc-user-background:" + p.backgroundColor
+      + ";--sc-user-color:" + p.textColor
+      + ";--sc-user-scale:" + p.contentScale
+      + ";--sc-user-x:" + p.offsetX
+      + ";--sc-user-y:" + p.offsetY
+      + ";--sc-user-intensity:" + p.visualIntensity;
+
     return '<!doctype html><html lang="en"><head><meta charset="utf-8">'
       + '<meta name="viewport" content="width=device-width,initial-scale=1">'
       + '<title>' + esc(t.name) + '</title><style>'
       + base(t, res) + t.css
       + '</style></head><body><div class="vp">'
-      + '<div class="cv">' + t.html(res) + '</div>'
+      + '<div class="cv"><div class="' + stageClasses.join(" ") + '" style="' + stageStyle + '">' + t.html(res) + '</div></div>'
       + wmHtml(o)
       + '</div></body></html>';
   }
@@ -6241,7 +6362,7 @@ window.SC_TPL2 = (function () {
   }
 
   function getReactCode(id) {
-    var t = T[id] || T["blank"];
+    var t = (!RETIRED_TEMPLATE_IDS[id] && T[id]) || T["blank"];
     if (t.reactCode) return t.reactCode;
     return 'function Scene(props) {\n'
       + '  const frame = useCurrentFrame();\n'

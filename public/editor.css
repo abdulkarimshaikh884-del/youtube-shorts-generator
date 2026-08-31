@@ -34,6 +34,13 @@ body.ed-body a{color:inherit;text-decoration:none}
 body.ed-body button{font-family:inherit}
 body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px solid #fff;outline-offset:2px;border-radius:6px}
 .ed-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0)}
+.ed-skip{
+  position:fixed;left:12px;top:-64px;z-index:1200;
+  padding:11px 16px;border-radius:0 0 10px 10px;
+  background:#fff;color:#000;font-size:14px;font-weight:750;
+  box-shadow:0 8px 24px rgba(0,0,0,.55);transition:top .16s ease;
+}
+.ed-skip:focus{top:0}
 
 /* ── App frame ─────────────────────────────────────────── */
 .ed-app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
@@ -114,6 +121,9 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 }
 .ed-export:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,255,255,.34)}
 .ed-export svg{width:15px;height:15px;fill:currentColor}
+
+/* Only phones use this focused workspace switcher. */
+.ed-mobile-nav{display:none}
 
 /* ── Publish Modal ─────────────────────────────────────── */
 .ed-modal-backdrop{
@@ -480,18 +490,26 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 }
 .ed-f{display:flex;flex-direction:column;gap:5px}
 .ed-f > label{font-size:12px;color:var(--ink3)}
-.ed-f input[type="text"],.ed-f select{
+.ed-f input[type="text"],.ed-f input[type="number"],.ed-f textarea,.ed-f select{
   width:100%;height:38px;padding:0 11px;
   background:var(--bg2);border:1px solid var(--line);border-radius:9px;
   color:#fff;font-family:var(--font);font-size:13.5px;outline:none;
 }
-.ed-f input[type="text"]:focus,.ed-f select:focus{border-color:var(--line2)}
+.ed-f textarea{height:auto;min-height:76px;padding-top:9px;padding-bottom:9px;resize:vertical;line-height:1.4}
+.ed-f input[type="text"]:focus,.ed-f input[type="number"]:focus,.ed-f textarea:focus,.ed-f select:focus{border-color:var(--line2)}
 .ed-f select{
   appearance:none;-webkit-appearance:none;cursor:pointer;
   background:var(--bg2)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b4b4b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
     no-repeat right 9px center/13px 13px;
 }
+.ed-schema-group{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018);overflow:hidden}
+.ed-schema-group > summary{min-height:44px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;list-style:none;color:var(--ink2);font-size:12px;font-weight:700;touch-action:manipulation}
+.ed-schema-group > summary::-webkit-details-marker{display:none}
+.ed-schema-group > summary::after{content:"+";font-size:17px;color:var(--ink4);order:3}
+.ed-schema-group[open] > summary::after{content:"−"}
+.ed-schema-group > summary small{margin-left:auto;color:var(--ink4);font-size:10.5px;font-weight:600}
+.ed-schema-fields{padding:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
 .ed-inline{display:flex;gap:8px;align-items:center}
 .ed-inline input[type="color"]{
   width:42px;height:38px;flex:none;padding:2px;
@@ -569,33 +587,95 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
      below the stage can be reached. */
   html.ed-html,html.ed-html body{height:auto;min-height:100%;overflow:visible}
   .ed-app{height:auto;min-height:100dvh;overflow:visible}
-  .ed-main{grid-template-columns:1fr}
+  .ed-top{height:64px}
+  .ed-main{display:block}
+  .ed-main[data-mobile-panel] > .ed-col{display:none}
+  .ed-main[data-mobile-panel="ai"] > .ed-left,
+  .ed-main[data-mobile-panel="canvas"] > .ed-center,
+  .ed-main[data-mobile-panel="edit"] > .ed-right{display:flex}
   .ed-right{border-left:0;border-top:1px solid var(--line)}
   .ed-col,.ed-scroll{overflow:visible}
+  .ed-main[data-mobile-panel="ai"] > .ed-left{
+    height:max(520px,calc(100dvh - 116px));min-height:0;
+    overflow:hidden;border-right:0;background:var(--bg1);
+  }
+  .ed-main[data-mobile-panel="ai"] .ed-ai-scroll{overflow-y:auto;overscroll-behavior:contain}
   .ed-stagewrap{padding:14px}
   .ed-frame{height:auto;width:min(320px,84vw)}
   .ed-name{min-width:0;flex:1 1 auto}
   /* Export must stay reachable while the page scrolls */
-  .ed-top{position:sticky;top:0;z-index:20}
+  .ed-top{position:sticky;top:0;z-index:30}
   /* 5 device toggles + name + Export do not fit in 390px; the aspect ratio
      select in Properties covers the same control */
   .ed-devices{display:none}
+
+  .ed-mobile-nav:not([hidden]){
+    position:sticky;top:64px;z-index:29;
+    display:flex;align-items:center;gap:7px;
+    min-height:52px;padding:6px 10px;
+    border-bottom:1px solid var(--line);background:rgba(8,8,10,.96);
+    backdrop-filter:blur(14px);box-shadow:0 8px 22px rgba(0,0,0,.22);
+  }
+  .ed-mobile-tabs{display:flex;align-items:center;gap:4px;min-width:0;flex:1}
+  .ed-mobile-tab,.ed-mobile-publish{
+    min-width:0;min-height:40px;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg2);color:var(--ink2);font:700 12.5px/1 var(--font);
+    cursor:pointer;touch-action:manipulation;
+  }
+  .ed-mobile-tab{flex:1;padding:0 8px}
+  .ed-mobile-tab[aria-selected="true"]{background:#fff;border-color:#fff;color:#000}
+  .ed-mobile-publish{flex:none;padding:0 12px;color:#fff;border-color:var(--line2)}
+
+  /* Real touch targets and 16px form controls prevent accidental iOS zoom. */
+  .ed-back,.ed-name,.ed-credits,.ed-export{height:44px}
+  .ed-back{width:44px}
+  .ed-credits{min-width:44px;justify-content:center;padding:0 8px}
+  .ed-pbtn{width:44px;height:44px}
+  .ed-f input[type="text"],.ed-f input[type="number"],.ed-f select,
+  .ed-f textarea,.ed-ai textarea,.ed-aiq{font-size:16px}
+  .ed-f input[type="text"],.ed-f input[type="number"],.ed-f select{height:44px}
+  .ed-aibtn,.ed-aichip,.ed-aiq{min-height:44px}
+  .ed-aibtn{width:44px}
+  .ed-airow{flex-wrap:wrap}
+  .ed-aicost{margin-left:0}
+  .ed-aigo{min-height:46px}
+  .ed-swb{width:36px;height:36px}
+  .ed-clipdel{top:5px;right:24px;width:30px;height:30px}
+  .ed-cliphandle{width:24px}
+  .ed-clip[aria-current="true"] .ed-clipdur{margin-right:48px}
+
+  .ed-modal-backdrop{
+    align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom));
+    overflow-y:auto;overscroll-behavior:contain;
+  }
+  .ed-modal{
+    max-height:calc(100dvh - 16px);overflow-y:auto;padding:19px 18px;
+    border-radius:18px 18px 12px 12px;
+  }
+  .ed-modal-close{min-width:44px;min-height:44px}
+  .ed-export-meta{flex-wrap:wrap!important;gap:7px 12px}
+  .ed-modal-actions{flex-wrap:wrap}
+  .ed-modal-actions button{min-height:44px}
 }
 @media (max-width:560px){
   .ed-flink{display:none}
   /* the accent chip is a duplicate of Properties → Colours; the credit balance
      is not available anywhere else, so the chip is what goes */
   .ed-chip{display:none}
-  .ed-top{gap:8px;padding:0 10px}
-  .ed-export{padding:0 14px}
+  .ed-top{gap:6px;padding:0 8px}
+  .ed-topright{gap:6px}
+  .ed-export{padding:0 12px}
   .ed-credits{padding:0 9px}
   /* "Publish Template" is the widest control in the bar and squeezed the
      project name down to ~39px. Collapse it to its + icon; the full action is
      still one tap away and unchanged on wider screens. */
   .ed-pub-btn{display:none}
-  .ed-name{min-width:120px;flex:1 1 auto}
+  .ed-name{min-width:0;flex:1 1 auto;padding:0 9px}
+  .ed-modal-actions{flex-direction:column-reverse;align-items:stretch}
+  .ed-modal-actions button,.ed-modal-actions .ed-pbtn{width:100%!important}
 }
 
 @media (prefers-reduced-motion:reduce){
   body.ed-body *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  .ed-skip{transition:none}
 }

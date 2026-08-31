@@ -25,8 +25,8 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=202608292">
-<link rel="stylesheet" href="/page.css?v=202608292">
+<link rel="stylesheet" href="/shell.css?v=2026083001">
+<link rel="stylesheet" href="/page.css?v=2026083002">
 </head>
 <body class="sh-body">
 
@@ -243,7 +243,7 @@
               </span>
 
               <div class="ig-actions-row">
-                <button type="button" class="ig-btn ig-btn-secondary" id="openEditProfileBtn">Edit profile</button>
+                <button type="button" class="ig-btn ig-btn-secondary" id="openEditProfileBtn" aria-controls="igPaneEdit">Edit profile</button>
                 <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Share Creator Profile">Share profile</button>
                 <button type="button" class="ig-btn ig-btn-danger" id="accLogout" title="Log out of ShortsCraft">Log out</button>
               </div>
@@ -309,34 +309,34 @@
         </div>
 
         <!-- Instagram Navigation Tabs -->
-        <nav class="ig-tabs" role="tablist">
-          <button type="button" class="ig-tab-btn is-active" data-ig-tab="creations" role="tab" aria-selected="true">
+        <nav class="ig-tabs" role="tablist" aria-label="Profile sections">
+          <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true" tabindex="0">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
             <span>POSTS</span>
           </button>
-          <button type="button" class="ig-tab-btn" data-ig-tab="saved" role="tab" aria-selected="false">
+          <button type="button" class="ig-tab-btn" id="igTabSaved" data-ig-tab="saved" role="tab" aria-controls="igPaneSaved" aria-selected="false" tabindex="-1">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
             <span>SAVED &amp; DRAFTS</span>
           </button>
-          <button type="button" class="ig-tab-btn" data-ig-tab="account" role="tab" aria-selected="false">
+          <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false" tabindex="-1">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             <span>PLAN &amp; CREDITS</span>
           </button>
-          <button type="button" class="ig-tab-btn" data-ig-tab="edit" role="tab" aria-selected="false">
+          <button type="button" class="ig-tab-btn" id="igTabEdit" data-ig-tab="edit" role="tab" aria-controls="igPaneEdit" aria-selected="false" tabindex="-1">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span>EDIT PROFILE</span>
           </button>
         </nav>
 
         <!-- Tab 1: Posts & Creations Grid -->
-        <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel">
+        <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel" aria-labelledby="igTabCreations">
           <div class="ig-grid" id="userCreationsGrid">
             <!-- Dynamic creation cards rendered by authui.js -->
           </div>
         </section>
 
         <!-- Tab 2: Saved & Drafts -->
-        <section class="ig-pane" id="igPaneSaved" role="tabpanel" hidden>
+        <section class="ig-pane" id="igPaneSaved" role="tabpanel" aria-labelledby="igTabSaved" hidden>
           <div class="ig-saved-grid">
             <article class="ig-saved-card">
               <div class="ig-saved-icon">📁</div>
@@ -366,7 +366,7 @@
         </section>
 
         <!-- Tab 3: Account, Plan & Balance -->
-        <section class="ig-pane" id="igPaneAccount" role="tabpanel" hidden>
+        <section class="ig-pane" id="igPaneAccount" role="tabpanel" aria-labelledby="igTabAccount" hidden>
           <div class="ig-account-grid">
             <article class="ig-account-card">
               <div class="ig-acc-head">
@@ -414,7 +414,7 @@
         </section>
 
         <!-- Tab 4: Edit Profile Form -->
-        <section class="ig-pane" id="igPaneEdit" role="tabpanel" hidden>
+        <section class="ig-pane" id="igPaneEdit" role="tabpanel" aria-labelledby="igTabEdit" hidden>
           <div class="ig-edit-container">
             <div class="ig-edit-header">
               <div class="ig-edit-av" id="pageAvatarPreview">KA</div>
@@ -468,7 +468,8 @@
               </div>
 
               <div class="ig-form-foot">
-                <span id="pageProfileMsg" class="ig-msg"></span>
+                <span id="pageProfileMsg" class="ig-msg" role="status" aria-live="polite"></span>
+                <button type="button" class="ig-btn ig-btn-secondary" id="pageCancelProfileBtn">Cancel</button>
                 <button type="submit" class="ig-btn ig-btn-primary" id="pageSaveProfileBtn">Save Profile Changes</button>
               </div>
             </form>
@@ -535,7 +536,7 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=202608292" defer></script>
-<script src="/page.js?v=202608292" defer></script>
+<script src="/authui.js?v=2026083002" defer></script>
+<script src="/page.js?v=2026083001" defer></script>
 </body>
 </html>

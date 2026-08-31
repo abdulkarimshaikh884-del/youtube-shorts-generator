@@ -1,8 +1,8 @@
 # Render blueprint — connect the repo on render.com and it reads this file.
 #
 # Docker, not the native Node runtime, because exports need ffmpeg and Chromium
-# (see Dockerfile). The disk is what keeps accounts, credits and the launch
-# waitlist alive across deploys; without it every restart starts from empty.
+# (see Dockerfile). Accounts, credits and community data live in Supabase, so
+# the web service itself stays stateless and does not need a persistent disk.
 services:
   - type: web
     name: shortscraft
@@ -10,7 +10,7 @@ services:
     dockerfilePath: ./Dockerfile
     plan: starter          # exports are CPU-heavy; free instances sleep and time out
     healthCheckPath: /api/health
-    autoDeploy: true
+    autoDeployTrigger: commit
 
     # The Supabase project lives in ap-northeast-1 (Tokyo). Singapore is the
     # closest Render region, so every query is ~70ms away instead of ~200ms

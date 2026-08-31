@@ -22,7 +22,7 @@
 <link rel="icon" href="/favicon.ico?v=circle2026" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=circle2026">
 <link rel="manifest" href="/site.webmanifest?v=power2026">
-<link rel="stylesheet" href="/editor.css?v=5">
+<link rel="stylesheet" href="/editor.css?v=2026083003">
 </head>
 <body class="ed-body">
 
@@ -78,11 +78,26 @@
     </div>
   </header>
 
+  <!-- Phone workspace switcher. Desktop keeps the three-column editor, while
+       a phone gets one focused, fully reachable panel at a time. -->
+  <nav class="ed-mobile-nav" aria-label="Editor workspace" hidden>
+    <div class="ed-mobile-tabs" role="tablist" aria-label="Editor panels">
+      <button type="button" class="ed-mobile-tab" id="edMobileAi" role="tab"
+        aria-controls="edAiPanel" aria-selected="false" data-mobile-panel="ai">✦ AI</button>
+      <button type="button" class="ed-mobile-tab" id="edMobileCanvas" role="tab"
+        aria-controls="main" aria-selected="true" data-mobile-panel="canvas">▶ Canvas</button>
+      <button type="button" class="ed-mobile-tab" id="edMobileEdit" role="tab"
+        aria-controls="edPropertiesPanel" aria-selected="false" data-mobile-panel="edit">Edit</button>
+    </div>
+    <button type="button" class="ed-mobile-publish" id="edMobilePublish"
+      aria-label="Publish this animation as a community template">＋ Publish</button>
+  </nav>
+
   <!-- ── BODY ────────────────────────────────────────────── -->
-  <div class="ed-main">
+  <div class="ed-main" data-mobile-panel="canvas">
 
     <!-- LEFT: AI Assistant & Refinement Chatbox -->
-    <aside class="ed-col ed-left">
+    <aside class="ed-col ed-left" id="edAiPanel" role="tabpanel" aria-labelledby="edMobileAi">
       <div class="ed-colhead">AI Assistant</div>
       <div class="ed-scroll ed-ai-scroll">
         <div class="ed-chat" id="edChatHistory">
@@ -137,7 +152,7 @@
     </aside>
 
     <!-- CENTRE: stage + playback -->
-    <main class="ed-col ed-center" id="main" role="main" tabindex="-1">
+    <main class="ed-col ed-center" id="main" role="main" tabindex="-1" aria-labelledby="edMobileCanvas">
       <div class="ed-stagewrap">
         <!-- Layers are created by editor.js (renderClip), one sandboxed iframe
              per clip carrying the template's own CSS document. A pre-placed
@@ -185,7 +200,7 @@
     </main>
 
     <!-- RIGHT: properties -->
-    <aside class="ed-col ed-right">
+    <aside class="ed-col ed-right" id="edPropertiesPanel" role="tabpanel" aria-labelledby="edMobileEdit">
       <div class="ed-colhead">Properties</div>
       <div class="ed-scroll">
         <div class="ed-props">
@@ -214,9 +229,9 @@
           <div class="ed-grp">
             <h2>Colours</h2>
             <div class="ed-f">
-              <label for="edHex">Accent</label>
+              <label for="edHex">Template background</label>
               <div class="ed-inline">
-                <input type="color" id="edColor" value="#ffffff" aria-label="Accent colour picker">
+                <input type="color" id="edColor" value="#ffffff" aria-label="Template background colour picker">
                 <input type="text" id="edHex" value="#ffffff" maxlength="7" spellcheck="false">
               </div>
             </div>
@@ -248,9 +263,9 @@
 
 <!-- ── EXPORT VIDEO MODAL ─────────────────────────────────── -->
 <div id="exportModal" class="ed-modal-backdrop" hidden>
-  <div class="ed-modal">
+  <div class="ed-modal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
     <div class="ed-modal-head">
-      <h3>🎬 Export Video (MP4)</h3>
+      <h3 id="exportModalTitle">🎬 Export Video (MP4)</h3>
       <button type="button" class="ed-modal-close" id="exportClose" aria-label="Close modal">×</button>
     </div>
     <p class="ed-modal-sub">Render your animation frame-by-frame with exact timing, crisp typography, and full 60 FPS motion in H.264 MP4.</p>
@@ -290,9 +305,9 @@
 
 <!-- ── PUBLISH TEMPLATE MODAL ────────────────────────────── -->
 <div id="publishModal" class="ed-modal-backdrop" hidden>
-  <div class="ed-modal">
+  <div class="ed-modal" role="dialog" aria-modal="true" aria-labelledby="publishModalTitle">
     <div class="ed-modal-head">
-      <h3>🚀 Publish as Template</h3>
+      <h3 id="publishModalTitle">🚀 Publish as Template</h3>
       <button type="button" class="ed-modal-close" id="publishClose">×</button>
     </div>
     <p class="ed-modal-sub">Publish your customized animation to the Community Gallery so other creators can discover, use, and like it.</p>
@@ -331,8 +346,8 @@
   </div>
 </div>
 
-<script src="/templates-v2.js?v=9" defer></script>
+<script src="/templates-v2.js?v=12" defer></script>
 <script src="/drafts-store.js?v=202608192" defer></script>
-<script src="/editor.js?v=8" defer></script>
+<script src="/editor.js?v=2026083101" defer></script>
 </body>
 </html>

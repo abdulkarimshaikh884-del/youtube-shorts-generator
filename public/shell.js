@@ -952,17 +952,29 @@
     var burger = $("#navBurger");
     var menu   = $("#navMobile");
     if (burger && menu) {
+      burger.setAttribute("aria-controls", "navMobile");
       burger.addEventListener("click", function () {
         var open = menu.hasAttribute("hidden");
         if (open) menu.removeAttribute("hidden");
         else menu.setAttribute("hidden", "");
         burger.setAttribute("aria-expanded", String(open));
+        burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
       });
 
       menu.addEventListener("click", function (e) {
         if (e.target && e.target.tagName === "A") {
           menu.setAttribute("hidden", "");
           burger.setAttribute("aria-expanded", "false");
+          burger.setAttribute("aria-label", "Open menu");
+        }
+      });
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !menu.hasAttribute("hidden")) {
+          menu.setAttribute("hidden", "");
+          burger.setAttribute("aria-expanded", "false");
+          burger.setAttribute("aria-label", "Open menu");
+          burger.focus();
         }
       });
     }

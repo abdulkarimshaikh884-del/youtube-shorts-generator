@@ -163,6 +163,12 @@
   var currentUser = null;
 
   function setupEditProfile() {
+    /* /account already has a full-width profile editor in its Edit Profile
+       tab. Creating the global settings dialog there gave the same button two
+       click handlers: the page switched tabs and then a duplicate modal covered
+       it. Keep the dialog for compact settings surfaces only. */
+    if ($("#pageEditProfileForm") && $("#igPaneEdit")) return;
+
     var modal = $("#editProfileModal");
     if (!modal) {
       modal = document.createElement("div");
@@ -338,6 +344,34 @@
   function setupPageProfileForm() {
     var form = $("#pageEditProfileForm");
     if (!form) return;
+
+    var cancelBtn = $("#pageCancelProfileBtn");
+
+    function restoreProfileValues() {
+      if (!currentUser) return;
+      var uname = String(currentUser.email || "creator").split("@")[0] || "creator";
+      var dname = currentUser.displayName || (uname.charAt(0).toUpperCase() + uname.slice(1));
+      if ($("#pageDisplayName")) $("#pageDisplayName").value = dname;
+      if ($("#pageHandle")) $("#pageHandle").value = currentUser.handle || ("@" + uname);
+      if ($("#pageBio")) $("#pageBio").value = currentUser.bio || "Designing viral YouTube Shorts, Instagram Reels & AI kinetic typography motion graphics.";
+      if ($("#pageYoutube")) $("#pageYoutube").value = currentUser.youtube || "";
+      if ($("#pageInstagram")) $("#pageInstagram").value = currentUser.instagram || "";
+      if ($("#pageProfileMsg")) $("#pageProfileMsg").textContent = "";
+    }
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", function () {
+        restoreProfileValues();
+        if (window.SC_ACCOUNT && SC_ACCOUNT.switchTab) {
+          SC_ACCOUNT.switchTab("creations", { updateHash: true });
+        }
+        var profileTop = $("#accountBox");
+        if (profileTop) {
+          var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          profileTop.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+        }
+      });
+    }
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -572,15 +606,19 @@
       edit: $("#igPaneEdit")
     };
 
-    function switchTab(targetName) {
+    function switchTab(targetName, options) {
+      options = options || {};
+      if (!panes[targetName]) return;
       tabs.forEach(function (btn) {
         var isTarget = btn.getAttribute("data-ig-tab") === targetName;
         if (isTarget) {
           btn.classList.add("is-active");
           btn.setAttribute("aria-selected", "true");
+          btn.setAttribute("tabindex", "0");
         } else {
           btn.classList.remove("is-active");
           btn.setAttribute("aria-selected", "false");
+          btn.setAttribute("tabindex", "-1");
         }
       });
 
@@ -595,11 +633,28 @@
           pane.setAttribute("hidden", "");
         }
       });
+
+      if (options.updateHash && window.history && history.replaceState) {
+        var nextHash = targetName === "creations" ? "" : "#" + (targetName === "edit" ? "edit-profile" : targetName);
+        history.replaceState(null, "", location.pathname + location.search + nextHash);
+      }
     }
 
-    tabs.forEach(function (btn) {
+    tabs.forEach(function (btn, index) {
       btn.addEventListener("click", function () {
-        switchTab(btn.getAttribute("data-ig-tab"));
+        switchTab(btn.getAttribute("data-ig-tab"), { updateHash: true });
+      });
+      btn.addEventListener("keydown", function (event) {
+        var nextIndex = index;
+        if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+        else if (event.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        var nextTab = tabs[nextIndex];
+        switchTab(nextTab.getAttribute("data-ig-tab"), { updateHash: true });
+        nextTab.focus();
       });
     });
 
@@ -607,9 +662,12 @@
     if (editBtn) {
       editBtn.addEventListener("click", function (e) {
         e.preventDefault();
-        switchTab("edit");
+        switchTab("edit", { updateHash: true });
         var editPane = $("#igPaneEdit");
-        if (editPane) editPane.scrollIntoView({ behavior: "smooth" });
+        if (editPane) {
+          var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          editPane.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+        }
       });
     }
 
@@ -620,14 +678,16 @@
           ? currentUser.handle.replace(/^@/, "")
           : (currentUser && currentUser.email ? currentUser.email.split("@")[0] : "");
         var url = location.origin + "/creator?handle=" + encodeURIComponent(handle || "shortscraft");
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url).then(function () {
-            if (window.SC_UI && SC_UI.toast) SC_UI.toast("Profile link copied to clipboard!");
-            else alert("Profile link copied: " + url);
-          });
-        }
+        if (window.SC_UI && SC_UI.copy) SC_UI.copy(url, "Profile link copied");
+        else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url);
       });
     }
+
+    var requestedTab = location.hash === "#edit-profile" ? "edit" : location.hash.replace(/^#/, "");
+    if (panes[requestedTab]) switchTab(requestedTab);
+
+    window.SC_ACCOUNT = window.SC_ACCOUNT || {};
+    window.SC_ACCOUNT.switchTab = switchTab;
   }
 
   /* ── YouTube Studio Style 3-Step Upload & Publish Wizard ────── */
@@ -1312,7 +1372,37 @@
     });
   }
 
+  /* The desktop rail carries workspace destinations that used to disappear
+     completely when the rail collapsed on a phone. Add the same destinations
+     to the shared mobile drawer once, before auth state is painted. */
+  function completeMobileNav() {
+    var menu = $("#navMobile");
+    if (!menu || menu.dataset.workspaceReady === "1") return;
+    menu.dataset.workspaceReady = "1";
+
+    var editorLink = menu.querySelector('a[href="/editor"]');
+    var ref = editorLink ? editorLink.nextSibling : menu.firstChild;
+    [
+      { href: "/drafts", label: "My Projects" },
+      { href: "/uploads", label: "My Uploads", auth: true },
+      { href: "/settings", label: "Settings", auth: true },
+      { href: "/tutorials", label: "Tutorials & Help" }
+    ].forEach(function (item) {
+      if (menu.querySelector('a[href="' + item.href + '"]')) return;
+      var link = document.createElement("a");
+      link.href = item.href;
+      link.className = "sh-mobile-workspace-link";
+      link.textContent = item.label;
+      if (item.auth) {
+        link.setAttribute("data-auth", "in");
+        link.hidden = true;
+      }
+      menu.insertBefore(link, ref);
+    });
+  }
+
   function init() {
+    completeMobileNav();
     all("#logoutBtn, #accLogout, #accLogoutPane, #popoverLogoutBtn, #navMobileLogout").forEach(function (b) {
       b.addEventListener("click", logout);
     });

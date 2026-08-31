@@ -636,7 +636,7 @@
         ? state.clips.length + " clips"
         : clipName(c);
     }
-    setAccent(c.accent);
+    setBackgroundPicker(backgroundFor(c), null, false);
     $("#edDur").value = String(Math.min(MAX_DUR, Math.max(2000, c.dur)));
     $("#edDurVal").textContent = (c.dur / 1000).toFixed(1) + "s";
     all(".ed-titem").forEach(function (b) {
@@ -751,6 +751,49 @@
   };
 
   /* ── Controls ─────────────────────────────────────────── */
+  function optimiseImageFile(file, done, fail) {
+    if (!file || !/^image\/(png|jpeg|jpg|webp|gif)$/i.test(file.type || "")) {
+      fail("Upload a PNG, JPEG, WebP or GIF image.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      fail("That image is too large. Choose one under 8 MB.");
+      return;
+    }
+    var reader = new FileReader();
+    reader.onerror = function () { fail("That image could not be read. Try another file."); };
+    reader.onload = function (event) {
+      var source = String(event.target.result || "");
+      var image = new Image();
+      image.onerror = function () { fail("That image format could not be opened."); };
+      image.onload = function () {
+        try {
+          var maxSide = 1280;
+          var ratio = Math.min(1, maxSide / Math.max(image.naturalWidth || 1, image.naturalHeight || 1));
+          var canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
+          var context = canvas.getContext("2d", { alpha: true });
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          var qualities = [0.86, 0.72, 0.58];
+          var result = source;
+          for (var i = 0; i < qualities.length; i++) {
+            result = canvas.toDataURL("image/webp", qualities[i]);
+            if (result.length <= 900 * 1024) break;
+          }
+          if (!result || result.indexOf("data:image/") !== 0) result = source;
+          done(result);
+        } catch (error) {
+          /* A browser may reject canvas conversion for an unusual but otherwise
+             valid local image. The original data URL still renders safely. */
+          done(source);
+        }
+      };
+      image.src = source;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function buildFields() {
     var wrap = $("#edFields"), c = cur();
     if (!wrap || !c) return;
@@ -798,6 +841,22 @@
 
     var schema = m.schema;
     if (schema && schema.fields && schema.fields.length) {
+      var fieldTargets = {};
+      schema.fields.forEach(function (field) {
+        if (!field.group || fieldTargets[field.group]) return;
+        var details = document.createElement("details");
+        details.className = "ed-schema-group";
+        details.dataset.group = field.group;
+        var summary = document.createElement("summary");
+        var count = schema.fields.filter(function (candidate) { return candidate.group === field.group; }).length;
+        summary.innerHTML = '<span>' + esc(field.group) + '</span><small>' + count + ' controls</small>';
+        var groupFields = document.createElement("div");
+        groupFields.className = "ed-schema-fields";
+        details.appendChild(summary);
+        details.appendChild(groupFields);
+        wrap.appendChild(details);
+        fieldTargets[field.group] = groupFields;
+      });
       schema.fields.forEach(function (field) {
         var f = document.createElement("div");
         f.className = "ed-f ed-f-custom";
@@ -958,28 +1017,25 @@
           fileInput.style.display = "none";
           fileInput.addEventListener("change", function () {
             var file = fileInput.files && fileInput.files[0];
-            if (file) {
-              if (!/^image\/(png|jpeg|jpg|webp|gif)$/.test(file.type)) {
-                status("Upload a png, jpeg, webp or gif.");
-                fileInput.value = "";
-                return;
-              }
-              if (file.size > 900 * 1024) {
-                status("That image is " + Math.round(file.size / 1024) + " KB — keep it under 900 KB.");
-                fileInput.value = "";
-                return;
-              }
-              var reader = new FileReader();
-              reader.onload = function (e) {
-                var dataUrl = e.target.result;
-                c.props[field.key] = dataUrl;
-                txtInput.value = "(Custom Image)";
-                updatePrev(dataUrl);
-                queueRender();
-                status("Uploaded image: " + file.name);
-              };
-              reader.readAsDataURL(file);
-            }
+            if (!file) return;
+            var uploadLabel = fileBtn.querySelector("span");
+            if (uploadLabel) uploadLabel.textContent = "Optimising…";
+            status("Preparing " + file.name + "…");
+            optimiseImageFile(file, function (dataUrl) {
+              c.props[field.key] = dataUrl;
+              txtInput.value = "(Custom Image)";
+              updatePrev(dataUrl);
+              var clipIndex = state.clips.indexOf(c);
+              if (clipIndex >= 0) renderClip(clipIndex, true);
+              scheduleDraftSave();
+              fileInput.value = "";
+              if (uploadLabel) uploadLabel.textContent = "📁 Upload";
+              status("Image applied: " + file.name);
+            }, function (message) {
+              fileInput.value = "";
+              if (uploadLabel) uploadLabel.textContent = "📁 Upload";
+              status(message);
+            });
           });
           fileBtn.appendChild(fileInput);
 
@@ -1002,7 +1058,7 @@
           f.appendChild(input);
         }
 
-        wrap.appendChild(f);
+        (field.group && fieldTargets[field.group] ? fieldTargets[field.group] : wrap).appendChild(f);
       });
     } else {
       // Fallback
@@ -1037,8 +1093,23 @@
     });
   }
 
-  function setAccent(hex, fromInput) {
-    if (cur()) cur().accent = hex;
+  function backgroundFor(c) {
+    if (!c) return "#08080d";
+    var schema = c.spec ? c.spec.schema : ((meta[c.tpl] || {}).schema || {});
+    var defaults = schema && schema.defaults ? schema.defaults : {};
+    return (c.props && c.props.backgroundColor) || defaults.backgroundColor || ((meta[c.tpl] || {}).dark ? "#08080d" : "#f5f5f7");
+  }
+
+  /* The prominent header colour chip is the fastest, most discoverable colour
+     control in the editor. It used to modify only --ac, which many templates
+     do not use visibly. It now always opts the current scene into the shared
+     background override, while accent remains part of the template design. */
+  function setBackgroundPicker(hex, fromInput, applyToClip) {
+    if (applyToClip !== false && cur()) {
+      if (!cur().props) cur().props = {};
+      cur().props.customBackground = true;
+      cur().props.backgroundColor = hex;
+    }
     if (!fromInput || fromInput !== "color") $("#edColor").value = hex;
     if (!fromInput || fromInput !== "hex") $("#edHex").value = hex;
     $("#edChip").value = hex;
@@ -1485,6 +1556,75 @@
     });
   }
 
+  /* ── Phone workspace ─────────────────────────────────────
+     Desktop can keep AI, Canvas and Properties visible together. On a phone,
+     rendering all three as one very long document made the first panel vanish
+     and buried editing controls several screens below the preview. The tab bar
+     keeps every capability reachable without maintaining a second editor. */
+  function wireMobilePanels() {
+    var nav = document.querySelector(".ed-mobile-nav");
+    var main = document.querySelector(".ed-main");
+    var tabs = all(".ed-mobile-tab");
+    var publish = $("#edMobilePublish");
+    var media = window.matchMedia("(max-width: 820px)");
+    if (!nav || !main || !tabs.length) return;
+
+    var panels = {
+      ai: $("#edAiPanel"),
+      canvas: $("#main"),
+      edit: $("#edPropertiesPanel")
+    };
+
+    function select(panel, moveViewport) {
+      if (!panels[panel]) panel = "canvas";
+      main.dataset.mobilePanel = panel;
+      tabs.forEach(function (button) {
+        var active = button.dataset.mobilePanel === panel;
+        button.setAttribute("aria-selected", String(active));
+        button.tabIndex = active ? 0 : -1;
+      });
+      Object.keys(panels).forEach(function (key) {
+        if (media.matches) panels[key].setAttribute("aria-hidden", String(key !== panel));
+        else panels[key].removeAttribute("aria-hidden");
+      });
+      if (moveViewport && media.matches) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    function syncMode() {
+      nav.hidden = !media.matches;
+      select(main.dataset.mobilePanel || "canvas", false);
+    }
+
+    tabs.forEach(function (button, index) {
+      button.addEventListener("click", function () {
+        select(button.dataset.mobilePanel, true);
+      });
+      button.addEventListener("keydown", function (ev) {
+        if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+        ev.preventDefault();
+        var delta = ev.key === "ArrowRight" ? 1 : -1;
+        var next = tabs[(index + delta + tabs.length) % tabs.length];
+        next.focus();
+        select(next.dataset.mobilePanel, true);
+      });
+    });
+
+    if (publish) {
+      publish.addEventListener("click", function () {
+        var desktopAction = $("#edPublishOpen");
+        if (desktopAction) desktopAction.click();
+      });
+    }
+
+    var q = new URLSearchParams(location.search);
+    if (q.get("mode") === "ai" || q.get("topic")) main.dataset.mobilePanel = "ai";
+    syncMode();
+    if (media.addEventListener) media.addEventListener("change", syncMode);
+    else media.addListener(syncMode);
+  }
+
   /* ── Boot ─────────────────────────────────────────────── */
   function init() {
     var e = engine();
@@ -1600,9 +1740,9 @@
       var b = document.createElement("button");
       b.type = "button"; b.className = "ed-swb"; b.dataset.c = hex;
       b.style.background = hex;
-      b.setAttribute("aria-label", "Accent " + hex);
+      b.setAttribute("aria-label", "Template background " + hex);
       b.addEventListener("click", function () {
-        setAccent(hex); renderClip(state.sel, true);
+        setBackgroundPicker(hex); renderClip(state.sel, true); scheduleDraftSave();
       });
       sw.appendChild(b);
     });
@@ -1614,15 +1754,15 @@
 
     // colour inputs
     $("#edColor").addEventListener("input", function (ev) {
-      setAccent(ev.target.value, "color"); queueRender();
+      setBackgroundPicker(ev.target.value, "color"); queueRender();
     });
     $("#edChip").addEventListener("input", function (ev) {
-      setAccent(ev.target.value, "chip"); queueRender();
+      setBackgroundPicker(ev.target.value, "chip"); queueRender();
     });
     $("#edHex").addEventListener("change", function (ev) {
       var v = ev.target.value.trim();
-      if (!/^#[0-9a-f]{6}$/i.test(v)) { ev.target.value = cur().accent; return; }
-      setAccent(v, "hex"); renderClip(state.sel, true);
+      if (!/^#[0-9a-f]{6}$/i.test(v)) { ev.target.value = backgroundFor(cur()); return; }
+      setBackgroundPicker(v, "hex"); renderClip(state.sel, true); scheduleDraftSave();
     });
 
     // duration of the selected clip
@@ -1769,6 +1909,7 @@
     });
 
     wirePublishModal();
+    wireMobilePanels();
 
     // intent from the gallery / landing composer / community templates
     var q = new URLSearchParams(location.search);

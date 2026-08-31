@@ -841,7 +841,10 @@ body.sh-body #navMobile{
   background:var(--sh-bg1);
 }
 body.sh-body #navMobile a,
-body.sh-body #navMobile #navMobileLogout{padding:11px 12px;border-radius:10px;font-size:15px;color:var(--sh-ink2)}
+body.sh-body #navMobile #navMobileLogout{
+  min-height:44px;padding:11px 12px;border-radius:10px;font-size:15px;color:var(--sh-ink2);
+  align-items:center;
+}
 body.sh-body #navMobile #navMobileLogout{background:none;border:0;text-align:left;font-family:inherit;font-weight:inherit;cursor:pointer;width:100%}
 body.sh-body #navMobile #navMobileLogout:hover{background:var(--sh-bg3);color:#fff}
 body.sh-body #navMobile a:hover{background:var(--sh-bg3);color:#fff}
@@ -1194,6 +1197,12 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   /* On a phone the strip is swiped, so the arrows are dead weight. */
   .sh-fnav-btn{display:none}
   .sh-ratio-lbl{width:100%;margin:0 0 2px}
+  /* The fixed 240px search box and filter strip previously shared one row.
+     At 320px that left a 12px-wide filter viewport: only a white semicircle of
+     the active "All" chip was visible, so categories looked unavailable. */
+  .sh-search-bar-row{flex-wrap:wrap;gap:10px}
+  .sh-search-box{width:100%}
+  .sh-filters-scroll{width:100%;flex:0 0 100%}
 }
 
 .sh-chip{
@@ -2054,8 +2063,14 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
 @media (max-width: 900px){
   .sh-rail{display:none}
   .sh-main{width:100vw;max-width:100vw;margin-left:0}
-  body.sh-body #navBurger{display:flex}
-  body.sh-body #navMobile:not([hidden]){display:flex}
+  body.sh-body #navBurger{display:flex;width:44px;height:44px}
+  body.sh-body #navMobile:not([hidden]){
+    position:sticky;top:64px;z-index:49;
+    display:flex;max-height:calc(100dvh - 64px);overflow-y:auto;
+    overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+    padding-bottom:max(16px,env(safe-area-inset-bottom));
+    box-shadow:0 18px 42px rgba(0,0,0,.48);
+  }
   /* The burger appeared but the desktop links were never dismissed, so both
      navigations rendered at once in a 60px flex row: on a 390px phone that put
      "Community" at x=-151 and squeezed "Upgrade" down to two letters. Every
@@ -2064,7 +2079,22 @@ body.sh-body #navMobile a.sh-mfill{background:#fff;color:#000 !important;font-we
   .sh-topbar > .sh-tfill,
   .sh-topbar > .sh-tline,
   .sh-topbar > .sh-tsep{display:none}
-  .sh-topbar{justify-content:flex-start;padding:0 16px}
+  .sh-topbar{height:64px;justify-content:flex-start;padding:0 16px;gap:12px}
+  .sh-tupload-btn{height:44px;padding-inline:16px}
+  #navMobile a,#navMobile button{touch-action:manipulation}
+
+  /* Controls that are comfortably clickable with a mouse need a larger tap
+     target on a phone. Their visual language stays unchanged. */
+  .sh-chip,.sh-rchip{min-height:40px}
+  .sh-modal-cta,.sh-modal-act-btn{min-height:44px}
+  .sh-card-btn{width:40px;height:40px}
+  .sh-m-comm-btn{min-height:40px}
+  .sh-imgbtn{width:44px;height:44px}
+  .sh-imgchip,.sh-csel-btn,.sh-cgo{min-height:44px}
+  .sh-composer textarea{font-size:16px}
+  .sh-search-box input{height:44px;font-size:16px}
+  .sh-tact-btn{min-height:40px}
+  body.sh-body .sh-like-btn{min-height:40px;padding-inline:12px}
 }
 
 /* ── Dynamic Upload / AI Deconstruct & Profile Setup Modals ── */
