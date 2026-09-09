@@ -416,9 +416,19 @@ async function listNotifications(user, limit = 30) {
       order by n.created_at desc limit $2`,
     [user.id, safeLimit]
   );
+  // Counted over the whole table, not over the page that was just fetched.
+  // Deriving the badge from `rows` meant a panel showing ten of thirty unread
+  // reported ten, and "show more" had no way to know whether more existed.
+  const { rows: totals } = await db.query(
+    `select count(*)::int as total,
+            count(*) filter (where read_at is null)::int as unread
+       from public.notifications where user_id = $1`,
+    [user.id]
+  );
   return {
     success: true,
-    unread: rows.filter((row) => !row.read_at).length,
+    unread: totals[0].unread,
+    total: totals[0].total,
     notifications: rows.map((row) => ({
       id: row.id,
       type: row.type,

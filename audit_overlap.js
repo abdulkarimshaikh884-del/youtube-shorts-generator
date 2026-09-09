@@ -158,11 +158,21 @@ const AUDIT = function () {
   }, { email: EMAIL, password: "overlap-pass-1234", handle: "ovl" + Date.now().toString().slice(-8) });
 
   const seen = new Set();
+  /* Layout is not theme-independent here. Dark and light differ by more than
+     colour — borders appear, icons swap, and a rule that only exists under one
+     `data-theme` can change a box. Auditing one theme checked half the product
+     and called it whole. */
+  for (const theme of ["light", "dark"]) {
   for (const vp of VIEWPORTS) {
     await page.setViewport({ width: vp.width, height: vp.height });
-    console.log(`\n---- ${vp.label} (${vp.width}px) ----`);
+    console.log(`\n---- ${theme} · ${vp.label} (${vp.width}px) ----`);
     for (const route of ROUTES) {
       await page.goto(BASE + route, { waitUntil: "networkidle2", timeout: 45000 }).catch(() => {});
+      // Set before measuring, and persisted so the next navigation keeps it.
+      await page.evaluate((t) => {
+        document.documentElement.setAttribute("data-theme", t);
+        try { localStorage.setItem("sc_theme", t); } catch (err) {}
+      }, theme);
       /* The gallery mounts 59 preview iframes lazily, and a card measured
          mid-mount reports an overflow that is gone a second later. Wait for
          the layout to stop moving instead of guessing at a delay. */
@@ -178,7 +188,7 @@ const AUDIT = function () {
       await new Promise((r) => setTimeout(r, 900));
       const bad = await page.evaluate(AUDIT);
       const total = bad.clipped.length + bad.escaped.length + bad.collided.length;
-      ok(total === 0, `${route.split("?")[0].padEnd(24)} nothing clipped, escaped or colliding`,
+      ok(total === 0, `${theme.padEnd(5)} ${route.split("?")[0].padEnd(24)} nothing clipped, escaped or colliding`,
         total ? `${bad.clipped.length} clipped · ${bad.escaped.length} escaped · ${bad.collided.length} colliding` : 0);
 
       const report = (kind, list, fmt) => list.forEach((x) => {
@@ -191,6 +201,7 @@ const AUDIT = function () {
       report("esc", bad.escaped, (x) => `ESCAPED  ${x.el} out of ${x.parent} by ${x.by}px  ${JSON.stringify(x.text)}`);
       report("col", bad.collided, (x) => `COLLIDED ${x.a} over ${x.b} (${x.area}px²)  ${JSON.stringify(x.text)}`);
     }
+  }
   }
 
   await browser.close();

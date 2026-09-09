@@ -215,6 +215,16 @@ body.sh-body :focus-visible:not(input):not(textarea):not(select) {
   cursor: pointer;
 }
 .sh-notification-btn svg { width: 18px; height: 18px; }
+/* The bell is a 38px icon button in the top bar, so its text label would not
+   fit inside it. The button carries aria-label="Notifications", so hiding the
+   span costs nothing to a screen reader. */
+.sh-notification-btn .sh-nav-label {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%);
+  white-space: nowrap;
+}
 /* The unread count only. The button also carries a visible text label in
    the rail, and styling every span as the badge turned that label into a
    red pill reading "Notifications". */
@@ -267,6 +277,25 @@ body.sh-body :focus-visible:not(input):not(textarea):not(select) {
 .sh-notification-item p strong { color: var(--sc-text); }
 .sh-notification-item time { display: block; margin-top: 3px; color: var(--sc-subtle); font-size: 11px; }
 .sh-notification-empty { margin: 0; padding: 28px 18px; text-align: center; color: var(--sc-muted); font-size: 13px; }
+/* Sticks to the bottom of the scrolling panel so it stays reachable however
+   far down the list you are. */
+.sh-notification-more {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  border-top: 1px solid var(--sc-border);
+  background: var(--sc-surface);
+  color: var(--sc-brand);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.sh-notification-more:hover { background: var(--sc-surface-2); }
+.sh-notification-more[disabled] { opacity: .6; cursor: default; }
+.sh-notification-more[hidden] { display: none !important; }
 .sh-theme-toggle:hover { color: var(--sc-text); border-color: var(--sc-border-strong); }
 .sh-theme-toggle svg { width: 17px; height: 17px; }
 .sh-theme-sun { display: none; }
@@ -1246,7 +1275,6 @@ body.pg-auth-page {
 /* 2. Rail rows, including the two controls that moved in from the top. */
 .sh-rail .sh-nav { gap: 1px; }
 .sh-rail .sh-nav a,
-.sh-rail .sh-notification-btn,
 .sh-rail .sh-theme-toggle {
   width: 100%;
   height: auto;
@@ -1265,28 +1293,9 @@ body.pg-auth-page {
   text-align: left;
   cursor: pointer;
 }
-.sh-rail .sh-notification-btn:hover,
 .sh-rail .sh-theme-toggle:hover { background: var(--sc-surface-2); color: var(--sc-text); }
 .sh-rail .sh-nav svg,
-.sh-rail .sh-notification-btn svg,
 .sh-rail .sh-theme-toggle svg { width: 17px; height: 17px; flex: none; }
-.sh-rail .sh-notification-wrap { position: relative; width: 100%; }
-.sh-rail .sh-notification-btn > span:not(.sh-nav-label) {
-  margin-left: auto;
-  min-width: 18px;
-  padding: 1px 6px;
-  border: 0;
-  border-radius: 20px;
-  background: var(--sc-danger);
-  color: #fff;
-  font-size: 10.5px;
-  font-weight: 700;
-}
-.sh-rail .sh-notification-panel {
-  left: 0;
-  right: auto;
-  width: min(340px, calc(100vw - 40px));
-}
 /* Which of the two theme icons shows is already decided further up this
    file (light shows the moon you would press to go dark, and vice versa).
    Restating it here inverted hid both at once, leaving a labelled row with
@@ -1498,9 +1507,6 @@ body.pg-auth-page {
     border-radius: 6px;
     background: var(--sc-border-strong);
   }
-  /* The panel is anchored to a row that can now scroll, so it hangs off the
-     rail instead of being clipped inside it. */
-  .sh-rail .sh-notification-panel { position: fixed; left: 12px; top: auto; }
 }
 
 /* Support & Legal added four rows, which pushed the rail past the viewport on
@@ -1509,11 +1515,10 @@ body.pg-auth-page {
    rail only on the short screens where it would otherwise not fit. Nothing
    changes on a tall display. */
 @media (min-width: 1060px) and (max-height: 900px) {
-  .sh-rail { gap: 10px; padding: 12px 12px; }
+  .sh-rail { gap: 9px; padding: 11px 12px; }
   .sh-rail .sh-nav a,
-  .sh-rail .sh-notification-btn,
-  .sh-rail .sh-theme-toggle { min-height: 31px; }
-  .sh-navgroup + .sh-navgroup { margin-top: 7px; }
+  .sh-rail .sh-theme-toggle { min-height: 30px; }
+  .sh-navgroup + .sh-navgroup { margin-top: 5px; }
   .sh-navgroup-title { margin-bottom: 0; }
   .sh-rail .sh-cta { min-height: 38px; }
 }
@@ -1522,7 +1527,10 @@ body.pg-auth-page {
    row-trimming fits twelve of them plus the brand, the button and the plan
    chip into a laptop's height. The group headings are the cheapest thing to
    lose: the gaps between the groups still read as grouping without them. */
-@media (min-width: 1060px) and (max-height: 820px) {
+/* Raised from 820px once Privacy, Terms and the notification row left the
+   rail: with three fewer rows the headings fit on every ordinary laptop,
+   and they only give way on a genuinely short window. */
+@media (min-width: 1060px) and (max-height: 680px) {
   .sh-rail .sh-social { display: none; }
   .sh-navgroup-title {
     position: absolute;
@@ -1547,7 +1555,6 @@ body.pg-auth-page {
 
   .sh-rail { gap: 8px; }
   .sh-rail .sh-nav a,
-  .sh-rail .sh-notification-btn,
   .sh-rail .sh-theme-toggle { min-height: 30px; }
 }
 

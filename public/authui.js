@@ -561,6 +561,7 @@
     var list = $("#notificationList");
     var badge = $("#notificationCount");
     var readButton = $("#notificationsReadBtn");
+    var moreButton = $("#notificationMore");
     if (!button || !panel || !list || !currentUser || button.dataset.ready === "1") return;
     button.dataset.ready = "1";
 
@@ -584,6 +585,13 @@
       updateBadge(data.unread);
       list.innerHTML = "";
       var items = data.notifications || [];
+      // `total` counts every notification, not the page just fetched, so this
+      // offers "show more" only when there is genuinely more to show — and
+      // stops offering it at the server's own ceiling.
+      if (moreButton) {
+        var total = Number(data.total) || items.length;
+        moreButton.hidden = items.length >= total || items.length >= 50;
+      }
       if (!items.length) {
         var empty = document.createElement("p");
         empty.className = "sh-notification-empty";
@@ -621,10 +629,27 @@
       });
     }
 
+    /* The panel opens on a short page and grows on request. Asking for the
+       maximum every time made the first paint wait on rows nobody had scrolled
+       to yet; the server caps the limit, so PAGE_MAX is that ceiling and not a
+       number chosen here. */
+    var PAGE_STEP = 10;
+    var PAGE_MAX = 50;
+    var shown = PAGE_STEP;
+
     function loadNotifications() {
-      return fetch("/api/notifications?limit=30", { headers: { Accept: "application/json" } })
+      return fetch("/api/notifications?limit=" + shown, { headers: { Accept: "application/json" } })
         .then(function (r) { return r.json(); })
         .then(function (j) { if (j && j.success) render(j); });
+    }
+
+    if (moreButton) {
+      moreButton.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        shown = Math.min(shown + PAGE_STEP, PAGE_MAX);
+        moreButton.disabled = true;
+        loadNotifications().finally(function () { moreButton.disabled = false; });
+      });
     }
 
     button.addEventListener("click", function (ev) {
@@ -632,7 +657,9 @@
       var opening = panel.hidden;
       panel.hidden = !opening;
       button.setAttribute("aria-expanded", opening ? "true" : "false");
-      if (opening) loadNotifications();
+      // Reopening starts from the short list again, so the panel does not keep
+      // whatever depth a previous session scrolled to.
+      if (opening) { shown = PAGE_STEP; loadNotifications(); }
     });
     document.addEventListener("click", function (ev) {
       if (!panel.hidden && !panel.contains(ev.target)) {
@@ -1989,7 +2016,7 @@
     var ref = editorLink ? editorLink.nextSibling : menu.firstChild;
     [
       { href: "/drafts", label: "My Projects" },
-      { href: "/uploads", label: "My Uploads", auth: true },
+      { href: "/uploads", label: "My published templates", auth: true },
       { href: "/settings", label: "Settings", auth: true },
       { href: "/tutorials", label: "Tutorials & Help" }
     ].forEach(function (item) {

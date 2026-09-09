@@ -185,6 +185,8 @@ function ok(pass, label, extra) {
       // decision while the page it reaches is the actual requirement.
       railHrefs: shown(".sh-rail .sh-nav a").map((a) => a.getAttribute("href")),
       railGroups: shown(".sh-rail .sh-navgroup-title").map((h) => h.textContent.trim()),
+      footerHrefs: [...document.querySelectorAll(".sh-foot a, footer a")]
+        .map((a) => a.getAttribute("href")),
       topbarCount: shown(".sh-top-actions > *").length,
       topbarHasNav: shown('.sh-top-actions a[href="/#templates"], .sh-top-actions a[href="/community"]').length,
       metaChildren: meta ? [...meta.children].map((c) => String(c.className)) : [],
@@ -196,17 +198,28 @@ function ok(pass, label, extra) {
       })()
     };
   });
-  ok(shape.railHrefs.length >= 7 && ["/uploads", "/settings", "/admin", "/drafts", "/community"]
+  // Creator Studio opens the Studio itself now, so /editor is the rail's
+  // destination and /uploads — the page that manages published work — is
+  // reached from the account menu instead.
+  ok(shape.railHrefs.length >= 7 && ["/editor", "/settings", "/admin", "/drafts", "/community"]
     .every((h) => shape.railHrefs.includes(h)),
     "the rail carries every workspace destination", shape.railHrefs.join(" "));
+  // Privacy and Terms left the rail for the footer. They still have to be
+  // reachable from every page — that is the point of putting them there.
+  ok(["/privacy", "/terms"].every((h) => shape.footerHrefs.includes(h)),
+    "the legal pages remain reachable from the footer",
+    shape.footerHrefs.filter((h) => h === "/privacy" || h === "/terms").join(" "));
   ok(shape.railGroups.length >= 2,
     "the rail is grouped rather than one flat list", shape.railGroups.join(" / "));
   ok(shape.popover === "none" || shape.popover === "absent",
     "no account popover duplicating the rail", shape.popover);
-  // Three: credits, upload and log out. Reaching the account page is the
-  // rail's account chip, which is on every page and shows who you are.
-  ok(shape.topbarCount === 3 && shape.topbarHasNav === 0,
-    "top bar keeps only credits, upload and log out", shape.topbarCount);
+  // Four: credits, notifications, upload and log out. The bell joined them
+  // because it opens a panel rather than going somewhere, which made it the
+  // one rail row that did not behave like a destination. What still must not
+  // appear here is navigation — that is the rail's job, and duplicating it
+  // was the original problem.
+  ok(shape.topbarCount === 4 && shape.topbarHasNav === 0,
+    "top bar keeps only credits, notifications, upload and log out", shape.topbarCount);
   ok(shape.metaChildren.length === 2 &&
     /sh-ttitle-row/.test(shape.metaChildren[0]) &&
     /sh-tcreator-row/.test(shape.metaChildren[1]),
