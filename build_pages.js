@@ -7,7 +7,11 @@ const fs = require("fs");
 const path = require("path");
 
 const OUT = path.join(__dirname, "public");
-const V = "202608292";
+/* Cache key for the CSS and JS the pages link. Bump it in the same commit as
+   any change to those files: they are served with a long max-age, so without
+   a new key a returning visitor keeps the old copy and sees a half-updated
+   product. */
+const V = "2026090922";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -33,6 +37,11 @@ const TPL_COUNT = (function () {
     let m;
     while ((m = re.exec(src))) ids.add(m[1]);
     ids.delete("blank");
+    const retired = src.match(/var\s+RETIRED_TEMPLATE_IDS\s*=\s*\{([\s\S]*?)\};/);
+    if (retired) {
+      const retiredId = /"([\w-]+)"\s*:\s*true/g;
+      while ((m = retiredId.exec(retired[1]))) ids.delete(m[1]);
+    }
     return ids.size;
   } catch (e) {
     return 90;
@@ -65,14 +74,39 @@ const SOCIAL = [
 ];
 
 const NAV = [
-  { href: "/#templates", label: "Templates", key: "templates",
+  { href: "/#templates", label: "Templates", key: "templates", group: "Workspace",
     icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
-  { href: "/drafts", label: "My Projects", key: "projects",
+  { href: "/drafts", label: "My Projects", key: "projects", group: "Workspace",
     icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' },
-  { href: "/community", label: "Community", key: "community",
+  { href: "/community", label: "Creator Skills", key: "community", group: "Workspace",
     icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-  { href: "/tutorials", label: "Tutorials & Help", key: "tutorials",
-    icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>' }
+  /* These four also sit in the footer, but a footer is only reachable after
+     scrolling a whole page. The rail is the one place present on every screen,
+     so the pages people look for when something has gone wrong belong here. */
+  { href: "/tutorials", label: "Tutorials & Help", key: "tutorials", group: "Support & Legal",
+    icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>' },
+  { href: "/contact", label: "Help & Feedback", key: "contact", group: "Support & Legal",
+    icon: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>' },
+  { href: "/about", label: "About Us", key: "about", group: "Support & Legal",
+    icon: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>' },
+  { href: "/privacy", label: "Privacy Policy", key: "privacy", group: "Support & Legal",
+    icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
+  { href: "/terms", label: "Terms of Service", key: "terms", group: "Support & Legal",
+    icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' },
+
+  /* Everything below used to live in a popover hanging off the account chip.
+     A destination the product has is a destination the rail should show:
+     hiding half the workspace behind a click made the sidebar look emptier
+     than the product actually is, and duplicated the same links in the top
+     bar. `auth` gates a row the same way data-auth gates anything else. */
+  { href: "/uploads", label: "Creator Studio", key: "uploads", auth: "in", group: "Workspace",
+    icon: '<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/><path d="M3 21h18"/>' },
+  { href: "/settings", label: "Account & settings", key: "settings", auth: "in", group: "Account",
+    icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
+  { href: "/pricing", label: "Subscription & Plans", key: "pricing", group: "Account",
+    icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
+  { href: "/admin", label: "Admin Console", key: "admin", auth: "admin", group: "Account",
+    icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' }
 ];
 
 const TOOLS = [
@@ -94,6 +128,10 @@ function BARE(p, V) {
      two competing "main content" landmarks on the page. */
   return `
 <div class="pg-screen">
+  <button type="button" class="sh-theme-toggle pg-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+    <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+    <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
   <a href="/" class="pg-wordmark" aria-label="ShortsCraft home">
     <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
     <span class="sh-brand-name">Shorts<i>Craft</i></span>
@@ -109,6 +147,7 @@ ${p.body}
 </div>
 
 <script src="/authui.js?v=${V}" defer></script>
+<script src="/theme.js?v=${V}" defer></script>
 <script src="/page.js?v=${V}" defer></script>
 ${p.scripts || ""}</body>
 </html>
@@ -116,10 +155,29 @@ ${p.scripts || ""}</body>
 }
 
 function chrome(p) {
-  const nav = NAV.map((n) => `        <a href="${n.href}"${n.key === p.active ? ' aria-current="page"' : ""}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${n.icon}</svg>
-          <span>${n.label}</span>
-        </a>`).join("\n");
+  /* Grouped rather than flat. The rail carries ten destinations now, and an
+     undifferentiated list of ten is something you read top to bottom every
+     time instead of jumping to the part of the product you want. A group
+     whose rows are all signed-in only carries the same gate, so a guest
+     never sees an "Account" heading standing over nothing. */
+  const navGroup = (title) => {
+    const items = NAV.filter((n) => n.group === title);
+    if (!items.length) return "";
+    const allGated = items.every((n) => n.auth) ? ` data-auth="in" hidden` : "";
+    const rows = items.map((n) => {
+      const current = n.key === p.active ? ' aria-current="page"' : "";
+      const gate = n.auth ? ` data-auth="${n.auth}" hidden` : "";
+      return `          <a href="${n.href}"${current}${gate}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${n.icon}</svg>
+            <span>${n.label}</span>
+          </a>`;
+    }).join("\n");
+    return `        <div class="sh-navgroup"${allGated}>
+          <h2 class="sh-navgroup-title">${title}</h2>
+${rows}
+        </div>`;
+  };
+  const nav = ["Workspace", "Account", "Support & Legal"].map(navGroup).filter(Boolean).join("\n");
 
   const head = `<!doctype html>
 <html lang="en">
@@ -137,9 +195,9 @@ ${p.robots ? `<meta name="robots" content="${p.robots}"/>\n` : ""}<meta property
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f7f7f5">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
 <link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
@@ -149,6 +207,11 @@ ${p.robots ? `<meta name="robots" content="${p.robots}"/>\n` : ""}<meta property
      the legacy theme and are deliberately never loaded here. -->
 <link rel="stylesheet" href="/shell.css?v=${V}">
 <link rel="stylesheet" href="/page.css?v=${V}">
+<link rel="stylesheet" href="/redesign.css?v=${V}">
+<!-- Motion layer. Loads last so it can add transitions to the finished
+     visual system without restating any of it. -->
+<link rel="stylesheet" href="/polish.css?v=${V}">
+<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 ${p.head || ""}</head>
 `;
 
@@ -180,6 +243,27 @@ ${SOCIAL.filter(s => s.href).map(s => `      <a href="${s.href}" rel="noopener" 
 
     <nav class="sh-nav" aria-label="Workspace">
 ${nav}
+
+      <!-- Notifications and the theme switch live in the rail rather than the
+           top bar, which carries the account only. Each sits in the group it
+           belongs to now that the rail is grouped. -->
+      <div class="sh-notification-wrap sh-navgroup-loose" data-auth="in" hidden>
+        <button type="button" class="sh-notification-btn" id="notificationBtn" aria-label="Notifications" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+          <span class="sh-nav-label">Notifications</span>
+          <span id="notificationCount" hidden>0</span>
+        </button>
+        <section class="sh-notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
+          <header><strong>Notifications</strong><button type="button" id="notificationsReadBtn">Mark all read</button></header>
+          <div id="notificationList"><p>Loading…</p></div>
+        </section>
+      </div>
+
+      <button type="button" class="sh-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="sh-nav-label">Theme</span>
+      </button>
     </nav>
 
     <div class="sh-rail-foot">
@@ -231,8 +315,8 @@ ${nav}
               <a href="/uploads" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
                 <div class="sh-upop-item-txt">
-                  <b>My Uploads</b>
-                  <span>Published community templates</span>
+                  <b>Creator Studio</b>
+                  <span>Published, scheduled and private templates</span>
                 </div>
               </a>
 
@@ -249,6 +333,14 @@ ${nav}
                 <div class="sh-upop-item-txt">
                   <b>Settings</b>
                   <span>Account &amp; preferences</span>
+                </div>
+              </a>
+
+              <a href="/admin" class="sh-upop-item" data-auth="admin" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Admin Console</b>
+                  <span>Users, content and support</span>
                 </div>
               </a>
 
@@ -292,39 +384,52 @@ ${nav}
 
   <div class="sh-main" id="main" role="main" tabindex="-1">
 
-    <header class="sh-topbar">
+    <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
-      <a href="/community" class="sh-tlink">Community</a>
-      <a href="/contact" class="sh-tlink">Feedback</a>
-      <a href="/about" class="sh-tlink">About</a>
-      <a href="/pricing" class="sh-tfill">Upgrade</a>
-      <span class="sh-tsep" aria-hidden="true"></span>
-      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Upload Custom Template (XML, Lottie, JSON, HTML)">
+      <a href="/" class="sh-topbrand" aria-label="ShortsCraft home">
+        <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
+        <span class="sh-brand-name">Shorts<i>Craft</i></span>
+      </a>
+      <nav class="sh-primary-nav" aria-label="Main">
+        <a href="/#templates"${p.active === "templates" ? ' aria-current="page"' : ""}>Templates</a>
+        <a href="/community"${p.active === "community" ? ' aria-current="page"' : ""}>Creator Skills</a>
+        <a href="/pricing"${p.active === "pricing" ? ' aria-current="page"' : ""}>Pricing</a>
+        <a href="/tutorials"${p.active === "tutorials" ? ' aria-current="page"' : ""}>Learn</a>
+      </nav>
+      <div class="sh-top-actions">
+      <a href="/pricing" class="sh-credit-chip" aria-label="View plan and credits">
+        <span class="sh-credit-plan">Free</span>
+        <span class="sh-credit-balance">${P.free.perDay} Credits</span>
+      </a>
+      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Publish an animation template" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload Template</span>
+        <span>Upload Animation</span>
       </button>
       <a href="/login" class="sh-tlink" data-auth="out">Log in</a>
       <a href="/signup" class="sh-tline" data-auth="out">Sign up</a>
-      <a href="/account" class="sh-tlink" data-auth="in" hidden>Account</a>
       <button type="button" class="sh-tline" id="logoutBtn" data-auth="in" hidden>Log out</button>
+      </div>
     </header>
 
     <div id="navMobile" hidden>
       <a href="/#templates">Templates</a>
-      <a href="/community">Community</a>
+      <a href="/community">Creator Skills</a>
+      <a href="/drafts">My Projects</a>
+      <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/editor">Editor</a>
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
       <a href="/contact">Help &amp; Feedback</a>
-      <button type="button" class="sh-m-upload-btn js-open-upload">
+      <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload Template</span>
+        <span>Publish Template</span>
       </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
       <a href="/account" data-auth="in" hidden>Account</a>
+      <a href="/admin" data-auth="admin" hidden>Admin Console</a>
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
@@ -338,14 +443,14 @@ ${p.body}
             <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
             <span class="sh-brand-name">Shorts<i>Craft</i></span>
           </a>
-          <p>The AI motion design studio for viral YouTube Shorts and kinetic animations.</p>
+          <p>Create, customise and export animation templates for short-form video.</p>
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
           <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
-          <a href="/community">Community Hub</a>
+          <a href="/community">Creator Skills</a>
           <a href="/pricing">Pricing</a>
         </nav>
 
@@ -368,6 +473,7 @@ ${p.body}
 </div><!-- /.sh-wrap -->
 
 <script src="/authui.js?v=${V}" defer></script>
+<script src="/theme.js?v=${V}" defer></script>
 ${p.noPageJs ? "" : `<script src="/page.js?v=${V}" defer></script>`}
 ${p.scripts || ""}</body>
 </html>
@@ -413,7 +519,7 @@ ${extra || ""}    </section>`;
 const CREDITS = require("./credits");
 const P = CREDITS.PLANS, C = CREDITS.COST;
 
-const pricing = {
+const pricingLegacy = {
   route: "/pricing",
   active: "pricing",
   title: "Pricing — ShortsCraft",
@@ -428,7 +534,7 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
         <span id="offerLeft"></span></p>
       </div>
 
-      <div class="pg-plans pg-plans3">
+      <div class="pg-plans pg-plans3" id="plans">
         <article class="pg-plan">
           <span class="pg-tier">${P.free.label}</span>
           <div class="pg-amt">₹0</div>
@@ -437,7 +543,7 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
             <li>All ${TPL_COUNT} motion templates</li>
             <li>Unlimited editing and preview</li>
             <li>Custom AI animations from your prompt</li>
-            <li>Export up to 720p</li>
+            <li>Export up to ${P.free.maxHeight}p</li>
             <li>Small ShortsCraft watermark</li>
           </ul>
           <a href="/" class="pg-bo">Start free</a>
@@ -508,14 +614,132 @@ ${pageHead("Pricing", "Three plans. One currency: credits.",
   scripts: `<script src="/checkout.js?v=${V}2" defer></script>`
 };
 
+const pricing = {
+  route: "/pricing",
+  active: "pricing",
+  title: "Plans and credits — ShortsCraft",
+  desc: "Compare ShortsCraft Free, Pro and Pro Max plans. Editing and previewing are unlimited; credits are used only for AI generation and video export.",
+  body: `    <main class="pg pg-pricing">
+${pageHead("Plans and credits", "Choose the output you need.",
+    `Every plan includes the complete template library and unlimited editing. Credits refresh daily; the monthly total below makes the plans easy to compare.`)}
+
+      <!-- Credit calculator.
+
+           The three plan cards state what each one gives; they do not answer
+           the question someone actually arrives with, which is "which of
+           these is enough for me". This turns a posting rate into a credit
+           number and points at the plan that covers it, using the same
+           per-day figures the cards and the ledger use. -->
+      <section class="pg-calc" aria-labelledby="calcHead">
+        <div class="pg-calc-ask">
+          <h2 id="calcHead">How many Shorts do you post a day?</h2>
+          <p>One export is ${C.export} credit, an AI scene ${C.aiStandard} to ${C.aiAdvanced}. Move the slider and we will point at the plan that covers it.</p>
+          <div class="pg-calc-read">
+            <b id="calcPosts">6</b>
+            <span><span id="calcPostsLabel">Shorts a day</span> · about <b id="calcNeeded">15 credits</b> a day</span>
+          </div>
+          <input type="range" id="calcRange" min="1" max="30" value="6"
+                 aria-label="Shorts posted per day"
+                 aria-describedby="calcNeeded">
+          <div class="pg-calc-scale" aria-hidden="true"><span>1</span><span>10</span><span>20</span><span>30</span></div>
+        </div>
+        <div class="pg-calc-rec">
+          <span class="pg-calc-kicker">Recommended</span>
+          <div class="pg-calc-plan"><b id="calcRecName">Pro</b> <span id="calcRecPrice">₹${P.pro.price}/month</span></div>
+          <p id="calcRecWhy">Forty credits a day leaves room for AI scenes and re-exports at your posting rate.</p>
+          <a href="#plans" class="pg-bw pg-calc-cta" id="calcRecCta">Choose Pro</a>
+        </div>
+      </section>
+
+      <div class="pg-billing-switch" role="group" aria-label="Billing period">
+        <button type="button" data-cycle="monthly" aria-pressed="true">Monthly</button>
+        <button type="button" data-cycle="yearly" aria-pressed="false">Yearly <span>Save up to 17%</span></button>
+      </div>
+
+      <div class="pg-plans pg-plans3">
+        <article class="pg-plan">
+          <span class="pg-tier">Free</span>
+          <div class="pg-amt">₹0</div>
+          <p class="pg-planline"><b>${P.free.monthlyCredits} credits each month</b>, delivered as ${P.free.perDay} fresh credits every day.</p>
+          <ul>
+            <li>All ${TPL_COUNT} animation templates</li>
+            <li>Unlimited editing and preview</li>
+            <li>Standard AI generation · ${C.aiStandard} credits</li>
+            <li>MP4 export up to ${P.free.maxHeight}p · ${C.export} credit</li>
+            <li>ShortsCraft watermark</li>
+            <li>${P.free.starsPerMonth} appreciation Stars per month</li>
+          </ul>
+          <a href="/signup" class="pg-bo" data-auth="out">Create free account</a>
+          <a href="/account" class="pg-bo" data-auth="in" hidden>Manage your plan</a>
+        </article>
+
+        <article class="pg-plan pg-hot">
+          <span class="pg-tier">Pro · Best for regular creators</span>
+          <div class="pg-amt" data-price-monthly="₹${P.pro.price}" data-price-yearly="₹${P.pro.yearlyPrice}">₹${P.pro.price}<small>/month</small></div>
+          <p class="pg-planline"><b>${P.pro.monthlyCredits.toLocaleString("en-IN")} credits each month</b>, delivered as ${P.pro.perDay} fresh credits every day.</p>
+          <ul>
+            <li>Everything in Free</li>
+            <li>Standard, Detailed and Advanced AI models</li>
+            <li>Watermark-free 1080p export</li>
+            <li>${P.pro.starsPerMonth} appreciation Stars per month</li>
+            <li>Priority export queue</li>
+            <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
+          </ul>
+          <button type="button" class="pg-bw pg-buy" data-plan="pro" data-cycle="monthly">Choose Pro</button>
+        </article>
+
+        <article class="pg-plan pg-max">
+          <span class="pg-tier">Pro Max · Highest output</span>
+          <div class="pg-amt" data-price-monthly="₹${P.promax.price}" data-price-yearly="₹${P.promax.yearlyPrice}">₹${P.promax.price}<small>/month</small></div>
+          <p class="pg-planline"><b>${P.promax.monthlyCredits.toLocaleString("en-IN")} credits each month</b>, delivered as ${P.promax.perDay} fresh credits every day.</p>
+          <ul>
+            <li>Everything in Pro</li>
+            <li>Watermark-free export up to 1440p</li>
+            <li>${P.promax.starsPerMonth} appreciation Stars per month</li>
+            <li>Highest export queue priority</li>
+            <li>Early access to new animation tools</li>
+            <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
+          </ul>
+          <button type="button" class="pg-bo pg-buy" data-plan="promax" data-cycle="monthly">Choose Pro Max</button>
+        </article>
+      </div>
+
+      <p class="pg-note pg-center" id="buyNote" role="status" aria-live="polite"></p>
+      <p class="pg-fine pg-center">Annual plans are billed once a year. Credits refresh daily and unused daily credits do not stack.</p>
+
+      <section class="pg-sec" id="credits">
+        <h2>What uses credits</h2>
+        <div class="pg-grid">
+          <article class="pg-card"><h3>${C.export} credit · Export</h3><p>A real MP4 render from any template or AI-generated scene. Previewing before export is always free.</p></article>
+          <article class="pg-card"><h3>${C.aiStandard} credits · Standard AI</h3><p>Fast prompt-to-animation planning for every user.</p></article>
+          <article class="pg-card"><h3>${C.aiDetailed} credits · Detailed AI</h3><p>A more deliberate result for subscribed creators.</p></article>
+          <article class="pg-card"><h3>${C.aiAdvanced} credits · Advanced AI</h3><p>The highest-complexity planning option for any paid subscriber.</p></article>
+        </div>
+        <p class="pg-callout">Launch note: while ShortsCraft is being completed, every tier uses the best available free model provider. Paid model routing will only be enabled after the launch test period; the interface will never label a free backend as a paid model.</p>
+      </section>
+
+      <section class="pg-sec">
+        <h2>Plan questions</h2>
+        <div class="pg-faq">
+          <details open><summary>Why show monthly credits if they refresh daily?</summary><p>The monthly number makes plans easy to compare. The daily refresh protects the export queue and gives you a predictable new balance every day.</p></details>
+          <details><summary>Can every paid subscriber use every AI option?</summary><p>Yes. Pro and Pro Max unlock Standard, Detailed and Advanced generation; each option uses 2, 5 or 8 credits.</p></details>
+          <details><summary>What happens when a render fails?</summary><p>If generation or export fails on our side after charging, that operation's credits are returned automatically.</p></details>
+          <details><summary>Does the yearly plan include verification?</summary><p>Yes. The verified creator badge stays active for the paid yearly subscription period. ShortsCraft's own @shortscraft account is permanently verified.</p></details>
+          <details><summary>Are Stars the same as credits?</summary><p>No. Credits pay for generation and export. Stars are non-cash appreciation that creators can give to one another.</p></details>
+        </div>
+      </section>
+    </main>`,
+  scripts: `<script src="/checkout.js?v=${V}" defer></script>`
+};
+
 /* ── ABOUT ────────────────────────────────────────────────── */
 const about = {
   route: "/about",
   active: null,
   title: "About — ShortsCraft",
-  desc: "ShortsCraft is an AI motion-design workspace for short-form creators: CSS-based motion templates, a real timeline editor and server-side MP4 export.",
+  desc: "ShortsCraft is an animation-template workspace for short-form creators, with a practical editor and server-side MP4 export.",
   body: `    <main class="pg">
-${pageHead("About", "A motion-design workspace, not another text-on-gradient app.", "ShortsCraft turns one line of an idea into an animated vertical video, and hands you the SEO pack that goes with it.")}
+${pageHead("About", "A practical animation workspace for short-form creators.", "Start with an editable template or describe a new scene, customise it in the Studio, and export a vertical MP4.")}
 
       <section class="pg-sec pg-prose">
         <h2>Why we rebuilt it</h2>
@@ -610,7 +834,7 @@ ${pageHead("Tutorials & Help", "Make your first Short in three minutes.",
         <div class="pg-grid">
           <article class="pg-card">
             <h3>What costs a credit</h3>
-            <p>Exporting a video costs ${C.export}. Asking the AI to design a new scene costs ${C.animate}. Browsing, editing, previewing and the SEO tools cost nothing.</p>
+            <p>Exporting a video costs ${C.export}. Standard, Detailed and Advanced AI generation cost ${C.aiStandard}, ${C.aiDetailed} and ${C.aiAdvanced} credits. Browsing, editing and previewing cost nothing.</p>
           </article>
           <article class="pg-card">
             <h3>Why exports are the thing we charge for</h3>
@@ -661,338 +885,393 @@ ${pageHead("Tutorials & Help", "Make your first Short in three minutes.",
 };
 
 
-/* ── COMMUNITY ─────────────────────────────────────────────
-   Was a hand-written public/community.html carrying its own copy of the
-   sidebar, the plan badge and the nav. That duplicate is exactly why fixes
-   kept missing this page: the YouTube handle, the "Tutorials & Help"
-   destination and the credit numbers were all corrected here and the community
-   page went on showing the old ones. It is generated from the same chrome as
-   every other page now, so there is one copy of all of it. */
+/* ── COMMUNITY: creator tutorials ──────────────────────────
+   This page used to be a second template grid, and that was its whole
+   problem: every template on it was already in the main library, by the same
+   author, on an identical card. Two pages answered "what can I make?" and
+   nothing answered "does this actually work, and how?".
+
+   So it carries tutorials now — videos creators published on their own
+   channels that teach something. The video is never hosted here. A creator
+   submits a tutorial to be watched, and the watching has to happen where
+   their subscribers are; a link sends the view to them, an embed keeps it. */
 const community = {
   route: "/community",
   active: "community",
-  title: "Community Templates — ShortsCraft",
-  desc: "Discover, customize and publish creator motion graphics templates. Built by creators for YouTube Shorts and Instagram Reels.",
+  title: "Creator Skills — ShortsCraft",
+  desc: "Tutorials and walkthroughs made by ShortsCraft creators. Learn how a template was built, then open it in the Studio.",
   head: `<style>
-.sh-comm-head{
-  padding:50px 28px 20px;
-  display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;
-}
-.sh-comm-head h1{
-  font-family:var(--sh-display);
-  font-size:clamp(28px,4vw,44px);
+.sk-head{padding:50px 28px 14px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.sk-head h1{
+  font-family:var(--sh-display);font-size:clamp(28px,4vw,44px);
   margin:0 0 8px;font-weight:700;letter-spacing:-.03em;
 }
-.sh-comm-head p{margin:0;font-size:15px;color:var(--sh-ink2);max-width:560px}
-.sh-pub-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  height:42px;padding:0 22px;border-radius:999px;
-  background:#fff;color:#000 !important;font-weight:650;font-size:14px;
-  text-decoration:none;transition:transform .15s ease;
-}
-.sh-pub-btn:hover{transform:translateY(-1px);background:#f2f2f2}
+.sk-head p{margin:0;font-size:15px;color:var(--sh-ink2);max-width:540px;line-height:1.55}
 
-.sh-author-row{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-top:8px;padding-top:8px;border-top:1px solid var(--sh-line);
+.sk-share-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:42px;padding:0 22px;border:0;border-radius:999px;cursor:pointer;
+  background:var(--sh-ink);color:var(--sh-bg1);font:inherit;font-weight:650;font-size:14px;
+  transition:transform .15s ease,opacity .15s ease;
 }
-.sh-author{
-  display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--sh-ink3);
+.sk-share-btn:hover{transform:translateY(-1px);opacity:.9}
+
+/* ── Submission panel ───────────────────────────────────── */
+.sk-form{
+  margin:0 28px 20px;padding:18px;
+  border:1px solid var(--sh-line);border-radius:16px;background:var(--sh-bg2);
+  display:grid;gap:13px;max-width:660px;
 }
-.sh-author b{color:var(--sh-ink);font-weight:600}
-.sh-like-btn{
-  background:none;border:1px solid var(--sh-line);border-radius:999px;
-  color:var(--sh-ink2);padding:3px 10px;font-size:12px;cursor:pointer;
-  display:inline-flex;align-items:center;gap:4px;transition:all .15s ease;
+.sk-form[hidden]{display:none}
+.sk-form h2{margin:0;font-size:16px;font-weight:700}
+.sk-form-note{margin:0;font-size:13px;color:var(--sh-ink3);line-height:1.5}
+.sk-f{display:grid;gap:5px}
+.sk-f label{font-size:12.5px;color:var(--sh-ink3)}
+.sk-f input,.sk-f textarea{
+  width:100%;padding:10px 12px;
+  border:1px solid var(--sh-line);border-radius:10px;
+  background:var(--sh-bg1);color:var(--sh-ink);font:inherit;font-size:13.5px;
 }
-.sh-like-btn:hover{border-color:var(--sh-line2);color:#fff;background:rgba(255,255,255,.06)}
-.sh-like-btn.liked{color:#ff3b5c;border-color:rgba(255,59,92,.4);background:rgba(255,59,92,.1)}
+.sk-f textarea{min-height:70px;resize:vertical;line-height:1.5}
+.sk-f input:focus,.sk-f textarea:focus{outline:none;border-color:var(--sh-line2)}
+.sk-form-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sk-submit{
+  height:40px;padding:0 20px;border:0;border-radius:10px;cursor:pointer;
+  background:var(--sh-ink);color:var(--sh-bg1);font:inherit;font-weight:650;font-size:13.5px;
+}
+.sk-submit[disabled]{opacity:.55;cursor:default}
+.sk-cancel{
+  height:40px;padding:0 16px;border:1px solid var(--sh-line);border-radius:10px;
+  background:none;color:var(--sh-ink2);font:inherit;font-size:13.5px;cursor:pointer;
+}
+.sk-msg{margin:0;font-size:13px;line-height:1.5}
+.sk-msg.err{color:#e5484d}
+.sk-msg.ok{color:#2a9d5c}
+
+/* ── Cards ──────────────────────────────────────────────── */
+.sk-grid{
+  padding:8px 28px 12px;
+  display:grid;gap:18px;
+  grid-template-columns:repeat(auto-fill,minmax(266px,1fr));
+}
+.sk-card{
+  border:1px solid var(--sh-line);border-radius:16px;overflow:hidden;
+  background:var(--sh-bg2);display:flex;flex-direction:column;
+  transition:border-color .15s ease,transform .15s ease;
+}
+.sk-card:hover{border-color:var(--sh-line2);transform:translateY(-2px)}
+.sk-thumb{
+  display:block;position:relative;aspect-ratio:16/9;
+  background:var(--sh-bg3);overflow:hidden;
+}
+.sk-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+/* Instagram publishes no open thumbnail endpoint, so those cards get a drawn
+   panel rather than a broken image frame. */
+.sk-thumb-fallback{
+  position:absolute;inset:0;display:grid;place-items:center;
+  color:var(--sh-ink3);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+}
+.sk-play{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(0,0,0,.62);display:grid;place-items:center;
+}
+.sk-play svg{width:16px;height:16px;fill:#fff;margin-left:2px}
+.sk-body{padding:13px 14px 12px;display:grid;gap:6px;flex:1}
+.sk-title{margin:0;font-size:14.5px;font-weight:650;line-height:1.35;color:var(--sh-ink)}
+.sk-title a{color:inherit;text-decoration:none}
+.sk-title a:hover{text-decoration:underline}
+.sk-summary{
+  margin:0;font-size:12.5px;color:var(--sh-ink3);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sk-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:auto;padding:9px 14px;border-top:1px solid var(--sh-line);
+  font-size:12px;color:var(--sh-ink3);
+}
+.sk-author{display:inline-flex;align-items:center;gap:5px;min-width:0}
+.sk-author a{color:var(--sh-ink);font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sk-author a:hover{text-decoration:underline}
+.sk-tick{width:12px;height:12px;flex:none}
+.sk-plat{
+  flex:none;padding:2px 8px;border:1px solid var(--sh-line);border-radius:999px;
+  font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+}
+.sk-tpl{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11.5px;color:var(--sh-ink3);text-decoration:none;
+}
+.sk-tpl:hover{color:var(--sh-ink);text-decoration:underline}
+
+/* ── Your submissions ───────────────────────────────────── */
+.sk-mine{padding:6px 28px 0;max-width:760px}
+.sk-mine[hidden]{display:none}
+.sk-mine h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--sh-ink3);margin:0 0 10px;font-weight:600}
+.sk-mine-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 13px;border:1px solid var(--sh-line);border-radius:11px;
+  background:var(--sh-bg2);margin-bottom:8px;font-size:13px;
+}
+.sk-mine-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sh-ink)}
+.sk-pill{
+  flex:none;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;
+  border:1px solid var(--sh-line);color:var(--sh-ink3);
+}
+.sk-pill.pending{border-color:#c99a2e59;color:#b8860b}
+.sk-pill.published{border-color:#2a9d5c59;color:#2a9d5c}
+.sk-pill.rejected{border-color:#e5484d59;color:#e5484d}
+.sk-mine-note{font-size:12px;color:var(--sh-ink3);margin:-4px 0 10px;padding-left:13px}
+
+/* ── Empty state ────────────────────────────────────────── */
+.sk-empty{
+  margin:6px 28px 28px;padding:44px 28px;text-align:center;
+  border:1px dashed var(--sh-line2);border-radius:18px;
+}
+.sk-empty h3{margin:0 0 8px;font-size:19px;font-weight:700}
+.sk-empty p{margin:0 auto 18px;max-width:440px;color:var(--sh-ink2);font-size:14px;line-height:1.6}
+
+@media (max-width:640px){
+  .sk-head{padding:32px 18px 12px}
+  .sk-grid{padding:8px 18px 12px;grid-template-columns:1fr}
+  .sk-form{margin:0 18px 18px}
+  .sk-mine,.sk-empty{margin-left:18px;margin-right:18px;padding-left:0;padding-right:0}
+}
 </style>`,
   body: `    <main class="sh-home">
-      <section class="sh-comm-head">
+      <section class="sk-head">
         <div>
-          <span class="sh-eyebrow">✦ Creator Showcase</span>
-          <h1>Community Templates</h1>
-          <p>Explore animations published by creator accounts. Open any template to customize text, typography and colors in the Studio.</p>
+          <span class="sh-eyebrow">Creator skills</span>
+          <h1>Learn from other creators</h1>
+          <p>Walkthroughs and teaching videos made by people who use ShortsCraft. Every video plays on the creator's own channel.</p>
         </div>
-        <button type="button" class="sh-pub-btn sh-tupload-btn">
+        <button type="button" class="sk-share-btn" id="skShareBtn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          Upload / Publish Template
+          Share a tutorial
         </button>
       </section>
 
-      <div class="sh-ratio-switch" id="commRatioSwitch" style="padding: 0 28px 10px;" role="group" aria-label="Aspect Ratio Filter">
-        <span class="sh-ratio-lbl">Format:</span>
-        <button type="button" class="sh-rchip active" data-ar="9:16" aria-pressed="true">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/></svg>
-          <span>9:16 Shorts/Reels</span>
-        </button>
-        <button type="button" class="sh-rchip" data-ar="16:9" aria-pressed="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
-          <span>16:9 YouTube</span>
-        </button>
-        <button type="button" class="sh-rchip" data-ar="1:1" aria-pressed="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
-          <span>1:1 Square</span>
-        </button>
-        <button type="button" class="sh-rchip" data-ar="4:5" aria-pressed="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/></svg>
-          <span>4:5 Feed</span>
-        </button>
-      </div>
+      <form class="sk-form" id="skForm" hidden>
+        <h2>Share a tutorial</h2>
+        <p class="sk-form-note">Paste the link to a video you have already published on YouTube or Instagram. We never host the video — people watch it on your channel, so the views stay yours. A moderator checks each submission before it appears here.</p>
 
-      <div class="sh-filters-wrap" style="padding: 0 28px;">
-        <button type="button" class="sh-fnav-btn prev" id="commFnavPrev" aria-label="Scroll categories left">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <div class="sh-filters" id="commFilters">
-          <button type="button" class="sh-chip" data-cat="all" aria-pressed="true">All</button>
-          <button type="button" class="sh-chip" data-cat="text" aria-pressed="false">Text</button>
-          <button type="button" class="sh-chip" data-cat="ui" aria-pressed="false">UI Elements</button>
-          <button type="button" class="sh-chip" data-cat="social" aria-pressed="false">Social Media</button>
-          <button type="button" class="sh-chip" data-cat="logos" aria-pressed="false">Logos</button>
-          <button type="button" class="sh-chip" data-cat="charts" aria-pressed="false">Charts &amp; Data</button>
-          <button type="button" class="sh-chip" data-cat="money" aria-pressed="false">Money</button>
+        <div class="sk-f">
+          <label for="skUrl">Video link</label>
+          <input type="url" id="skUrl" name="url" placeholder="https://youtu.be/… or https://instagram.com/reel/…" required>
         </div>
-        <button type="button" class="sh-fnav-btn next" id="commFnavNext" aria-label="Scroll categories right">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
+        <div class="sk-f">
+          <label for="skTitle">Title</label>
+          <input type="text" id="skTitle" name="title" maxlength="90" placeholder="What does the video teach?" required>
+        </div>
+        <div class="sk-f">
+          <label for="skSummary">Short description <span style="opacity:.65">— optional</span></label>
+          <textarea id="skSummary" name="summary" maxlength="220" placeholder="One or two lines about what someone will learn."></textarea>
+        </div>
+        <div class="sk-f">
+          <label for="skTemplate">Which template does it cover? <span style="opacity:.65">— optional</span></label>
+          <input type="text" id="skTemplate" name="templateId" maxlength="60" placeholder="e.g. text-cascade">
+        </div>
+
+        <div class="sk-form-actions">
+          <button type="submit" class="sk-submit" id="skSubmit">Submit for review</button>
+          <button type="button" class="sk-cancel" id="skCancel">Cancel</button>
+        </div>
+        <p class="sk-msg" id="skMsg" role="status"></p>
+      </form>
+
+      <section class="sk-mine" id="skMine" hidden data-auth="in">
+        <h2>Your tutorials</h2>
+        <div id="skMineList"></div>
+      </section>
+
+      <div class="sk-grid" id="skGrid"></div>
+
+      <div class="sk-empty" id="skEmpty" hidden>
+        <h3>No tutorials yet</h3>
+        <p>This is where creators explain how they made something. If you have published a walkthrough on YouTube or Instagram, it can be the first one here.</p>
+        <div class="sh-gallery-end-actions">
+          <a href="/#templates" class="sh-ge-btn sh-ge-primary">Browse the template library</a>
+          <a href="/tutorials" class="sh-ge-btn">Read the written guides</a>
+        </div>
       </div>
-
-      <div class="sh-gallery" id="commGallery" data-ar="9:16" style="padding-top:16px;"></div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=9" defer></script><script>
-(function() {
+scripts: `<script>
+(function () {
   "use strict";
-  var grid = document.getElementById("commGallery");
-  var filterBar = document.getElementById("commFilters");
-  var ratioBar = document.getElementById("commRatioSwitch");
-  var allTemplates = [];
-  var currentCat = "all";
-  var currentAspect = "9:16";
+  var grid = document.getElementById("skGrid");
+  var empty = document.getElementById("skEmpty");
+  var form = document.getElementById("skForm");
+  var shareBtn = document.getElementById("skShareBtn");
+  var cancelBtn = document.getElementById("skCancel");
+  var submitBtn = document.getElementById("skSubmit");
+  var msg = document.getElementById("skMsg");
+  var mine = document.getElementById("skMine");
+  var mineList = document.getElementById("skMineList");
+  var signedIn = false;
 
-  /* A failed load used to log to the console and leave the grid empty, so a
-     database outage rendered as a page that had simply finished loading with
-     nothing on it. Say what happened and offer a retry instead. */
-  function showLoadError() {
-    if (!grid) return;
-    grid.innerHTML = "";
-    var box = document.createElement("div");
-    box.className = "sh-comm-error";
-    var h = document.createElement("b");
-    h.textContent = "Could not load community templates";
-    var msg = document.createElement("span");
-    msg.textContent = "The gallery is temporarily unavailable. The Studio and the main template library are unaffected.";
-    var row = document.createElement("div");
-    row.className = "sh-comm-error-row";
-    var again = document.createElement("button");
-    again.type = "button";
-    again.className = "sh-comm-retry";
-    again.textContent = "Try again";
-    again.addEventListener("click", function () { loadTemplates(); });
-    var browse = document.createElement("a");
-    browse.className = "sh-comm-retry alt";
-    browse.href = "/#templates";
-    browse.textContent = "Browse all templates";
-    row.appendChild(again);
-    row.appendChild(browse);
-    box.appendChild(h);
-    box.appendChild(msg);
-    box.appendChild(row);
-    grid.appendChild(box);
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
-  function showLoading() {
-    if (!grid) return;
-    grid.innerHTML = "";
-    var l = document.createElement("p");
-    l.className = "sh-comm-loading";
-    l.textContent = "Loading community templates…";
-    grid.appendChild(l);
+  function say(text, kind) {
+    if (!msg) return;
+    msg.textContent = text || "";
+    msg.className = "sk-msg" + (kind ? " " + kind : "");
   }
 
-  function loadTemplates() {
-    showLoading();
-    /* The server waits on its database connection before it can answer, so a
-       dead database left this request open for 20s with the page just saying
-       "Loading". Give up sooner and show the retry. */
-    var ctrl = ("AbortController" in window) ? new AbortController() : null;
-    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 12000);
-    fetch("/api/community-templates", ctrl ? { signal: ctrl.signal } : undefined)
-      .then(function(r) {
-        clearTimeout(bail);
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
-      .then(function(d) {
-        if (!d || !d.templates) throw new Error((d && d.error) || "No templates in response");
-        allTemplates = d.templates;
-        renderGrid();
-      })
-      .catch(function(err) {
-        clearTimeout(bail);
-        console.error("Could not load community templates", err);
-        showLoadError();
-      });
+  var TICK = '<svg class="sk-tick" viewBox="0 0 24 24" fill="#1d9bf0" aria-label="Verified"><path d="M12 2l2.4 1.8 3-.2.9 2.9 2.4 1.8-1.2 2.7 1.2 2.7-2.4 1.8-.9 2.9-3-.2L12 22l-2.4-1.8-3 .2-.9-2.9L3.3 15.7 4.5 13 3.3 10.3l2.4-1.8.9-2.9 3 .2z"/><path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.9-3.9 1.1 1.1z" fill="#fff"/></svg>';
+
+  var PLAY = '<span class="sk-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
+
+  function card(s) {
+    var el = document.createElement("article");
+    el.className = "sk-card";
+
+    // rel="noopener" because every one of these links leaves for a site we do
+    // not control, opened in a new tab.
+    var thumb = s.thumbnail
+      ? '<img src="' + esc(s.thumbnail) + '" alt="" loading="lazy" width="480" height="270">'
+      : '<span class="sk-thumb-fallback">' + esc(s.platform) + '</span>';
+
+    var authorHref = s.author.handle ? "/creator?handle=" + encodeURIComponent(s.author.handle) : "";
+    var authorName = esc(s.author.name) + (s.author.verified ? TICK : "");
+    var author = authorHref
+      ? '<a href="' + esc(authorHref) + '">' + authorName + "</a>"
+      : "<span>" + authorName + "</span>";
+
+    el.innerHTML =
+      '<a class="sk-thumb" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+        thumb + PLAY +
+      "</a>" +
+      '<div class="sk-body">' +
+        '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+          esc(s.title) + "</a></h3>" +
+        (s.summary ? '<p class="sk-summary">' + esc(s.summary) + "</p>" : "") +
+        (s.templateId
+          ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">Open ' +
+            esc(s.templateId) + " in the Studio →</a>"
+          : "") +
+      "</div>" +
+      '<div class="sk-foot">' +
+        '<span class="sk-author">' + author + "</span>" +
+        '<span class="sk-plat">' + esc(s.platform) + "</span>" +
+      "</div>";
+    return el;
   }
 
-  function renderGrid() {
-    if (!grid) return;
+  function render(list) {
     grid.innerHTML = "";
-    grid.dataset.ar = currentAspect;
-    var list = (currentCat === "all") ? allTemplates : allTemplates.filter(function(t) { return t.category === currentCat; });
-
     if (!list.length) {
-      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:40px;color:var(--sh-ink3);">No community templates in this category yet. Be the first to publish one!</p>';
+      grid.hidden = true;
+      empty.hidden = false;
       return;
     }
+    grid.hidden = false;
+    empty.hidden = true;
+    var frag = document.createDocumentFragment();
+    list.forEach(function (s) { frag.appendChild(card(s)); });
+    grid.appendChild(frag);
+  }
 
-    var e = window.SC_TPL2;
+  function load() {
+    return fetch("/api/skills", { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { render((j && j.skills) || []); })
+      .catch(function () {
+        // A failed load must not look like an empty community.
+        grid.hidden = true;
+        empty.hidden = false;
+        empty.querySelector("h3").textContent = "Could not load tutorials";
+        empty.querySelector("p").textContent = "Something went wrong reaching the server. Reload the page to try again.";
+      });
+  }
 
-    list.forEach(function(t) {
-      var tile = document.createElement("article");
-      tile.className = "sh-tile";
-
-      var stage = document.createElement("a");
-      stage.className = "sh-stage";
-      var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl || "type-cascade")
-        + "&accent=" + encodeURIComponent(t.accent || "#ffffff")
-        + "&font=" + encodeURIComponent(t.font || "inter")
-        + "&dur=" + encodeURIComponent(t.dur || 4600)
-        + "&aspect=" + encodeURIComponent(currentAspect)
-        + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
-      stage.href = editUrl;
-      stage.setAttribute("aria-label", "Open " + t.title + " in Video Studio");
-
-      var use = document.createElement("span");
-      use.className = "sh-use";
-      use.textContent = "Customize template";
-      stage.appendChild(use);
-
-      if (e && typeof e.build === "function") {
-        var html = e.build(t.tpl, {
-          lines: t.lines,
-          accent: t.accent,
-          font: t.font,
-          dur: t.dur,
-          aspect: currentAspect
-        });
-        if (html) {
-          var frame = document.createElement("iframe");
-          frame.setAttribute("sandbox", "");
-          frame.setAttribute("scrolling", "no");
-          frame.setAttribute("tabindex", "-1");
-          frame.setAttribute("aria-hidden", "true");
-          frame.srcdoc = html;
-          stage.appendChild(frame);
-        }
+  function renderMine(list) {
+    if (!mine || !mineList) return;
+    if (!list.length) { mine.hidden = true; return; }
+    mine.hidden = false;
+    mineList.innerHTML = "";
+    list.forEach(function (s) {
+      var row = document.createElement("div");
+      row.className = "sk-mine-row";
+      row.innerHTML =
+        '<span class="sk-mine-title">' + esc(s.title) + "</span>" +
+        '<span class="sk-pill ' + esc(s.status) + '">' + esc(s.status) + "</span>";
+      mineList.appendChild(row);
+      // A rejection without its reason is indistinguishable from a submission
+      // that vanished, so the note is shown to the person who wrote it.
+      if (s.status === "rejected" && s.reviewNote) {
+        var note = document.createElement("p");
+        note.className = "sk-mine-note";
+        note.textContent = s.reviewNote;
+        mineList.appendChild(note);
       }
-
-      var meta = document.createElement("div");
-      meta.className = "sh-tmeta";
-      var b = document.createElement("b");
-      b.textContent = t.title;
-      var sp = document.createElement("span");
-      sp.textContent = t.description;
-      meta.appendChild(b);
-      meta.appendChild(sp);
-
-      var arow = document.createElement("div");
-      arow.className = "sh-author-row";
-      arow.innerHTML = '<div class="sh-author"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> <b>@' + (t.authorHandle || "creator") + '</b></div>'
-        + '<button type="button" class="sh-like-btn" data-id="' + t.id + '">❤️ <span>' + (t.likes || 1) + '</span></button>';
-
-      meta.appendChild(arow);
-      tile.appendChild(stage);
-      tile.appendChild(meta);
-      grid.appendChild(tile);
-    });
-
-    // Wire like buttons
-    grid.querySelectorAll(".sh-like-btn").forEach(function(btn) {
-      btn.addEventListener("click", function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var id = btn.dataset.id;
-        var isLiked = btn.classList.contains("liked");
-        var endpoint = isLiked ? "/api/community-templates/" + id + "/unlike" : "/api/community-templates/" + id + "/like";
-        fetch(endpoint, { method: "POST" })
-          .then(function(r) { return r.json(); })
-          .then(function(res) {
-            if (res && res.success) {
-              if (isLiked) {
-                btn.classList.remove("liked");
-              } else {
-                btn.classList.add("liked");
-              }
-              btn.querySelector("span").textContent = res.likes;
-            }
-          });
-      });
     });
   }
 
-  if (filterBar) {
-    filterBar.addEventListener("click", function(ev) {
-      var btn = ev.target && ev.target.closest(".sh-chip");
-      if (!btn) return;
-      filterBar.querySelectorAll(".sh-chip").forEach(function(b) {
-        b.setAttribute("aria-pressed", String(b === btn));
-      });
-      currentCat = btn.dataset.cat;
-      renderGrid();
+  function loadMine() {
+    return fetch("/api/skills/mine", { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j && j.skills) renderMine(j.skills); })
+      .catch(function () {});
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener("click", function () {
+      if (!signedIn) {
+        location.href = "/login?next=" + encodeURIComponent("/community");
+        return;
+      }
+      form.hidden = !form.hidden;
+      if (!form.hidden) document.getElementById("skUrl").focus();
+    });
+  }
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", function () { form.hidden = true; say(""); });
+  }
+
+  if (form) {
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var body = {
+        url: document.getElementById("skUrl").value,
+        title: document.getElementById("skTitle").value,
+        summary: document.getElementById("skSummary").value,
+        templateId: document.getElementById("skTemplate").value
+      };
+      submitBtn.disabled = true;
+      say("Sending…");
+      fetch("/api/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (out) {
+          if (!out.ok || !out.j.success) {
+            say((out.j && out.j.error) || "Could not share that tutorial.", "err");
+            return;
+          }
+          say("Thanks — a moderator will review it before it appears here.", "ok");
+          form.reset();
+          loadMine();
+        })
+        .catch(function () { say("Could not reach the server. Try again.", "err"); })
+        .finally(function () { submitBtn.disabled = false; });
     });
   }
 
-  if (ratioBar) {
-    ratioBar.addEventListener("click", function(ev) {
-      var btn = ev.target && ev.target.closest(".sh-rchip");
-      if (!btn || !btn.dataset.ar) return;
-      var ar = btn.dataset.ar;
-      if (ar === currentAspect) return;
-      currentAspect = ar;
-      ratioBar.querySelectorAll(".sh-rchip").forEach(function(b) {
-        var active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-pressed", String(active));
-      });
-      renderGrid();
-    });
-  }
+  fetch("/api/auth/me", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      signedIn = !!(j && j.user);
+      if (signedIn) loadMine();
+    })
+    .catch(function () {});
 
-  /* Category strip arrows. The buttons were in the markup but wired to
-     nothing, so they sat there doing nothing at either end of the strip.
-     Each one nudges the strip by most of a screenful, and both hide
-     themselves when there is nothing further to scroll to — an arrow that
-     cannot move is worse than no arrow. */
-  (function wireStripArrows() {
-    var strip = document.getElementById("commFilters");
-    var prev = document.getElementById("commFnavPrev");
-    var next = document.getElementById("commFnavNext");
-    if (!strip || !prev || !next) return;
-
-    function sync() {
-      var max = strip.scrollWidth - strip.clientWidth;
-      // 2px of slack: sub-pixel layout means scrollLeft rarely lands exactly
-      // on 0 or on max, which would leave an arrow visible but inert.
-      prev.hidden = strip.scrollLeft <= 2;
-      next.hidden = strip.scrollLeft >= max - 2;
-    }
-
-    function nudge(dir) {
-      strip.scrollBy({ left: dir * Math.max(160, strip.clientWidth * 0.8), behavior: "smooth" });
-    }
-
-    prev.addEventListener("click", function () { nudge(-1); });
-    next.addEventListener("click", function () { nudge(1); });
-    strip.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("resize", sync);
-    sync();
-  })();
-
-  window.addEventListener("DOMContentLoaded", function() {
-    loadTemplates();
-  });
+  load();
 })();
 </script>`
 };
@@ -1018,11 +1297,14 @@ ${pageHead("Help &amp; Feedback", "Tell us what is broken or missing.", "Bug rep
           <div class="pg-f">
             <label for="fbSubject">Subject</label>
             <select id="fbSubject" name="subject">
-              <option>Bug report</option>
-              <option>Template request</option>
-              <option>Billing or Pro plan</option>
-              <option>Feature idea</option>
-              <option>Something else</option>
+              <option value="Bug report" data-category="other">Bug report</option>
+              <option value="Template request" data-category="template">Template request</option>
+              <option value="Export or rendering problem" data-category="export">Export or rendering problem</option>
+              <option value="Account or login problem" data-category="account">Account or login problem</option>
+              <option value="Billing or plan question" data-category="billing">Billing or plan question</option>
+              <option value="Report a template" data-category="report">Report a template</option>
+              <option value="Feature idea" data-category="other">Feature idea</option>
+              <option value="Something else" data-category="other">Something else</option>
             </select>
           </div>
           <div class="pg-f">
@@ -1051,15 +1333,20 @@ ${SOCIAL.filter(s => s.href).map(s => `              <a href="${s.href}" rel="no
           </section>
           <section class="pg-card">
             <h2>Response time</h2>
-            <p>Usually within two days. Billing questions are answered first.</p>
+            <p>The target is a reply within two working days. Billing and blocked exports are reviewed first.</p>
           </section>
         </aside>
       </div>
+
+      <section class="pg-sec" id="supportHistory" hidden>
+        <div class="pg-accsec-head"><h2>Your support tickets</h2><span class="pg-fine">Signed-in account only</span></div>
+        <div class="pg-grid" id="supportTicketGrid"></div>
+      </section>
     </main>`
 };
 
 /* ── LEGAL ────────────────────────────────────────────────── */
-const UPDATED = "8 August 2026";
+const UPDATED = "2 September 2026";
 
 const privacy = {
   route: "/privacy",
@@ -1146,7 +1433,7 @@ ${pageHead("Legal", "Terms of Service", `Last updated ${UPDATED}. By using Short
         <p>The free plan includes ${P.free.perDay} credits per day. A video export costs ${C.export} credit and a custom AI scene costs ${C.animate}; editing and previewing do not spend credits. Resolution and queue limits keep rendering usable for everyone, and may be adjusted as capacity changes.</p>
 
         <h2>Pro plan, billing and refunds</h2>
-        <p>Pro is ₹99 per month, billed through Razorpay. Cancel any time; access continues to the end of the period already paid for. If the service did not work for you, ask for a refund within 7 days of upgrading through <a href="/contact">Help &amp; Feedback</a>.</p>
+        <p>Pro starts at ₹${P.pro.price} per month and Pro Max at ₹${P.promax.price} per month, with optional annual billing through Razorpay. Cancel any time; access continues to the end of the paid period. If a payment is charged but the plan is not delivered, contact <a href="/contact">Help &amp; Feedback</a> with the payment reference.</p>
 
         <h2>Availability</h2>
         <p>This is an independently run product. We do not promise uptime, and features can change or be withdrawn. Exports depend on server capacity — a long render may be queued.</p>
@@ -1180,7 +1467,7 @@ const notfound = {
           <a href="/" class="pg-bo">Back to templates</a>
         </div>
         <nav class="pg-404links" aria-label="Popular pages">
-          <a href="/seo-tools">SEO Tools</a>
+          <a href="/community">Creator Skills</a>
           <a href="/pricing">Pricing</a>
           <a href="/about">About</a>
           <a href="/contact">Help &amp; Feedback</a>
@@ -1277,6 +1564,13 @@ const authPage = (kind) => {
       </section>
 
       <form class="pg-form pg-auth" id="authForm" data-kind="${kind}" novalidate>
+        ${isUp ? `<div class="pg-f">
+          <label for="authHandle">Creator username <span>— unique, 3–30 characters</span></label>
+          <div class="pg-handle-input"><span>@</span><input id="authHandle" name="handle" type="text"
+                 autocomplete="username" maxlength="30" pattern="[a-zA-Z0-9_]{3,30}"
+                 placeholder="yourname" required></div>
+          <small>This becomes your public profile link. You can change it later.</small>
+        </div>` : ""}
         <div class="pg-f">
           <label for="authEmail">Email</label>
           <input id="authEmail" name="email" type="email" autocomplete="email"
@@ -1296,6 +1590,9 @@ const authPage = (kind) => {
       : 'No account yet? <a href="/signup">Create one</a>.'}
           ${isUp ? 'By creating an account you accept our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.' : ""}
         </p>
+        ${isUp ? "" : `<p class="pg-fine">
+          Forgotten your password? <a href="/forgot-password">Reset it</a>.
+        </p>`}
       </form>
     </main>`
   };
@@ -1311,203 +1608,253 @@ const account = {
 
       <section class="ig-prof-container" id="accountBox" hidden>
 
-        <!-- Instagram Profile Header -->
+        <!-- Profile header.
+
+             Rebuilt away from the Instagram pastiche: a story ring and a
+             128px avatar work when a grid of photos sits under them, and
+             read as an empty stage when a new creator has one template.
+             This leads with who the person is and what they have, and
+             surfaces the profile fields the product already stores but
+             never showed - location, website and channel links. -->
         <header class="ig-header">
-          <!-- Left: Story Gradient Avatar Ring -->
           <div class="ig-avatar-col">
-            <div class="ig-story-ring" title="Creator Profile">
+            <div class="ig-story-ring" title="Profile photo">
               <div class="ig-avatar" id="crAvatarChar">KA</div>
             </div>
           </div>
 
-          <!-- Right: Profile Info -->
           <div class="ig-info-col">
-            <!-- Row 1: Username & Action Buttons -->
             <div class="ig-user-row">
-              <h1 class="ig-username" id="crHandle">@creator</h1>
-              <span class="ig-badge" title="Verified Creator">
-                <svg viewBox="0 0 24 24" fill="#0095f6" width="18" height="18" aria-label="Verified"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              </span>
+              <div class="ig-name-block">
+                <h1 class="ig-fullname" id="crDisplayName">Creator</h1>
+                <div class="ig-handle-line">
+                  <span class="ig-username" id="crHandle">@creator</span>
+                  <span class="ig-badge" id="crVerifiedBadge" title="Verified creator - an active yearly plan, not an identity check" hidden>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" aria-label="Verified"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <span>Verified</span>
+                  </span>
+                </div>
+              </div>
 
               <div class="ig-actions-row">
-                <button type="button" class="ig-btn ig-btn-secondary" id="openEditProfileBtn">Edit profile</button>
-                <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Share Creator Profile">Share profile</button>
-                <button type="button" class="ig-btn ig-btn-danger" id="accLogout" title="Log out of ShortsCraft">Log out</button>
+                <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
+                <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
               </div>
             </div>
 
-            <!-- Row 2: Stats Counter -->
+            <p class="ig-bio" id="crBio"></p>
+
+            <div class="ig-links-row">
+              <span class="ig-link-pill" id="crLocationChip" hidden>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="crLocationText"></span>
+              </span>
+              <a id="crWebsiteLink" href="/" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span id="crWebsiteText">Website</span>
+              </a>
+              <a id="crYtLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
+                <span>YouTube</span>
+              </a>
+              <a id="crIgLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                <span>Instagram</span>
+              </a>
+            </div>
+
+            <!-- Credits were a stat here as well as in the rail and the top
+                 bar. They belong to the plan, not to the profile, so they
+                 now appear once - under Plan and credits. -->
             <ul class="ig-stats-row">
-              <li class="ig-stat"><strong id="igCreationsCount">0</strong> <span>creations</span></li>
-              <li class="ig-stat"><strong id="crStarsCount">0</strong> <span>stars</span></li>
-              <li class="ig-stat"><strong id="igCreditsCount">8</strong> <span>daily credits</span></li>
+              <!-- Each stat opens the tab behind it. A count you cannot open is
+                   a claim rather than a fact, which is the thing this product
+                   is not supposed to print. -->
+              <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="stars"><strong id="crStarsCount">0</strong> <span>Stars received</span></button></li>
             </ul>
-
-            <!-- Row 3: Name, Category, Bio & Social Links -->
-            <div class="ig-bio-block">
-              <div class="ig-fullname" id="crDisplayName">Creator</div>
-              <div class="ig-category">🎬 AI Motion Graphics &amp; Video Creator</div>
-              <div class="ig-bio" id="crBio">Designing viral YouTube Shorts, Instagram Reels &amp; AI kinetic typography motion graphics.</div>
-
-              <div class="ig-links-row">
-                <a id="crYtLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff0000"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
-                  <span>YouTube</span>
-                </a>
-                <a id="crIgLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e1306c" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                  <span>Instagram</span>
-                </a>
-                <a href="/" class="ig-link-pill">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                  <span>shortscraft.online</span>
-                </a>
-              </div>
-            </div>
           </div>
         </header>
 
-        <!-- Instagram Story Highlights Tray -->
-        <div class="ig-highlights-tray" aria-label="Creator Highlights">
-          <a href="/editor" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">⚡</div></div>
-            <span class="ig-hl-label">Studio</span>
-          </a>
-          <a href="/#templates" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">🎬</div></div>
-            <span class="ig-hl-label">Templates</span>
-          </a>
-          <a href="/pricing" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">💎</div></div>
-            <span class="ig-hl-label">Pro Plan</span>
-          </a>
-          <a href="/community" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">🔥</div></div>
-            <span class="ig-hl-label">Community</span>
-          </a>
-          <a href="/tutorials" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">💡</div></div>
-            <span class="ig-hl-label">Tutorials</span>
-          </a>
-          <a href="/editor" class="ig-highlight-item ig-hl-add">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">+</div></div>
-            <span class="ig-hl-label">New Short</span>
-          </a>
-        </div>
+        <!-- The story-highlights tray was six links to /editor,
+             /#templates, /pricing, /community and /tutorials — every one
+             of them already a row in the rail, two clicks from here and
+             visible on every page. It duplicated the navigation it sat
+             next to, and its labels were the least readable text on the
+             page, so the profile now starts at its own content. -->
 
-        <!-- Instagram Navigation Tabs -->
+        <!-- Tabs.
+
+             "Saved & Drafts" held three cards that linked to /drafts,
+             /uploads and /editor - all three already rows in the rail, so
+             the tab was navigation wearing a tab's clothes. It is replaced
+             by the two things the plan asks this page to carry and it
+             never did: Stars (non-cash appreciation, monthly allowance)
+             and the user's own support history. -->
         <nav class="ig-tabs" role="tablist">
-          <button type="button" class="ig-tab-btn is-active" data-ig-tab="creations" role="tab" aria-selected="true">
+          <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            <span>POSTS</span>
+            <span>Creations</span>
           </button>
-          <button type="button" class="ig-tab-btn" data-ig-tab="saved" role="tab" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            <span>SAVED &amp; DRAFTS</span>
+          <button type="button" class="ig-tab-btn" id="igTabFollowers" data-ig-tab="followers" role="tab" aria-controls="igPaneFollowers" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            <span>Followers</span>
           </button>
-          <button type="button" class="ig-tab-btn" data-ig-tab="account" role="tab" aria-selected="false">
+          <button type="button" class="ig-tab-btn" id="igTabFollowing" data-ig-tab="following" role="tab" aria-controls="igPaneFollowing" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg>
+            <span>Following</span>
+          </button>
+          <button type="button" class="ig-tab-btn" id="igTabStars" data-ig-tab="stars" role="tab" aria-controls="igPaneStars" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.4 12 18.1 5.8 21.4 7 14.5 2 9.6 8.9 8.6 12 2"/></svg>
+            <span>Stars</span>
+          </button>
+          <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>PLAN &amp; CREDITS</span>
+            <span>Plan &amp; credits</span>
           </button>
-          <button type="button" class="ig-tab-btn" data-ig-tab="edit" role="tab" aria-selected="false">
+          <button type="button" class="ig-tab-btn" id="igTabSupport" data-ig-tab="support" role="tab" aria-controls="igPaneSupport" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Support</span>
+          </button>
+          <button type="button" class="ig-tab-btn" id="igTabEdit" data-ig-tab="edit" role="tab" aria-controls="igPaneEdit" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>EDIT PROFILE</span>
+            <span>Edit profile</span>
           </button>
         </nav>
 
-        <!-- Tab 1: Posts & Creations Grid -->
-        <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel">
+        <!-- Tab 1: published creations -->
+        <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel" aria-labelledby="igTabCreations">
           <div class="ig-grid" id="userCreationsGrid">
-            <!-- Dynamic creation cards rendered by authui.js -->
+            <!-- Rendered by authui.js -->
           </div>
         </section>
 
-        <!-- Tab 2: Saved & Drafts -->
-        <section class="ig-pane" id="igPaneSaved" role="tabpanel" hidden>
-          <div class="ig-saved-grid">
-            <article class="ig-saved-card">
-              <div class="ig-saved-icon">📁</div>
-              <div class="ig-saved-info">
-                <h3>Drafts &amp; Timelines</h3>
-                <p>Pick up right where you left off in your multi-clip projects.</p>
-              </div>
-              <a href="/drafts" class="ig-btn ig-btn-primary">Open Drafts →</a>
-            </article>
-            <article class="ig-saved-card">
-              <div class="ig-saved-icon">☁️</div>
-              <div class="ig-saved-info">
-                <h3>Community Uploads</h3>
-                <p>Manage the templates and motion presets you shared publicly.</p>
-              </div>
-              <a href="/uploads" class="ig-btn ig-btn-secondary">View Uploads →</a>
-            </article>
-            <article class="ig-saved-card">
-              <div class="ig-saved-icon">⚡</div>
-              <div class="ig-saved-info">
-                <h3>Motion Studio</h3>
-                <p>Launch the editor to compose brand new kinetic text animations.</p>
-              </div>
-              <a href="/editor" class="ig-btn ig-btn-primary">Open Studio →</a>
-            </article>
+        <!-- Followers and following.
+
+             The profile has shown these counts since it was built, with
+             nothing behind them: no way to see who, and no way to follow
+             back. These are the real lists, and each row carries the
+             follow control so the list is somewhere you can act. -->
+        <section class="ig-pane" id="igPaneFollowers" role="tabpanel" aria-labelledby="igTabFollowers" hidden>
+          <div class="ig-people" id="followersList" data-kind="followers">
+            <p class="ig-acc-sub">Loading…</p>
           </div>
         </section>
 
-        <!-- Tab 3: Account, Plan & Balance -->
-        <section class="ig-pane" id="igPaneAccount" role="tabpanel" hidden>
+        <section class="ig-pane" id="igPaneFollowing" role="tabpanel" aria-labelledby="igTabFollowing" hidden>
+          <div class="ig-people" id="followingList" data-kind="following">
+            <p class="ig-acc-sub">Loading…</p>
+          </div>
+        </section>
+
+        <!-- Tab 2: Stars.
+
+             The plan is explicit that Stars must never read as money while
+             monetization is off, so the wording says so on the page rather
+             than in a tooltip. -->
+        <section class="ig-pane" id="igPaneStars" role="tabpanel" aria-labelledby="igTabStars" hidden>
           <div class="ig-account-grid">
             <article class="ig-account-card">
-              <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Account Email</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              </div>
-              <p class="ig-acc-val" id="accEmail">—</p>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars to give this month</span></div>
+              <p class="ig-acc-val" id="starsBalance">—</p>
+              <p class="ig-acc-sub" id="starsAllowance">Your monthly allowance refreshes on the 1st.</p>
             </article>
 
+            <article class="ig-account-card">
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars received</span></div>
+              <p class="ig-acc-val" id="starsReceived">—</p>
+              <p class="ig-acc-sub">From other creators, on your published templates.</p>
+            </article>
+
+            <article class="ig-account-card">
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars given</span></div>
+              <p class="ig-acc-val" id="starsSent">—</p>
+              <p class="ig-acc-sub">Appreciation you have sent to other creators.</p>
+            </article>
+          </div>
+
+          <div class="ig-note-block">
+            <h4>What Stars are</h4>
+            <p>Stars are a way to say a template helped you. They are <strong>not money and cannot be withdrawn, transferred or converted into credits</strong>. Every plan gets a monthly allowance to give away; giving one costs you nothing.</p>
+            <p class="ig-acc-sub">Creator monetization is not live. If it ever is, it will be announced with its own terms — Stars given today do not create a claim on it.</p>
+          </div>
+        </section>
+
+        <!-- Tab 3: plan and credits -->
+        <section class="ig-pane" id="igPaneAccount" role="tabpanel" aria-labelledby="igTabAccount" hidden>
+          <div class="ig-account-grid">
             <article class="ig-account-card ig-acc-highlight">
               <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Current Plan</span>
-                <span class="ig-badge ig-badge-pill">✦ ACTIVE</span>
+                <span class="ig-acc-lbl">Current plan</span>
+                <!-- This pill used to read "ACTIVE" for everyone, including
+                     accounts with no plan at all. It is filled from the
+                     ledger now, or hidden. -->
+                <span class="ig-badge ig-badge-pill" id="accPlanState" hidden></span>
               </div>
               <p class="ig-acc-val" id="accPlan">—</p>
               <p class="ig-acc-sub" id="accPlanTerm"></p>
-              <a href="/pricing" class="ig-card-cta">Upgrade or Change Plan →</a>
+              <a href="/pricing" class="ig-card-cta">Compare plans →</a>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Daily Credits Balance</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              </div>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Credits today</span></div>
               <p class="ig-acc-val" id="accCredits">—</p>
-              <p class="ig-acc-sub">Resets every 24 hours at 00:00 UTC</p>
+              <p class="ig-acc-sub" id="accCreditCosts">Export 1 · AI scene 2. Credits refresh daily at 00:00 UTC and do not stack.</p>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Member Since</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Account email</span></div>
+              <p class="ig-acc-val ig-acc-wrap" id="accEmail">—</p>
+            </article>
+
+            <article class="ig-account-card">
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Member since</span></div>
               <p class="ig-acc-val" id="accSince">—</p>
             </article>
           </div>
 
           <div class="ig-danger-zone">
             <div class="ig-danger-info">
-              <h4>Session Management</h4>
-              <p>Log out of ShortsCraft on this device.</p>
+              <h4>Sign out</h4>
+              <p>Ends this session on this device. Your work is kept.</p>
             </div>
             <button type="button" class="ig-btn ig-btn-danger" id="accLogoutPane">Log out</button>
           </div>
         </section>
 
+        <!-- Tab 4: support history.
+
+             The plan requires a signed-in user to be able to see their own
+             tickets. The API existed; the page never asked for it, so the
+             contact form was a one-way street. -->
+        <section class="ig-pane" id="igPaneSupport" role="tabpanel" aria-labelledby="igTabSupport" hidden>
+          <div class="ig-support-head">
+            <div>
+              <h3>Your support requests</h3>
+              <p class="ig-acc-sub">Billing and broken exports are handled first. ShortsCraft is run by one person, so replies usually take up to two working days.</p>
+            </div>
+            <a href="/contact" class="ig-btn ig-btn-primary">New request</a>
+          </div>
+          <div class="ig-support-list" id="supportTicketList">
+            <p class="ig-acc-sub">Loading your requests…</p>
+          </div>
+        </section>
+
         <!-- Tab 4: Edit Profile Form -->
-        <section class="ig-pane" id="igPaneEdit" role="tabpanel" hidden>
+        <section class="ig-pane" id="igPaneEdit" role="tabpanel" aria-labelledby="igTabEdit" hidden>
           <div class="ig-edit-container">
             <div class="ig-edit-header">
               <div class="ig-edit-av" id="pageAvatarPreview">KA</div>
               <div class="ig-edit-av-info">
                 <h3 id="pageAvatarHandle">@creator</h3>
-                <p>Customise your public creator brand and social media channel links</p>
+                <p>Use a clear photo or logo. PNG, JPG or WebP, up to 2 MB.</p>
+                <div class="ig-avatar-actions">
+                  <button type="button" class="ig-btn ig-btn-secondary" id="pageChooseAvatarBtn">Change photo</button>
+                  <button type="button" class="ig-btn ig-btn-secondary" id="pageRemoveAvatarBtn">Remove</button>
+                  <input type="file" id="pageAvatarInput" accept="image/png,image/jpeg,image/webp" hidden>
+                </div>
               </div>
             </div>
 
@@ -1538,6 +1885,16 @@ const account = {
 
               <div class="ig-grid-2">
                 <div class="ig-field">
+                  <label class="ig-label" for="pageWebsite">Website</label>
+                  <input type="url" id="pageWebsite" class="ig-input" placeholder="https://yourwebsite.com" maxlength="180" />
+                </div>
+
+                <div class="ig-field">
+                  <label class="ig-label" for="pageLocation">Location <span class="ig-hint">Optional</span></label>
+                  <input type="text" id="pageLocation" class="ig-input" placeholder="e.g. Delhi, India" maxlength="80" />
+                </div>
+
+                <div class="ig-field">
                   <label class="ig-label" for="pageYoutube">YouTube Channel URL</label>
                   <div class="ig-input-wrap">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="#ff0000"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
@@ -1556,6 +1913,7 @@ const account = {
 
               <div class="ig-form-foot">
                 <span id="pageProfileMsg" class="ig-msg"></span>
+                <button type="button" class="ig-btn ig-btn-secondary" id="pageCancelProfileBtn">Cancel</button>
                 <button type="submit" class="ig-btn ig-btn-primary" id="pageSaveProfileBtn">Save Profile Changes</button>
               </div>
             </form>
@@ -1572,20 +1930,21 @@ const indexPage = {
   route: "/",
   active: "templates",
   noPageJs: true,
-  title: "ShortsCraft — AI Motion Graphics Video Generator for YouTube Shorts",
-  desc: "Create animated YouTube Shorts from your script with AI. Generate motion graphics, kinetic typography, viral reel animations, captions, SEO titles, hashtags and thumbnail prompts in one creator workspace.",
+  title: "ShortsCraft — Create and customize motion templates",
+  desc: "Create short-form animations from a prompt or customize motion templates in a focused browser editor. Preview freely and export a real MP4 when it is ready.",
   head: `<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>`,
   body: `    <main class="sh-home">
       <section class="sh-hero">
-        <h1>What can I help animate?</h1>
-        <p class="sh-hero-sub">Your AI motion designer for stunning animations, viral Shorts and kinetic typefaces.</p>
+        <span class="sh-home-kicker">Animation workspace</span>
+        <h1>What do you want to animate?</h1>
+        <p class="sh-hero-sub">Describe a scene or start from a template. You stay in control of the text, colour, timing and layout.</p>
       </section>
 
       <form class="sh-composer" id="composer" action="/editor" method="GET">
         <div class="sh-ctop">
           <label class="ed-sr" for="composerPrompt">Describe the animation you want</label>
           <textarea id="composerPrompt" name="topic" rows="2" maxlength="600"
-            placeholder="What will you imagine? e.g. a glass pricing card that flips to reveal ₹99, dark with one green accent"></textarea>
+            placeholder="Example: A clean pricing card that flips to reveal ₹199, with a blue accent"></textarea>
         </div>
         <div class="sh-cbar">
           <input type="file" id="composerImg" accept="image/png,image/jpeg,image/webp,image/gif" class="ed-sr">
@@ -1598,31 +1957,37 @@ const indexPage = {
           <div class="sh-custom-select" id="qualityDropdown">
             <input type="hidden" name="quality" id="qualitySelect" value="mini">
             <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Model tier: Free">
-              <span class="sh-csel-sparkle">✦</span>
-              <span class="sh-csel-val" id="qualityVal">Free (${C.animate} credits)</span>
+              <span class="sh-csel-val" id="qualityVal">Standard · ${C.animate} credits</span>
               <svg class="sh-csel-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="sh-csel-menu" id="qualityMenu" role="listbox" hidden>
               <div class="sh-csel-opt selected" role="option" data-val="mini" aria-selected="true">
-                <div class="sh-csel-opt-main"><b>✦ Free</b><span>Fast standard generation · ${C.animate} credits</span></div>
+                <div class="sh-csel-opt-main"><b>Standard</b><span>Available to everyone · ${C.animate} credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
               <div class="sh-csel-opt" role="option" data-val="pro" aria-selected="false">
-                <div class="sh-csel-opt-main"><b>✦ Pro</b><span>Priority speed & detailed motion · ${C.animate} credits</span></div>
+                <div class="sh-csel-opt-main"><b>Detailed</b><span>Paid plan required · 5 credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
               <div class="sh-csel-opt" role="option" data-val="max" aria-selected="false">
-                <div class="sh-csel-opt-main"><b>✦ Pro Max</b><span>Max fidelity & complex layouts · ${C.animate} credits</span></div>
+                <div class="sh-csel-opt-main"><b>Advanced</b><span>Paid plan required · 8 credits</span></div>
                 <svg class="sh-csel-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
               </div>
             </div>
           </div>
           <div class="sh-cgrow"></div>
-          <button class="sh-cgo" id="composerGo" type="submit">Create <span aria-hidden="true">→</span></button>
+          <!-- What the next click costs, before it is clicked. The tier picker
+               already shows the generation price; this is the export price,
+               which is the charge people were meeting only at the end. -->
+          <span class="sh-cnote">Export costs ${C.export} credit${C.export === 1 ? "" : "s"}</span>
+          <button class="sh-cgo" id="composerGo" type="submit">Create animation <span aria-hidden="true">→</span></button>
         </div>
       </form>
 
       <section class="sh-gallery-sec" id="templates">
+        <div class="sh-gallery-title">
+          <div><span class="sh-home-kicker">Template library</span><h2>Browse free templates</h2></div>
+        </div>
         <div class="sh-ghead">
           <div class="sh-search-bar-row">
             <div class="sh-search-box">
@@ -1634,13 +1999,25 @@ const indexPage = {
           </div>
         </div>
         <div class="sh-gallery" id="gallery" data-ar="9:16"></div>
+
+        <!-- The grid used to just stop. Someone who scrolled every template
+             without finding the one they wanted had nowhere to go from there,
+             which is exactly the moment the AI composer is the answer. -->
+        <div class="sh-gallery-end">
+          <h3>Didn't find the animation you wanted?</h3>
+          <p>Describe it instead and the studio will build a scene you can edit, or start from a blank timeline.</p>
+          <div class="sh-gallery-end-actions">
+            <a href="/editor" class="sh-ge-btn sh-ge-primary">Create animation</a>
+            <a href="/community" class="sh-ge-btn">Watch creator tutorials</a>
+          </div>
+        </div>
       </section>
 
       <section class="sh-workflow-sec">
         <div class="sh-section-head">
-          <span class="sh-eyebrow">✦ 3-Step Motion Engine</span>
-          <h2>How the AI Motion Graphics Video Generator Works</h2>
-          <p>Create thumb-stopping kinetic motion graphics and animated text reels in 3 frictionless steps.</p>
+          <span class="sh-eyebrow">How it works</span>
+          <h2>From template to finished animation</h2>
+          <p>Choose a starting point, make it yours, then export the format you need.</p>
         </div>
         <div class="sh-workflow-grid">
           <div class="sh-workflow-card">
@@ -1648,24 +2025,24 @@ const indexPage = {
             <div class="sh-workflow-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
             </div>
-            <h3>Prompt or Pick Template</h3>
-            <p>Describe your idea in simple English or Hinglish, or choose from our gallery of pre-built kinetic motion templates.</p>
+            <h3>Describe or choose</h3>
+            <p>Write what you need in English or Hinglish, or begin with an existing template from the library.</p>
           </div>
           <div class="sh-workflow-card">
             <span class="sh-workflow-num">02</span>
             <div class="sh-workflow-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
             </div>
-            <h3>Live Dynamic Customizer</h3>
-            <p>Fine-tune colors, fonts, speeds, layout, and copy with real-time zero-lag preview in the Studio editor.</p>
+            <h3>Customise in the Studio</h3>
+            <p>Adjust the content, colours, type, timing and layout while the preview updates.</p>
           </div>
           <div class="sh-workflow-card">
             <span class="sh-workflow-num">03</span>
             <div class="sh-workflow-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
             </div>
-            <h3>Export MP4 &amp; Publish</h3>
-            <p>Render H.264 MP4s at up to 1440p and 60 FPS for YouTube Shorts &amp; Reels, or share as a community template.</p>
+            <h3>Export or publish</h3>
+            <p>Render an MP4 at the resolution included in your plan, or publish the editable template to the community.</p>
           </div>
         </div>
       </section>
@@ -1673,26 +2050,26 @@ const indexPage = {
       <section class="sh-banner-sec">
         <div class="sh-community-card">
           <div class="sh-comm-info">
-            <span class="sh-eyebrow">✦ Creator Community Hub</span>
-            <h2>Publish Your Animations as Templates</h2>
-            <p>Create animations with AI prompts, customize presets, and publish them to the community gallery for creators worldwide to use and customize.</p>
+            <span class="sh-eyebrow">Creator community</span>
+            <h2>Publish an editable template</h2>
+            <p>Share your customised version with its real creator identity, reactions and comments attached.</p>
             <div class="sh-comm-acts">
-              <a href="/community" class="sh-bw">Explore Community Hub <span aria-hidden="true">→</span></a>
+              <a href="/community" class="sh-bw">Watch creator tutorials <span aria-hidden="true">→</span></a>
               <a href="/editor" class="sh-bo">Open Studio</a>
             </div>
           </div>
           <div class="sh-comm-badge-box">
             <div class="sh-stat-pill">
-              <b>100%</b>
-              <span>CSS Vector Motion</span>
+              <b>${TPL_COUNT}</b>
+              <span>Built-in templates</span>
             </div>
             <div class="sh-stat-pill">
-              <b>60 FPS</b>
-              <span>Silky Smooth Loops</span>
+              <b>1 credit</b>
+              <span>Per export</span>
             </div>
             <div class="sh-stat-pill">
               <b>Up to 1440p</b>
-              <span>High-Res Rendering</span>
+              <span>Plan-based export</span>
             </div>
           </div>
         </div>
@@ -1708,7 +2085,7 @@ const indexPage = {
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=9" defer></script><script src="/shell.js?v=9" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=13" defer></script><script src="/shell.js?v=${V}" defer></script>`
 };
 
 const templatePage = {
@@ -1748,11 +2125,11 @@ const templatePage = {
               <span class="sh-m-c-handle td-creator-handle">@shortscraft</span>
               <span class="sh-m-c-bio td-creator-bio">Official curated ShortsCraft animation library presets.</span>
             </div>
-            <span style="color:var(--sh-ink3);font-size:16px;font-weight:700;">→</span>
+            <span style="color:var(--sh-ink2);font-size:16px;font-weight:700;">→</span>
           </a>
 
           <div class="sh-m-comments" id="comments">
-            <h2 class="sh-m-comm-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink3);font-size:13px;"></span></h2>
+            <h2 class="sh-m-comm-head">Community Comments <span id="commentsCount" style="color:var(--sh-ink2);font-size:13px;"></span></h2>
             <form class="sh-m-comm-form" id="commentForm">
               <textarea class="sh-m-comm-input" id="commentInput" placeholder="Write a comment or question about this template..." required></textarea>
               <button type="submit" class="sh-m-comm-btn">Post Comment</button>
@@ -1764,40 +2141,50 @@ const templatePage = {
         </div>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=9"></script><script src="/template-detail.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=13"></script><script src="/template-detail.js?v=4" defer></script>`
 };
 
 const creatorPage = {
   route: "/creator",
   active: "community",
   title: "Creator Profile — ShortsCraft",
-  desc: "Explore animated templates, viral presets and creations by this creator on ShortsCraft.",
+  desc: "Explore animation templates and creations published by this creator on ShortsCraft.",
   head: `<style>
 .cp-wrap{padding:36px 32px 64px;max-width:1300px;margin:0 auto}
 .cp-hero{display:flex;align-items:center;gap:24px;background:var(--sh-bg2);border:1px solid var(--sh-line);border-radius:24px;padding:32px;margin-bottom:36px}
 @media(max-width:768px){.cp-hero{flex-direction:column;text-align:center}}
-.cp-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,.25),rgba(255,255,255,.05));border:2px solid rgba(255,255,255,.2);display:grid;place-items:center;font-family:var(--sh-display);font-size:28px;font-weight:750;color:#fff;flex:none}
+.cp-avatar{width:80px;height:80px;border-radius:50%;background:var(--sh-bg3);border:1px solid var(--sh-line2);display:grid;place-items:center;font-family:var(--sh-display);font-size:28px;font-weight:750;color:var(--sh-ink);flex:none}
 .cp-info{flex:1;min-width:0}
-.cp-info h1{font-family:var(--sh-display);font-size:26px;font-weight:750;margin:0 0 4px;color:#fff}
+.cp-info h1{font-family:var(--sh-display);font-size:26px;font-weight:750;margin:0 0 4px;color:var(--sh-ink)}
 .cp-handle{font-size:14px;color:var(--sh-ink3);margin-bottom:8px;display:block}
 .cp-bio{font-size:14px;line-height:1.5;color:var(--sh-ink2);margin:0 0 14px;max-width:640px}
 .cp-stats{display:flex;gap:18px;flex-wrap:wrap}
 .cp-stat{font-size:13px;color:var(--sh-ink3)}
-.cp-stat b{color:#fff;font-weight:700}
-.cp-sec-title{font-family:var(--sh-display);font-size:22px;font-weight:750;margin:0 0 20px;color:#fff}
+.cp-stat b{color:var(--sh-ink);font-weight:700}
+.cp-sec-title{font-family:var(--sh-display);font-size:22px;font-weight:750;margin:0 0 20px;color:var(--sh-ink)}
 </style>`,
   body: `    <main class="sh-home">
       <div class="cp-wrap">
         <section class="cp-hero">
           <div class="cp-avatar" id="creatorAvatar">CR</div>
           <div class="cp-info">
-            <h1 id="creatorName">Creator Name</h1>
+            <div class="cp-title-row"><h1 id="creatorName">Creator Name</h1><span class="sh-verified" id="creatorVerified" title="Verified creator" aria-label="Verified creator" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
             <span class="cp-handle" id="creatorHandle">@creator</span>
             <p class="cp-bio" id="creatorBio">Motion graphics creator on ShortsCraft.</p>
             <div class="cp-stats">
               <span class="cp-stat"><b id="creatorTplCount">0</b> Templates</span>
-              <span class="cp-stat"><b id="creatorLikes">0</b> Total Likes</span>
+              <span class="cp-stat"><b id="creatorFollowers">0</b> Followers</span>
+              <span class="cp-stat"><b id="creatorFollowing">0</b> Following</span>
+              <span class="cp-stat"><b id="creatorStars">0</b> Stars</span>
             </div>
+          </div>
+          <!-- Starts hidden. Whether these belong on screen depends on who is
+               looking, which is only known once the profile loads - so shipping
+               them visible meant every creator saw "Follow" and "Send Stars" on
+               their own page for a moment before they vanished. -->
+          <div class="cp-actions" id="creatorActions" hidden>
+            <button type="button" class="pg-bw" id="creatorFollowBtn">Follow</button>
+            <button type="button" class="pg-bo" id="creatorStarBtn">Send Stars</button>
           </div>
         </section>
 
@@ -1807,7 +2194,7 @@ const creatorPage = {
         </section>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=9"></script><script src="/creator-profile.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=13"></script><script src="/creator-profile.js?v=4" defer></script>`
 };
 
 /* ── MY UPLOADS ───────────────────────────────────────────── */
@@ -1818,15 +2205,22 @@ const uploads = {
   route: "/uploads",
   active: "projects",
   robots: "noindex, follow",
-  title: "My uploads — ShortsCraft",
-  desc: "The templates you have published to the ShortsCraft community.",
+  title: "Creator Studio — ShortsCraft",
+  desc: "Manage animation templates you have published, scheduled, or saved privately.",
   body: `    <main class="pg">
-${pageHead("My uploads", "Templates you have published",
-  "Everything here is live in the Community gallery under your creator name and handle.")}
+${pageHead("Creator Studio", "Your animation templates",
+  "Manage published templates, scheduled releases and private drafts from one place.")}
 
       <section class="pg-sec" id="accountBox" hidden>
+        <div class="admin-stat-grid creator-studio-stats">
+          <article><span>Published</span><strong id="studioPublished">0</strong></article>
+          <article><span>Scheduled</span><strong id="studioScheduled">0</strong></article>
+          <article><span>Private drafts</span><strong id="studioPrivate">0</strong></article>
+          <article><span>Total real exports</span><strong id="studioExports">0</strong></article>
+        </div>
+
         <div class="pg-accsec-head">
-          <h2><span id="creationsCount">0 Templates</span> published</h2>
+          <h2 id="creationsHeading"><span id="creationsCount">0 templates</span></h2>
           <button type="button" class="pg-bo pg-accsec-btn js-open-upload">+ Publish a template</button>
         </div>
 
@@ -1836,13 +2230,19 @@ ${pageHead("My uploads", "Templates you have published",
 
         <div class="pg-row" style="margin-top:22px">
           <a href="/editor" class="pg-bw">Open the Studio</a>
-          <a href="/community" class="pg-bo">Browse the Community</a>
+          <a href="/community" class="pg-bo">Watch creator tutorials</a>
+        </div>
+
+        <div class="pg-grid creator-studio-tools">
+          <article class="pg-card"><span class="pg-kicker">Profile</span><h3>Creator identity</h3><p>Manage your unique handle, avatar, bio and links.</p><a href="/account#edit-profile" class="pg-cardlink">Edit profile →</a></article>
+          <article class="pg-card"><span class="pg-kicker">Support</span><h3>Creator help</h3><p>Report an upload, editor or export problem and track the ticket.</p><a href="/contact" class="pg-cardlink">Open support →</a></article>
+          <article class="pg-card"><span class="pg-kicker">Coming soon</span><h3>Creator monetization</h3><p>Earnings and payouts are not active yet. No revenue is being counted or promised.</p><span class="pg-fine">The rollout will stay off until eligibility, fraud checks and payouts are ready.</span></article>
         </div>
       </section>
 
-${guestGate("/uploads", "Log in to see your uploads", "This page lists the templates you have published to the Community gallery, under your creator name and handle.", ["Every template you publish, in one gallery", "Edit or remove a published template at any time", "Likes and comments from other creators"])}
+${guestGate("/uploads", "Log in to open Creator Studio", "Manage your published templates, scheduled releases and private drafts under your creator identity.", ["Published, scheduled and private work in one place", "Edit or remove your own templates", "See genuine engagement from other creators"])}
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=9" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=13" defer></script>`
 };
 
 /* ── DRAFTS & PROJECTS ────────────────────────────────────── */
@@ -1870,13 +2270,13 @@ ${pageHead("Workspace", "My Projects",
         </div>
 
         <p class="pg-fine" id="draftNote" style="margin-top:18px">
-          Drafts are stored in this browser, so they do not follow you to another
-          device and clearing site data removes them. Publish a scene to keep it
-          on your account for good.
+          Projects are saved to your account, so they follow you to any device you
+          sign in on. They are also kept in this browser, which is what you see
+          first and what keeps the editor working if you go offline.
         </p>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=9"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=${V}" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=13"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=${V}" defer></script>`
 };
 
 /* ── SETTINGS ─────────────────────────────────────────────── */
@@ -1902,7 +2302,7 @@ ${pageHead("Settings", "Account settings",
             <div class="pg-prof-links">
               <a id="crYtLink" href="/settings" target="_blank" rel="noopener">YouTube</a>
               <a id="crIgLink" href="/settings" target="_blank" rel="noopener">Instagram</a>
-              <span class="pg-prof-stars">★ <b id="crStarsCount">48</b></span>
+              <span class="pg-prof-stars">★ <b id="crStarsCount">0</b></span>
             </div>
           </div>
           <button type="button" class="pg-bo pg-prof-edit" id="openEditProfileBtn">Edit profile</button>
@@ -1959,6 +2359,91 @@ ${guestGate("/settings", "Log in to manage your settings", "Your creator profile
     </main>`
 };
 
+/* ── SOLO ADMIN CONSOLE ───────────────────────────────────── */
+const adminPage = {
+  route: "/admin",
+  active: null,
+  robots: "noindex, nofollow",
+  title: "Admin Console — ShortsCraft",
+  desc: "Private ShortsCraft operations console.",
+  body: `    <main class="pg admin-page">
+      <section class="admin-gate" id="adminGate">
+        <span class="pg-kicker">Private workspace</span>
+        <h1>Checking admin access…</h1>
+        <p>This console is available only to the configured ShortsCraft owner account.</p>
+      </section>
+
+      <div id="adminApp" hidden>
+        ${pageHead("Admin Console", "Run ShortsCraft from one place.", "Live product health, creators, published templates and support—without placeholder analytics.")}
+
+        <nav class="admin-tabs" aria-label="Admin sections">
+          <button type="button" data-admin-tab="overview" aria-pressed="true">Overview</button>
+          <button type="button" data-admin-tab="content" aria-pressed="false">Templates</button>
+          <button type="button" data-admin-tab="skills" aria-pressed="false">Tutorials</button>
+          <button type="button" data-admin-tab="support" aria-pressed="false">Support</button>
+          <button type="button" data-admin-tab="users" aria-pressed="false">Users</button>
+          <button type="button" data-admin-tab="features" aria-pressed="false">Feature flags</button>
+        </nav>
+
+        <section class="admin-panel" data-admin-panel="overview">
+          <div class="admin-stat-grid">
+            <article><span>Total accounts</span><strong id="adUsers">—</strong></article>
+            <article><span>New users · 30 days</span><strong id="adNewUsers">—</strong></article>
+            <article><span>Published templates</span><strong id="adPublished">—</strong></article>
+            <article><span>Scheduled templates</span><strong id="adScheduled">—</strong></article>
+            <article><span>Exports · 30 days</span><strong id="adExports">—</strong></article>
+            <article><span>AI generations · 30 days</span><strong id="adAi">—</strong></article>
+            <article><span>Open support tickets</span><strong id="adTickets">—</strong></article>
+            <article><span>Open reports</span><strong id="adReports">—</strong></article>
+          </div>
+          <p class="pg-fine">Every number is queried from the production database when this page opens.</p>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="content" hidden>
+          <div class="pg-accsec-head"><div><h2>Template moderation</h2><p class="pg-fine">Review creator publications and genuine engagement.</p></div><button class="pg-bo" type="button" data-admin-refresh="content">Refresh</button></div>
+          <div class="admin-list" id="adminTemplateList"><p>Loading templates…</p></div>
+        </section>
+
+        <!-- Nothing reaches the tutorials page without passing through here.
+             Anyone can paste a link to any video and call it their own, so the
+             queue is the only thing standing between a submission and the
+             public page. -->
+        <section class="admin-panel" data-admin-panel="skills" hidden>
+          <div class="pg-accsec-head">
+            <div><h2>Creator tutorials</h2><p class="pg-fine">Watch the video before publishing it — a link can claim to be anything.</p></div>
+            <div class="admin-row-controls">
+              <select id="adminSkillStatus" aria-label="Which tutorials to show">
+                <option value="pending" selected>Waiting for review</option>
+                <option value="published">Published</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button class="pg-bo" type="button" data-admin-refresh="skills">Refresh</button>
+            </div>
+          </div>
+          <div class="admin-list" id="adminSkillList"><p>Loading tutorials…</p></div>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="support" hidden>
+          <div class="pg-accsec-head"><div><h2>Support queue</h2><p class="pg-fine">Oldest high-priority tickets appear first.</p></div><button class="pg-bo" type="button" data-admin-refresh="support">Refresh</button></div>
+          <div class="admin-support-layout"><div class="admin-list" id="adminTicketList"><p>Loading tickets…</p></div><div class="admin-ticket-view" id="adminTicketView"><p>Select a ticket to read and reply.</p></div></div>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="users" hidden>
+          <div class="pg-accsec-head"><div><h2>Accounts</h2><p class="pg-fine">Read-only account and plan overview.</p></div><button class="pg-bo" type="button" data-admin-refresh="users">Refresh</button></div>
+          <div class="admin-list" id="adminUserList"><p>Loading accounts…</p></div>
+        </section>
+
+        <section class="admin-panel" data-admin-panel="features" hidden>
+          <div class="pg-accsec-head"><div><h2>Feature flags</h2><p class="pg-fine">Only Super Admin can change rollout state.</p></div><button class="pg-bo" type="button" data-admin-refresh="features">Refresh</button></div>
+          <div class="admin-list" id="adminFlagList"><p>Loading feature flags…</p></div>
+        </section>
+
+        <p class="pg-formnote" id="adminNote" role="status" aria-live="polite"></p>
+      </div>
+    </main>`,
+  scripts: `<script src="/admin-console.js?v=${V}" defer></script>`
+};
+
 /* ── write ────────────────────────────────────────────────── */
 const PAGES = [
   ["index.html", indexPage],
@@ -1972,13 +2457,13 @@ const PAGES = [
   ["privacy.html", privacy],
   ["terms.html", terms],
   ["404.html", notfound],
-  ["seo-tools.html", seoTools],
   ["login.html", authPage("login")],
   ["signup.html", authPage("signup")],
   ["account.html", account],
   ["uploads.html", uploads],
   ["drafts.html", drafts],
-  ["settings.html", settings]
+  ["settings.html", settings],
+  ["admin.html", adminPage]
 ];
 
 let n = 0;

@@ -1,0 +1,254 @@
+/* ============================================================
+   ShortsCraft — polish & motion layer
+   Drop-in. Add ONE line to every page, after redesign.css:
+
+     <link rel="stylesheet" href="/polish.css?v=1">
+
+   Changes nothing structural: no markup edits, no JS hooks touched.
+   Only visual polish + the motion system, applied to the classes
+   that already exist in shell.css / redesign.css.
+
+   Motion rules used throughout (same four everywhere):
+     140ms  press          160ms  hover
+     220ms  panel / switch 300ms  enter
+     easing cubic-bezier(.2,.8,.2,1) for movement, linear for time
+   Only transform and opacity animate, so nothing triggers layout —
+   this is what keeps it smooth on a low-end phone.
+   ============================================================ */
+
+:root {
+  --sc-ease: cubic-bezier(.2, .8, .2, 1);
+  --sc-t-press: 140ms;
+  --sc-t-hover: 160ms;
+  --sc-t-switch: 220ms;
+  --sc-t-enter: 300ms;
+}
+
+/* ---------- keyframes ---------- */
+@keyframes scRise {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes scFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scSlideIn {
+  from { opacity: 0; transform: translate3d(-8px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes scShimmer {
+  from { background-position: -320px 0; }
+  to   { background-position: 320px 0; }
+}
+@keyframes scSpin { to { transform: rotate(360deg); } }
+
+/* ---------- page entrance ----------
+   One short sequence on load, staggered so the eye lands on the
+   prompt last. Never repeats, never blocks interaction. */
+body.sh-body .sh-rail {
+  animation: scSlideIn var(--sc-t-enter) var(--sc-ease) both;
+}
+body.sh-body .sh-topbar {
+  animation: scFade 360ms ease both;
+  animation-delay: 60ms;
+}
+body.sh-body .sh-hero {
+  animation: scRise 340ms var(--sc-ease) both;
+  animation-delay: 70ms;
+}
+body.sh-body .sh-composer {
+  animation: scRise 340ms var(--sc-ease) both;
+  animation-delay: 110ms;
+}
+body.sh-body .sh-gallery-sec {
+  animation: scFade 400ms ease both;
+  animation-delay: 150ms;
+}
+
+/* ---------- gallery cards ----------
+   Staggered rise, capped at 10 so a 59-card grid never makes
+   anyone wait. Hover is a compositor-only lift. */
+body.sh-body .sh-gallery > * {
+  animation: scRise 340ms var(--sc-ease) both;
+  will-change: transform;
+}
+body.sh-body .sh-gallery > :nth-child(1)  { animation-delay: 0ms; }
+body.sh-body .sh-gallery > :nth-child(2)  { animation-delay: 40ms; }
+body.sh-body .sh-gallery > :nth-child(3)  { animation-delay: 80ms; }
+body.sh-body .sh-gallery > :nth-child(4)  { animation-delay: 120ms; }
+body.sh-body .sh-gallery > :nth-child(5)  { animation-delay: 160ms; }
+body.sh-body .sh-gallery > :nth-child(6)  { animation-delay: 200ms; }
+body.sh-body .sh-gallery > :nth-child(7)  { animation-delay: 240ms; }
+body.sh-body .sh-gallery > :nth-child(8)  { animation-delay: 280ms; }
+body.sh-body .sh-gallery > :nth-child(9)  { animation-delay: 320ms; }
+body.sh-body .sh-gallery > :nth-child(n+10) { animation-delay: 360ms; }
+
+body.sh-body .sh-gallery > * {
+  transition:
+    transform var(--sc-t-hover) var(--sc-ease),
+    border-color var(--sc-t-hover) ease,
+    box-shadow var(--sc-t-hover) ease;
+}
+body.sh-body .sh-gallery > :hover {
+  transform: translateY(-3px);
+  border-color: var(--sc-border-strong);
+  box-shadow: 0 8px 20px rgba(20, 20, 18, .09);
+}
+:root[data-theme="dark"] body.sh-body .sh-gallery > :hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .38);
+}
+body.sh-body .sh-gallery > :active { transform: translateY(0) scale(.985); }
+
+/* ---------- every click gets an answer ----------
+   Press is scale .97 on everything clickable. One rule, no exceptions:
+   this is the single biggest reason a UI reads as built rather than
+   generated. */
+body.sh-body .sh-cgo,
+body.sh-body .sh-cta,
+body.sh-body .sh-tline,
+body.sh-body .sh-tlink,
+body.sh-body .sh-ge-btn,
+body.sh-body .sh-imgbtn,
+body.sh-body .sh-csel-btn,
+body.sh-body .sh-filters-scroll > *,
+body.sh-body .sh-plan-badge,
+body.sh-body .sh-tupload-btn,
+body.sh-body .sh-theme-toggle,
+body.sh-body .sh-user-trigger,
+body.sh-body .sh-notification-btn {
+  transition:
+    transform var(--sc-t-press) var(--sc-ease),
+    background var(--sc-t-hover) ease,
+    border-color var(--sc-t-hover) ease,
+    color var(--sc-t-hover) ease,
+    box-shadow var(--sc-t-hover) ease;
+}
+body.sh-body .sh-cgo:active,
+body.sh-body .sh-cta:active,
+body.sh-body .sh-tline:active,
+body.sh-body .sh-ge-btn:active,
+body.sh-body .sh-imgbtn:active,
+body.sh-body .sh-csel-btn:active,
+body.sh-body .sh-filters-scroll > :active,
+body.sh-body .sh-plan-badge:active,
+body.sh-body .sh-tupload-btn:active,
+body.sh-body .sh-theme-toggle:active,
+body.sh-body .sh-user-trigger:active,
+body.sh-body .sh-notification-btn:active {
+  transform: scale(.97);
+}
+
+/* Primary action lifts on hover — the one blue button per screen. */
+body.sh-body .sh-cgo:hover,
+body.sh-body .sh-ge-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(40, 86, 216, .26);
+}
+body.sh-body .sh-cgo:active,
+body.sh-body .sh-ge-primary:active {
+  transform: translateY(0) scale(.98);
+}
+
+/* Sidebar rows slide a hair on hover instead of only recolouring. */
+body.sh-body .sh-nav a {
+  transition:
+    background var(--sc-t-hover) ease,
+    color var(--sc-t-hover) ease,
+    transform var(--sc-t-press) var(--sc-ease);
+}
+body.sh-body .sh-nav a:hover { transform: translateX(2px); }
+
+/* ---------- composer ----------
+   The prompt is the page's main action, so it gets a real focus
+   state and its footer row sits behind a rule rather than floating. */
+body.sh-body .sh-composer {
+  transition:
+    border-color var(--sc-t-switch) var(--sc-ease),
+    box-shadow var(--sc-t-switch) var(--sc-ease);
+}
+body.sh-body .sh-composer:hover { border-color: var(--sc-border-strong); }
+body.sh-body .sh-composer:focus-within {
+  border-color: var(--sc-brand);
+  box-shadow: 0 0 0 3px rgba(40, 86, 216, .14), var(--sc-shadow-md);
+}
+body.sh-body .sh-cbar { border-top: 1px solid var(--sc-surface-2); }
+
+/* ---------- filter chips ---------- */
+body.sh-body .sh-filters-scroll > :hover { border-color: var(--sc-border-strong); }
+
+/* ---------- panels and menus open, they don't appear ---------- */
+/* .sh-user-popover was in this list; the account popover was removed when
+   its destinations moved into the rail, so animating it is dead weight. */
+body.sh-body .sh-csel-menu:not([hidden]),
+body.sh-body .sh-notification-panel:not([hidden]),
+body.sh-body #navMobile:not([hidden]) {
+  animation: scRise var(--sc-t-switch) var(--sc-ease) both;
+}
+body.sh-body .sh-csel-opt {
+  transition: background var(--sc-t-hover) ease, color var(--sc-t-hover) ease;
+}
+body.sh-body .sh-csel-arrow {
+  transition: transform var(--sc-t-switch) var(--sc-ease);
+}
+body.sh-body .sh-csel-btn[aria-expanded="true"] .sh-csel-arrow {
+  transform: rotate(180deg);
+}
+
+/* ---------- loading states ----------
+   A skeleton holds the shape of what is coming, so the grid never
+   flashes empty. Applies to whatever the gallery renders as a
+   placeholder while templates load. */
+body.sh-body .sh-skel,
+body.sh-body .sh-gallery [data-skeleton] {
+  background-image: linear-gradient(
+    90deg,
+    var(--sc-surface-2) 0%,
+    var(--sc-surface-3) 40%,
+    var(--sc-surface-2) 80%
+  );
+  background-size: 320px 100%;
+  animation: scShimmer 1.4s linear infinite;
+}
+body.sh-body .sh-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--sc-border);
+  border-top-color: var(--sc-brand);
+  border-radius: 999px;
+  animation: scSpin .7s linear infinite;
+}
+
+/* ---------- workflow / community / finale sections ----------
+   These sit far down the page, so they rise as a group rather than
+   each card animating on its own. */
+body.sh-body .sh-workflow-card {
+  transition:
+    transform var(--sc-t-hover) var(--sc-ease),
+    border-color var(--sc-t-hover) ease;
+}
+body.sh-body .sh-workflow-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--sc-border-strong);
+}
+
+/* ---------- accessibility ----------
+   Reduced motion turns all of the above off. The site still works;
+   it just stops moving. */
+@media (prefers-reduced-motion: reduce) {
+  body.sh-body *,
+  body.sh-body *::before,
+  body.sh-body *::after {
+    animation-duration: .001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
+
+/* Keyboard focus stays visible everywhere, including on the
+   elements that now have transforms. */
+body.sh-body :focus-visible {
+  outline: 2px solid var(--sc-brand);
+  outline-offset: 2px;
+}

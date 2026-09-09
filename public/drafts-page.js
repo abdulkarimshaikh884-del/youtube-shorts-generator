@@ -76,6 +76,21 @@
     return poster;
   }
 
+  function renderGuest() {
+    var countEl = $("#draftCount");
+    var note = $("#draftNote");
+    if (countEl) countEl.textContent = "0";
+    grid.innerHTML = '<div class="cr-cre-empty">' +
+      "<h3>Sign in to see your projects</h3>" +
+      "<p>Guest editor sessions are not saved as projects. Sign in or create a free account so this page contains only your real work.</p>" +
+      '<div class="cr-cre-gate-actions">' +
+        '<a href="/login?next=%2Fdrafts" class="pg-bw">Log in</a>' +
+        '<a href="/signup?next=%2Fdrafts" class="cr-cre-btn-ren">Create free account</a>' +
+      "</div>" +
+      "</div>";
+    if (note) note.textContent = "No demo or sample projects are shown here. Projects belong to the signed-in account that created them.";
+  }
+
   function render() {
     var list = SC_DRAFTS.list();
     var countEl = $("#draftCount");
@@ -172,7 +187,22 @@
     });
   }
 
-  render();
+  fetch("/api/auth/me", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      var user = j && j.user;
+      SC_DRAFTS.setOwner(user || null);
+      if (!user) { renderGuest(); return; }
+      render();
+      /* Then reconcile with the account and repaint. Rendering first keeps
+         the page instant on a slow connection; the sync fills in anything
+         made on another device. */
+      if (SC_DRAFTS.sync) SC_DRAFTS.sync().then(function (changed) { if (changed) render(); });
+    })
+    .catch(function () {
+      SC_DRAFTS.setOwner(null);
+      renderGuest();
+    });
 
   /* A second tab editing the same account should not leave this list stale. */
   window.addEventListener("storage", function (ev) {

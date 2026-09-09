@@ -2,7 +2,8 @@
    ShortsCraft — App Shell behaviour (index page)
    - Live template gallery from SC_TPL2 (sandboxed, lazy-mounted iframes)
    - Clean category filtering & real-time search
-   - Full card presentation: Title, 2-line clamped Description, Creator Avatar & Handle, Like / Comment / Share action buttons
+   - Card presentation: preview, title, creator. Description and the
+     like/comment/share actions belong to the detail page the card opens.
    - Compact Centered Modal Popup on click (User Spec)
    - Prompt composer -> Video Studio
    Depends on /templates-v2.js -> window.SC_TPL2
@@ -22,9 +23,51 @@
       var name = t.authorName || t.authorHandle;
       var handle = t.authorHandle.replace(/^@/, "");
       var initials = handle.slice(0, 2).toUpperCase();
-      return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft." };
+      return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft.", verified: t.authorVerified === true, avatarUrl: t.authorAvatarUrl || "" };
     }
-    return { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC", bio: "Official ShortsCraft motion graphics library preset." };
+    return { name: "ShortsCraft", handle: "@shortscraft", initials: "SC", bio: "Templates published by the ShortsCraft team.", verified: true };
+  }
+
+  function templateKey(t) { return String((t && (t.commId || t.tpl)) || ""); }
+
+  function updateLikeControl(button, t) {
+    if (!button) return;
+    button.classList.toggle("liked", t.liked === true);
+    button.setAttribute("aria-pressed", t.liked === true ? "true" : "false");
+    var count = button.querySelector(".sh-like-count, .sh-m-like-num");
+    if (count) count.textContent = t.likes > 0 ? String(t.likes) : "Like";
+  }
+
+  function setTemplateLike(t, active, button) {
+    var id = templateKey(t);
+    if (!id || !button || button.disabled) return;
+    button.disabled = true;
+    fetch("/api/templates/" + encodeURIComponent(id) + "/reactions/like", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: active })
+    }).then(function (r) {
+      return r.json().then(function (j) {
+        if (!r.ok || !j.success) throw new Error(j.error || "Could not update that like.");
+        return j;
+      });
+    }).then(function (j) {
+      t.liked = j.active === true;
+      t.likes = Number(j.count) || 0;
+      updateLikeControl(button, t);
+    }).catch(function (err) {
+      if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message || "Could not update that like.", true);
+    }).finally(function () { button.disabled = false; });
+  }
+
+  function recordTemplateEvent(t, eventType) {
+    var id = templateKey(t);
+    if (!id) return;
+    fetch("/api/template-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ templateId: id, eventType: eventType })
+    }).catch(function () {});
   }
 
   /* ── Modal Dialog Logic (Compact Centered Size) ────────── */
@@ -41,9 +84,18 @@
         '    <div class="sh-modal-stage" id="modalStage"></div>',
         '    <a href="/editor" class="sh-modal-cta" id="modalStudioBtn">✦ Customize in Studio →</a>',
         '    <div class="sh-modal-ctrls">',
-        '      <button type="button" class="sh-modal-act-btn" id="modalReplayBtn">▶ Replay</button>',
-        '      <button type="button" class="sh-modal-act-btn" id="modalLikeBtn">♥ <span class="sh-m-like-num">0</span></button>',
-        '      <button type="button" class="sh-modal-act-btn" id="modalShareBtn">🔗 Share</button>',
+        '      <button type="button" class="sh-modal-act-btn" id="modalReplayBtn">',
+        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 9 9 9"/></svg>',
+        '        <span>Replay</span>',
+        '      </button>',
+        '      <button type="button" class="sh-modal-act-btn sh-act-like" id="modalLikeBtn" aria-pressed="false">',
+        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+        '        <span class="sh-m-like-num">Like</span>',
+        '      </button>',
+        '      <button type="button" class="sh-modal-act-btn" id="modalShareBtn">',
+        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>',
+        '        <span>Share</span>',
+        '      </button>',
         '    </div>',
         '  </div>',
         '  <div class="sh-modal-right">',
@@ -64,10 +116,10 @@
         '        <span class="sh-m-c-handle" id="modalCreatorHandle">@creator</span>',
         '        <span class="sh-m-c-bio" id="modalCreatorBio">Creator bio description</span>',
         '      </div>',
-        '      <span style="color:var(--sh-ink3);font-size:16px;font-weight:700;">→</span>',
+        '      <span style="color:var(--sh-ink2);font-size:16px;font-weight:700;">→</span>',
         '    </a>',
         '    <div class="sh-m-comments">',
-        '      <h3 class="sh-m-comm-head">Community Comments <span id="modalCommCount" style="color:var(--sh-ink3);font-size:13px;">(0)</span></h3>',
+        '      <h3 class="sh-m-comm-head">Community Comments <span id="modalCommCount" style="color:var(--sh-ink2);font-size:13px;">(0)</span></h3>',
         '      <form class="sh-m-comm-form" id="modalCommForm">',
         '        <textarea class="sh-m-comm-input" id="modalCommInput" placeholder="Write a comment about this template..." required></textarea>',
         '        <button type="submit" class="sh-m-comm-btn">Post Comment</button>',
@@ -93,6 +145,7 @@
     }
 
     var author = getAuthor(t);
+    recordTemplateEvent(t, "open");
     $("#modalTitle").textContent = t.name;
     $("#modalCat").textContent = "✦ " + (t.cat ? t.cat.toUpperCase() : "MOTION");
     $("#modalDesc").textContent = t.desc;
@@ -106,11 +159,22 @@
         + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
     }
     $("#modalStudioBtn").href = editUrl;
+    $("#modalStudioBtn").onclick = function () { recordTemplateEvent(t, "edit"); };
 
     var creatorUrl = "/creator?handle=" + encodeURIComponent(author.handle.replace(/^@/, ""));
     $("#modalCreatorLink").href = creatorUrl;
     $("#modalCreatorAv").textContent = author.initials;
-    $("#modalCreatorName").textContent = author.name;
+    $("#modalCreatorAv").style.backgroundImage = author.avatarUrl ? 'url("' + author.avatarUrl + '")' : "";
+    var mName = $("#modalCreatorName");
+    mName.textContent = author.name;
+    if (author.verified) {
+      var mTick = document.createElement("span");
+      mTick.className = "sh-verified";
+      mTick.setAttribute("aria-label", "Verified creator");
+      mTick.title = "Verified creator";
+      mTick.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      mName.appendChild(mTick);
+    }
     $("#modalCreatorHandle").textContent = author.handle;
     $("#modalCreatorBio").textContent = author.bio || "Motion graphics designer on ShortsCraft.";
 
@@ -134,7 +198,7 @@
     }
 
     // Load comments
-    loadModalComments(t.tpl);
+    loadModalComments(templateKey(t));
 
     // Wire Replay
     $("#modalReplayBtn").onclick = function () {
@@ -144,23 +208,9 @@
     // Wire Like Button
     var mLikeBtn = $("#modalLikeBtn");
     if (mLikeBtn) {
+      updateLikeControl(mLikeBtn, t);
       mLikeBtn.onclick = function () {
-        var isLiked = mLikeBtn.classList.contains("liked");
-        if (isLiked) {
-          mLikeBtn.classList.remove("liked");
-          t.likes = Math.max(0, (t.likes || 0) - 1);
-          if (t.commId) {
-            fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/unlike", { method: "POST" }).catch(function () {});
-          }
-        } else {
-          mLikeBtn.classList.add("liked");
-          t.likes = (t.likes || 0) + 1;
-          if (t.commId) {
-            fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/like", { method: "POST" }).catch(function () {});
-          }
-        }
-        var lkSpan = modal.querySelector(".sh-m-like-num");
-        if (lkSpan) lkSpan.textContent = String(t.likes);
+        setTemplateLike(t, t.liked !== true, mLikeBtn);
       };
     }
 
@@ -172,6 +222,7 @@
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function () {
+          recordTemplateEvent(t, "share");
           var sp = $("#modalShareBtn");
           sp.textContent = "Copied!";
           setTimeout(function () { sp.textContent = "🔗 Share"; }, 2000);
@@ -192,7 +243,11 @@
       fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tpl: t.tpl, text: val })
+        // A reply carries the comment it answers; a top-level comment does not.
+        body: JSON.stringify({
+          tpl: templateKey(t), text: val,
+          parentId: this.dataset.parentId || null
+        })
       })
         .then(function (r) {
           return r.json().then(function (d) {
@@ -202,7 +257,14 @@
         })
         .then(function () {
           inp.value = "";
-          loadModalComments(t.tpl);
+          // Leaving reply mode on would silently attach the next comment to
+          // the same parent.
+          var form = document.querySelector("#modalCommForm");
+          if (form) delete form.dataset.parentId;
+          inp.placeholder = "Write a comment about this template...";
+          var hint = document.querySelector("#modalReplyHint");
+          if (hint) hint.remove();
+          loadModalComments(templateKey(t));
         })
         .catch(function (err) {
           if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message || "Could not post that comment.", true);
@@ -231,6 +293,10 @@
     var count = $("#modalCommCount");
     if (!list) return;
 
+    /* Comments used to render as one grey line: no author picture, no way to
+       reply, and nothing to do about one posted by mistake. This draws a real
+       thread - avatar, verified tick, an "Edited" marker, and the actions the
+       viewer is actually allowed to take. */
     fetch("/api/comments?tpl=" + encodeURIComponent(tplId))
       .then(function (r) { return r.json(); })
       .then(function (d) {
@@ -238,30 +304,209 @@
         if (count) count.textContent = "(" + comms.length + ")";
         list.innerHTML = "";
         if (comms.length === 0) {
-          list.innerHTML = '<div style="font-size:12px;color:var(--sh-ink3);padding:6px 0;">No comments yet.</div>';
+          list.innerHTML = '<p class="sh-m-comm-empty">No comments yet. Be the first to share what you made with it.</p>';
           return;
         }
-        var frag = document.createDocumentFragment();
+
+        var byParent = {};
+        var roots = [];
         comms.forEach(function (c) {
-          var item = document.createElement("div");
-          item.className = "sh-m-comm-item";
-          var initials = (c.authorHandle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
-          item.innerHTML = [
-            '<div class="sh-m-c-item-av">' + escapeHtml(initials) + '</div>',
-            '<div class="sh-m-c-item-body">',
-            '  <div class="sh-m-c-item-head">',
-            '    <a href="/creator?handle=' + encodeURIComponent((c.authorHandle || "creator").replace(/^@/, "")) + '" class="sh-m-c-item-name">' + escapeHtml(c.authorName || "Creator") + '</a>',
-            '    <span class="sh-m-c-item-handle">' + escapeHtml(c.authorHandle || "@creator") + '</span>',
-            '    <span class="sh-m-c-item-time">' + escapeHtml(c.time || "Recently") + '</span>',
-            '  </div>',
-            '  <p class="sh-m-c-item-text">' + escapeHtml(c.text || "") + '</p>',
-            '</div>'
-          ].join("");
-          frag.appendChild(item);
+          if (c.parentId) {
+            (byParent[c.parentId] = byParent[c.parentId] || []).push(c);
+          } else {
+            roots.push(c);
+          }
+        });
+
+        var frag = document.createDocumentFragment();
+        roots.forEach(function (c) {
+          frag.appendChild(commentNode(c, tplId, false));
+          (byParent[c.id] || []).forEach(function (child) {
+            frag.appendChild(commentNode(child, tplId, true));
+          });
         });
         list.appendChild(frag);
       })
-      .catch(function () {});
+      .catch(function () {
+        list.innerHTML = '<p class="sh-m-comm-empty">Could not load comments right now.</p>';
+      });
+  }
+
+  function commentNode(c, tplId, isReply) {
+    var item = document.createElement("article");
+    item.className = "sh-m-comm-item" + (isReply ? " is-reply" : "");
+
+    var handleSlug = encodeURIComponent(String(c.authorHandle || "creator").replace(/^@/, ""));
+
+    var av = document.createElement("a");
+    av.className = "sh-m-c-item-av";
+    av.href = "/creator?handle=" + handleSlug;
+    if (c.authorAvatarUrl) {
+      av.style.backgroundImage = 'url("' + c.authorAvatarUrl + '")';
+    } else {
+      av.textContent = String(c.authorHandle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
+    }
+
+    var body = document.createElement("div");
+    body.className = "sh-m-c-item-body";
+
+    var head = document.createElement("div");
+    head.className = "sh-m-c-item-head";
+    head.innerHTML = [
+      '<a href="/creator?handle=' + handleSlug + '" class="sh-m-c-item-name">' + escapeHtml(c.authorName || "Creator") + "</a>",
+      c.authorVerified ? '<span class="sh-verified" title="Verified creator" aria-label="Verified creator"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' : "",
+      '<span class="sh-m-c-item-handle">' + escapeHtml(c.authorHandle || "@creator") + "</span>",
+      // Says plainly that the text changed after it was posted.
+      c.edited ? '<span class="sh-m-c-edited">Edited</span>' : "",
+      '<span class="sh-m-c-item-time">' + escapeHtml(c.time || "Recently") + "</span>"
+    ].join("");
+    body.appendChild(head);
+
+    var text = document.createElement("p");
+    text.className = "sh-m-c-item-text";
+    text.textContent = c.text || "";
+    body.appendChild(text);
+
+    var actions = document.createElement("div");
+    actions.className = "sh-m-c-actions";
+
+    // Replies are one level deep, so a reply offers no reply button of its own.
+    if (!isReply) {
+      var replyBtn = document.createElement("button");
+      replyBtn.type = "button";
+      replyBtn.className = "sh-m-c-action";
+      replyBtn.textContent = "Reply";
+      replyBtn.onclick = function () { startReply(c); };
+      actions.appendChild(replyBtn);
+    }
+
+    if (c.canEdit) {
+      var editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.className = "sh-m-c-action";
+      editBtn.textContent = "Edit";
+      editBtn.onclick = function () { startEdit(c, item, text, tplId); };
+      actions.appendChild(editBtn);
+    }
+
+    if (c.canDelete) {
+      var delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "sh-m-c-action sh-m-c-danger";
+      delBtn.textContent = "Delete";
+      delBtn.onclick = function () { removeComment(c, tplId); };
+      actions.appendChild(delBtn);
+    }
+
+    if (actions.children.length) body.appendChild(actions);
+    item.appendChild(av);
+    item.appendChild(body);
+    return item;
+  }
+
+  function removeComment(c, tplId) {
+    var ask = (window.SC_UI && SC_UI.confirm)
+      ? SC_UI.confirm({
+          title: "Delete this comment?",
+          body: "It will be removed for everyone, along with any replies to it.",
+          confirmLabel: "Delete"
+        })
+      : Promise.resolve(true);
+    ask.then(function (yes) {
+      if (!yes) return;
+      fetch("/api/comments/" + encodeURIComponent(c.id), { method: "DELETE" })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || !j.success) throw new Error((j && j.error) || "Could not delete that comment.");
+          loadModalComments(tplId);
+        })
+        .catch(function (err) {
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true);
+        });
+    });
+  }
+
+  /* Editing happens in place: sending someone to a separate form to change one
+     word loses the thread they were reading. */
+  function startEdit(c, item, textEl, tplId) {
+    if (item.querySelector(".sh-m-c-editor")) return;
+
+    var editor = document.createElement("div");
+    editor.className = "sh-m-c-editor";
+
+    var field = document.createElement("textarea");
+    field.className = "sh-m-comm-input";
+    field.value = c.text || "";
+    field.maxLength = 500;
+
+    var row = document.createElement("div");
+    row.className = "sh-m-c-editor-row";
+
+    var save = document.createElement("button");
+    save.type = "button";
+    save.className = "sh-m-comm-btn";
+    save.textContent = "Save";
+
+    var cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "sh-m-c-action";
+    cancel.textContent = "Cancel";
+    cancel.onclick = function () { editor.remove(); textEl.hidden = false; };
+
+    save.onclick = function () {
+      var next = field.value.trim();
+      if (!next) return;
+      save.disabled = true;
+      fetch("/api/comments/" + encodeURIComponent(c.id), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: next })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || !j.success) throw new Error((j && j.error) || "Could not save that edit.");
+          loadModalComments(tplId);
+        })
+        .catch(function (err) {
+          save.disabled = false;
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true);
+        });
+    };
+
+    row.appendChild(save);
+    row.appendChild(cancel);
+    editor.appendChild(field);
+    editor.appendChild(row);
+    textEl.hidden = true;
+    textEl.parentNode.insertBefore(editor, textEl.nextSibling);
+    field.focus();
+  }
+
+  /* Replying reuses the one composer at the top rather than opening a second
+     input under every comment, and says who it is aimed at. */
+  function startReply(c) {
+    var input = document.querySelector("#modalCommInput");
+    var form = document.querySelector("#modalCommForm");
+    if (!input || !form) return;
+
+    form.dataset.parentId = c.id;
+    input.placeholder = "Replying to " + (c.authorHandle || "@creator") + "...";
+    input.focus();
+
+    var hint = document.querySelector("#modalReplyHint");
+    if (!hint) {
+      hint = document.createElement("button");
+      hint.type = "button";
+      hint.id = "modalReplyHint";
+      hint.className = "sh-m-c-action sh-m-c-replyhint";
+      form.insertBefore(hint, form.firstChild);
+    }
+    hint.textContent = "Replying to " + (c.authorHandle || "@creator") + " - cancel";
+    hint.onclick = function () {
+      delete form.dataset.parentId;
+      input.placeholder = "Write a comment about this template...";
+      hint.remove();
+    };
   }
 
   function escapeHtml(str) {
@@ -339,7 +584,7 @@
       var collection = tile.dataset.collection || "";
       var tpl = (tile.dataset.tpl || "").toLowerCase();
 
-      var matchCat = (cat === "all" || tCat === cat || (cat === "originals" && collection === "originals"));
+      var matchCat = (cat === "all" || tCat === cat);
       var matchSearch = !q || name.indexOf(q) !== -1 || desc.indexOf(q) !== -1 || tpl.indexOf(q) !== -1;
 
       var show = matchCat && matchSearch;
@@ -355,7 +600,7 @@
       emptyState = document.createElement("div");
       emptyState.id = "galleryEmpty";
       emptyState.className = "sh-empty-state";
-      emptyState.innerHTML = '<div class="sh-empty-ico">🔍</div><h3>No templates found</h3><p>Try searching for a different keyword or category.</p>';
+      emptyState.innerHTML = '<h3>No templates found</h3><p>Try a different keyword or category.</p>';
       grid.appendChild(emptyState);
     }
     emptyState.hidden = count > 0;
@@ -381,14 +626,24 @@
       })
       .then(function (d) {
         var commList = (d && d.templates) || [];
-        if (commList.length) renderAllTemplates(commList);
+        return loadRealMetrics(commList);
       })
-      .catch(function () {})
+      .catch(function () { return loadRealMetrics([]); })
       .finally(function () { clearTimeout(bail); });
 
-    function renderAllTemplates(commList) {
+    function loadRealMetrics(commList) {
+      var ids = e.list().map(function (t) { return t.id; });
+      commList.forEach(function (t) { if (t && t.id) ids.push(t.id); });
+      ids = Array.from(new Set(ids)).slice(0, 100);
+      return fetch("/api/template-metrics?ids=" + encodeURIComponent(ids.join(",")))
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then(function (d) { renderAllTemplates(commList, (d && d.metrics) || {}); })
+        .catch(function () { renderAllTemplates(commList, {}); });
+    }
+
+    function renderAllTemplates(commList, metrics) {
       var allItems = [];
-      var seenIds = {};
+      metrics = metrics || {};
 
       var validTpls = {};
       e.list().forEach(function (t) { validTpls[t.id] = true; });
@@ -397,9 +652,16 @@
       commList.forEach(function (ct) {
         var tplId = ct.tpl;
         if (!validTpls[tplId]) return;
-        var likes = Number(ct.likes || 1);
-        var downloads = Number(ct.downloads || 1);
-        var score = (likes * 25) + (downloads * 12) + 120;
+        var activity = metrics[ct.id] || {};
+        var likes = Number(activity.likes !== undefined ? activity.likes : ct.likes) || 0;
+        var downloads = Number(activity.exports !== undefined ? activity.exports : ct.downloads) || 0;
+        var publishedAt = ct.createdAt ? new Date(ct.createdAt).getTime() : 0;
+        var ageDays = publishedAt ? Math.max(0, (Date.now() - publishedAt) / 86400000) : 90;
+        /* Only real activity contributes. A small, time-limited discovery
+           allowance lets new creator work be seen without permanently boosting
+           ShortsCraft's own library above it. */
+        var discovery = Math.max(0, 14 - ageDays) * 0.35;
+        var score = (Number(activity.score) || 0) + discovery;
 
         allItems.push({
           id: ct.id || ("comm_" + Math.random()),
@@ -410,6 +672,8 @@
           cat: ct.category || "text",
           authorHandle: ct.authorHandle || "creator",
           authorName: ct.authorName || "Creator",
+          authorVerified: ct.authorVerified === true,
+          authorAvatarUrl: ct.authorAvatarUrl || "",
           accent: ct.accent || "#ffffff",
           font: ct.font || "inter",
           dur: ct.dur || 4600,
@@ -419,11 +683,11 @@
           downloads: downloads,
           score: score
         });
-        seenIds[tplId] = true;
       });
 
       // 2. Built-in Templates
       e.list().forEach(function (t, idx) {
+        var activity = metrics[t.id] || {};
         allItems.push({
           id: t.id,
           tpl: t.id,
@@ -432,9 +696,11 @@
           cat: t.cat,
           collection: t.collection,
           isCommunity: false,
-          likes: 0,
-          downloads: 0,
-          score: (t.collection === "originals" ? 2000 : 1000) - idx
+          likes: Number(activity.likes) || 0,
+          downloads: Number(activity.exports) || 0,
+          // The tiny tie-break keeps a stable library order when real signals
+          // are equal; it is not a ShortsCraft-specific popularity boost.
+          score: (Number(activity.score) || 0) - idx / 100000
         });
       });
 
@@ -455,6 +721,7 @@
         tile.dataset.desc = t.desc;
         tile.dataset.cat = t.cat;
         tile.dataset.collection = t.collection || (t.isCommunity ? "community" : "classic");
+        tile.dataset.reactionId = templateKey(t);
 
         if (t.isCommunity) {
           tile.dataset.comm = "1";
@@ -477,7 +744,8 @@
           editUrl += "&accent=" + encodeURIComponent(t.accent || "#ffffff")
             + "&font=" + encodeURIComponent(t.font || "inter")
             + "&dur=" + encodeURIComponent(t.dur || 4600)
-            + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
+            + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []))
+            + "&commId=" + encodeURIComponent(t.commId || "");
         }
 
         var stage = document.createElement("div");
@@ -493,57 +761,17 @@
         });
         stage.appendChild(linkCover);
 
-        // Top Badges
-        if (t.isCommunity) {
-          var commBadge = document.createElement("a");
-          commBadge.className = "sh-comm-badge";
-          commBadge.href = creatorUrl;
-          commBadge.textContent = "✦ @" + author.handle.replace(/^@/, "");
-          stage.appendChild(commBadge);
-        } else if (t.collection === "originals") {
-          var originalBadge = document.createElement("span");
-          originalBadge.className = "sh-pro-badge";
-          originalBadge.textContent = "ORIGINAL";
-          stage.appendChild(originalBadge);
-        } else if (t.cat === "paper" || t.cat === "docu") {
-          var proBadge = document.createElement("span");
-          proBadge.className = "sh-pro-badge";
-          proBadge.textContent = "PRO";
-          stage.appendChild(proBadge);
-        }
-
         // Shimmer skeleton
         var skel = document.createElement("span");
         skel.className = "sh-skel";
         skel.textContent = "Preview";
         stage.appendChild(skel);
 
-        // Hover Floating Play Button & Open in Studio Button
-        var hoverBar = document.createElement("div");
-        hoverBar.className = "sh-card-hover-bar";
+        /* The play and open-in-Studio buttons that used to float over each
+           preview are gone: the preview loops by itself and the whole card
+           opens the template, so they covered the artwork to offer what was
+           already one click away. */
 
-        var playBtn = document.createElement("button");
-        playBtn.type = "button";
-        playBtn.className = "sh-card-btn play";
-        playBtn.setAttribute("aria-label", "Replay animation");
-        playBtn.title = "Replay Animation";
-        playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
-        playBtn.addEventListener("click", function (ev) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          mount(tile, true);
-        });
-
-        var openBtn = document.createElement("a");
-        openBtn.className = "sh-card-btn open";
-        openBtn.href = editUrl;
-        openBtn.setAttribute("aria-label", "Open directly in Video Studio");
-        openBtn.title = "Customize in Studio Editor";
-        openBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>';
-
-        hoverBar.appendChild(playBtn);
-        hoverBar.appendChild(openBtn);
-        stage.appendChild(hoverBar);
 
         // Meta Area (Title, Description, Creator Profile, Like/Comment/Share action bar)
         var meta = document.createElement("div");
@@ -563,13 +791,12 @@
         titleRow.appendChild(titleEl);
         meta.appendChild(titleRow);
 
-        // 2. Description (Clamped 2 lines)
-        var descEl = document.createElement("p");
-        descEl.className = "sh-tdesc";
-        descEl.textContent = t.desc;
-        meta.appendChild(descEl);
+        /* The card is a preview, a name and whose it is — nothing else.
+           The description was clamped to two lines and truncated mid-word on
+           most templates, so it cost a row of height to say less than the
+           title already did. It still appears in full on the detail page. */
 
-        // 3. Creator Profile Row (Clickable to /creator)
+        // 2. Creator Profile Row (Clickable to /creator)
         var creatorRow = document.createElement("a");
         creatorRow.className = "sh-tcreator-row";
         creatorRow.href = creatorUrl;
@@ -578,6 +805,12 @@
         var avatarEl = document.createElement("div");
         avatarEl.className = "sh-tcreator-avatar";
         avatarEl.textContent = author.initials;
+        if (author.avatarUrl) {
+          avatarEl.textContent = "";
+          avatarEl.style.backgroundImage = 'url("' + author.avatarUrl + '")';
+          avatarEl.style.backgroundSize = "cover";
+          avatarEl.style.backgroundPosition = "center";
+        }
 
         var infoEl = document.createElement("div");
         infoEl.className = "sh-tcreator-info";
@@ -585,6 +818,14 @@
         var nameEl = document.createElement("span");
         nameEl.className = "sh-tcreator-name";
         nameEl.textContent = author.name;
+        if (author.verified) {
+          var verified = document.createElement("span");
+          verified.className = "sh-verified";
+          verified.setAttribute("aria-label", "Verified creator");
+          verified.title = "Verified creator";
+          verified.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          nameEl.appendChild(verified);
+        }
 
         var handleEl = document.createElement("span");
         handleEl.className = "sh-tcreator-handle";
@@ -596,82 +837,12 @@
         creatorRow.appendChild(infoEl);
         meta.appendChild(creatorRow);
 
-        // 4. Action Bar (Like, Comment, Share)
-        var actBar = document.createElement("div");
-        actBar.className = "sh-tact-bar";
-
-        // Like Button
-        var likeBtn = document.createElement("button");
-        likeBtn.type = "button";
-        likeBtn.className = "sh-tact-btn like";
-        likeBtn.title = "Like template";
-        var likeText = t.likes > 0 ? String(t.likes) : "Like";
-        likeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="sh-like-count">' + likeText + '</span>';
-        likeBtn.addEventListener("click", function (ev) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          var isLiked = likeBtn.classList.contains("liked");
-          if (isLiked) {
-            likeBtn.classList.remove("liked");
-            likeBtn.dataset.liked = "0";
-            t.likes = Math.max(0, (t.likes || 0) - 1);
-            var sp = likeBtn.querySelector(".sh-like-count");
-            if (sp) sp.textContent = t.likes > 0 ? String(t.likes) : "Like";
-            if (t.commId) {
-              fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/unlike", { method: "POST" }).catch(function () {});
-            }
-          } else {
-            likeBtn.classList.add("liked");
-            likeBtn.dataset.liked = "1";
-            t.likes = (t.likes || 0) + 1;
-            var sp = likeBtn.querySelector(".sh-like-count");
-            if (sp) sp.textContent = String(t.likes);
-            if (t.commId) {
-              fetch("/api/community-templates/" + encodeURIComponent(t.commId) + "/like", { method: "POST" }).catch(function () {});
-            }
-          }
-        });
-
-        // Comment Button (Opens modal with comments focus)
-        var commentBtn = document.createElement("a");
-        commentBtn.className = "sh-tact-btn comment";
-        commentBtn.href = detailUrl + "#comments";
-        commentBtn.title = "View comments & discussions";
-        commentBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Comment</span>';
-        commentBtn.addEventListener("click", function (ev) {
-          ev.preventDefault();
-          openTemplateModal(t);
-        });
-
-        // Share Button
-        var shareBtn = document.createElement("button");
-        shareBtn.type = "button";
-        shareBtn.className = "sh-tact-btn share";
-        shareBtn.title = "Share template link";
-        shareBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span>Share</span>';
-        shareBtn.addEventListener("click", function (ev) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          var shareUrl = window.location.origin + detailUrl;
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(shareUrl).then(function () {
-              var sp = shareBtn.querySelector("span");
-              if (sp) sp.textContent = "Copied!";
-              shareBtn.classList.add("copied");
-              setTimeout(function () {
-                if (sp) sp.textContent = "Share";
-                shareBtn.classList.remove("copied");
-              }, 2000);
-            });
-          } else {
-            SC_UI.copy(shareUrl, "Template link copied");
-          }
-        });
-
-        actBar.appendChild(likeBtn);
-        actBar.appendChild(commentBtn);
-        actBar.appendChild(shareBtn);
-        meta.appendChild(actBar);
+        /* Like, comment and share used to sit under every card. They are
+           per-template actions, and a gallery is for choosing a template,
+           not reacting to sixty of them — the row added three controls and
+           a divider to each card and pushed the previews out of the fold.
+           They live on the detail page the card opens, where the template
+           being acted on is unambiguous. */
 
         tile.appendChild(stage);
         tile.appendChild(meta);
@@ -680,6 +851,23 @@
 
       grid.innerHTML = "";
       grid.appendChild(frag);
+
+      var reactionIds = allItems.map(templateKey).filter(Boolean);
+      if (reactionIds.length) {
+        fetch("/api/template-reactions?ids=" + encodeURIComponent(reactionIds.slice(0, 100).join(",")))
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            var state = (j && j.reactions) || {};
+            allItems.forEach(function (item) {
+              var itemState = state[templateKey(item)];
+              if (!itemState) return;
+              item.liked = itemState.like === true;
+              item.likes = Number(itemState.likeCount) || 0;
+              var itemTile = grid.querySelector('[data-reaction-id="' + CSS.escape(templateKey(item)) + '"]');
+              if (itemTile) updateLikeControl(itemTile.querySelector(".sh-tact-btn.like"), item);
+            });
+          }).catch(function () {});
+      }
 
       var tiles = Array.prototype.slice.call(grid.children);
 
@@ -720,7 +908,7 @@
       charts: "Charts & Data"
     };
 
-    var cats = [{ id: "all", label: "All" }, { id: "originals", label: "✦ Originals" }].concat(e.cats().map(function (c) {
+    var cats = [{ id: "all", label: "All" }].concat(e.cats().map(function (c) {
       return { id: c.id, label: categoryLabels[c.id] || c.label };
     }));
 
@@ -832,9 +1020,9 @@
           // can never drift from what the server actually charges.
           var costTxt = (opt.querySelector("span") || {}).textContent || "";
           var costNum = (costTxt.match(/(\d+)\s*credits?/i) || [])[1] || "5";
-          var tierName = val === "mini" ? "Free" : (val === "pro" ? "Pro" : "Pro Max");
+          var tierName = val === "mini" ? "Standard" : (val === "pro" ? "Detailed" : "Advanced");
           if (qVal) qVal.textContent = tierName + " (" + costNum + " credits)";
-          if (qBtn) qBtn.setAttribute("aria-label", "Model tier: " + (val === "mini" ? "Free" : val));
+          if (qBtn) qBtn.setAttribute("aria-label", "Generation model: " + tierName);
 
           Array.prototype.forEach.call(qMenu.querySelectorAll(".sh-csel-opt"), function (o) {
             var isSel = o === opt;
@@ -919,25 +1107,37 @@
   /* ── App Shell & Live Credit Balance ───────────────────── */
   function wireChrome() {
     var badge = document.querySelector(".sh-plan-badge");
-    if (badge) {
+    var creditChip = document.querySelector(".sh-credit-chip");
+    if (badge || creditChip) {
       fetch("/api/credits", { headers: { Accept: "application/json" } })
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (!j || !j.success) return;
-          var b = badge.querySelector("b");
-          var sCredits = badge.querySelector(".sh-plan-credits");
-          var sRates = badge.querySelector(".sh-plan-rates");
-          var sLegacy = badge.querySelector("span:not(.sh-plan-arrow)");
-          var up = badge.querySelector(".sh-plan-upgrade-link") || badge.querySelector("a");
-
-          if (b) b.textContent = j.planLabel + " plan";
-          if (sCredits) {
-            sCredits.textContent = j.left + " of " + j.perDay + " credits left today";
-          } else if (sLegacy) {
-            sLegacy.textContent = j.left + " of " + j.perDay + " credits left today";
+          if (creditChip) {
+            var chipPlan = creditChip.querySelector(".sh-credit-plan");
+            var chipBalance = creditChip.querySelector(".sh-credit-balance");
+            if (chipPlan) chipPlan.textContent = j.planLabel;
+            // "Free · 5 Credits" reads as a plan and a balance. "5 / 5" read as
+            // a score, and told you nothing about which plan you are on.
+            if (chipBalance) chipBalance.textContent = j.left + " Credit" + (j.left === 1 ? "" : "s");
           }
-          if (sRates && j.cost) {
-            sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
+          var up = null;
+          if (badge) {
+            var b = badge.querySelector("b");
+            var sCredits = badge.querySelector(".sh-plan-credits");
+            var sRates = badge.querySelector(".sh-plan-rates");
+            var sLegacy = badge.querySelector("span:not(.sh-plan-arrow)");
+            up = badge.querySelector(".sh-plan-upgrade-link") || badge.querySelector("a");
+
+            if (b) b.textContent = j.planLabel + " plan";
+            if (sCredits) {
+              sCredits.textContent = j.left + " of " + j.perDay + " credits left today";
+            } else if (sLegacy) {
+              sLegacy.textContent = j.left + " of " + j.perDay + " credits left today";
+            }
+            if (sRates && j.cost) {
+              sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
+            }
           }
           document.querySelectorAll(".sh-upop-credits-pill").forEach(function (el) {
             el.textContent = "⚡ " + j.left + " / " + j.perDay + " Credits";

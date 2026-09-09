@@ -49,24 +49,58 @@ function toTemplate(row) {
     authorName: row.author_name,
     authorHandle: row.author_handle,
     authorId: row.author_id,
-    likes: row.likes,
-    downloads: row.downloads,
+    authorVerified: row.author_verified === true || String(row.author_handle || "").replace(/^@/, "") === "shortscraft",
+    authorAvatarUrl: row.author_has_avatar && row.author_id ? `/api/users/${encodeURIComponent(row.author_id)}/avatar` : "",
+    // Legacy aggregate columns may contain old seed values. Public counters
+    // come from the durable reaction/event ledgers selected below.
+    likes: Number(row.real_likes) || 0,
+    downloads: Number(row.real_exports) || 0,
+    status: row.status || "published",
+    sourceFormat: row.source_format || "shortscraft_preset",
+    scheduledAt: row.scheduled_at ? new Date(row.scheduled_at).toISOString() : null,
+    publishedAt: row.published_at ? new Date(row.published_at).toISOString() : null,
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : null
   };
 }
 
+async function publishDue() {
+  await db.query(
+    `update public.community_templates
+        set status = 'published', published_at = coalesce(published_at, scheduled_at, now()), updated_at = now()
+      where status = 'scheduled' and scheduled_at <= now()`
+  );
+}
+
 async function list(category) {
+  await publishDue();
   let rows;
   if (category && category !== "all") {
     ({ rows } = await db.query(
-      `select * from public.community_templates
-        where category = $1 or tpl = $1
-        order by created_at desc`,
+      `select ct.*, u.verified as author_verified,
+              (u.avatar_bytes is not null) as author_has_avatar,
+              (select count(*)::int from public.template_reactions tr
+                where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
+              (select count(*)::int from public.template_events te
+                where te.template_id = ct.id and te.event_type = 'export') as real_exports
+         from public.community_templates ct
+         left join public.users u on u.id = ct.author_id
+        where ct.status = 'published' and ct.published_at <= now()
+          and (ct.category = $1 or ct.tpl = $1)
+        order by ct.published_at desc, ct.created_at desc`,
       [category]
     ));
   } else {
     ({ rows } = await db.query(
-      `select * from public.community_templates order by created_at desc`
+      `select ct.*, u.verified as author_verified,
+              (u.avatar_bytes is not null) as author_has_avatar,
+              (select count(*)::int from public.template_reactions tr
+                where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
+              (select count(*)::int from public.template_events te
+                where te.template_id = ct.id and te.event_type = 'export') as real_exports
+         from public.community_templates ct
+         left join public.users u on u.id = ct.author_id
+        where ct.status = 'published' and ct.published_at <= now()
+        order by ct.published_at desc, ct.created_at desc`
     ));
   }
   return rows.filter(livesInEngine).map(toTemplate);
@@ -85,8 +119,17 @@ function livesInEngine(row) {
 }
 
 async function get(id) {
+  await publishDue();
   const { rows } = await db.query(
-    `select * from public.community_templates where id = $1`, [id]
+    `select ct.*, u.verified as author_verified,
+            (u.avatar_bytes is not null) as author_has_avatar,
+            (select count(*)::int from public.template_reactions tr
+              where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
+            (select count(*)::int from public.template_events te
+              where te.template_id = ct.id and te.event_type = 'export') as real_exports
+       from public.community_templates ct
+       left join public.users u on u.id = ct.author_id
+      where ct.id = $1 and ct.status = 'published' and ct.published_at <= now()`, [id]
   );
   return rows[0] && livesInEngine(rows[0]) ? toTemplate(rows[0]) : null;
 }
@@ -114,12 +157,26 @@ async function publish(data, user) {
     : (data.authorName || "Creator"));
   const authorHandle = (user.handle || data.authorHandle || authorName).toLowerCase().replace(/[^a-z0-9_]/g, "");
   const lines = Array.isArray(data.lines) ? data.lines.map((l) => String(l || "").slice(0, 120)) : ["", "", ""];
+  const visibility = String(data.visibility || "public").toLowerCase();
+  let status = visibility === "private" ? "draft" : "published";
+  let scheduledAt = null;
+  if (visibility === "scheduled") {
+    const parsed = new Date(data.scheduledAt || "");
+    const min = Date.now() + 10 * 60_000;
+    const max = Date.now() + 365 * 864e5;
+    if (!Number.isFinite(parsed.getTime()) || parsed.getTime() < min || parsed.getTime() > max) {
+      return { error: "Choose a schedule time at least 10 minutes from now and within one year." };
+    }
+    status = "scheduled";
+    scheduledAt = parsed;
+  }
 
   const { rows } = await db.query(
     `insert into public.community_templates
        (id, title, description, category, tpl, lines, accent, font, dur,
-        author_id, author_name, author_handle, likes, downloads)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,1,1)
+        author_id, author_name, author_handle, likes, downloads, source_format,
+        status, scheduled_at, published_at)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,0,0,'shortscraft_preset',$13,$14,$15)
      returning *`,
     [
       id,
@@ -133,7 +190,10 @@ async function publish(data, user) {
       dur,
       user.id,
       authorName || "Creator",
-      authorHandle || "creator"
+      authorHandle || "creator",
+      status,
+      scheduledAt,
+      status === "published" ? new Date() : null
     ]
   );
 
@@ -158,21 +218,40 @@ async function unlike(id) {
   return { success: true, likes: rows[0].likes };
 }
 
-async function listByAuthor(userId, userHandle) {
+async function listByAuthor(userId, userHandle, options = {}) {
+  await publishDue();
+  const includeUnpublished = options.includeUnpublished === true;
   if (userId) {
     const { rows } = await db.query(
-      `select * from public.community_templates where author_id = $1 order by created_at desc`,
-      [userId]
+      `select ct.*, u.verified as author_verified,
+              (u.avatar_bytes is not null) as author_has_avatar,
+              (select count(*)::int from public.template_reactions tr
+                where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
+              (select count(*)::int from public.template_events te
+                where te.template_id = ct.id and te.event_type = 'export') as real_exports
+         from public.community_templates ct
+         left join public.users u on u.id = ct.author_id
+        where ct.author_id = $1 and ($2::boolean or (ct.status = 'published' and ct.published_at <= now()))
+        order by coalesce(ct.published_at, ct.scheduled_at, ct.created_at) desc`,
+      [userId, includeUnpublished]
     );
     if (rows.length) return rows.filter(livesInEngine).map(toTemplate);
   }
   if (userHandle) {
     const handleNorm = userHandle.toLowerCase().replace(/^@/, "");
     const { rows } = await db.query(
-      `select * from public.community_templates
-        where lower(author_handle) = $1 or lower(author_name) = $1
-        order by created_at desc`,
-      [handleNorm]
+      `select ct.*, u.verified as author_verified,
+              (u.avatar_bytes is not null) as author_has_avatar,
+              (select count(*)::int from public.template_reactions tr
+                where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
+              (select count(*)::int from public.template_events te
+                where te.template_id = ct.id and te.event_type = 'export') as real_exports
+         from public.community_templates ct
+         left join public.users u on u.id = ct.author_id
+        where (lower(ct.author_handle) = $1 or lower(ct.author_name) = $1)
+          and ($2::boolean or (ct.status = 'published' and ct.published_at <= now()))
+        order by coalesce(ct.published_at, ct.scheduled_at, ct.created_at) desc`,
+      [handleNorm, includeUnpublished]
     );
     if (rows.length) return rows.filter(livesInEngine).map(toTemplate);
   }
@@ -197,4 +276,11 @@ async function remove(id, user) {
   return { success: true };
 }
 
-module.exports = { list, get, publish, like, unlike, listByAuthor, remove };
+async function isPublicTemplateKey(id) {
+  const key = String(id || "").trim();
+  if (VALID_TPL_IDS.has(key)) return true;
+  if (!/^comm_[a-z0-9]+$/i.test(key)) return false;
+  return Boolean(await get(key));
+}
+
+module.exports = { list, get, publish, like, unlike, listByAuthor, remove, isPublicTemplateKey };

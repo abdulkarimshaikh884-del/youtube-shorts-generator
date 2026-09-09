@@ -15,9 +15,9 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f7f7f5">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
 <link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
@@ -25,11 +25,20 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026083001">
-<link rel="stylesheet" href="/page.css?v=2026083002">
+<link rel="stylesheet" href="/shell.css?v=2026090922">
+<link rel="stylesheet" href="/page.css?v=2026090922">
+<link rel="stylesheet" href="/redesign.css?v=2026090922">
+<!-- Motion layer. Loads last so it can add transitions to the finished
+     visual system without restating any of it. -->
+<link rel="stylesheet" href="/polish.css?v=2026090922">
+<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 </head>
 <body class="sh-body pg-bare">
 <div class="pg-screen">
+  <button type="button" class="sh-theme-toggle pg-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+    <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+    <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
   <a href="/" class="pg-wordmark" aria-label="ShortsCraft home">
     <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
     <span class="sh-brand-name">Shorts<i>Craft</i></span>
@@ -43,6 +52,7 @@
       </section>
 
       <form class="pg-form pg-auth" id="authForm" data-kind="login" novalidate>
+        
         <div class="pg-f">
           <label for="authEmail">Email</label>
           <input id="authEmail" name="email" type="email" autocomplete="email"
@@ -60,6 +70,9 @@
           No account yet? <a href="/signup">Create one</a>.
           
         </p>
+        <p class="pg-fine">
+          Forgotten your password? <a href="/forgot-password">Reset it</a>.
+        </p>
       </form>
     </main>
 
@@ -70,7 +83,8 @@
   </nav>
 </div>
 
-<script src="/authui.js?v=2026083002" defer></script>
-<script src="/page.js?v=2026083001" defer></script>
+<script src="/authui.js?v=2026090922" defer></script>
+<script src="/theme.js?v=2026090922" defer></script>
+<script src="/page.js?v=2026090922" defer></script>
 </body>
 </html>

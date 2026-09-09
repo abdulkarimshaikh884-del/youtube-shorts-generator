@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Community Templates — ShortsCraft</title>
-<meta name="description" content="Discover, customize and publish creator motion graphics templates. Built by creators for YouTube Shorts and Instagram Reels."/>
+<title>Creator Skills — ShortsCraft</title>
+<meta name="description" content="Tutorials and walkthroughs made by ShortsCraft creators. Learn how a template was built, then open it in the Studio."/>
 <link rel="canonical" href="https://shortscraft.online/community"/>
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="Community Templates — ShortsCraft"/>
-<meta property="og:description" content="Discover, customize and publish creator motion graphics templates. Built by creators for YouTube Shorts and Instagram Reels."/>
+<meta property="og:title" content="Creator Skills — ShortsCraft"/>
+<meta property="og:description" content="Tutorials and walkthroughs made by ShortsCraft creators. Learn how a template was built, then open it in the Studio."/>
 <meta property="og:url" content="https://shortscraft.online/community"/>
 <meta name="twitter:card" content="summary_large_image"/>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f7f7f5">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
 <link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
@@ -24,42 +24,150 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026083001">
-<link rel="stylesheet" href="/page.css?v=2026083002">
+<link rel="stylesheet" href="/shell.css?v=2026090922">
+<link rel="stylesheet" href="/page.css?v=2026090922">
+<link rel="stylesheet" href="/redesign.css?v=2026090922">
+<!-- Motion layer. Loads last so it can add transitions to the finished
+     visual system without restating any of it. -->
+<link rel="stylesheet" href="/polish.css?v=2026090922">
+<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 <style>
-.sh-comm-head{
-  padding:50px 28px 20px;
-  display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;
-}
-.sh-comm-head h1{
-  font-family:var(--sh-display);
-  font-size:clamp(28px,4vw,44px);
+.sk-head{padding:50px 28px 14px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.sk-head h1{
+  font-family:var(--sh-display);font-size:clamp(28px,4vw,44px);
   margin:0 0 8px;font-weight:700;letter-spacing:-.03em;
 }
-.sh-comm-head p{margin:0;font-size:15px;color:var(--sh-ink2);max-width:560px}
-.sh-pub-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  height:42px;padding:0 22px;border-radius:999px;
-  background:#fff;color:#000 !important;font-weight:650;font-size:14px;
-  text-decoration:none;transition:transform .15s ease;
-}
-.sh-pub-btn:hover{transform:translateY(-1px);background:#f2f2f2}
+.sk-head p{margin:0;font-size:15px;color:var(--sh-ink2);max-width:540px;line-height:1.55}
 
-.sh-author-row{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-top:8px;padding-top:8px;border-top:1px solid var(--sh-line);
+.sk-share-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  height:42px;padding:0 22px;border:0;border-radius:999px;cursor:pointer;
+  background:var(--sh-ink);color:var(--sh-bg1);font:inherit;font-weight:650;font-size:14px;
+  transition:transform .15s ease,opacity .15s ease;
 }
-.sh-author{
-  display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--sh-ink3);
+.sk-share-btn:hover{transform:translateY(-1px);opacity:.9}
+
+/* ── Submission panel ───────────────────────────────────── */
+.sk-form{
+  margin:0 28px 20px;padding:18px;
+  border:1px solid var(--sh-line);border-radius:16px;background:var(--sh-bg2);
+  display:grid;gap:13px;max-width:660px;
 }
-.sh-author b{color:var(--sh-ink);font-weight:600}
-.sh-like-btn{
-  background:none;border:1px solid var(--sh-line);border-radius:999px;
-  color:var(--sh-ink2);padding:3px 10px;font-size:12px;cursor:pointer;
-  display:inline-flex;align-items:center;gap:4px;transition:all .15s ease;
+.sk-form[hidden]{display:none}
+.sk-form h2{margin:0;font-size:16px;font-weight:700}
+.sk-form-note{margin:0;font-size:13px;color:var(--sh-ink3);line-height:1.5}
+.sk-f{display:grid;gap:5px}
+.sk-f label{font-size:12.5px;color:var(--sh-ink3)}
+.sk-f input,.sk-f textarea{
+  width:100%;padding:10px 12px;
+  border:1px solid var(--sh-line);border-radius:10px;
+  background:var(--sh-bg1);color:var(--sh-ink);font:inherit;font-size:13.5px;
 }
-.sh-like-btn:hover{border-color:var(--sh-line2);color:#fff;background:rgba(255,255,255,.06)}
-.sh-like-btn.liked{color:#ff3b5c;border-color:rgba(255,59,92,.4);background:rgba(255,59,92,.1)}
+.sk-f textarea{min-height:70px;resize:vertical;line-height:1.5}
+.sk-f input:focus,.sk-f textarea:focus{outline:none;border-color:var(--sh-line2)}
+.sk-form-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sk-submit{
+  height:40px;padding:0 20px;border:0;border-radius:10px;cursor:pointer;
+  background:var(--sh-ink);color:var(--sh-bg1);font:inherit;font-weight:650;font-size:13.5px;
+}
+.sk-submit[disabled]{opacity:.55;cursor:default}
+.sk-cancel{
+  height:40px;padding:0 16px;border:1px solid var(--sh-line);border-radius:10px;
+  background:none;color:var(--sh-ink2);font:inherit;font-size:13.5px;cursor:pointer;
+}
+.sk-msg{margin:0;font-size:13px;line-height:1.5}
+.sk-msg.err{color:#e5484d}
+.sk-msg.ok{color:#2a9d5c}
+
+/* ── Cards ──────────────────────────────────────────────── */
+.sk-grid{
+  padding:8px 28px 12px;
+  display:grid;gap:18px;
+  grid-template-columns:repeat(auto-fill,minmax(266px,1fr));
+}
+.sk-card{
+  border:1px solid var(--sh-line);border-radius:16px;overflow:hidden;
+  background:var(--sh-bg2);display:flex;flex-direction:column;
+  transition:border-color .15s ease,transform .15s ease;
+}
+.sk-card:hover{border-color:var(--sh-line2);transform:translateY(-2px)}
+.sk-thumb{
+  display:block;position:relative;aspect-ratio:16/9;
+  background:var(--sh-bg3);overflow:hidden;
+}
+.sk-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+/* Instagram publishes no open thumbnail endpoint, so those cards get a drawn
+   panel rather than a broken image frame. */
+.sk-thumb-fallback{
+  position:absolute;inset:0;display:grid;place-items:center;
+  color:var(--sh-ink3);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+}
+.sk-play{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(0,0,0,.62);display:grid;place-items:center;
+}
+.sk-play svg{width:16px;height:16px;fill:#fff;margin-left:2px}
+.sk-body{padding:13px 14px 12px;display:grid;gap:6px;flex:1}
+.sk-title{margin:0;font-size:14.5px;font-weight:650;line-height:1.35;color:var(--sh-ink)}
+.sk-title a{color:inherit;text-decoration:none}
+.sk-title a:hover{text-decoration:underline}
+.sk-summary{
+  margin:0;font-size:12.5px;color:var(--sh-ink3);line-height:1.5;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sk-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:auto;padding:9px 14px;border-top:1px solid var(--sh-line);
+  font-size:12px;color:var(--sh-ink3);
+}
+.sk-author{display:inline-flex;align-items:center;gap:5px;min-width:0}
+.sk-author a{color:var(--sh-ink);font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sk-author a:hover{text-decoration:underline}
+.sk-tick{width:12px;height:12px;flex:none}
+.sk-plat{
+  flex:none;padding:2px 8px;border:1px solid var(--sh-line);border-radius:999px;
+  font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+}
+.sk-tpl{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11.5px;color:var(--sh-ink3);text-decoration:none;
+}
+.sk-tpl:hover{color:var(--sh-ink);text-decoration:underline}
+
+/* ── Your submissions ───────────────────────────────────── */
+.sk-mine{padding:6px 28px 0;max-width:760px}
+.sk-mine[hidden]{display:none}
+.sk-mine h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--sh-ink3);margin:0 0 10px;font-weight:600}
+.sk-mine-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 13px;border:1px solid var(--sh-line);border-radius:11px;
+  background:var(--sh-bg2);margin-bottom:8px;font-size:13px;
+}
+.sk-mine-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sh-ink)}
+.sk-pill{
+  flex:none;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;
+  border:1px solid var(--sh-line);color:var(--sh-ink3);
+}
+.sk-pill.pending{border-color:#c99a2e59;color:#b8860b}
+.sk-pill.published{border-color:#2a9d5c59;color:#2a9d5c}
+.sk-pill.rejected{border-color:#e5484d59;color:#e5484d}
+.sk-mine-note{font-size:12px;color:var(--sh-ink3);margin:-4px 0 10px;padding-left:13px}
+
+/* ── Empty state ────────────────────────────────────────── */
+.sk-empty{
+  margin:6px 28px 28px;padding:44px 28px;text-align:center;
+  border:1px dashed var(--sh-line2);border-radius:18px;
+}
+.sk-empty h3{margin:0 0 8px;font-size:19px;font-weight:700}
+.sk-empty p{margin:0 auto 18px;max-width:440px;color:var(--sh-ink2);font-size:14px;line-height:1.6}
+
+@media (max-width:640px){
+  .sk-head{padding:32px 18px 12px}
+  .sk-grid{padding:8px 18px 12px;grid-template-columns:1fr}
+  .sk-form{margin:0 18px 18px}
+  .sk-mine,.sk-empty{margin-left:18px;margin-right:18px;padding-left:0;padding-right:0}
+}
 </style></head>
 <body class="sh-body">
 
@@ -88,22 +196,84 @@
     </a>
 
     <nav class="sh-nav" aria-label="Workspace">
-        <a href="/#templates">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
-          <span>Templates</span>
-        </a>
-        <a href="/drafts">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          <span>My Projects</span>
-        </a>
-        <a href="/community" aria-current="page">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>Community</span>
-        </a>
-        <a href="/tutorials">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          <span>Tutorials & Help</span>
-        </a>
+        <div class="sh-navgroup">
+          <h2 class="sh-navgroup-title">Workspace</h2>
+          <a href="/#templates">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+            <span>Templates</span>
+          </a>
+          <a href="/drafts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span>My Projects</span>
+          </a>
+          <a href="/community" aria-current="page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Creator Skills</span>
+          </a>
+          <a href="/uploads" data-auth="in" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/><path d="M3 21h18"/></svg>
+            <span>Creator Studio</span>
+          </a>
+        </div>
+        <div class="sh-navgroup">
+          <h2 class="sh-navgroup-title">Account</h2>
+          <a href="/settings" data-auth="in" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Account & settings</span>
+          </a>
+          <a href="/pricing">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>Subscription & Plans</span>
+          </a>
+          <a href="/admin" data-auth="admin" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Admin Console</span>
+          </a>
+        </div>
+        <div class="sh-navgroup">
+          <h2 class="sh-navgroup-title">Support & Legal</h2>
+          <a href="/tutorials">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Tutorials & Help</span>
+          </a>
+          <a href="/contact">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+            <span>Help & Feedback</span>
+          </a>
+          <a href="/about">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>About Us</span>
+          </a>
+          <a href="/privacy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Privacy Policy</span>
+          </a>
+          <a href="/terms">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>Terms of Service</span>
+          </a>
+        </div>
+
+      <!-- Notifications and the theme switch live in the rail rather than the
+           top bar, which carries the account only. Each sits in the group it
+           belongs to now that the rail is grouped. -->
+      <div class="sh-notification-wrap sh-navgroup-loose" data-auth="in" hidden>
+        <button type="button" class="sh-notification-btn" id="notificationBtn" aria-label="Notifications" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+          <span class="sh-nav-label">Notifications</span>
+          <span id="notificationCount" hidden>0</span>
+        </button>
+        <section class="sh-notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
+          <header><strong>Notifications</strong><button type="button" id="notificationsReadBtn">Mark all read</button></header>
+          <div id="notificationList"><p>Loading…</p></div>
+        </section>
+      </div>
+
+      <button type="button" class="sh-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="sh-nav-label">Theme</span>
+      </button>
     </nav>
 
     <div class="sh-rail-foot">
@@ -112,9 +282,9 @@
           <b>Free plan</b>
           <i class="sh-plan-arrow">↗</i>
         </div>
-        <span class="sh-plan-credits">8 of 8 credits left today</span>
+        <span class="sh-plan-credits">5 of 5 credits left today</span>
         <span class="sh-plan-rates">Export 1 · AI scene 2</span>
-        <div class="sh-plan-upgrade-link">Upgrade to Pro · ₹99/mo</div>
+        <div class="sh-plan-upgrade-link">Upgrade to Pro · ₹199/mo</div>
       </a>
 
       <div class="sh-user-box" id="sidebarUserBox">
@@ -131,7 +301,7 @@
 
             <div class="sh-upop-badge-row">
               <span class="sh-upop-plan-pill" data-user-plan>✦ Free Plan</span>
-              <span class="sh-upop-credits-pill">⚡ 8 Credits</span>
+              <span class="sh-upop-credits-pill">⚡ 5 Credits</span>
             </div>
 
             <div class="sh-upop-menu">
@@ -155,8 +325,8 @@
               <a href="/uploads" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
                 <div class="sh-upop-item-txt">
-                  <b>My Uploads</b>
-                  <span>Published community templates</span>
+                  <b>Creator Studio</b>
+                  <span>Published, scheduled and private templates</span>
                 </div>
               </a>
 
@@ -173,6 +343,14 @@
                 <div class="sh-upop-item-txt">
                   <b>Settings</b>
                   <span>Account &amp; preferences</span>
+                </div>
+              </a>
+
+              <a href="/admin" class="sh-upop-item" data-auth="admin" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Admin Console</b>
+                  <span>Users, content and support</span>
                 </div>
               </a>
 
@@ -216,95 +394,112 @@
 
   <div class="sh-main" id="main" role="main" tabindex="-1">
 
-    <header class="sh-topbar">
+    <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
-      <a href="/community" class="sh-tlink">Community</a>
-      <a href="/contact" class="sh-tlink">Feedback</a>
-      <a href="/about" class="sh-tlink">About</a>
-      <a href="/pricing" class="sh-tfill">Upgrade</a>
-      <span class="sh-tsep" aria-hidden="true"></span>
-      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Upload Custom Template (XML, Lottie, JSON, HTML)">
+      <a href="/" class="sh-topbrand" aria-label="ShortsCraft home">
+        <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
+        <span class="sh-brand-name">Shorts<i>Craft</i></span>
+      </a>
+      <nav class="sh-primary-nav" aria-label="Main">
+        <a href="/#templates">Templates</a>
+        <a href="/community" aria-current="page">Creator Skills</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/tutorials">Learn</a>
+      </nav>
+      <div class="sh-top-actions">
+      <a href="/pricing" class="sh-credit-chip" aria-label="View plan and credits">
+        <span class="sh-credit-plan">Free</span>
+        <span class="sh-credit-balance">5 Credits</span>
+      </a>
+      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Publish an animation template" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload Template</span>
+        <span>Upload Animation</span>
       </button>
       <a href="/login" class="sh-tlink" data-auth="out">Log in</a>
       <a href="/signup" class="sh-tline" data-auth="out">Sign up</a>
-      <a href="/account" class="sh-tlink" data-auth="in" hidden>Account</a>
       <button type="button" class="sh-tline" id="logoutBtn" data-auth="in" hidden>Log out</button>
+      </div>
     </header>
 
     <div id="navMobile" hidden>
       <a href="/#templates">Templates</a>
-      <a href="/community">Community</a>
+      <a href="/community">Creator Skills</a>
+      <a href="/drafts">My Projects</a>
+      <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/editor">Editor</a>
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
       <a href="/contact">Help &amp; Feedback</a>
-      <button type="button" class="sh-m-upload-btn js-open-upload">
+      <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload Template</span>
+        <span>Publish Template</span>
       </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
       <a href="/account" data-auth="in" hidden>Account</a>
+      <a href="/admin" data-auth="admin" hidden>Admin Console</a>
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
     <main class="sh-home">
-      <section class="sh-comm-head">
+      <section class="sk-head">
         <div>
-          <span class="sh-eyebrow">✦ Creator Showcase</span>
-          <h1>Community Templates</h1>
-          <p>Explore animations published by creator accounts. Open any template to customize text, typography and colors in the Studio.</p>
+          <span class="sh-eyebrow">Creator skills</span>
+          <h1>Learn from other creators</h1>
+          <p>Walkthroughs and teaching videos made by people who use ShortsCraft. Every video plays on the creator's own channel.</p>
         </div>
-        <button type="button" class="sh-pub-btn sh-tupload-btn">
+        <button type="button" class="sk-share-btn" id="skShareBtn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-          Upload / Publish Template
+          Share a tutorial
         </button>
       </section>
 
-      <div class="sh-ratio-switch" id="commRatioSwitch" style="padding: 0 28px 10px;" role="group" aria-label="Aspect Ratio Filter">
-        <span class="sh-ratio-lbl">Format:</span>
-        <button type="button" class="sh-rchip active" data-ar="9:16" aria-pressed="true">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/></svg>
-          <span>9:16 Shorts/Reels</span>
-        </button>
-        <button type="button" class="sh-rchip" data-ar="16:9" aria-pressed="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
-          <span>16:9 YouTube</span>
-        </button>
-        <button type="button" class="sh-rchip" data-ar="1:1" aria-pressed="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
-          <span>1:1 Square</span>
-        </button>
-        <button type="button" class="sh-rchip" data-ar="4:5" aria-pressed="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/></svg>
-          <span>4:5 Feed</span>
-        </button>
-      </div>
+      <form class="sk-form" id="skForm" hidden>
+        <h2>Share a tutorial</h2>
+        <p class="sk-form-note">Paste the link to a video you have already published on YouTube or Instagram. We never host the video — people watch it on your channel, so the views stay yours. A moderator checks each submission before it appears here.</p>
 
-      <div class="sh-filters-wrap" style="padding: 0 28px;">
-        <button type="button" class="sh-fnav-btn prev" id="commFnavPrev" aria-label="Scroll categories left">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <div class="sh-filters" id="commFilters">
-          <button type="button" class="sh-chip" data-cat="all" aria-pressed="true">All</button>
-          <button type="button" class="sh-chip" data-cat="text" aria-pressed="false">Text</button>
-          <button type="button" class="sh-chip" data-cat="ui" aria-pressed="false">UI Elements</button>
-          <button type="button" class="sh-chip" data-cat="social" aria-pressed="false">Social Media</button>
-          <button type="button" class="sh-chip" data-cat="logos" aria-pressed="false">Logos</button>
-          <button type="button" class="sh-chip" data-cat="charts" aria-pressed="false">Charts &amp; Data</button>
-          <button type="button" class="sh-chip" data-cat="money" aria-pressed="false">Money</button>
+        <div class="sk-f">
+          <label for="skUrl">Video link</label>
+          <input type="url" id="skUrl" name="url" placeholder="https://youtu.be/… or https://instagram.com/reel/…" required>
         </div>
-        <button type="button" class="sh-fnav-btn next" id="commFnavNext" aria-label="Scroll categories right">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
-      </div>
+        <div class="sk-f">
+          <label for="skTitle">Title</label>
+          <input type="text" id="skTitle" name="title" maxlength="90" placeholder="What does the video teach?" required>
+        </div>
+        <div class="sk-f">
+          <label for="skSummary">Short description <span style="opacity:.65">— optional</span></label>
+          <textarea id="skSummary" name="summary" maxlength="220" placeholder="One or two lines about what someone will learn."></textarea>
+        </div>
+        <div class="sk-f">
+          <label for="skTemplate">Which template does it cover? <span style="opacity:.65">— optional</span></label>
+          <input type="text" id="skTemplate" name="templateId" maxlength="60" placeholder="e.g. text-cascade">
+        </div>
 
-      <div class="sh-gallery" id="commGallery" data-ar="9:16" style="padding-top:16px;"></div>
+        <div class="sk-form-actions">
+          <button type="submit" class="sk-submit" id="skSubmit">Submit for review</button>
+          <button type="button" class="sk-cancel" id="skCancel">Cancel</button>
+        </div>
+        <p class="sk-msg" id="skMsg" role="status"></p>
+      </form>
+
+      <section class="sk-mine" id="skMine" hidden data-auth="in">
+        <h2>Your tutorials</h2>
+        <div id="skMineList"></div>
+      </section>
+
+      <div class="sk-grid" id="skGrid"></div>
+
+      <div class="sk-empty" id="skEmpty" hidden>
+        <h3>No tutorials yet</h3>
+        <p>This is where creators explain how they made something. If you have published a walkthrough on YouTube or Instagram, it can be the first one here.</p>
+        <div class="sh-gallery-end-actions">
+          <a href="/#templates" class="sh-ge-btn sh-ge-primary">Browse the template library</a>
+          <a href="/tutorials" class="sh-ge-btn">Read the written guides</a>
+        </div>
+      </div>
     </main>
 
     <footer class="sh-footer">
@@ -314,14 +509,14 @@
             <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
             <span class="sh-brand-name">Shorts<i>Craft</i></span>
           </a>
-          <p>The AI motion design studio for viral YouTube Shorts and kinetic animations.</p>
+          <p>Create, customise and export animation templates for short-form video.</p>
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
           <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
-          <a href="/community">Community Hub</a>
+          <a href="/community">Creator Skills</a>
           <a href="/pricing">Pricing</a>
         </nav>
 
@@ -343,240 +538,186 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026083002" defer></script>
-<script src="/page.js?v=2026083001" defer></script>
-<script src="/templates-v2.js?v=12" defer></script><script>
-(function() {
+<script src="/authui.js?v=2026090922" defer></script>
+<script src="/theme.js?v=2026090922" defer></script>
+<script src="/page.js?v=2026090922" defer></script>
+<script>
+(function () {
   "use strict";
-  var grid = document.getElementById("commGallery");
-  var filterBar = document.getElementById("commFilters");
-  var ratioBar = document.getElementById("commRatioSwitch");
-  var allTemplates = [];
-  var currentCat = "all";
-  var currentAspect = "9:16";
+  var grid = document.getElementById("skGrid");
+  var empty = document.getElementById("skEmpty");
+  var form = document.getElementById("skForm");
+  var shareBtn = document.getElementById("skShareBtn");
+  var cancelBtn = document.getElementById("skCancel");
+  var submitBtn = document.getElementById("skSubmit");
+  var msg = document.getElementById("skMsg");
+  var mine = document.getElementById("skMine");
+  var mineList = document.getElementById("skMineList");
+  var signedIn = false;
 
-  /* A failed load used to log to the console and leave the grid empty, so a
-     database outage rendered as a page that had simply finished loading with
-     nothing on it. Say what happened and offer a retry instead. */
-  function showLoadError() {
-    if (!grid) return;
-    grid.innerHTML = "";
-    var box = document.createElement("div");
-    box.className = "sh-comm-error";
-    var h = document.createElement("b");
-    h.textContent = "Could not load community templates";
-    var msg = document.createElement("span");
-    msg.textContent = "The gallery is temporarily unavailable. The Studio and the main template library are unaffected.";
-    var row = document.createElement("div");
-    row.className = "sh-comm-error-row";
-    var again = document.createElement("button");
-    again.type = "button";
-    again.className = "sh-comm-retry";
-    again.textContent = "Try again";
-    again.addEventListener("click", function () { loadTemplates(); });
-    var browse = document.createElement("a");
-    browse.className = "sh-comm-retry alt";
-    browse.href = "/#templates";
-    browse.textContent = "Browse all templates";
-    row.appendChild(again);
-    row.appendChild(browse);
-    box.appendChild(h);
-    box.appendChild(msg);
-    box.appendChild(row);
-    grid.appendChild(box);
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
-  function showLoading() {
-    if (!grid) return;
-    grid.innerHTML = "";
-    var l = document.createElement("p");
-    l.className = "sh-comm-loading";
-    l.textContent = "Loading community templates…";
-    grid.appendChild(l);
+  function say(text, kind) {
+    if (!msg) return;
+    msg.textContent = text || "";
+    msg.className = "sk-msg" + (kind ? " " + kind : "");
   }
 
-  function loadTemplates() {
-    showLoading();
-    /* The server waits on its database connection before it can answer, so a
-       dead database left this request open for 20s with the page just saying
-       "Loading". Give up sooner and show the retry. */
-    var ctrl = ("AbortController" in window) ? new AbortController() : null;
-    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 12000);
-    fetch("/api/community-templates", ctrl ? { signal: ctrl.signal } : undefined)
-      .then(function(r) {
-        clearTimeout(bail);
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
-      .then(function(d) {
-        if (!d || !d.templates) throw new Error((d && d.error) || "No templates in response");
-        allTemplates = d.templates;
-        renderGrid();
-      })
-      .catch(function(err) {
-        clearTimeout(bail);
-        console.error("Could not load community templates", err);
-        showLoadError();
-      });
+  var TICK = '<svg class="sk-tick" viewBox="0 0 24 24" fill="#1d9bf0" aria-label="Verified"><path d="M12 2l2.4 1.8 3-.2.9 2.9 2.4 1.8-1.2 2.7 1.2 2.7-2.4 1.8-.9 2.9-3-.2L12 22l-2.4-1.8-3 .2-.9-2.9L3.3 15.7 4.5 13 3.3 10.3l2.4-1.8.9-2.9 3 .2z"/><path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.9-3.9 1.1 1.1z" fill="#fff"/></svg>';
+
+  var PLAY = '<span class="sk-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
+
+  function card(s) {
+    var el = document.createElement("article");
+    el.className = "sk-card";
+
+    // rel="noopener" because every one of these links leaves for a site we do
+    // not control, opened in a new tab.
+    var thumb = s.thumbnail
+      ? '<img src="' + esc(s.thumbnail) + '" alt="" loading="lazy" width="480" height="270">'
+      : '<span class="sk-thumb-fallback">' + esc(s.platform) + '</span>';
+
+    var authorHref = s.author.handle ? "/creator?handle=" + encodeURIComponent(s.author.handle) : "";
+    var authorName = esc(s.author.name) + (s.author.verified ? TICK : "");
+    var author = authorHref
+      ? '<a href="' + esc(authorHref) + '">' + authorName + "</a>"
+      : "<span>" + authorName + "</span>";
+
+    el.innerHTML =
+      '<a class="sk-thumb" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+        thumb + PLAY +
+      "</a>" +
+      '<div class="sk-body">' +
+        '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+          esc(s.title) + "</a></h3>" +
+        (s.summary ? '<p class="sk-summary">' + esc(s.summary) + "</p>" : "") +
+        (s.templateId
+          ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">Open ' +
+            esc(s.templateId) + " in the Studio →</a>"
+          : "") +
+      "</div>" +
+      '<div class="sk-foot">' +
+        '<span class="sk-author">' + author + "</span>" +
+        '<span class="sk-plat">' + esc(s.platform) + "</span>" +
+      "</div>";
+    return el;
   }
 
-  function renderGrid() {
-    if (!grid) return;
+  function render(list) {
     grid.innerHTML = "";
-    grid.dataset.ar = currentAspect;
-    var list = (currentCat === "all") ? allTemplates : allTemplates.filter(function(t) { return t.category === currentCat; });
-
     if (!list.length) {
-      grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:40px;color:var(--sh-ink3);">No community templates in this category yet. Be the first to publish one!</p>';
+      grid.hidden = true;
+      empty.hidden = false;
       return;
     }
+    grid.hidden = false;
+    empty.hidden = true;
+    var frag = document.createDocumentFragment();
+    list.forEach(function (s) { frag.appendChild(card(s)); });
+    grid.appendChild(frag);
+  }
 
-    var e = window.SC_TPL2;
+  function load() {
+    return fetch("/api/skills", { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { render((j && j.skills) || []); })
+      .catch(function () {
+        // A failed load must not look like an empty community.
+        grid.hidden = true;
+        empty.hidden = false;
+        empty.querySelector("h3").textContent = "Could not load tutorials";
+        empty.querySelector("p").textContent = "Something went wrong reaching the server. Reload the page to try again.";
+      });
+  }
 
-    list.forEach(function(t) {
-      var tile = document.createElement("article");
-      tile.className = "sh-tile";
-
-      var stage = document.createElement("a");
-      stage.className = "sh-stage";
-      var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl || "type-cascade")
-        + "&accent=" + encodeURIComponent(t.accent || "#ffffff")
-        + "&font=" + encodeURIComponent(t.font || "inter")
-        + "&dur=" + encodeURIComponent(t.dur || 4600)
-        + "&aspect=" + encodeURIComponent(currentAspect)
-        + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
-      stage.href = editUrl;
-      stage.setAttribute("aria-label", "Open " + t.title + " in Video Studio");
-
-      var use = document.createElement("span");
-      use.className = "sh-use";
-      use.textContent = "Customize template";
-      stage.appendChild(use);
-
-      if (e && typeof e.build === "function") {
-        var html = e.build(t.tpl, {
-          lines: t.lines,
-          accent: t.accent,
-          font: t.font,
-          dur: t.dur,
-          aspect: currentAspect
-        });
-        if (html) {
-          var frame = document.createElement("iframe");
-          frame.setAttribute("sandbox", "");
-          frame.setAttribute("scrolling", "no");
-          frame.setAttribute("tabindex", "-1");
-          frame.setAttribute("aria-hidden", "true");
-          frame.srcdoc = html;
-          stage.appendChild(frame);
-        }
+  function renderMine(list) {
+    if (!mine || !mineList) return;
+    if (!list.length) { mine.hidden = true; return; }
+    mine.hidden = false;
+    mineList.innerHTML = "";
+    list.forEach(function (s) {
+      var row = document.createElement("div");
+      row.className = "sk-mine-row";
+      row.innerHTML =
+        '<span class="sk-mine-title">' + esc(s.title) + "</span>" +
+        '<span class="sk-pill ' + esc(s.status) + '">' + esc(s.status) + "</span>";
+      mineList.appendChild(row);
+      // A rejection without its reason is indistinguishable from a submission
+      // that vanished, so the note is shown to the person who wrote it.
+      if (s.status === "rejected" && s.reviewNote) {
+        var note = document.createElement("p");
+        note.className = "sk-mine-note";
+        note.textContent = s.reviewNote;
+        mineList.appendChild(note);
       }
-
-      var meta = document.createElement("div");
-      meta.className = "sh-tmeta";
-      var b = document.createElement("b");
-      b.textContent = t.title;
-      var sp = document.createElement("span");
-      sp.textContent = t.description;
-      meta.appendChild(b);
-      meta.appendChild(sp);
-
-      var arow = document.createElement("div");
-      arow.className = "sh-author-row";
-      arow.innerHTML = '<div class="sh-author"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> <b>@' + (t.authorHandle || "creator") + '</b></div>'
-        + '<button type="button" class="sh-like-btn" data-id="' + t.id + '">❤️ <span>' + (t.likes || 1) + '</span></button>';
-
-      meta.appendChild(arow);
-      tile.appendChild(stage);
-      tile.appendChild(meta);
-      grid.appendChild(tile);
-    });
-
-    // Wire like buttons
-    grid.querySelectorAll(".sh-like-btn").forEach(function(btn) {
-      btn.addEventListener("click", function(ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var id = btn.dataset.id;
-        var isLiked = btn.classList.contains("liked");
-        var endpoint = isLiked ? "/api/community-templates/" + id + "/unlike" : "/api/community-templates/" + id + "/like";
-        fetch(endpoint, { method: "POST" })
-          .then(function(r) { return r.json(); })
-          .then(function(res) {
-            if (res && res.success) {
-              if (isLiked) {
-                btn.classList.remove("liked");
-              } else {
-                btn.classList.add("liked");
-              }
-              btn.querySelector("span").textContent = res.likes;
-            }
-          });
-      });
     });
   }
 
-  if (filterBar) {
-    filterBar.addEventListener("click", function(ev) {
-      var btn = ev.target && ev.target.closest(".sh-chip");
-      if (!btn) return;
-      filterBar.querySelectorAll(".sh-chip").forEach(function(b) {
-        b.setAttribute("aria-pressed", String(b === btn));
-      });
-      currentCat = btn.dataset.cat;
-      renderGrid();
+  function loadMine() {
+    return fetch("/api/skills/mine", { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j && j.skills) renderMine(j.skills); })
+      .catch(function () {});
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener("click", function () {
+      if (!signedIn) {
+        location.href = "/login?next=" + encodeURIComponent("/community");
+        return;
+      }
+      form.hidden = !form.hidden;
+      if (!form.hidden) document.getElementById("skUrl").focus();
+    });
+  }
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", function () { form.hidden = true; say(""); });
+  }
+
+  if (form) {
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var body = {
+        url: document.getElementById("skUrl").value,
+        title: document.getElementById("skTitle").value,
+        summary: document.getElementById("skSummary").value,
+        templateId: document.getElementById("skTemplate").value
+      };
+      submitBtn.disabled = true;
+      say("Sending…");
+      fetch("/api/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (out) {
+          if (!out.ok || !out.j.success) {
+            say((out.j && out.j.error) || "Could not share that tutorial.", "err");
+            return;
+          }
+          say("Thanks — a moderator will review it before it appears here.", "ok");
+          form.reset();
+          loadMine();
+        })
+        .catch(function () { say("Could not reach the server. Try again.", "err"); })
+        .finally(function () { submitBtn.disabled = false; });
     });
   }
 
-  if (ratioBar) {
-    ratioBar.addEventListener("click", function(ev) {
-      var btn = ev.target && ev.target.closest(".sh-rchip");
-      if (!btn || !btn.dataset.ar) return;
-      var ar = btn.dataset.ar;
-      if (ar === currentAspect) return;
-      currentAspect = ar;
-      ratioBar.querySelectorAll(".sh-rchip").forEach(function(b) {
-        var active = b === btn;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-pressed", String(active));
-      });
-      renderGrid();
-    });
-  }
+  fetch("/api/auth/me", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      signedIn = !!(j && j.user);
+      if (signedIn) loadMine();
+    })
+    .catch(function () {});
 
-  /* Category strip arrows. The buttons were in the markup but wired to
-     nothing, so they sat there doing nothing at either end of the strip.
-     Each one nudges the strip by most of a screenful, and both hide
-     themselves when there is nothing further to scroll to — an arrow that
-     cannot move is worse than no arrow. */
-  (function wireStripArrows() {
-    var strip = document.getElementById("commFilters");
-    var prev = document.getElementById("commFnavPrev");
-    var next = document.getElementById("commFnavNext");
-    if (!strip || !prev || !next) return;
-
-    function sync() {
-      var max = strip.scrollWidth - strip.clientWidth;
-      // 2px of slack: sub-pixel layout means scrollLeft rarely lands exactly
-      // on 0 or on max, which would leave an arrow visible but inert.
-      prev.hidden = strip.scrollLeft <= 2;
-      next.hidden = strip.scrollLeft >= max - 2;
-    }
-
-    function nudge(dir) {
-      strip.scrollBy({ left: dir * Math.max(160, strip.clientWidth * 0.8), behavior: "smooth" });
-    }
-
-    prev.addEventListener("click", function () { nudge(-1); });
-    next.addEventListener("click", function () { nudge(1); });
-    strip.addEventListener("scroll", sync, { passive: true });
-    window.addEventListener("resize", sync);
-    sync();
-  })();
-
-  window.addEventListener("DOMContentLoaded", function() {
-    loadTemplates();
-  });
+  load();
 })();
 </script></body>
 </html>

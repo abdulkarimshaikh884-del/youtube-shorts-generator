@@ -3,14 +3,6 @@
    ============================================================ */
 const db = require("./db");
 
-/* A template with no comments yet still needs to look alive. This is not
-   persisted until someone actually comments — it is a display fallback, the
-   same behaviour the file-backed version had. */
-const GENERIC_FALLBACK = [
-  { id: "c_gen_1", authorName: "Motion Creator", authorHandle: "@motion_pro", text: "Stunning kinetic pacing and clean easing curves. Great template!", time: "4 hours ago", likes: 5 },
-  { id: "c_gen_2", authorName: "Creator Hub", authorHandle: "@creator_daily", text: "Super easy to customize in the Studio editor.", time: "1 day ago", likes: 3 }
-];
-
 function relativeTime(createdAt) {
   const ms = Date.now() - new Date(createdAt).getTime();
   const min = Math.floor(ms / 60000);
@@ -22,24 +14,41 @@ function relativeTime(createdAt) {
   return day + (day === 1 ? " day ago" : " days ago");
 }
 
-function toComment(row) {
+/* `viewer` decides only what the UI is allowed to offer. Every mutation
+   re-checks ownership on the server, so a forged canEdit changes nothing. */
+function toComment(row, viewer) {
+  const mine = !!(viewer && viewer.id && row.author_id && viewer.id === row.author_id);
+  const admin = !!(viewer && (viewer.role === "admin" || viewer.role === "super_admin"));
   return {
     id: row.id,
+    parentId: row.parent_id || null,
     authorName: row.author_name,
     authorHandle: row.author_handle,
+    authorId: row.author_id || null,
+    authorVerified: row.author_verified === true || String(row.author_handle || "").replace(/^@/, "") === "shortscraft",
+    authorAvatarUrl: row.author_has_avatar && row.author_id ? `/api/users/${encodeURIComponent(row.author_id)}/avatar` : "",
     text: row.text,
     time: relativeTime(row.created_at),
-    likes: row.likes
+    // A second of slack: the insert sets both stamps and they can differ by
+    // microseconds, which is not an edit.
+    edited: !!(row.updated_at && new Date(row.updated_at) - new Date(row.created_at) > 1000),
+    likes: row.likes,
+    canEdit: mine,
+    canDelete: mine || admin
   };
 }
 
-async function getComments(tplId) {
+async function getComments(tplId, viewer) {
   const { rows } = await db.query(
-    `select * from public.template_comments where tpl_id = $1 order by created_at desc`,
+    `select c.*, u.verified as author_verified,
+            (u.avatar_bytes is not null) as author_has_avatar
+       from public.template_comments c
+       left join public.users u on u.id = c.author_id
+      where c.tpl_id = $1 and c.status = 'visible'
+      order by c.created_at asc`,
     [tplId]
   );
-  if (rows.length) return rows.map(toComment);
-  return GENERIC_FALLBACK;
+  return rows.map((row) => toComment(row, viewer));
 }
 
 async function addComment(tplId, commentData, user) {
@@ -56,18 +65,66 @@ async function addComment(tplId, commentData, user) {
   if (!text) throw new Error("Comment text is required");
   const id = "c_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
+  /* A reply has to point at a real comment on the same template, or it is
+     stored as a top-level comment rather than orphaned under an id that
+     does not exist. Only one level: a reply to a reply attaches to the same
+     parent, which keeps the thread readable. */
+  let parentId = null;
+  const wantedParent = String(commentData.parentId || "").trim();
+  if (wantedParent) {
+    const { rows: p } = await db.query(
+      `select id, parent_id from public.template_comments
+        where id = $1 and tpl_id = $2 and status = 'visible'`,
+      [wantedParent, tplId]
+    );
+    if (p[0]) parentId = p[0].parent_id || p[0].id;
+  }
+
   const { rows } = await db.query(
-    `insert into public.template_comments (id, tpl_id, author_name, author_handle, text, likes)
-     values ($1, $2, $3, $4, $5, 1)
+    `insert into public.template_comments
+       (id, tpl_id, author_id, author_name, author_handle, text, likes, status, parent_id)
+     values ($1, $2, $3, $4, $5, $6, 0, 'visible', $7)
      returning *`,
-    [
-      id, tplId,
-      name,
-      handle,
-      text
-    ]
+    [id, tplId, user.id, name, handle, text, parentId]
   );
-  return toComment(rows[0]);
+  return toComment(rows[0], user);
 }
 
-module.exports = { getComments, addComment };
+/* Editing and deleting are scoped by author_id in the WHERE clause, so a
+   comment id belonging to someone else simply matches no row. */
+async function editComment(id, user, rawText) {
+  if (!user || !user.id) return { error: "Please log in first.", status: 401 };
+  const text = String(rawText || "").trim().slice(0, 500);
+  if (!text) return { error: "A comment cannot be empty.", status: 400 };
+  const { rows } = await db.query(
+    `update public.template_comments
+        set text = $1, updated_at = now()
+      where id = $2 and author_id = $3 and status = 'visible'
+      returning *`,
+    [text, String(id || ""), user.id]
+  );
+  if (!rows[0]) return { error: "That comment is not yours to edit.", status: 403 };
+  return { success: true, comment: toComment(rows[0], user) };
+}
+
+async function deleteComment(id, user) {
+  if (!user || !user.id) return { error: "Please log in first.", status: 401 };
+  const admin = user.role === "admin" || user.role === "super_admin";
+  const { rows } = await db.query(
+    `update public.template_comments
+        set status = 'removed', updated_at = now()
+      where id = $1 and status = 'visible' and ($3::boolean or author_id = $2)
+      returning id, parent_id`,
+    [String(id || ""), user.id, admin]
+  );
+  if (!rows[0]) return { error: "That comment is not yours to delete.", status: 403 };
+  // Deleting a parent takes its replies with it, or they hang under nothing.
+  await db.query(
+    `update public.template_comments set status = 'removed', updated_at = now()
+      where parent_id = $1 and status = 'visible'`,
+    [rows[0].id]
+  );
+  return { success: true };
+}
+
+module.exports = { getComments, addComment, editComment, deleteComment };

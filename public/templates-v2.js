@@ -3882,6 +3882,131 @@ window.SC_TPL2 = (function () {
     }
   };
 
+  /* ========================================================
+     REFERENCE-INSPIRED STORIES
+     Rebuilt from visual grammar only: original markup, original motion,
+     replaceable copy/media and no third-party branding or footage.
+     ======================================================== */
+
+  T["ref-onboarding-journey"] = {
+    name: "Onboarding Journey", cat: "charts", collection: "reference", version: "1.0.0",
+    defaultDuration: 9000, dark: false, accent: "#08bdea",
+    desc: "Six-beat business explainer with chart hook, bold contrast, media promise, insight cards, research stat and branded CTA",
+    css: '.rj{position:absolute;inset:0;overflow:hidden;background:var(--rj-paper);color:var(--rj-dark);isolation:isolate}'
+      + '.rj-scene{position:absolute;inset:0;overflow:hidden;opacity:0;display:flex;align-items:center;justify-content:center;padding:8cqw;animation-duration:var(--D);animation-timing-function:var(--sc-cine);animation-iteration-count:infinite;animation-fill-mode:both}'
+      + '.rj-s1,.rj-s6{background:var(--rj-dark);color:#fff}.rj-s2,.rj-s4,.rj-s5{background:var(--rj-paper)}.rj-s3{background:linear-gradient(155deg,#26303a,#090b10);color:#fff}'
+      + '.sc-user-bg .rj-scene{background:transparent!important}'
+      + '.rj-s1{animation-name:rjS1}.rj-s2{animation-name:rjS2}.rj-s3{animation-name:rjS3}.rj-s4{animation-name:rjS4}.rj-s5{animation-name:rjS5}.rj-s6{animation-name:rjS6}'
+      + '.rj-orbit{position:absolute;width:84cqw;height:84cqw;border:1px solid rgba(8,189,234,.18);border-radius:50%;animation:rjOrbit calc(var(--D)*1.7) var(--sc-smooth) infinite}.rj-orbit::before,.rj-orbit::after{content:"";position:absolute;border:1px solid rgba(8,189,234,.1);border-radius:50%;inset:10cqw}.rj-orbit::after{inset:22cqw}'
+      + '.rj-s1-inner{position:relative;z-index:2;width:88cqw;display:flex;flex-direction:column;gap:3cqh}.rj-kicker{text-align:center;font-size:2.6cqw;letter-spacing:.04em;color:rgba(255,255,255,.74)}.rj-open{text-align:center;font-size:8.2cqw;line-height:.9;font-weight:900;letter-spacing:-.055em;color:var(--ac)}'
+      + '.rj-chart{position:relative;width:100%;height:34cqh;padding:5cqw 5cqw 4cqw;border-radius:3cqw;background:#fff;color:var(--rj-dark);box-shadow:0 0 0 1px rgba(255,255,255,.18),0 2.4cqh 7cqh rgba(0,0,0,.42)}.rj-chart-head{display:flex;align-items:flex-start;justify-content:space-between}.rj-chart-label{font-size:4.6cqw;font-weight:840}.rj-chart-value{font-size:5cqw;font-weight:900;color:var(--ac)}.rj-bars{position:absolute;left:6cqw;right:6cqw;bottom:5cqw;height:20cqh;display:flex;align-items:flex-end;gap:2.3cqw;border-bottom:1px solid rgba(0,0,0,.16)}.rj-bar{flex:1;height:var(--h);border-radius:1cqw 1cqw 0 0;background:var(--ac);transform-origin:bottom;animation:rjBar var(--D) var(--sc-cine) infinite;animation-delay:calc(var(--i)*80ms)}'
+      + '.rj-s2-inner{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}.rj-rule-grid{position:absolute;inset:3cqw;background-image:linear-gradient(rgba(15,5,35,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(15,5,35,.08) 1px,transparent 1px);background-size:8cqw 8cqw;mask-image:linear-gradient(to bottom,transparent,black 18%,black 82%,transparent)}.rj-contrast{position:absolute;top:20cqh;left:9cqw;font-size:7.5cqw;line-height:.92;letter-spacing:-.06em}.rj-contrast strong{display:block;font-size:10cqw}.rj-strike{position:relative;color:#f2182f}.rj-strike::after{content:"";position:absolute;left:-3%;right:-3%;top:52%;height:.9cqw;background:var(--rj-dark);transform:rotate(-2deg);animation:rjStrike var(--D) var(--sc-cine) infinite}'
+      + '.rj-phone{position:absolute;right:10cqw;top:31cqh;width:29cqw;height:29cqh;border:.9cqw solid var(--rj-dark);border-radius:5cqw;background:linear-gradient(160deg,#fff,var(--ac));box-shadow:-4cqw 4cqh 0 rgba(8,189,234,.16);animation:rjPhone var(--D) var(--sc-spring) infinite}.rj-phone::before{content:"";position:absolute;left:50%;top:1.2cqh;translate:-50% 0;width:9cqw;height:1.1cqh;border-radius:99px;background:var(--rj-dark)}'
+      + '.rj-thesis{position:absolute;left:9cqw;right:9cqw;bottom:18cqh;text-align:center;font-size:6.2cqw;line-height:1.03;font-weight:900;letter-spacing:-.045em}.rj-thesis b{color:var(--ac)}.rj-thesis span{display:block;font-size:3.4cqw;font-weight:650;letter-spacing:-.01em;margin-top:1.2cqh}.rj-thesis span em{font-style:normal;color:#f2182f}'
+      + '.rj-media{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 65% 25%,rgba(8,189,234,.38),transparent 35%),linear-gradient(155deg,#303944,#0a0c10)}.rj-media img{width:100%;height:100%;object-fit:cover;filter:saturate(.85) contrast(1.08)}.rj-media>span{font-size:22cqw;color:rgba(255,255,255,.7)}.rj-media::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.08),rgba(0,0,0,.74))}'
+      + '.rj-caption{position:absolute;z-index:2;left:7cqw;right:7cqw;bottom:17cqh;text-align:center;font-size:5.5cqw;line-height:1.05;font-weight:780;text-shadow:0 1cqh 2.2cqh rgba(0,0,0,.75)}.rj-caption b{display:block;color:var(--ac);font-size:8cqw;letter-spacing:.035em}.rj-caption small{display:block;font-size:4cqw;margin-top:.5cqh}'
+      + '.rj-card-stack{width:88cqw;display:flex;flex-direction:column;gap:1.7cqh}.rj-section-label{font-size:2.2cqw;letter-spacing:.2em;text-transform:uppercase;color:rgba(15,5,35,.46);margin-bottom:1cqh}.rj-card{position:relative;padding:3.2cqw 4cqw;border-radius:2.2cqw;background:var(--rj-dark);color:#fff;box-shadow:0 1.3cqh 3cqh rgba(15,5,35,.12);opacity:0;animation:rjCard var(--D) var(--sc-cine) infinite;animation-delay:calc(var(--i)*120ms)}.rj-card::before{content:"";position:absolute;left:0;top:18%;bottom:18%;width:.75cqw;border-radius:0 99px 99px 0;background:var(--ac)}.rj-card b{display:block;color:var(--ac);font-size:4.2cqw;line-height:1}.rj-card span{display:block;margin-top:.9cqh;font-size:2.7cqw;line-height:1.34;color:rgba(255,255,255,.76)}'
+      + '.rj-stat-wrap{position:relative;width:86cqw;text-align:center}.rj-stat-label{font-size:5.5cqw;font-weight:780}.rj-stat{font-size:20cqw;line-height:.86;font-weight:930;letter-spacing:-.08em;color:var(--rj-dark);margin:4cqh 0 2cqh}.rj-stat::after{content:"";display:block;width:58cqw;height:1.3cqw;margin:2cqh auto 0;background:var(--ac);transform-origin:left;animation:rjUnderline var(--D) var(--sc-cine) infinite}.rj-stat-copy{font-size:3.6cqw;line-height:1.22;max-width:70cqw;margin:auto}.rj-stat-dot{position:absolute;width:4cqw;height:4cqw;border-radius:50%;background:var(--ac);right:2cqw;top:2cqh;animation:rjPulse calc(var(--D)*.24) var(--sc-smooth) infinite}'
+      + '.rj-cta{position:relative;z-index:2;width:88cqw;text-align:center}.rj-cta-top{font-size:6.2cqw;font-weight:770;line-height:1.05}.rj-cta-accent{display:block;color:var(--ac);font-size:10.5cqw;font-weight:930;line-height:.9;letter-spacing:-.06em;margin:1.5cqh 0 5cqh}.rj-cta-bottom{font-size:3.3cqw;color:rgba(255,255,255,.72)}.rj-brand{position:absolute;left:50%;bottom:9cqh;translate:-50% 0;display:flex;align-items:center;gap:2.5cqw;color:#fff;white-space:nowrap}.rj-logo{width:10cqw;height:10cqw;border-radius:2.6cqw;display:grid;place-items:center;background:var(--ac);font-size:5cqw;font-weight:900;box-shadow:0 0 4cqw rgba(8,189,234,.42);overflow:hidden}.rj-logo img{width:100%;height:100%;object-fit:cover}.rj-brand-name{font-size:4cqw;font-weight:850;letter-spacing:.08em;text-transform:uppercase}'
+      + '@keyframes rjS1{0%{opacity:0;transform:scale(.975)}3%,12%{opacity:1;transform:scale(1)}15%,100%{opacity:0;transform:scale(1.025)}}'
+      + '@keyframes rjS2{0%,12%{opacity:0;transform:translateX(5cqw)}16%,29%{opacity:1;transform:none}32%,100%{opacity:0;transform:translateX(-4cqw)}}'
+      + '@keyframes rjS3{0%,28%{opacity:0;transform:scale(1.08)}33%,43%{opacity:1;transform:scale(1)}47%,100%{opacity:0;transform:scale(.98)}}'
+      + '@keyframes rjS4{0%,43%{opacity:0;transform:translateY(4cqh)}48%,65%{opacity:1;transform:none}69%,100%{opacity:0;transform:translateY(-3cqh)}}'
+      + '@keyframes rjS5{0%,64%{opacity:0;transform:scale(.94)}69%,80%{opacity:1;transform:scale(1)}84%,100%{opacity:0;transform:scale(1.04)}}'
+      + '@keyframes rjS6{0%,79%{opacity:0;transform:translateY(3cqh)}84%,97%{opacity:1;transform:none}100%{opacity:0;transform:scale(1.02)}}'
+      + '@keyframes rjBar{0%,2%{transform:scaleY(.08);opacity:.2}9%,91%{transform:scaleY(1);opacity:1}100%{transform:scaleY(.75);opacity:.5}}@keyframes rjOrbit{to{transform:rotate(360deg)}}'
+      + '@keyframes rjStrike{0%,18%{transform:scaleX(0) rotate(-2deg)}25%,100%{transform:scaleX(1) rotate(-2deg)}}@keyframes rjPhone{0%,14%{opacity:0;transform:translateY(8cqh) rotate(8deg)}22%,100%{opacity:1;transform:none}}'
+      + '@keyframes rjCard{0%,44%{opacity:0;transform:translateY(3cqh) scale(.96)}50%,66%{opacity:1;transform:none}71%,100%{opacity:0;transform:translateY(-1cqh)}}@keyframes rjUnderline{0%,68%{transform:scaleX(0)}76%,100%{transform:scaleX(1)}}'
+      + '@keyframes rjPulse{0%,100%{transform:scale(.7);opacity:.35}50%{transform:scale(1.25);opacity:1}}',
+    html: function (o) {
+      var paper = getP(o, "paperColor", "#f8f8f5");
+      var dark = getP(o, "darkColor", "#10002f");
+      var bars = [18, 31, 26, 46, 54, 68, 79, 92].map(function (h, i) {
+        return '<i class="rj-bar" style="--h:' + h + '%;--i:' + i + '"></i>';
+      }).join("");
+      var cards = [1, 2, 3, 4].map(function (n) {
+        return '<div class="rj-card" style="--i:' + (n - 1) + '"><b>'
+          + esc(compactText(getP(o, "card" + n + "Title", ["Clarity", "Guidance", "Value early", "Consistency"][n - 1]), 28))
+          + '</b><span>' + esc(compactText(getP(o, "card" + n + "Body", ["Tell them exactly what happens next.", "Walk them step by step.", "Give them a first small win.", "Follow up like you care."][n - 1]), 72)) + '</span></div>';
+      }).join("");
+      var media = renderAvatar(getP(o, "mediaImage", "▶"), "▶", "");
+      var logo = renderAvatar(getP(o, "brandLogo", "✦"), "✦", "");
+      return '<div class="rj" style="--rj-paper:' + esc(paper) + ';--rj-dark:' + esc(dark) + '">'
+        + '<section class="rj-scene rj-s1"><div class="rj-orbit"></div><div class="rj-s1-inner"><div><div class="rj-kicker">' + esc(compactText(getP(o, "kicker", "Most businesses"), 34)) + '</div><div class="rj-open">' + esc(compactText(getP(o, "openingWord", "Celebrate"), 24)) + '</div></div><div class="rj-chart"><div class="rj-chart-head"><span class="rj-chart-label">' + esc(compactText(getP(o, "chartLabel", "Activation"), 24)) + '</span><b class="rj-chart-value">' + esc(compactText(getP(o, "chartValue", "+68%"), 12)) + '</b></div><div class="rj-bars">' + bars + '</div></div></div></section>'
+        + '<section class="rj-scene rj-s2"><div class="rj-rule-grid"></div><div class="rj-s2-inner"><div class="rj-contrast">' + esc(compactText(getP(o, "contrastTop", "BUT"), 16)) + '<strong class="rj-strike">' + esc(compactText(getP(o, "contrastWord", "FORGET"), 18)) + '</strong></div><div class="rj-phone"></div><div class="rj-thesis"><b>' + esc(compactText(getP(o, "thesisLead", "ONBOARDING"), 26)) + '</b><span>' + esc(compactText(getP(o, "thesisTail", "is not paperwork."), 42)) + '</span></div></div></section>'
+        + '<section class="rj-scene rj-s3"><div class="rj-media">' + media + '</div><div class="rj-caption">' + esc(compactText(getP(o, "mediaCaptionTop", "It is your first"), 32)) + '<b>' + esc(compactText(getP(o, "mediaCaptionAccent", "PROMISE"), 22)) + '</b><small>' + esc(compactText(getP(o, "mediaCaptionBottom", "in action."), 28)) + '</small></div></section>'
+        + '<section class="rj-scene rj-s4"><div class="rj-card-stack"><div class="rj-section-label">A system people remember</div>' + cards + '</div></section>'
+        + '<section class="rj-scene rj-s5"><div class="rj-stat-wrap"><i class="rj-stat-dot"></i><div class="rj-stat-label">' + esc(compactText(getP(o, "researchLabel", "Research"), 28)) + '</div><div class="rj-stat">' + esc(compactText(getP(o, "statValue", "68%"), 12)) + '</div><p class="rj-stat-copy">' + esc(compactText(getP(o, "statBody", "of customers leave because they feel you do not care."), 95)) + '</p></div></section>'
+        + '<section class="rj-scene rj-s6"><div class="rj-cta"><div class="rj-cta-top">' + esc(compactText(getP(o, "ctaTop", "Stop chasing new"), 34)) + '</div><b class="rj-cta-accent">' + esc(compactText(getP(o, "ctaAccent", "LEADS."), 18)) + '</b><div class="rj-cta-bottom">' + esc(compactText(getP(o, "ctaBottom", "Start keeping the ones you have won."), 58)) + '</div></div><div class="rj-brand"><span class="rj-logo">' + logo + '</span><b class="rj-brand-name">' + esc(compactText(getP(o, "brandName", "YOUR BRAND"), 26)) + '</b></div></section>'
+        + '</div>';
+    }
+  };
+
+  T["ref-editorial-highlight"] = {
+    name: "Editorial Keyword Focus", cat: "docu", collection: "reference", version: "1.0.0",
+    defaultDuration: 2400, dark: false, accent: "#e8d52f",
+    desc: "Textured editorial camera move that keeps one highlighted keyword sharp while the article drifts through focus",
+    css: '.reh{position:absolute;inset:0;overflow:hidden;background:var(--reh-paper);color:var(--reh-ink);isolation:isolate}'
+      + '.sc-user-bg .reh{background:transparent!important}'
+      + '.reh::before{content:"";position:absolute;inset:-12%;background:repeating-linear-gradient(8deg,rgba(20,18,12,.035) 0 1px,transparent 1px 5px),repeating-linear-gradient(94deg,rgba(20,18,12,.02) 0 1px,transparent 1px 8px);mix-blend-mode:multiply;opacity:.75;animation:rehPaper calc(var(--D)*2) var(--sc-smooth) infinite}'
+      + '.reh::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 16cqw rgba(83,73,46,.11);background:radial-gradient(circle at 50% 48%,transparent 25%,rgba(255,255,255,.2) 100%)}'
+      + '.reh-grid{position:absolute;inset:0;opacity:0;background-image:linear-gradient(rgba(30,27,20,.11) 1px,transparent 1px),linear-gradient(90deg,rgba(30,27,20,.11) 1px,transparent 1px);background-size:8cqw 8cqw}.reh--grid .reh-grid{opacity:.28}'
+      + '.reh-stage{position:absolute;left:-28cqw;top:-16cqh;width:156cqw;height:132cqh;transform-origin:50% 50%;padding:13cqw;display:grid;grid-template-columns:1fr 1.25fr;gap:10cqw}.reh--drift .reh-stage{animation:rehDrift var(--D) var(--sc-cine) infinite}.reh--snap .reh-stage{animation:rehSnap var(--D) var(--sc-snappy) infinite}.reh--zoom .reh-stage{animation:rehZoom var(--D) var(--sc-smooth) infinite}'
+      + '.reh-column{display:flex;flex-direction:column;gap:4cqh}.reh-eyebrow{font-size:2.2cqw;font-weight:760;letter-spacing:.14em;text-transform:uppercase;opacity:.55}.reh-rule{height:.45cqw;background:var(--reh-ink);opacity:.22}.reh-ghost{font-size:3.1cqw;line-height:1.36;font-weight:620;filter:blur(var(--reh-blur));opacity:.42}.reh-ghost b{font-size:5cqw;display:block;margin-bottom:2cqh;line-height:1.05}.reh-lines{display:flex;flex-direction:column;gap:1.1cqh}.reh-lines i{display:block;height:1cqw;border-radius:99px;background:currentColor;opacity:.14}.reh-lines i:nth-child(2n){width:84%}.reh-lines i:nth-child(3n){width:68%}'
+      + '.reh-focus{position:absolute;left:50%;top:50%;translate:-50% -50%;width:84cqw;text-align:center;z-index:4}.reh-headline{font-size:5.9cqw;line-height:1.1;font-weight:760;letter-spacing:-.035em;text-wrap:balance;overflow-wrap:anywhere;text-shadow:0 .2cqh 0 rgba(255,255,255,.55)}.reh-mark{position:relative;display:inline-block;max-width:100%;padding:0 .2em;isolation:isolate;font-weight:900;white-space:normal;overflow-wrap:anywhere;vertical-align:bottom}.reh-mark::before{content:"";position:absolute;z-index:-1;left:-.08em;right:-.08em;top:12%;bottom:4%;background:var(--ac);transform-origin:left;animation:rehMarker var(--D) var(--sc-cine) infinite;box-shadow:.5cqw .3cqh 0 color-mix(in srgb,var(--ac) 36%,transparent)}.reh-mark::after{content:"";position:absolute;left:-.2em;right:-.2em;top:-.15em;bottom:-.15em;border:1px solid rgba(25,22,15,.14);transform:rotate(-1.4deg)}'
+      + '.reh-copy{margin:4cqh auto 0;max-width:78cqw;font-size:2.8cqw;line-height:1.45;font-weight:580;opacity:.58;filter:blur(calc(var(--reh-blur)*.36))}.reh-footer{position:absolute;left:7cqw;bottom:5cqh;z-index:5;font-size:2.1cqw;letter-spacing:.17em;text-transform:uppercase;font-weight:780;opacity:.5}.reh-focus-ring{position:absolute;width:76cqw;height:24cqh;left:50%;top:50%;translate:-50% -50%;border:1px solid rgba(27,24,17,.13);border-radius:50%;animation:rehRing var(--D) var(--sc-smooth) infinite}'
+      + '@keyframes rehDrift{0%{transform:translate(-5cqw,-1cqh) scale(1.13) rotate(-1.2deg);filter:blur(.8px)}32%{transform:translate(7cqw,4cqh) scale(1.02) rotate(.5deg);filter:blur(0)}68%{transform:translate(-2cqw,-4cqh) scale(1.08) rotate(-.3deg);filter:blur(.4px)}100%{transform:translate(-5cqw,-1cqh) scale(1.13) rotate(-1.2deg);filter:blur(.8px)}}'
+      + '@keyframes rehSnap{0%{transform:translate(-13cqw,2cqh) scale(1.2)}24%{transform:translate(8cqw,-4cqh) scale(1.02)}52%{transform:translate(-4cqw,5cqh) scale(1.11)}78%{transform:translate(9cqw,1cqh) scale(1.05)}100%{transform:translate(-13cqw,2cqh) scale(1.2)}}'
+      + '@keyframes rehZoom{0%,100%{transform:scale(1.24) translate(-2cqw,1cqh)}50%{transform:scale(.98) translate(3cqw,-2cqh)}}@keyframes rehMarker{0%,8%{transform:scaleX(0);opacity:.3}28%,82%{transform:scaleX(1);opacity:.9}100%{transform:scaleX(.22);opacity:.35}}@keyframes rehRing{0%,100%{transform:scale(.86);opacity:.18}50%{transform:scale(1.08);opacity:.5}}@keyframes rehPaper{0%,100%{transform:none}50%{transform:translate(1.5cqw,-1cqh) rotate(.5deg)}}',
+    html: function (o) {
+      var motion = getP(o, "motionStyle", "drift");
+      var grid = getP(o, "showGrid", true) ? " reh--grid" : "";
+      var before = compactText(getP(o, "headlineBefore", "The hidden cost of"), 42);
+      var keyword = compactText(getP(o, "keyword", "unclear onboarding"), 34);
+      var after = compactText(getP(o, "headlineAfter", "in growing teams"), 42);
+      var paragraph = compactText(getP(o, "paragraph", "A strong first experience turns uncertainty into momentum, trust and visible progress."), 180);
+      var lines = '<div class="reh-lines"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>';
+      return '<div class="reh reh--' + esc(motion) + grid + '" style="--reh-paper:' + esc(getP(o, "paperColor", "#f2f0e8")) + ';--reh-ink:' + esc(getP(o, "inkColor", "#191713")) + ';--reh-blur:' + Number(getP(o, "blurAmount", 2.4)) + 'px">'
+        + '<div class="reh-grid"></div><div class="reh-stage"><div class="reh-column"><span class="reh-eyebrow">' + esc(compactText(getP(o, "eyebrow", "Field notes / Strategy"), 42)) + '</span><div class="reh-rule"></div><div class="reh-ghost"><b>' + esc(before + " " + keyword) + '</b>' + esc(paragraph) + '</div>' + lines + '</div><div class="reh-column"><div class="reh-ghost"><b>' + esc(keyword + " — a practical study") + '</b>' + esc(paragraph) + '</div>' + lines + '<div class="reh-ghost">' + esc(paragraph) + '</div>' + lines + '</div></div>'
+        + '<div class="reh-focus-ring"></div><div class="reh-focus"><h2 class="reh-headline">' + esc(before) + ' <span class="reh-mark">' + esc(keyword) + '</span> ' + esc(after) + '</h2><p class="reh-copy">' + esc(paragraph) + '</p></div><div class="reh-footer">' + esc(compactText(getP(o, "footer", "Read • Learn • Apply"), 42)) + '</div></div>';
+    }
+  };
+
+  T["ref-portfolio-collage"] = {
+    name: "Portfolio Card Collage", cat: "money", collection: "reference", version: "1.0.0",
+    defaultDuration: 9000, dark: false, accent: "#78b9ff",
+    desc: "Airy three-card investment collage with two editable content phases, replaceable media and layered orbital motion",
+    css: '.rpc{position:absolute;inset:0;overflow:hidden;background:linear-gradient(155deg,#ffffff 0%,#eef7ff 54%,#dcecff 100%);color:var(--rpc-ink);isolation:isolate}'
+      + '.sc-user-bg .rpc{background:transparent!important}'
+      + '.rpc-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(65,106,145,var(--rpc-grid)) 1px,transparent 1px),linear-gradient(90deg,rgba(65,106,145,var(--rpc-grid)) 1px,transparent 1px);background-size:8cqw 8cqw;mask-image:radial-gradient(circle at 50% 50%,black,transparent 82%)}'
+      + '.rpc-glow{position:absolute;width:112cqw;height:112cqw;border-radius:50%;left:50%;top:50%;translate:-50% -50%;background:radial-gradient(circle,rgba(120,185,255,.22),transparent 64%);filter:blur(3cqw);animation:rpcGlow calc(var(--D)*.72) var(--sc-smooth) infinite}.rpc-orbit{position:absolute;width:76cqw;height:76cqw;left:50%;top:50%;translate:-50% -50%;border:5cqw solid color-mix(in srgb,var(--ac) 18%,transparent);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;animation:rpcOrbit calc(var(--D)*1.6) var(--sc-smooth) infinite}'
+      + '.rpc-intro{position:absolute;z-index:4;left:50%;top:48%;translate:-50% -50%;width:34cqw;text-align:center;font-size:2.2cqw;line-height:1.35;font-weight:740;letter-spacing:.06em;color:rgba(15,35,58,.58);animation:rpcIntro var(--D) var(--sc-cine) infinite}'
+      + '.rpc-card{position:absolute;width:36cqw;height:43cqh;border-radius:var(--rpc-radius);background:color-mix(in srgb,var(--rpc-panel) 92%,transparent);border:1px solid rgba(34,70,103,.22);box-shadow:0 2cqh 5cqh rgba(43,91,136,.14);overflow:hidden;backdrop-filter:blur(1.4cqw);animation:rpcCardIn var(--D) var(--sc-cine) infinite}.rpc-c1{left:8cqw;top:12cqh;--tilt:-2deg;--delay:0ms}.rpc-c2{right:8cqw;top:12cqh;--tilt:2deg;--delay:110ms}.rpc-c3{left:32cqw;bottom:9cqh;--tilt:0deg;--delay:220ms}'
+      + '.rpc-card::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 .45cqw rgba(255,255,255,.48);pointer-events:none}.rpc-phase{position:absolute;inset:0;padding:3.2cqw;display:flex;flex-direction:column;gap:1.5cqh}.rpc-a{animation:rpcPhaseA var(--D) var(--sc-cine) infinite}.rpc-b{animation:rpcPhaseB var(--D) var(--sc-cine) infinite}'
+      + '.rpc--cascade .rpc-c1 .rpc-b{animation-delay:0ms}.rpc--cascade .rpc-c2 .rpc-b{animation-delay:150ms}.rpc--cascade .rpc-c3 .rpc-b{animation-delay:300ms}.rpc--swap .rpc-b{animation-timing-function:var(--sc-snappy)}'
+      + '.rpc-media{height:22cqh;border-radius:var(--rpc-radius);display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,color-mix(in srgb,var(--ac) 18%,#fff),#fff);position:relative}.rpc-media::before{content:"";position:absolute;width:28cqw;height:28cqw;border-radius:50%;background:color-mix(in srgb,var(--ac) 26%,transparent);left:-8cqw;bottom:-12cqw}.rpc-media img{position:relative;z-index:2;width:100%;height:100%;object-fit:cover}.rpc-media>span{position:relative;z-index:2;font-size:11cqw;filter:drop-shadow(0 1cqh 1.2cqh rgba(28,64,96,.15))}'
+      + '.rpc-copy{margin-top:auto}.rpc-copy small{display:block;font-size:1.8cqw;line-height:1.25;letter-spacing:.08em;text-transform:uppercase;color:rgba(15,35,58,.5)}.rpc-copy b{display:block;margin-top:.6cqh;font-size:4.1cqw;line-height:.96;letter-spacing:-.05em;text-wrap:balance}.rpc-accent-word{color:#4e9ce9}.rpc-brand{position:absolute;z-index:5;left:50%;bottom:2.8cqh;translate:-50% 0;font-size:1.8cqw;text-transform:uppercase;letter-spacing:.22em;font-weight:800;color:rgba(15,35,58,.48)}'
+      + '@keyframes rpcCardIn{0%{opacity:0;transform:translateY(8cqh) scale(.9) rotate(var(--tilt))}10%,88%{opacity:1;transform:translateY(0) scale(1) rotate(var(--tilt))}100%{opacity:0;transform:translateY(-3cqh) scale(1.03) rotate(var(--tilt))}}@keyframes rpcPhaseA{0%,6%{opacity:0;transform:translateY(2cqh)}13%,43%{opacity:1;transform:none}49%,100%{opacity:0;transform:translateY(-2cqh)}}@keyframes rpcPhaseB{0%,44%{opacity:0;transform:translateY(2cqh) scale(.97)}53%,91%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-1cqh)}}'
+      + '@keyframes rpcOrbit{to{transform:rotate(360deg)}}@keyframes rpcGlow{0%,100%{transform:scale(.82);opacity:.55}50%{transform:scale(1.08);opacity:1}}@keyframes rpcIntro{0%,8%{opacity:0;transform:scale(.88)}17%,38%{opacity:1;transform:scale(1)}48%,100%{opacity:0;transform:scale(1.08)}}',
+    html: function (o) {
+      function media(value, fallback, label) {
+        var raw = String(value || "");
+        var safe = raw.indexOf("data:image/") === 0 || raw.indexOf("http://") === 0 || raw.indexOf("https://") === 0;
+        return safe ? '<img src="' + esc(raw) + '" alt="' + esc(label) + '">' : '<span aria-hidden="true">' + esc(raw || fallback) + '</span>';
+      }
+      function phase(card, suffix, fallbackMedia, fallbackTitle, fallbackSub) {
+        var title = compactText(getP(o, "card" + card + "Title" + suffix, fallbackTitle), 34);
+        var sub = compactText(getP(o, "card" + card + "Sub" + suffix, fallbackSub), 46);
+        return '<div class="rpc-phase rpc-' + suffix.toLowerCase() + '"><div class="rpc-media">' + media(getP(o, "card" + card + "Media" + suffix, fallbackMedia), fallbackMedia, title) + '</div><div class="rpc-copy"><small>' + esc(sub) + '</small><b>' + esc(title) + '</b></div></div>';
+      }
+      var cards = '';
+      cards += '<article class="rpc-card rpc-c1">' + phase(1, "A", "🏢", "High-rise condo", "A steady first asset") + phase(1, "B", "💵", "$45,000 auction", "Bought below market") + '</article>';
+      cards += '<article class="rpc-card rpc-c2">' + phase(2, "A", "🏠", "Single-family rentals", "Simple, familiar, durable") + phase(2, "B", "📊", "Cash flow first", "Income before promises") + '</article>';
+      cards += '<article class="rpc-card rpc-c3">' + phase(3, "A", "🏗️", "Acquire with a plan", "Before the crowd arrives") + phase(3, "B", "🏡", "The BRRRR method", "Buy • Rehab • Rent") + '</article>';
+      return '<div class="rpc rpc--' + esc(getP(o, "phaseStyle", "cascade")) + '" style="--rpc-panel:' + esc(getP(o, "panelColor", "#f7fbff")) + ';--rpc-ink:' + esc(getP(o, "inkColor", "#14283b")) + ';--rpc-grid:' + (Number(getP(o, "gridOpacity", 10)) / 100) + ';--rpc-radius:' + Number(getP(o, "cardRadius", 4)) + 'cqw"><div class="rpc-grid"></div><div class="rpc-glow"></div><div class="rpc-orbit"></div><div class="rpc-intro">' + esc(compactText(getP(o, "introLine", "Build wealth in layers"), 42)) + '</div>' + cards + '<div class="rpc-brand">' + esc(compactText(getP(o, "brand", "YOUR PORTFOLIO"), 28)) + '</div></div>';
+    }
+  };
+
   
   
   
@@ -6007,6 +6132,95 @@ window.SC_TPL2 = (function () {
   }
 };
 
+  var REFERENCE_SCHEMAS = {
+    "ref-onboarding-journey": {
+      fields: [
+        { key: "kicker", label: "Opening eyebrow", type: "text", default: "Most businesses", maxLength: 34, group: "01 · Chart hook" },
+        { key: "openingWord", label: "Opening action word", type: "text", default: "Celebrate", maxLength: 24, group: "01 · Chart hook" },
+        { key: "chartLabel", label: "Chart label", type: "text", default: "Activation", maxLength: 24, group: "01 · Chart hook" },
+        { key: "chartValue", label: "Chart result", type: "text", default: "+68%", maxLength: 12, group: "01 · Chart hook" },
+        { key: "contrastTop", label: "Contrast setup", type: "text", default: "BUT", maxLength: 16, group: "02 · Problem" },
+        { key: "contrastWord", label: "Struck-through word", type: "text", default: "FORGET", maxLength: 18, group: "02 · Problem" },
+        { key: "thesisLead", label: "Thesis accent", type: "text", default: "ONBOARDING", maxLength: 26, group: "02 · Problem" },
+        { key: "thesisTail", label: "Thesis line", type: "text", default: "is not paperwork.", maxLength: 42, group: "02 · Problem" },
+        { key: "mediaImage", label: "Promise scene image", type: "image", default: "▶", group: "03 · Promise" },
+        { key: "mediaCaptionTop", label: "Promise intro", type: "text", default: "It is your first", maxLength: 32, group: "03 · Promise" },
+        { key: "mediaCaptionAccent", label: "Promise keyword", type: "text", default: "PROMISE", maxLength: 22, group: "03 · Promise" },
+        { key: "mediaCaptionBottom", label: "Promise ending", type: "text", default: "in action.", maxLength: 28, group: "03 · Promise" },
+        { key: "card1Title", label: "Insight 1 title", type: "text", default: "Clarity", maxLength: 28, group: "04 · Insight cards" },
+        { key: "card1Body", label: "Insight 1 description", type: "textarea", default: "Tell them exactly what happens next.", maxLength: 72, group: "04 · Insight cards" },
+        { key: "card2Title", label: "Insight 2 title", type: "text", default: "Guidance", maxLength: 28, group: "04 · Insight cards" },
+        { key: "card2Body", label: "Insight 2 description", type: "textarea", default: "Walk them step by step.", maxLength: 72, group: "04 · Insight cards" },
+        { key: "card3Title", label: "Insight 3 title", type: "text", default: "Value early", maxLength: 28, group: "04 · Insight cards" },
+        { key: "card3Body", label: "Insight 3 description", type: "textarea", default: "Give them a first small win.", maxLength: 72, group: "04 · Insight cards" },
+        { key: "card4Title", label: "Insight 4 title", type: "text", default: "Consistency", maxLength: 28, group: "04 · Insight cards" },
+        { key: "card4Body", label: "Insight 4 description", type: "textarea", default: "Follow up like you care.", maxLength: 72, group: "04 · Insight cards" },
+        { key: "researchLabel", label: "Research heading", type: "text", default: "Research", maxLength: 28, group: "05 · Evidence" },
+        { key: "statValue", label: "Hero statistic", type: "text", default: "68%", maxLength: 12, group: "05 · Evidence" },
+        { key: "statBody", label: "Statistic explanation", type: "textarea", default: "of customers leave because they feel you do not care.", maxLength: 95, group: "05 · Evidence" },
+        { key: "ctaTop", label: "CTA setup", type: "text", default: "Stop chasing new", maxLength: 34, group: "06 · CTA & brand" },
+        { key: "ctaAccent", label: "CTA accent", type: "text", default: "LEADS.", maxLength: 18, group: "06 · CTA & brand" },
+        { key: "ctaBottom", label: "CTA supporting line", type: "text", default: "Start keeping the ones you have won.", maxLength: 58, group: "06 · CTA & brand" },
+        { key: "brandLogo", label: "Brand logo", type: "logo", default: "✦", group: "06 · CTA & brand" },
+        { key: "brandName", label: "Brand name", type: "text", default: "YOUR BRAND", maxLength: 26, group: "06 · CTA & brand" },
+        { key: "paperColor", label: "Paper scene colour", type: "color", default: "#f8f8f5", group: "Palette" },
+        { key: "darkColor", label: "Dark scene colour", type: "color", default: "#10002f", group: "Palette" }
+      ]
+    },
+    "ref-editorial-highlight": {
+      fields: [
+        { key: "eyebrow", label: "Document breadcrumb", type: "text", default: "Field notes / Strategy", maxLength: 42, group: "Copy" },
+        { key: "headlineBefore", label: "Headline before keyword", type: "text", default: "The hidden cost of", maxLength: 42, group: "Copy" },
+        { key: "keyword", label: "Highlighted keyword", type: "text", default: "unclear onboarding", maxLength: 34, group: "Copy" },
+        { key: "headlineAfter", label: "Headline after keyword", type: "text", default: "in growing teams", maxLength: 42, group: "Copy" },
+        { key: "paragraph", label: "Article summary", type: "textarea", default: "A strong first experience turns uncertainty into momentum, trust and visible progress.", maxLength: 180, group: "Copy" },
+        { key: "footer", label: "Footer label", type: "text", default: "Read • Learn • Apply", maxLength: 42, group: "Copy" },
+        { key: "paperColor", label: "Paper colour", type: "color", default: "#f2f0e8", group: "Look & motion" },
+        { key: "inkColor", label: "Ink colour", type: "color", default: "#191713", group: "Look & motion" },
+        { key: "blurAmount", label: "Background blur", type: "number", default: 2.4, min: 0, max: 8, step: 0.2, group: "Look & motion" },
+        { key: "motionStyle", label: "Camera movement", type: "select", default: "drift", options: [{ val: "drift", label: "Editorial drift" }, { val: "snap", label: "Quick reframes" }, { val: "zoom", label: "Slow zoom" }], group: "Look & motion" },
+        { key: "showGrid", label: "Show document grid", type: "toggle", default: true, group: "Look & motion" }
+      ]
+    },
+    "ref-portfolio-collage": {
+      fields: [
+        { key: "brand", label: "Footer brand", type: "text", default: "YOUR PORTFOLIO", maxLength: 28, group: "Frame" },
+        { key: "introLine", label: "Centre hook", type: "text", default: "Build wealth in layers", maxLength: 42, group: "Frame" },
+        { key: "card1MediaA", label: "Card 1 · image A", type: "image", default: "🏢", group: "Card 1" },
+        { key: "card1TitleA", label: "Card 1 · title A", type: "text", default: "High-rise condo", maxLength: 34, group: "Card 1" },
+        { key: "card1SubA", label: "Card 1 · label A", type: "text", default: "A steady first asset", maxLength: 46, group: "Card 1" },
+        { key: "card1MediaB", label: "Card 1 · image B", type: "image", default: "💵", group: "Card 1" },
+        { key: "card1TitleB", label: "Card 1 · title B", type: "text", default: "$45,000 auction", maxLength: 34, group: "Card 1" },
+        { key: "card1SubB", label: "Card 1 · label B", type: "text", default: "Bought below market", maxLength: 46, group: "Card 1" },
+        { key: "card2MediaA", label: "Card 2 · image A", type: "image", default: "🏠", group: "Card 2" },
+        { key: "card2TitleA", label: "Card 2 · title A", type: "text", default: "Single-family rentals", maxLength: 34, group: "Card 2" },
+        { key: "card2SubA", label: "Card 2 · label A", type: "text", default: "Simple, familiar, durable", maxLength: 46, group: "Card 2" },
+        { key: "card2MediaB", label: "Card 2 · image B", type: "image", default: "📊", group: "Card 2" },
+        { key: "card2TitleB", label: "Card 2 · title B", type: "text", default: "Cash flow first", maxLength: 34, group: "Card 2" },
+        { key: "card2SubB", label: "Card 2 · label B", type: "text", default: "Income before promises", maxLength: 46, group: "Card 2" },
+        { key: "card3MediaA", label: "Card 3 · image A", type: "image", default: "🏗️", group: "Card 3" },
+        { key: "card3TitleA", label: "Card 3 · title A", type: "text", default: "Acquire with a plan", maxLength: 34, group: "Card 3" },
+        { key: "card3SubA", label: "Card 3 · label A", type: "text", default: "Before the crowd arrives", maxLength: 46, group: "Card 3" },
+        { key: "card3MediaB", label: "Card 3 · image B", type: "image", default: "🏡", group: "Card 3" },
+        { key: "card3TitleB", label: "Card 3 · title B", type: "text", default: "The BRRRR method", maxLength: 34, group: "Card 3" },
+        { key: "card3SubB", label: "Card 3 · label B", type: "text", default: "Buy • Rehab • Rent", maxLength: 46, group: "Card 3" },
+        { key: "panelColor", label: "Card surface colour", type: "color", default: "#f7fbff", group: "Look & motion" },
+        { key: "inkColor", label: "Card text colour", type: "color", default: "#14283b", group: "Look & motion" },
+        { key: "gridOpacity", label: "Grid strength (%)", type: "number", default: 10, min: 0, max: 40, step: 1, group: "Look & motion" },
+        { key: "cardRadius", label: "Card roundness", type: "number", default: 4, min: 0, max: 10, step: 0.5, group: "Look & motion" },
+        { key: "phaseStyle", label: "Content transition", type: "select", default: "cascade", options: [{ val: "cascade", label: "Staggered cascade" }, { val: "swap", label: "Fast synchronized swap" }], group: "Look & motion" }
+      ]
+    }
+  };
+
+  Object.keys(REFERENCE_SCHEMAS).forEach(function (id) {
+    var schema = REFERENCE_SCHEMAS[id];
+    schema.version = 1;
+    schema.defaults = {};
+    schema.fields.forEach(function (field) { schema.defaults[field.key] = field.default; });
+    SCHEMAS[id] = schema;
+  });
+
   var ORIGINAL_SCHEMAS = {
     "original-ai-compare": {
       fields: [
@@ -6083,6 +6297,12 @@ window.SC_TPL2 = (function () {
     "original-ranked-list": { category: "ranked-list", niches: ["tech", "education", "entertainment"], purposes: ["top-list", "recommendation"], styles: ["editorial", "dark", "minimal"], tags: ["top-5", "ranking", "countdown"] },
     "original-chat-story": { category: "conversation", niches: ["business", "education", "entertainment"], purposes: ["storytelling", "conversation"], styles: ["modern", "dark", "minimal"], tags: ["chat", "messages", "dialogue"] },
     "original-growth-stats": { category: "statistics", niches: ["business", "finance", "creator"], purposes: ["growth", "social-proof", "explainer"], styles: ["dark", "data", "professional"], tags: ["stats", "growth", "analytics", "numbers"] }
+  };
+
+  var REFERENCE_META = {
+    "ref-onboarding-journey": { category: "business-story", niches: ["business", "saas", "education"], purposes: ["explainer", "onboarding", "brand-story"], styles: ["editorial", "clean", "high-contrast"], tags: ["onboarding", "storyboard", "statistics", "cta", "reference-inspired"] },
+    "ref-editorial-highlight": { category: "editorial-highlight", niches: ["education", "documentary", "business"], purposes: ["hook", "quote", "explainer"], styles: ["paper", "editorial", "minimal"], tags: ["keyword", "highlight", "article", "paper", "reference-inspired"] },
+    "ref-portfolio-collage": { category: "portfolio-collage", niches: ["finance", "real-estate", "business"], purposes: ["showcase", "explainer", "carousel"], styles: ["light", "cards", "clean"], tags: ["property", "portfolio", "collage", "media", "reference-inspired"] }
   };
 
   var FIELD_TYPES = ["text", "textarea", "number", "color", "image", "logo", "boolean", "toggle", "select", "font", "duration"];
@@ -6168,8 +6388,9 @@ window.SC_TPL2 = (function () {
 
   function metaFor(id) {
     var t = T[id];
-    var specific = ORIGINAL_META[id] || {};
+    var specific = ORIGINAL_META[id] || REFERENCE_META[id] || {};
     var originals = t.collection === "originals";
+    var reference = t.collection === "reference";
     return {
       category: specific.category || t.cat,
       niches: (specific.niches || [t.cat]).slice(),
@@ -6179,8 +6400,8 @@ window.SC_TPL2 = (function () {
       formats: Object.keys(AR),
       orientation: ["portrait", "landscape", "square"],
       premium: false,
-      difficulty: originals ? "easy" : "standard",
-      creator: originals ? "ShortsCraft Originals" : "ShortsCraft Official",
+      difficulty: originals || reference ? "easy" : "standard",
+      creator: originals ? "ShortsCraft Originals" : (reference ? "ShortsCraft Reference Lab" : "ShortsCraft Official"),
       tags: (specific.tags || [t.cat, "motion", "editable"]).slice()
     };
   }
@@ -6212,6 +6433,7 @@ window.SC_TPL2 = (function () {
         id: id, name: T[id].name, cat: T[id].cat,
         desc: T[id].desc, dark: T[id].dark === true, accent: T[id].accent,
         version: T[id].version || "1.0.0",
+        defaultDuration: Math.max(1000, Math.min(9000, Number(T[id].defaultDuration) || 4600)),
         collection: T[id].collection || (id === "blank" ? "system" : "classic"),
         supportedRatios: metadata.formats.slice(),
         demo: (DEMO[id] || []).slice(),
@@ -6288,7 +6510,7 @@ window.SC_TPL2 = (function () {
       lines: lines,
       accent: o.accent || t.accent,
       aspect: AR[o.aspect] ? o.aspect : "9:16",
-      dur: Number(o.dur) > 800 ? Number(o.dur) : 4600,
+      dur: Number(o.dur) > 800 ? Number(o.dur) : (Number(t.defaultDuration) > 800 ? Number(t.defaultDuration) : 4600),
       font: o.font || "inter"
     };
 

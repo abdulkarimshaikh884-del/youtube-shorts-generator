@@ -1,292 +1,236 @@
-/* ============================================================
-   checkout.js — Razorpay upgrade flow for the pricing page.
-
-   Order of operations matters: the server decides the price and the term
-   (lifetime vs 1 year) from its own tables, so nothing here can change what
-   is charged or what is granted. This file only drives the UI.
-   ============================================================ */
+/* ShortsCraft checkout: monthly/yearly pricing with server-owned amounts. */
 (function () {
   "use strict";
 
-  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  var note = document.getElementById("buyNote");
+  var paymentsLive = false;
+  var opensOn = "";
 
-  var $ = function (s, r) { return (r || document).querySelector(s); };
-  var note = null;
-
-  function say(msg, kind) {
+  function say(message, kind) {
     if (!note) return;
-    note.textContent = msg || "";
+    note.textContent = message || "";
     note.className = "pg-note pg-center" + (kind ? " " + kind : "");
   }
 
-  /* Until the gateway is switched on the page reserves seats instead of
-     charging. The server decides which mode we are in, so turning payments on
-     needs no edit here. */
-  // Fail closed: until the server positively confirms live payments, buttons
-  // reserve a seat instead of attempting a checkout that may not be configured.
-  var paymentsLive = false;
-
-  function paintReserveMode(o, keepNote) {
-    var banner = $("#offerBanner");
-    var left = $("#offerLeft");
-    var term = $("#maxTerm");
-    var line = $("#maxLine");
-
-    if (banner) banner.hidden = false;
-    if (left) {
-      var when = o.opensOn ? " Opens " + o.opensOn + "." : "";
-      left.textContent = (o.reserved > 0
-        ? o.reserved + (o.reserved === 1 ? " creator has" : " creators have") + " reserved a seat."
-        : "Reserve yours before it opens.") + when;
-    }
-    if (term) term.textContent = "one-time · lifetime";
-    if (line) {
-      line.innerHTML = "<b>Lifetime access</b> — pay once when it opens, keep "
-        + "Pro Max for good. Reserve now and you keep this price.";
-    }
-
-    Array.prototype.forEach.call(document.querySelectorAll(".pg-buy"), function (btn) {
-      btn.textContent = btn.dataset.plan === "promax"
-        ? "Reserve a lifetime seat"
-        : "Notify me when Pro opens";
+  function selectCycle(cycle) {
+    var yearly = cycle === "yearly";
+    document.querySelectorAll("[data-cycle]").forEach(function (el) {
+      if (el.closest && el.closest(".pg-billing-switch")) {
+        el.setAttribute("aria-pressed", String(el.dataset.cycle === cycle));
+      }
     });
-    /* Not when we were called to refresh the seat count right after a
-       successful reservation: this generic line would replace the
-       "Reserved — you are number N" confirmation the visitor just earned,
-       leaving no sign the reservation worked. */
-    if (!keepNote) {
-      say("Payments open shortly. Reserve a seat and we will email you the moment they do — nothing is charged now.");
-    }
+    document.querySelectorAll(".pg-amt[data-price-monthly]").forEach(function (el) {
+      var price = yearly ? el.dataset.priceYearly : el.dataset.priceMonthly;
+      el.innerHTML = price + "<small>" + (yearly ? "/year" : "/month") + "</small>";
+    });
+    document.querySelectorAll(".pg-yearly-only").forEach(function (el) {
+      el.hidden = !yearly;
+    });
+    document.querySelectorAll(".pg-buy").forEach(function (el) {
+      el.dataset.cycle = cycle;
+    });
   }
 
-  /* ── Launch offer counter ─────────────────────────────────
-     Pro Max is lifetime for the first N members. Once they are gone the same
-     price buys a year, so the page must say which one the visitor is getting. */
-  function paintOffer(keepNote) {
-    var ctrl = ("AbortController" in window) ? new AbortController() : null;
-    var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8_000);
-    fetch("/api/offer", {
-      headers: { Accept: "application/json" },
-      signal: ctrl ? ctrl.signal : undefined
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (o) {
-        if (!o || !o.success) return;
-
-        paymentsLive = o.paymentsLive !== false;
-        if (!paymentsLive) { paintReserveMode(o, keepNote); return; }
-
-        var banner = $("#offerBanner");
-        var left = $("#offerLeft");
-        var term = $("#maxTerm");
-        var line = $("#maxLine");
-        var btn = document.querySelector('.pg-buy[data-plan="promax"]');
-
-        if (o.lifetimeAvailable) {
-          if (banner) banner.hidden = false;
-          if (left) {
-            left.textContent = o.left === o.total
-              ? "All " + o.total + " seats are still open."
-              : "Only " + o.left + " of " + o.total + " seats left.";
-          }
-          if (term) term.textContent = "one-time · lifetime";
-          if (line) {
-            line.innerHTML = "<b>Lifetime access</b> — pay once, keep "
-              + "Pro Max for good. No renewal.";
-          }
-          if (btn) btn.textContent = "Get lifetime Pro Max · ₹" + o.price;
-        } else {
-          if (banner) banner.hidden = true;
-          if (term) term.textContent = "/year";
-          if (line) {
-            line.innerHTML = "<b>One year of Pro Max</b> — the lifetime seats "
-              + "have all been claimed.";
-          }
-          if (btn) btn.textContent = "Get Pro Max · ₹" + o.price + "/year";
-        }
-      })
-      .catch(function () { /* reserve mode stays as the safe fallback */ })
-      .finally(function () { clearTimeout(bail); });
-  }
-
-  /* ── Buy ──────────────────────────────────────────────────
-     Razorpay's checkout script is only fetched when the user actually chooses
-     to pay, so visitors who never upgrade are not loading a third-party SDK. */
   function loadRazorpay() {
     return new Promise(function (resolve, reject) {
       if (window.Razorpay) return resolve();
-      var s = document.createElement("script");
-      s.src = "https://checkout.razorpay.com/v1/checkout.js";
-      s.onload = function () { resolve(); };
-      s.onerror = function () { reject(new Error("sdk")); };
-      document.head.appendChild(s);
+      var script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = resolve;
+      script.onerror = function () { reject(new Error("Could not load the payment provider.")); };
+      document.head.appendChild(script);
     });
   }
 
-  function buy(planId, btn) {
-    var original = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Starting…";
+  function beginCheckout(button) {
+    var plan = button.dataset.plan;
+    var billingCycle = button.dataset.cycle === "yearly" ? "yearly" : "monthly";
+
+    if (!paymentsLive) {
+      say(opensOn
+        ? "Payments are not open yet. Expected availability: " + opensOn + "."
+        : "Payments are not open yet. No money has been charged.", "err");
+      return;
+    }
+
+    var original = button.textContent;
+    button.disabled = true;
+    button.textContent = "Starting checkout…";
     say("");
 
     fetch("/api/razorpay/order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: planId })
+      body: JSON.stringify({ plan: plan, billingCycle: billingCycle })
     })
-      .then(function (r) {
-        return r.json().then(function (j) { return { status: r.status, body: j }; });
-      })
-      .then(function (res) {
-        var j = res.body || {};
-
-        if (res.status === 401) {
-          // Send them to log in and bring them straight back here.
-          say("Please log in first — taking you to the login page…");
-          setTimeout(function () {
+      .then(function (response) {
+        return response.json().then(function (body) {
+          if (response.status === 401) {
             window.location.href = "/login?next=" + encodeURIComponent("/pricing");
-          }, 900);
-          return null;
-        }
-        if (!j.success) {
-          throw new Error(j.error || "Could not start the payment.");
-        }
-
-        return loadRazorpay().then(function () {
-          return new Promise(function (resolve) {
-            var rzp = new window.Razorpay({
-              key: j.keyId,
-              order_id: j.orderId,
-              amount: j.amount,
-              currency: j.currency || "INR",
-              name: "ShortsCraft",
-              description: planId === "promax"
-                ? (j.term === "lifetime" ? "Pro Max — lifetime" : "Pro Max — 1 year")
-                : "Pro — 1 month",
-              theme: { color: "#7952ff" },
-              handler: function (resp) { resolve(resp); },
-              modal: {
-                ondismiss: function () {
-                  resolve(null); // user closed the sheet; not an error
-                }
-              }
-            });
-            rzp.on("payment.failed", function () { resolve(null); });
-            rzp.open();
-          });
-        }).then(function (resp) {
-          if (!resp) {
-            say("Payment cancelled. Nothing was charged.");
             return null;
           }
-          say("Confirming your payment…");
-          return fetch("/api/razorpay/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              razorpay_order_id: resp.razorpay_order_id,
-              razorpay_payment_id: resp.razorpay_payment_id,
-              razorpay_signature: resp.razorpay_signature
-            })
-          }).then(function (r) { return r.json(); });
+          if (!response.ok || !body.success) throw new Error(body.error || "Could not start checkout.");
+          return body;
         });
       })
-      .then(function (v) {
-        if (!v) return;
-        if (v.success) {
-          var what = v.term === "lifetime" ? "for life" :
-            v.term === "year" ? "for one year" : "for one month";
-          say("You are on " + (v.plan === "promax" ? "Pro Max" : "Pro") + " " + what + ". Enjoy!", "ok");
-          setTimeout(function () { window.location.href = "/account"; }, 1400);
-        } else {
-          say(v.error || "We could not confirm that payment. If money was deducted, contact us and we will sort it out.", "err");
+      .then(function (order) {
+        if (!order) return null;
+        return loadRazorpay().then(function () {
+          return new Promise(function (resolve) {
+            var checkout = new window.Razorpay({
+              key: order.keyId,
+              order_id: order.orderId,
+              amount: order.amount,
+              currency: order.currency || "INR",
+              name: "ShortsCraft",
+              description: (plan === "promax" ? "Pro Max" : "Pro") +
+                (billingCycle === "yearly" ? " — yearly" : " — monthly"),
+              theme: { color: "#2856d8" },
+              handler: resolve,
+              modal: { ondismiss: function () { resolve(null); } }
+            });
+            checkout.on("payment.failed", function () { resolve(null); });
+            checkout.open();
+          });
+        });
+      })
+      .then(function (payment) {
+        if (!payment) {
+          say("Checkout closed. If a payment was deducted but your plan is not active, contact support with your payment reference.");
+          return null;
         }
+        say("Confirming payment…");
+        return fetch("/api/razorpay/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payment)
+        }).then(function (response) {
+          return response.json().then(function (body) {
+            if (!response.ok || !body.success) throw new Error(body.error || "Payment could not be confirmed.");
+            return body;
+          });
+        });
       })
-      .catch(function (err) {
-        say(err && err.message === "sdk"
-          ? "Could not reach the payment provider. Check your connection and try again."
-          : (err && err.message) || "Something went wrong. Nothing was charged.", "err");
+      .then(function (result) {
+        if (!result) return;
+        say("Your " + (result.plan === "promax" ? "Pro Max" : "Pro") + " plan is active.", "ok");
+        setTimeout(function () { window.location.href = "/account"; }, 900);
       })
-      .then(function () {
-        btn.disabled = false;
-        if (btn.textContent === "Starting…") btn.textContent = original;
+      .catch(function (error) {
+        say(error && error.message ? error.message : "Checkout failed. No plan was changed.", "err");
+      })
+      .finally(function () {
+        button.disabled = false;
+        button.textContent = original;
       });
   }
 
-  /* ── Reserve a seat (payments not open yet) ───────────────
-     Asks for an email rather than silently using the account's, so a signed-in
-     visitor can still put a different address on the list. */
-  function reserve(planId, btn) {
-    var pre = "";
-    try {
-      var el = document.querySelector("[data-user-email]");
-      if (el && el.textContent.indexOf("@") > -1) pre = el.textContent.trim();
-    } catch (e) { /* not signed in */ }
-
-    SC_UI.prompt({
-      title: "Reserve your seat",
-      body: "We will email you the moment " +
-        (planId === "promax" ? "lifetime Pro Max" : "Pro") +
-        " opens. Nothing is charged now.",
-      label: "Email address",
-      value: pre,
-      placeholder: "you@example.com",
-      maxLength: 140,
-      confirmLabel: "Reserve my seat"
-    }).then(function (entered) {
-      if (entered === null) return;
-      finishReserve(String(entered).trim(), planId, btn);
+  var cycleSwitch = document.querySelector(".pg-billing-switch");
+  if (cycleSwitch) {
+    cycleSwitch.addEventListener("click", function (event) {
+      var button = event.target.closest("button[data-cycle]");
+      if (button) selectCycle(button.dataset.cycle);
     });
   }
+  document.querySelectorAll(".pg-buy").forEach(function (button) {
+    button.addEventListener("click", function () { beginCheckout(button); });
+  });
 
-  function finishReserve(email, planId, btn) {
-    if (!email) { say("Enter an email to reserve a seat.", "err"); return; }
-    if (!EMAIL_RE.test(email)) {
-      say("That email address does not look right.", "err");
-      return;
+  selectCycle("monthly");
+  fetch("/api/offer", { headers: { Accept: "application/json" } })
+    .then(function (response) { return response.json(); })
+    .then(function (state) {
+      if (!state || !state.success) return;
+      paymentsLive = state.paymentsLive === true;
+      opensOn = state.opensOn || "";
+      if (!paymentsLive) {
+        say(opensOn
+          ? "Payments are not open yet. Expected availability: " + opensOn + "."
+          : "Payments are not open yet. You can continue on the Free plan; no checkout will be attempted.");
+      }
+    })
+    .catch(function () {
+      say("Could not confirm payment availability. Checkout is disabled for safety.", "err");
+    });
+})();
+
+/* ============================================================
+   Credit calculator.
+
+   The plan cards say what each tier gives. This answers the question the
+   visitor actually has — which one is enough for me — by turning a posting
+   rate into a credit number.
+
+   The estimate: one export per Short, plus roughly 1.4 AI scenes' worth of
+   generation per Short, since most people generate more than they keep. It
+   is deliberately an over-estimate: recommending a plan that turns out to
+   be too small is the failure that costs someone money.
+
+   Thresholds come from the plans themselves, so repricing a tier moves the
+   recommendation with it rather than leaving a stale number on the page.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var range = document.getElementById("calcRange");
+  if (!range) return;
+
+  var postsEl = document.getElementById("calcPosts");
+  var labelEl = document.getElementById("calcPostsLabel");
+  var neededEl = document.getElementById("calcNeeded");
+  var nameEl = document.getElementById("calcRecName");
+  var priceEl = document.getElementById("calcRecPrice");
+  var whyEl = document.getElementById("calcRecWhy");
+  var ctaEl = document.getElementById("calcRecCta");
+
+  var plans = null;
+
+  function tiers() {
+    // Falls back to the shipped numbers if /api/config has not answered yet,
+    // so the calculator is never blank or wrong on first paint.
+    var free = (plans && plans.free) || { perDay: 5, inr: "₹0", price: 0 };
+    var pro = (plans && plans.pro) || { perDay: 40, inr: "₹199", price: 199 };
+    var max = (plans && plans.promax) || { perDay: 100, inr: "₹399", price: 399 };
+    return [
+      { key: "free", name: "Free", perDay: free.perDay, price: free.price,
+        cta: "Create free account", href: "/signup",
+        why: free.perDay + " credits a day covers what you post. Start here and upgrade only if that changes." },
+      { key: "pro", name: "Pro", perDay: pro.perDay, price: pro.price,
+        cta: "Choose Pro", href: "#plans",
+        why: pro.perDay + " credits a day leaves room for AI scenes and re-exports at your posting rate." },
+      { key: "promax", name: "Pro Max", perDay: max.perDay, price: max.price,
+        cta: "Choose Pro Max", href: "#plans",
+        why: "At this volume you want the highest queue priority and " + max.perDay + " credits a day." }
+    ];
+  }
+
+  function paint() {
+    var posts = Number(range.value) || 1;
+    var needed = posts + Math.ceil(posts * 1.4);
+    var list = tiers();
+    var rec = list[list.length - 1];
+    for (var i = 0; i < list.length; i++) {
+      if (needed <= list[i].perDay) { rec = list[i]; break; }
     }
 
-    var label = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = "Reserving…";
+    if (postsEl) postsEl.textContent = String(posts);
+    if (labelEl) labelEl.textContent = posts === 1 ? "Short a day" : "Shorts a day";
+    if (neededEl) neededEl.textContent = needed + (needed === 1 ? " credit" : " credits");
+    if (nameEl) nameEl.textContent = rec.name;
+    if (priceEl) {
+      priceEl.textContent = rec.price ? "₹" + rec.price + "/month" : "free";
+    }
+    if (whyEl) whyEl.textContent = rec.why;
+    if (ctaEl) { ctaEl.textContent = rec.cta; ctaEl.setAttribute("href", rec.href); }
+  }
 
-    fetch("/api/waitlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email, plan: planId })
+  range.addEventListener("input", paint);
+  paint();
+
+  fetch("/api/config", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (j && j.plans) { plans = j.plans; paint(); }
     })
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        if (!j.success) throw new Error(j.error || "Could not reserve that seat.");
-        say(j.alreadyOn
-          ? "You are already on the list — number " + j.position + ". We will email you when it opens."
-          : "Reserved — you are number " + j.position + " on the list. We will email you when it opens.", "ok");
-        paintOffer(true);
-      })
-      .catch(function (err) {
-        say(err.message || "Network problem. Please try again.", "err");
-      })
-      .then(function () {
-        btn.disabled = false;
-        btn.textContent = label;
-      });
-  }
-
-  function init() {
-    note = $("#buyNote");
-    paintReserveMode({ reserved: 0, opensOn: "" });
-    paintOffer();
-    Array.prototype.forEach.call(document.querySelectorAll(".pg-buy"), function (btn) {
-      btn.addEventListener("click", function () {
-        if (paymentsLive) buy(btn.dataset.plan, btn);
-        else reserve(btn.dataset.plan, btn);
-      });
-    });
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+    .catch(function () {});
 })();

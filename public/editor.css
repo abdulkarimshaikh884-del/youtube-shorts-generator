@@ -37,7 +37,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-skip{
   position:fixed;left:12px;top:-64px;z-index:1200;
   padding:11px 16px;border-radius:0 0 10px 10px;
-  background:#fff;color:#000;font-size:14px;font-weight:750;
+  background:var(--ink);color:var(--bg);font-size:14px;font-weight:750;
   box-shadow:0 8px 24px rgba(0,0,0,.55);transition:top .16s ease;
 }
 .ed-skip:focus{top:0}
@@ -57,14 +57,14 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   width:36px;height:36px;flex:none;display:grid;place-items:center;
   border:1px solid var(--line);border-radius:10px;color:var(--ink2);
 }
-.ed-back:hover{color:#fff;border-color:var(--line2)}
+.ed-back:hover{color:var(--ink);border-color:var(--line2)}
 .ed-back svg{width:17px;height:17px}
 
 .ed-name{
   height:36px;min-width:150px;max-width:280px;
   padding:0 12px;
   background:var(--bg2);border:1px solid var(--line);border-radius:10px;
-  color:#fff;font-size:14px;font-weight:600;outline:none;
+  color:var(--ink);font-size:14px;font-weight:600;outline:none;
 }
 .ed-name:focus{border-color:var(--line2)}
 
@@ -77,8 +77,8 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   background:none;border:0;border-radius:8px;color:var(--ink3);cursor:pointer;
 }
 .ed-dev svg{width:16px;height:16px}
-.ed-dev:hover{color:#fff;background:var(--bg3)}
-.ed-dev[aria-pressed="true"]{background:#fff;color:#000}
+.ed-dev:hover{color:var(--ink);background:var(--bg3)}
+.ed-dev[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 
 .ed-chip{
   width:34px;height:30px;flex:none;border-radius:8px;
@@ -86,15 +86,15 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 }
 .ed-topright{display:flex;align-items:center;gap:8px;margin-left:auto}
 .ed-flink{padding:8px 12px;border-radius:9px;font-size:13.5px;color:var(--ink2)}
-.ed-flink:hover{color:#fff;background:var(--bg3)}
+.ed-flink:hover{color:var(--ink);background:var(--bg3)}
 .ed-pub-btn{
   display:inline-flex;align-items:center;gap:6px;
   height:36px;padding:0 14px;border-radius:999px;
   border:1px solid var(--line2);background:rgba(255,255,255,.06);
-  color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;
+  color:var(--ink);font-size:13.5px;font-weight:600;cursor:pointer;
   transition:all .15s ease;
 }
-.ed-pub-btn:hover{background:#fff;color:#000;border-color:#fff}
+.ed-pub-btn:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .ed-pub-btn svg{width:14px;height:14px}
 
 .ed-export{
@@ -102,7 +102,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   overflow:hidden;
   display:inline-flex;align-items:center;gap:8px;
   height:36px;padding:0 18px;border:0;border-radius:999px;
-  background:#fff;color:#000;font-size:14px;font-weight:700;cursor:pointer;
+  background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;cursor:pointer;
   box-shadow:0 3px 12px rgba(255,255,255,.22);
   transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .18s ease;
 }
@@ -122,6 +122,63 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-export:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,255,255,.34)}
 .ed-export svg{width:15px;height:15px;fill:currentColor}
 
+/* ── Export menu ───────────────────────────────────────────
+   Export used to open a centred dialog behind a full-screen scrim, which hid
+   the very animation you were about to render and gave a two-field form the
+   weight of a confirmation step. It hangs off its own button instead, so the
+   canvas stays in view while you pick a size. */
+.ed-export-wrap{position:relative;display:inline-flex}
+
+.ed-pop{
+  position:absolute;top:calc(100% + 9px);right:0;z-index:60;
+  width:288px;padding:14px;
+  display:flex;flex-direction:column;gap:11px;
+  background:var(--bg1);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 18px 44px rgba(0,0,0,.34);
+  text-align:left;
+}
+.ed-pop[hidden]{display:none !important}
+/* The arrow is drawn on the panel, not on the button, so it travels with the
+   panel when a narrow screen moves it. */
+.ed-pop::before{
+  content:"";position:absolute;top:-5px;right:26px;width:9px;height:9px;
+  background:var(--bg1);border-left:1px solid var(--line);border-top:1px solid var(--line);
+  transform:rotate(45deg);
+}
+.ed-pop-head{display:flex;align-items:center;justify-content:space-between}
+.ed-pop-head h3{margin:0;font-size:14px;font-weight:700;letter-spacing:-.01em}
+.ed-pop-close{
+  background:none;border:0;color:var(--ink3);font-size:19px;line-height:1;
+  cursor:pointer;padding:0 2px;
+}
+.ed-pop-close:hover{color:var(--ink)}
+
+.ed-pop-meta{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:9px 11px;border:1px solid var(--line);border-radius:10px;
+  background:var(--bg2);color:var(--ink3);font-size:12px;
+}
+.ed-pop-meta b{color:var(--ink);font-weight:650}
+
+.ed-pop-go{width:100%;height:40px;justify-content:center;font-size:13.5px}
+.ed-pop-cancel{
+  height:34px;background:none;border:0;border-radius:9px;
+  color:var(--ink3);font:inherit;font-size:12.5px;cursor:pointer;
+}
+.ed-pop-cancel:hover{background:var(--bg2);color:var(--ink)}
+
+/* A 288px panel pinned to the right edge would hang off a phone. Below the
+   header's breakpoint it becomes a sheet across the bottom of the screen,
+   which is also where a thumb already is. */
+@media (max-width:560px){
+  .ed-export-wrap{position:static}
+  .ed-pop{
+    position:fixed;top:auto;right:10px;bottom:10px;left:10px;width:auto;
+    max-height:72vh;overflow-y:auto;
+  }
+  .ed-pop::before{display:none}
+}
+
 /* Only phones use this focused workspace switcher. */
 .ed-mobile-nav{display:none}
 
@@ -138,7 +195,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .ed-modal-head h3{margin:0;font-size:18px;font-weight:700}
 .ed-modal-close{background:none;border:0;color:var(--ink3);font-size:22px;cursor:pointer;padding:0}
-.ed-modal-close:hover{color:#fff}
+.ed-modal-close:hover{color:var(--ink)}
 .ed-modal-sub{font-size:13.5px;color:var(--ink3);margin:0 0 18px;line-height:1.45}
 .ed-modal-form{display:flex;flex-direction:column;gap:14px}
 .ed-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
@@ -153,7 +210,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   background:rgba(255,255,255,.05);border:1px solid var(--line);
   color:var(--ink2);cursor:pointer;transition:all .12s ease;
 }
-.ed-preset-btn:hover{background:rgba(255,255,255,.12);color:#fff;border-color:var(--line2)}
+.ed-preset-btn:hover{background:rgba(255,255,255,.12);color:var(--ink);border-color:var(--line2)}
 
 /* ── Body: three columns ───────────────────────────────── */
 /* ── Body: three columns ───────────────────────────────── */
@@ -179,7 +236,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-msg-avatar{
   width:28px;height:28px;flex:none;border-radius:50%;
   background:linear-gradient(135deg, #00e5ff, #8b5cf6, #ec4899);
-  color:#fff;display:grid;place-items:center;font-size:12px;font-weight:bold;
+  color:var(--ink);display:grid;place-items:center;font-size:12px;font-weight:bold;
   box-shadow:0 0 14px rgba(139,92,246,0.4);
 }
 .ed-msg-body{
@@ -200,7 +257,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   padding:5px 11px;color:var(--ink2);font-size:11.5px;cursor:pointer;
   transition:all 0.15s ease;
 }
-.ed-pill-prompt:hover{color:#fff;border-color:var(--line2);background:rgba(255,255,255,.1)}
+.ed-pill-prompt:hover{color:var(--ink);border-color:var(--line2);background:rgba(255,255,255,.1)}
 
 /* Thinking & Reasoning UI */
 .ed-thinking-box{display:flex;flex-direction:column;gap:8px;padding:2px 0}
@@ -208,7 +265,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-think-head svg{width:15px;height:15px;animation:spin 1.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .ed-think-step{font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:6px;transition:all .3s ease}
-.ed-think-step.active{color:#fff;font-weight:500}
+.ed-think-step.active{color:var(--ink);font-weight:500}
 .ed-think-step.done{color:#34d17a}
 .ed-shimmer-track{
   height:4px;width:100%;border-radius:99px;background:rgba(255,255,255,.08);
@@ -236,11 +293,11 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-result-actions{display:flex;gap:6px;margin-top:6px}
 .ed-result-btn{
   font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:8px;
-  background:rgba(255,255,255,.08);border:1px solid var(--line);color:#fff;
+  background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--ink);
   cursor:pointer;transition:all .15s ease;
 }
-.ed-result-btn:hover{background:rgba(255,255,255,.16);border-color:#fff}
-.ed-result-btn.primary{background:#fff;color:#000;border-color:#fff}
+.ed-result-btn:hover{background:rgba(255,255,255,.16);border-color:var(--ink)}
+.ed-result-btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 
 /* template rail (left - fallback) */
 .ed-tlist{padding:8px}
@@ -251,8 +308,8 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   padding:9px 10px;border:1px solid transparent;border-radius:10px;
   background:none;color:var(--ink2);font-size:13.5px;text-align:left;cursor:pointer;
 }
-.ed-titem:hover{background:var(--bg3);color:#fff}
-.ed-titem[aria-current="true"]{background:var(--bg3);color:#fff;border-color:var(--line)}
+.ed-titem:hover{background:var(--bg3);color:var(--ink)}
+.ed-titem[aria-current="true"]{background:var(--bg3);color:var(--ink);border-color:var(--line)}
 .ed-tdot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--line2)}
 .ed-titem[aria-current="true"] .ed-tdot{background:#fff}
 
@@ -296,7 +353,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   padding:10px 12px;
   background:var(--bg2);border:1px solid var(--line);border-radius:12px 12px 0 0;
   border-bottom:0;
-  color:#fff;font-family:var(--font);font-size:13.5px;line-height:1.45;outline:none;
+  color:var(--ink);font-family:var(--font);font-size:13.5px;line-height:1.45;outline:none;
 }
 .ed-ai textarea::placeholder{color:var(--ink4)}
 .ed-ai textarea:focus{border-color:var(--line2)}
@@ -309,7 +366,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   width:32px;height:32px;flex:none;display:grid;place-items:center;
   border:1px solid var(--line);border-radius:8px;color:var(--ink2);cursor:pointer;
 }
-.ed-aibtn:hover{color:#fff;border-color:var(--line2)}
+.ed-aibtn:hover{color:var(--ink);border-color:var(--line2)}
 .ed-aibtn svg{width:15px;height:15px}
 .ed-ai input[type="file"]:focus-visible + .ed-aibtn{outline:2px solid #fff;outline-offset:2px}
 .ed-aichip{
@@ -320,8 +377,8 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   font-family:inherit;font-size:12px;cursor:pointer;
 }
 .ed-aichip #edImgName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ed-aichip b{color:#fff}
-.ed-aichip:hover{color:#fff;border-color:#fff}
+.ed-aichip b{color:var(--ink)}
+.ed-aichip:hover{color:var(--ink);border-color:var(--ink)}
 /* [hidden] loses to display:inline-flex unless it is spelled out */
 .ed-aichip[hidden]{display:none}
 .ed-aiq{
@@ -330,7 +387,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b4b4b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
     no-repeat right 6px center/12px 12px;
   border:1px solid var(--line);border-radius:8px;
-  color:#fff;font-family:inherit;font-size:12px;font-weight:600;
+  color:var(--ink);font-family:inherit;font-size:12px;font-weight:600;
   appearance:none;-webkit-appearance:none;cursor:pointer;outline:none;
 }
 .ed-aicost{
@@ -347,9 +404,9 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   border:1px solid var(--line);border-radius:999px;
   color:var(--ink2);font-size:13px;text-decoration:none;
 }
-.ed-credits:hover{color:#fff;border-color:var(--line2)}
+.ed-credits:hover{color:var(--ink);border-color:var(--line2)}
 .ed-credits svg{width:14px;height:14px}
-.ed-credits b{color:#fff;font-weight:650;font-variant-numeric:tabular-nums}
+.ed-credits b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums}
 .ed-credits[data-low="1"]{border-color:rgba(255,140,110,.5)}
 .ed-credits[data-low="1"] b{color:#ff9b83}
 
@@ -370,15 +427,15 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-pbtn{
   width:36px;height:36px;flex:none;display:grid;place-items:center;
   background:var(--bg2);border:1px solid var(--line);border-radius:10px;
-  color:#fff;cursor:pointer;
+  color:var(--ink);cursor:pointer;
 }
 .ed-pbtn:hover{border-color:var(--line2)}
-.ed-pbtn.ed-primary{background:#fff;color:#000;border-color:#fff}
+.ed-pbtn.ed-primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .ed-pbtn svg{width:15px;height:15px;fill:currentColor}
 .ed-time{
   font-size:12.5px;color:var(--ink3);font-variant-numeric:tabular-nums;min-width:82px;
 }
-.ed-time b{color:#fff;font-weight:600}
+.ed-time b{color:var(--ink);font-weight:600}
 .ed-loop{
   font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);
 }
@@ -434,7 +491,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-grip svg{display:block;width:8px;height:12px;fill:currentColor}
 .ed-clipname{
   flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-size:11.5px;font-weight:600;color:#fff;
+  font-size:11.5px;font-weight:600;color:var(--ink);
 }
 .ed-clipdur{
   flex:none;font-size:10.5px;color:var(--ink2);font-variant-numeric:tabular-nums;
@@ -456,7 +513,10 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-clipdel{
   position:absolute;top:3px;right:12px;width:17px;height:17px;
   display:none;place-items:center;
-  border:0;border-radius:5px;background:rgba(0,0,0,.6);color:#fff;
+  /* Sits on top of clip artwork, not on the chrome, so it keeps a dark
+     scrim and a light glyph in both themes - following --ink put dark
+     text on a dark scrim under the light theme. */
+  border:0;border-radius:5px;background:rgba(0,0,0,.72);color:#fff;
   font-size:11px;line-height:1;cursor:pointer;padding:0;
 }
 .ed-clip[aria-current="true"] .ed-clipdel{display:grid}
@@ -468,7 +528,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   border:1px dashed var(--line2);border-radius:9px;
   background:none;color:var(--ink2);font-size:13px;font-weight:600;cursor:pointer;
 }
-.ed-add:hover:not(:disabled){color:#fff;border-color:#fff;background:var(--bg2)}
+.ed-add:hover:not(:disabled){color:var(--ink);border-color:var(--ink);background:var(--bg2)}
 .ed-add:disabled{opacity:.4;cursor:not-allowed}
 
 .ed-head{
@@ -493,7 +553,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
 .ed-f input[type="text"],.ed-f input[type="number"],.ed-f textarea,.ed-f select{
   width:100%;height:38px;padding:0 11px;
   background:var(--bg2);border:1px solid var(--line);border-radius:9px;
-  color:#fff;font-family:var(--font);font-size:13.5px;outline:none;
+  color:var(--ink);font-family:var(--font);font-size:13.5px;outline:none;
 }
 .ed-f textarea{height:auto;min-height:76px;padding-top:9px;padding-bottom:9px;resize:vertical;line-height:1.4}
 .ed-f input[type="text"]:focus,.ed-f input[type="number"]:focus,.ed-f textarea:focus,.ed-f select:focus{border-color:var(--line2)}
@@ -543,12 +603,12 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   to{opacity:1;transform:scale(1) translateY(0)}
 }
 .ed-modal-head{display:flex;justify-content:space-between;align-items:center}
-.ed-modal-head h3{margin:0;font-size:17px;font-weight:700;color:#fff}
+.ed-modal-head h3{margin:0;font-size:17px;font-weight:700;color:var(--ink)}
 .ed-modal-close{
   background:none;border:none;color:var(--ink3);font-size:22px;line-height:1;
   cursor:pointer;padding:4px 8px;border-radius:8px;
 }
-.ed-modal-close:hover{color:#fff;background:rgba(255,255,255,.1)}
+.ed-modal-close:hover{color:var(--ink);background:rgba(255,255,255,.1)}
 .ed-modal-sub{margin:0;font-size:13px;color:var(--ink2);line-height:1.45}
 .ed-modal-form{display:flex;flex-direction:column;gap:12px}
 .ed-modal-msg{font-size:12.5px;min-height:18px;line-height:1.4}
@@ -560,10 +620,10 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   width:auto!important;min-width:84px;height:40px!important;padding:0 16px!important;
   display:inline-flex!important;align-items:center;justify-content:center;
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:10px;
-  color:#fff;font-size:13px;font-weight:600;cursor:pointer;
+  color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;
 }
 .ed-modal-actions .ed-pbtn:hover{
-  background:rgba(255,255,255,.16);border-color:#fff;
+  background:rgba(255,255,255,.16);border-color:var(--ink);
 }
 
 #edReset{
@@ -573,7 +633,7 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   color:var(--ink2);font-size:12.5px;font-weight:500;cursor:pointer;
 }
 #edReset:hover{
-  background:rgba(255,255,255,.12);color:#fff;border-color:var(--line2);
+  background:rgba(255,255,255,.12);color:var(--ink);border-color:var(--line2);
 }
 
 /* ── Responsive ────────────────────────────────────────── */
@@ -623,8 +683,8 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
     cursor:pointer;touch-action:manipulation;
   }
   .ed-mobile-tab{flex:1;padding:0 8px}
-  .ed-mobile-tab[aria-selected="true"]{background:#fff;border-color:#fff;color:#000}
-  .ed-mobile-publish{flex:none;padding:0 12px;color:#fff;border-color:var(--line2)}
+  .ed-mobile-tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+  .ed-mobile-publish{flex:none;padding:0 12px;color:var(--ink);border-color:var(--line2)}
 
   /* Real touch targets and 16px form controls prevent accidental iOS zoom. */
   .ed-back,.ed-name,.ed-credits,.ed-export{height:44px}
@@ -679,3 +739,42 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
   body.ed-body *{animation-duration:.001ms!important;transition-duration:.001ms!important}
   .ed-skip{transition:none}
 }
+
+/* ============================================================
+   Theme — 3 September 2026
+
+   The editor was built as a standalone black app: it loads none of the
+   shell stylesheets and never read the stored theme, so opening it from
+   the light workspace dropped the user into an unrelated dark product.
+
+   The palette above stays as the dark values; these restate the same
+   names for the light theme so every existing rule follows along without
+   being rewritten. The stage keeps its dark surround in both themes —
+   that is the video, not the chrome.
+   ============================================================ */
+:root[data-theme="light"] body.ed-body {
+  --ink: #1c1c1a;
+  --ink2: #5a5a55;
+  --ink3: #5a5a55;
+  --ink4: #656560;
+  --bg: #e9e7e1;
+  --bg1: #f2f0eb;
+  --bg2: #f7f6f2;
+  --bg3: #eeece6;
+  --line: #d5d2c9;
+  --line2: #bcb8ad;
+}
+
+/* The dark palette's two faintest tones sat at roughly 4.4:1 and 2.6:1 on
+   the editor's own panels — below the threshold for the timecodes, credit
+   costs and column headings that use them. */
+:root[data-theme="dark"] body.ed-body,
+body.ed-body {
+  --ink3: #9d9da6;
+  --ink4: #8e8e98;
+}
+
+:root[data-theme="light"] body.ed-body :focus-visible:not(input):not(textarea):not(select) {
+  outline-color: #2856d8;
+}
+:root[data-theme="light"] .ed-skip { background: #1c1c1a; color: #f7f6f2; }

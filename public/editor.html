@@ -22,7 +22,15 @@
 <link rel="icon" href="/favicon.ico?v=circle2026" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=circle2026">
 <link rel="manifest" href="/site.webmanifest?v=power2026">
-<link rel="stylesheet" href="/editor.css?v=2026083003">
+<link rel="stylesheet" href="/editor.css?v=2026090914">
+<!-- The editor is hand-maintained rather than generated, so the motion
+     layer has to be linked here too or the studio is the one screen on
+     the site that still does not move. -->
+<link rel="stylesheet" href="/polish.css?v=2026090914">
+<!-- The editor was the one page that never read the theme preference, so
+     opening it from a light workspace dropped you into a black app. The
+     bootstrap runs before paint, exactly as it does on every other page. -->
+<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 </head>
 <body class="ed-body">
 
@@ -71,10 +79,54 @@
         Publish Template
       </button>
       <a href="/contact" class="ed-flink">Feedback</a>
-      <button class="ed-export" id="edExport" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
-        Export
-      </button>
+      <!-- Export is a menu on its own button, not a page-blocking dialog. The
+           options belong to the control that opens them, so the canvas behind
+           stays visible while you choose. -->
+      <div class="ed-export-wrap">
+        <button class="ed-export" id="edExport" type="button"
+          aria-haspopup="dialog" aria-expanded="false" aria-controls="exportPop">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
+          Export
+        </button>
+
+        <div id="exportPop" class="ed-pop" role="dialog" aria-labelledby="exportPopTitle" hidden>
+          <div class="ed-pop-head">
+            <h3 id="exportPopTitle">Export MP4</h3>
+            <button type="button" class="ed-pop-close" id="exportClose" aria-label="Close export options">×</button>
+          </div>
+
+          <div class="ed-f">
+            <label for="edRes">Resolution</label>
+            <select id="edRes">
+              <option value="480">480p · Free</option>
+              <option value="1080" selected>1080p · Pro</option>
+              <option value="1440">1440p · Pro Max</option>
+            </select>
+          </div>
+
+          <div class="ed-f">
+            <label for="edFps">Frame rate</label>
+            <select id="edFps">
+              <option value="30" selected>30 fps · Standard</option>
+              <option value="60">60 fps · Ultra smooth</option>
+              <option value="24">24 fps · Cinematic</option>
+            </select>
+          </div>
+
+          <div class="ed-pop-meta">
+            <span>Format <b id="edExportAspect">9:16 Shorts</b></span>
+            <span>Duration <b id="edExportDur">4.6s</b></span>
+          </div>
+
+          <div id="exportMsg" class="ed-modal-msg"></div>
+
+          <button type="button" class="ed-export ed-pop-go" id="edDownload">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
+            Download MP4 · 1 credit
+          </button>
+          <button type="button" class="ed-pop-cancel" id="exportCancel">Cancel</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -157,8 +209,8 @@
         <!-- Layers are created by editor.js (renderClip), one sandboxed iframe
              per clip carrying the template's own CSS document. A pre-placed
              #animationPlayer here would short-circuit that path into the React
-             player, which only 28 of the 95 templates have code for — the rest
-             rendered static. -->
+             player, while the complete public template library is rendered by
+             the shared CSS-template engine below. -->
         <div class="ed-frame" id="edFrame" style="--arw:9;--arh:16"></div>
       </div>
 
@@ -261,48 +313,6 @@
   </div>
 </div>
 
-<!-- ── EXPORT VIDEO MODAL ─────────────────────────────────── -->
-<div id="exportModal" class="ed-modal-backdrop" hidden>
-  <div class="ed-modal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
-    <div class="ed-modal-head">
-      <h3 id="exportModalTitle">🎬 Export Video (MP4)</h3>
-      <button type="button" class="ed-modal-close" id="exportClose" aria-label="Close modal">×</button>
-    </div>
-    <p class="ed-modal-sub">Render your animation frame-by-frame with exact timing, crisp typography, and full 60 FPS motion in H.264 MP4.</p>
-    <div class="ed-modal-form">
-      <div class="ed-f">
-        <label for="edRes">Resolution</label>
-        <select id="edRes">
-          <option value="720">720p (Free)</option>
-          <option value="1080" selected>1080p (Pro)</option>
-          <option value="1440">1440p (Pro Max)</option>
-        </select>
-      </div>
-      <div class="ed-f">
-        <label for="edFps">Frame Rate</label>
-        <select id="edFps">
-          <option value="30" selected>30 fps (Standard)</option>
-          <option value="60">60 fps (Ultra Smooth)</option>
-          <option value="24">24 fps (Cinematic)</option>
-        </select>
-      </div>
-      <div class="ed-export-meta" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink2);margin:4px 0 10px;">
-        <span>Format: <b id="edExportAspect" style="color:#fff">9:16 Shorts</b></span>
-        <span>Duration: <b id="edExportDur" style="color:#fff">4.6s</b></span>
-        <span style="color:#34d17a;font-weight:600;">⚡ 1 Export Credit</span>
-      </div>
-      <div id="exportMsg" class="ed-modal-msg"></div>
-      <div class="ed-modal-actions" style="display:flex;gap:10px;align-items:center;margin-top:8px;">
-        <button type="button" class="ed-pbtn" id="exportCancel" style="padding:0 20px;height:40px;border-radius:10px;white-space:nowrap;">Cancel</button>
-        <button type="button" class="ed-export" id="edDownload" style="flex:1;height:40px;justify-content:center;font-size:13.5px;">
-          <svg viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:currentColor;"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>
-          Render &amp; Download MP4
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ── PUBLISH TEMPLATE MODAL ────────────────────────────── -->
 <div id="publishModal" class="ed-modal-backdrop" hidden>
   <div class="ed-modal" role="dialog" aria-modal="true" aria-labelledby="publishModalTitle">
@@ -346,8 +356,9 @@
   </div>
 </div>
 
-<script src="/templates-v2.js?v=12" defer></script>
-<script src="/drafts-store.js?v=202608192" defer></script>
-<script src="/editor.js?v=2026083101" defer></script>
+<script src="/templates-v2.js?v=2026090914" defer></script>
+<script src="/drafts-store.js?v=2026090914" defer></script>
+<script src="/theme.js?v=2026090914" defer></script>
+<script src="/editor.js?v=2026090914" defer></script>
 </body>
 </html>

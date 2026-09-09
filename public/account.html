@@ -15,9 +15,9 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f7f7f5">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
 <link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
@@ -25,8 +25,13 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026083001">
-<link rel="stylesheet" href="/page.css?v=2026083002">
+<link rel="stylesheet" href="/shell.css?v=2026090922">
+<link rel="stylesheet" href="/page.css?v=2026090922">
+<link rel="stylesheet" href="/redesign.css?v=2026090922">
+<!-- Motion layer. Loads last so it can add transitions to the finished
+     visual system without restating any of it. -->
+<link rel="stylesheet" href="/polish.css?v=2026090922">
+<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 </head>
 <body class="sh-body">
 
@@ -55,22 +60,84 @@
     </a>
 
     <nav class="sh-nav" aria-label="Workspace">
-        <a href="/#templates">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
-          <span>Templates</span>
-        </a>
-        <a href="/drafts">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          <span>My Projects</span>
-        </a>
-        <a href="/community">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>Community</span>
-        </a>
-        <a href="/tutorials">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          <span>Tutorials & Help</span>
-        </a>
+        <div class="sh-navgroup">
+          <h2 class="sh-navgroup-title">Workspace</h2>
+          <a href="/#templates">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+            <span>Templates</span>
+          </a>
+          <a href="/drafts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span>My Projects</span>
+          </a>
+          <a href="/community">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Creator Skills</span>
+          </a>
+          <a href="/uploads" data-auth="in" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/><path d="M3 21h18"/></svg>
+            <span>Creator Studio</span>
+          </a>
+        </div>
+        <div class="sh-navgroup">
+          <h2 class="sh-navgroup-title">Account</h2>
+          <a href="/settings" data-auth="in" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Account & settings</span>
+          </a>
+          <a href="/pricing">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>Subscription & Plans</span>
+          </a>
+          <a href="/admin" data-auth="admin" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Admin Console</span>
+          </a>
+        </div>
+        <div class="sh-navgroup">
+          <h2 class="sh-navgroup-title">Support & Legal</h2>
+          <a href="/tutorials">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Tutorials & Help</span>
+          </a>
+          <a href="/contact">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+            <span>Help & Feedback</span>
+          </a>
+          <a href="/about">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>About Us</span>
+          </a>
+          <a href="/privacy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Privacy Policy</span>
+          </a>
+          <a href="/terms">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>Terms of Service</span>
+          </a>
+        </div>
+
+      <!-- Notifications and the theme switch live in the rail rather than the
+           top bar, which carries the account only. Each sits in the group it
+           belongs to now that the rail is grouped. -->
+      <div class="sh-notification-wrap sh-navgroup-loose" data-auth="in" hidden>
+        <button type="button" class="sh-notification-btn" id="notificationBtn" aria-label="Notifications" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+          <span class="sh-nav-label">Notifications</span>
+          <span id="notificationCount" hidden>0</span>
+        </button>
+        <section class="sh-notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
+          <header><strong>Notifications</strong><button type="button" id="notificationsReadBtn">Mark all read</button></header>
+          <div id="notificationList"><p>Loading…</p></div>
+        </section>
+      </div>
+
+      <button type="button" class="sh-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="sh-nav-label">Theme</span>
+      </button>
     </nav>
 
     <div class="sh-rail-foot">
@@ -79,9 +146,9 @@
           <b>Free plan</b>
           <i class="sh-plan-arrow">↗</i>
         </div>
-        <span class="sh-plan-credits">8 of 8 credits left today</span>
+        <span class="sh-plan-credits">5 of 5 credits left today</span>
         <span class="sh-plan-rates">Export 1 · AI scene 2</span>
-        <div class="sh-plan-upgrade-link">Upgrade to Pro · ₹99/mo</div>
+        <div class="sh-plan-upgrade-link">Upgrade to Pro · ₹199/mo</div>
       </a>
 
       <div class="sh-user-box" id="sidebarUserBox">
@@ -98,7 +165,7 @@
 
             <div class="sh-upop-badge-row">
               <span class="sh-upop-plan-pill" data-user-plan>✦ Free Plan</span>
-              <span class="sh-upop-credits-pill">⚡ 8 Credits</span>
+              <span class="sh-upop-credits-pill">⚡ 5 Credits</span>
             </div>
 
             <div class="sh-upop-menu">
@@ -122,8 +189,8 @@
               <a href="/uploads" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
                 <div class="sh-upop-item-txt">
-                  <b>My Uploads</b>
-                  <span>Published community templates</span>
+                  <b>Creator Studio</b>
+                  <span>Published, scheduled and private templates</span>
                 </div>
               </a>
 
@@ -140,6 +207,14 @@
                 <div class="sh-upop-item-txt">
                   <b>Settings</b>
                   <span>Account &amp; preferences</span>
+                </div>
+              </a>
+
+              <a href="/admin" class="sh-upop-item" data-auth="admin" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+                <div class="sh-upop-item-txt">
+                  <b>Admin Console</b>
+                  <span>Users, content and support</span>
                 </div>
               </a>
 
@@ -183,39 +258,52 @@
 
   <div class="sh-main" id="main" role="main" tabindex="-1">
 
-    <header class="sh-topbar">
+    <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
-      <a href="/community" class="sh-tlink">Community</a>
-      <a href="/contact" class="sh-tlink">Feedback</a>
-      <a href="/about" class="sh-tlink">About</a>
-      <a href="/pricing" class="sh-tfill">Upgrade</a>
-      <span class="sh-tsep" aria-hidden="true"></span>
-      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Upload Custom Template (XML, Lottie, JSON, HTML)">
+      <a href="/" class="sh-topbrand" aria-label="ShortsCraft home">
+        <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
+        <span class="sh-brand-name">Shorts<i>Craft</i></span>
+      </a>
+      <nav class="sh-primary-nav" aria-label="Main">
+        <a href="/#templates">Templates</a>
+        <a href="/community">Creator Skills</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/tutorials">Learn</a>
+      </nav>
+      <div class="sh-top-actions">
+      <a href="/pricing" class="sh-credit-chip" aria-label="View plan and credits">
+        <span class="sh-credit-plan">Free</span>
+        <span class="sh-credit-balance">5 Credits</span>
+      </a>
+      <button type="button" class="sh-tupload-btn" id="topbarUploadBtn" title="Publish an animation template" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload Template</span>
+        <span>Upload Animation</span>
       </button>
       <a href="/login" class="sh-tlink" data-auth="out">Log in</a>
       <a href="/signup" class="sh-tline" data-auth="out">Sign up</a>
-      <a href="/account" class="sh-tlink" data-auth="in" hidden>Account</a>
       <button type="button" class="sh-tline" id="logoutBtn" data-auth="in" hidden>Log out</button>
+      </div>
     </header>
 
     <div id="navMobile" hidden>
       <a href="/#templates">Templates</a>
-      <a href="/community">Community</a>
+      <a href="/community">Creator Skills</a>
+      <a href="/drafts">My Projects</a>
+      <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/editor">Editor</a>
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
       <a href="/contact">Help &amp; Feedback</a>
-      <button type="button" class="sh-m-upload-btn js-open-upload">
+      <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload Template</span>
+        <span>Publish Template</span>
       </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
       <a href="/account" data-auth="in" hidden>Account</a>
+      <a href="/admin" data-auth="admin" hidden>Admin Console</a>
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
@@ -224,192 +312,237 @@
 
       <section class="ig-prof-container" id="accountBox" hidden>
 
-        <!-- Instagram Profile Header -->
+        <!-- Profile header.
+
+             Rebuilt away from the Instagram pastiche: a story ring and a
+             128px avatar work when a grid of photos sits under them, and
+             read as an empty stage when a new creator has one template.
+             This leads with who the person is and what they have, and
+             surfaces the profile fields the product already stores but
+             never showed - location, website and channel links. -->
         <header class="ig-header">
-          <!-- Left: Story Gradient Avatar Ring -->
           <div class="ig-avatar-col">
-            <div class="ig-story-ring" title="Creator Profile">
+            <div class="ig-story-ring" title="Profile photo">
               <div class="ig-avatar" id="crAvatarChar">KA</div>
             </div>
           </div>
 
-          <!-- Right: Profile Info -->
           <div class="ig-info-col">
-            <!-- Row 1: Username & Action Buttons -->
             <div class="ig-user-row">
-              <h1 class="ig-username" id="crHandle">@creator</h1>
-              <span class="ig-badge" title="Verified Creator">
-                <svg viewBox="0 0 24 24" fill="#0095f6" width="18" height="18" aria-label="Verified"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-              </span>
+              <div class="ig-name-block">
+                <h1 class="ig-fullname" id="crDisplayName">Creator</h1>
+                <div class="ig-handle-line">
+                  <span class="ig-username" id="crHandle">@creator</span>
+                  <span class="ig-badge" id="crVerifiedBadge" title="Verified creator - an active yearly plan, not an identity check" hidden>
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" aria-label="Verified"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    <span>Verified</span>
+                  </span>
+                </div>
+              </div>
 
               <div class="ig-actions-row">
-                <button type="button" class="ig-btn ig-btn-secondary" id="openEditProfileBtn" aria-controls="igPaneEdit">Edit profile</button>
-                <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Share Creator Profile">Share profile</button>
-                <button type="button" class="ig-btn ig-btn-danger" id="accLogout" title="Log out of ShortsCraft">Log out</button>
+                <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
+                <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
               </div>
             </div>
 
-            <!-- Row 2: Stats Counter -->
+            <p class="ig-bio" id="crBio"></p>
+
+            <div class="ig-links-row">
+              <span class="ig-link-pill" id="crLocationChip" hidden>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="crLocationText"></span>
+              </span>
+              <a id="crWebsiteLink" href="/" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <span id="crWebsiteText">Website</span>
+              </a>
+              <a id="crYtLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
+                <span>YouTube</span>
+              </a>
+              <a id="crIgLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                <span>Instagram</span>
+              </a>
+            </div>
+
+            <!-- Credits were a stat here as well as in the rail and the top
+                 bar. They belong to the plan, not to the profile, so they
+                 now appear once - under Plan and credits. -->
             <ul class="ig-stats-row">
-              <li class="ig-stat"><strong id="igCreationsCount">0</strong> <span>creations</span></li>
-              <li class="ig-stat"><strong id="crStarsCount">0</strong> <span>stars</span></li>
-              <li class="ig-stat"><strong id="igCreditsCount">8</strong> <span>daily credits</span></li>
+              <!-- Each stat opens the tab behind it. A count you cannot open is
+                   a claim rather than a fact, which is the thing this product
+                   is not supposed to print. -->
+              <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="stars"><strong id="crStarsCount">0</strong> <span>Stars received</span></button></li>
             </ul>
-
-            <!-- Row 3: Name, Category, Bio & Social Links -->
-            <div class="ig-bio-block">
-              <div class="ig-fullname" id="crDisplayName">Creator</div>
-              <div class="ig-category">🎬 AI Motion Graphics &amp; Video Creator</div>
-              <div class="ig-bio" id="crBio">Designing viral YouTube Shorts, Instagram Reels &amp; AI kinetic typography motion graphics.</div>
-
-              <div class="ig-links-row">
-                <a id="crYtLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff0000"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
-                  <span>YouTube</span>
-                </a>
-                <a id="crIgLink" href="/account" target="_blank" rel="noopener" class="ig-link-pill" hidden>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e1306c" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                  <span>Instagram</span>
-                </a>
-                <a href="/" class="ig-link-pill">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                  <span>shortscraft.online</span>
-                </a>
-              </div>
-            </div>
           </div>
         </header>
 
-        <!-- Instagram Story Highlights Tray -->
-        <div class="ig-highlights-tray" aria-label="Creator Highlights">
-          <a href="/editor" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">⚡</div></div>
-            <span class="ig-hl-label">Studio</span>
-          </a>
-          <a href="/#templates" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">🎬</div></div>
-            <span class="ig-hl-label">Templates</span>
-          </a>
-          <a href="/pricing" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">💎</div></div>
-            <span class="ig-hl-label">Pro Plan</span>
-          </a>
-          <a href="/community" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">🔥</div></div>
-            <span class="ig-hl-label">Community</span>
-          </a>
-          <a href="/tutorials" class="ig-highlight-item">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">💡</div></div>
-            <span class="ig-hl-label">Tutorials</span>
-          </a>
-          <a href="/editor" class="ig-highlight-item ig-hl-add">
-            <div class="ig-hl-ring"><div class="ig-hl-icon">+</div></div>
-            <span class="ig-hl-label">New Short</span>
-          </a>
-        </div>
+        <!-- The story-highlights tray was six links to /editor,
+             /#templates, /pricing, /community and /tutorials — every one
+             of them already a row in the rail, two clicks from here and
+             visible on every page. It duplicated the navigation it sat
+             next to, and its labels were the least readable text on the
+             page, so the profile now starts at its own content. -->
 
-        <!-- Instagram Navigation Tabs -->
-        <nav class="ig-tabs" role="tablist" aria-label="Profile sections">
-          <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true" tabindex="0">
+        <!-- Tabs.
+
+             "Saved & Drafts" held three cards that linked to /drafts,
+             /uploads and /editor - all three already rows in the rail, so
+             the tab was navigation wearing a tab's clothes. It is replaced
+             by the two things the plan asks this page to carry and it
+             never did: Stars (non-cash appreciation, monthly allowance)
+             and the user's own support history. -->
+        <nav class="ig-tabs" role="tablist">
+          <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            <span>POSTS</span>
+            <span>Creations</span>
           </button>
-          <button type="button" class="ig-tab-btn" id="igTabSaved" data-ig-tab="saved" role="tab" aria-controls="igPaneSaved" aria-selected="false" tabindex="-1">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            <span>SAVED &amp; DRAFTS</span>
+          <button type="button" class="ig-tab-btn" id="igTabFollowers" data-ig-tab="followers" role="tab" aria-controls="igPaneFollowers" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            <span>Followers</span>
           </button>
-          <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false" tabindex="-1">
+          <button type="button" class="ig-tab-btn" id="igTabFollowing" data-ig-tab="following" role="tab" aria-controls="igPaneFollowing" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg>
+            <span>Following</span>
+          </button>
+          <button type="button" class="ig-tab-btn" id="igTabStars" data-ig-tab="stars" role="tab" aria-controls="igPaneStars" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.4 12 18.1 5.8 21.4 7 14.5 2 9.6 8.9 8.6 12 2"/></svg>
+            <span>Stars</span>
+          </button>
+          <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>PLAN &amp; CREDITS</span>
+            <span>Plan &amp; credits</span>
           </button>
-          <button type="button" class="ig-tab-btn" id="igTabEdit" data-ig-tab="edit" role="tab" aria-controls="igPaneEdit" aria-selected="false" tabindex="-1">
+          <button type="button" class="ig-tab-btn" id="igTabSupport" data-ig-tab="support" role="tab" aria-controls="igPaneSupport" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Support</span>
+          </button>
+          <button type="button" class="ig-tab-btn" id="igTabEdit" data-ig-tab="edit" role="tab" aria-controls="igPaneEdit" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>EDIT PROFILE</span>
+            <span>Edit profile</span>
           </button>
         </nav>
 
-        <!-- Tab 1: Posts & Creations Grid -->
+        <!-- Tab 1: published creations -->
         <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel" aria-labelledby="igTabCreations">
           <div class="ig-grid" id="userCreationsGrid">
-            <!-- Dynamic creation cards rendered by authui.js -->
+            <!-- Rendered by authui.js -->
           </div>
         </section>
 
-        <!-- Tab 2: Saved & Drafts -->
-        <section class="ig-pane" id="igPaneSaved" role="tabpanel" aria-labelledby="igTabSaved" hidden>
-          <div class="ig-saved-grid">
-            <article class="ig-saved-card">
-              <div class="ig-saved-icon">📁</div>
-              <div class="ig-saved-info">
-                <h3>Drafts &amp; Timelines</h3>
-                <p>Pick up right where you left off in your multi-clip projects.</p>
-              </div>
-              <a href="/drafts" class="ig-btn ig-btn-primary">Open Drafts →</a>
-            </article>
-            <article class="ig-saved-card">
-              <div class="ig-saved-icon">☁️</div>
-              <div class="ig-saved-info">
-                <h3>Community Uploads</h3>
-                <p>Manage the templates and motion presets you shared publicly.</p>
-              </div>
-              <a href="/uploads" class="ig-btn ig-btn-secondary">View Uploads →</a>
-            </article>
-            <article class="ig-saved-card">
-              <div class="ig-saved-icon">⚡</div>
-              <div class="ig-saved-info">
-                <h3>Motion Studio</h3>
-                <p>Launch the editor to compose brand new kinetic text animations.</p>
-              </div>
-              <a href="/editor" class="ig-btn ig-btn-primary">Open Studio →</a>
-            </article>
+        <!-- Followers and following.
+
+             The profile has shown these counts since it was built, with
+             nothing behind them: no way to see who, and no way to follow
+             back. These are the real lists, and each row carries the
+             follow control so the list is somewhere you can act. -->
+        <section class="ig-pane" id="igPaneFollowers" role="tabpanel" aria-labelledby="igTabFollowers" hidden>
+          <div class="ig-people" id="followersList" data-kind="followers">
+            <p class="ig-acc-sub">Loading…</p>
           </div>
         </section>
 
-        <!-- Tab 3: Account, Plan & Balance -->
-        <section class="ig-pane" id="igPaneAccount" role="tabpanel" aria-labelledby="igTabAccount" hidden>
+        <section class="ig-pane" id="igPaneFollowing" role="tabpanel" aria-labelledby="igTabFollowing" hidden>
+          <div class="ig-people" id="followingList" data-kind="following">
+            <p class="ig-acc-sub">Loading…</p>
+          </div>
+        </section>
+
+        <!-- Tab 2: Stars.
+
+             The plan is explicit that Stars must never read as money while
+             monetization is off, so the wording says so on the page rather
+             than in a tooltip. -->
+        <section class="ig-pane" id="igPaneStars" role="tabpanel" aria-labelledby="igTabStars" hidden>
           <div class="ig-account-grid">
             <article class="ig-account-card">
-              <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Account Email</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              </div>
-              <p class="ig-acc-val" id="accEmail">—</p>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars to give this month</span></div>
+              <p class="ig-acc-val" id="starsBalance">—</p>
+              <p class="ig-acc-sub" id="starsAllowance">Your monthly allowance refreshes on the 1st.</p>
             </article>
 
+            <article class="ig-account-card">
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars received</span></div>
+              <p class="ig-acc-val" id="starsReceived">—</p>
+              <p class="ig-acc-sub">From other creators, on your published templates.</p>
+            </article>
+
+            <article class="ig-account-card">
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars given</span></div>
+              <p class="ig-acc-val" id="starsSent">—</p>
+              <p class="ig-acc-sub">Appreciation you have sent to other creators.</p>
+            </article>
+          </div>
+
+          <div class="ig-note-block">
+            <h4>What Stars are</h4>
+            <p>Stars are a way to say a template helped you. They are <strong>not money and cannot be withdrawn, transferred or converted into credits</strong>. Every plan gets a monthly allowance to give away; giving one costs you nothing.</p>
+            <p class="ig-acc-sub">Creator monetization is not live. If it ever is, it will be announced with its own terms — Stars given today do not create a claim on it.</p>
+          </div>
+        </section>
+
+        <!-- Tab 3: plan and credits -->
+        <section class="ig-pane" id="igPaneAccount" role="tabpanel" aria-labelledby="igTabAccount" hidden>
+          <div class="ig-account-grid">
             <article class="ig-account-card ig-acc-highlight">
               <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Current Plan</span>
-                <span class="ig-badge ig-badge-pill">✦ ACTIVE</span>
+                <span class="ig-acc-lbl">Current plan</span>
+                <!-- This pill used to read "ACTIVE" for everyone, including
+                     accounts with no plan at all. It is filled from the
+                     ledger now, or hidden. -->
+                <span class="ig-badge ig-badge-pill" id="accPlanState" hidden></span>
               </div>
               <p class="ig-acc-val" id="accPlan">—</p>
               <p class="ig-acc-sub" id="accPlanTerm"></p>
-              <a href="/pricing" class="ig-card-cta">Upgrade or Change Plan →</a>
+              <a href="/pricing" class="ig-card-cta">Compare plans →</a>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Daily Credits Balance</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              </div>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Credits today</span></div>
               <p class="ig-acc-val" id="accCredits">—</p>
-              <p class="ig-acc-sub">Resets every 24 hours at 00:00 UTC</p>
+              <p class="ig-acc-sub" id="accCreditCosts">Export 1 · AI scene 2. Credits refresh daily at 00:00 UTC and do not stack.</p>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Member Since</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Account email</span></div>
+              <p class="ig-acc-val ig-acc-wrap" id="accEmail">—</p>
+            </article>
+
+            <article class="ig-account-card">
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Member since</span></div>
               <p class="ig-acc-val" id="accSince">—</p>
             </article>
           </div>
 
           <div class="ig-danger-zone">
             <div class="ig-danger-info">
-              <h4>Session Management</h4>
-              <p>Log out of ShortsCraft on this device.</p>
+              <h4>Sign out</h4>
+              <p>Ends this session on this device. Your work is kept.</p>
             </div>
             <button type="button" class="ig-btn ig-btn-danger" id="accLogoutPane">Log out</button>
+          </div>
+        </section>
+
+        <!-- Tab 4: support history.
+
+             The plan requires a signed-in user to be able to see their own
+             tickets. The API existed; the page never asked for it, so the
+             contact form was a one-way street. -->
+        <section class="ig-pane" id="igPaneSupport" role="tabpanel" aria-labelledby="igTabSupport" hidden>
+          <div class="ig-support-head">
+            <div>
+              <h3>Your support requests</h3>
+              <p class="ig-acc-sub">Billing and broken exports are handled first. ShortsCraft is run by one person, so replies usually take up to two working days.</p>
+            </div>
+            <a href="/contact" class="ig-btn ig-btn-primary">New request</a>
+          </div>
+          <div class="ig-support-list" id="supportTicketList">
+            <p class="ig-acc-sub">Loading your requests…</p>
           </div>
         </section>
 
@@ -420,7 +553,12 @@
               <div class="ig-edit-av" id="pageAvatarPreview">KA</div>
               <div class="ig-edit-av-info">
                 <h3 id="pageAvatarHandle">@creator</h3>
-                <p>Customise your public creator brand and social media channel links</p>
+                <p>Use a clear photo or logo. PNG, JPG or WebP, up to 2 MB.</p>
+                <div class="ig-avatar-actions">
+                  <button type="button" class="ig-btn ig-btn-secondary" id="pageChooseAvatarBtn">Change photo</button>
+                  <button type="button" class="ig-btn ig-btn-secondary" id="pageRemoveAvatarBtn">Remove</button>
+                  <input type="file" id="pageAvatarInput" accept="image/png,image/jpeg,image/webp" hidden>
+                </div>
               </div>
             </div>
 
@@ -451,6 +589,16 @@
 
               <div class="ig-grid-2">
                 <div class="ig-field">
+                  <label class="ig-label" for="pageWebsite">Website</label>
+                  <input type="url" id="pageWebsite" class="ig-input" placeholder="https://yourwebsite.com" maxlength="180" />
+                </div>
+
+                <div class="ig-field">
+                  <label class="ig-label" for="pageLocation">Location <span class="ig-hint">Optional</span></label>
+                  <input type="text" id="pageLocation" class="ig-input" placeholder="e.g. Delhi, India" maxlength="80" />
+                </div>
+
+                <div class="ig-field">
                   <label class="ig-label" for="pageYoutube">YouTube Channel URL</label>
                   <div class="ig-input-wrap">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="#ff0000"><path d="M23 12s0-3.9-.5-5.8a3 3 0 0 0-2.1-2.1C18.5 3.5 12 3.5 12 3.5s-6.5 0-8.4.6A3 3 0 0 0 1.5 6.2C1 8.1 1 12 1 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.6 8.4.6 8.4.6s6.5 0 8.4-.6a3 3 0 0 0 2.1-2.1C23 15.9 23 12 23 12ZM9.8 15.5v-7l6 3.5-6 3.5Z"/></svg>
@@ -468,7 +616,7 @@
               </div>
 
               <div class="ig-form-foot">
-                <span id="pageProfileMsg" class="ig-msg" role="status" aria-live="polite"></span>
+                <span id="pageProfileMsg" class="ig-msg"></span>
                 <button type="button" class="ig-btn ig-btn-secondary" id="pageCancelProfileBtn">Cancel</button>
                 <button type="submit" class="ig-btn ig-btn-primary" id="pageSaveProfileBtn">Save Profile Changes</button>
               </div>
@@ -495,7 +643,7 @@
           <ul class="pg-gate-list">
             <li>Your plan and daily credit balance in one place</li>            <li>Templates you publish stay tied to your creator name</li>            <li>Drafts and settings follow you to any device</li>
           </ul>
-          <p class="pg-gate-fine">Free to start — 8 credits every day, no card required.</p>
+          <p class="pg-gate-fine">Free to start — 5 credits every day, no card required.</p>
         </div>
       </section>
     </main>
@@ -507,14 +655,14 @@
             <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
             <span class="sh-brand-name">Shorts<i>Craft</i></span>
           </a>
-          <p>The AI motion design studio for viral YouTube Shorts and kinetic animations.</p>
+          <p>Create, customise and export animation templates for short-form video.</p>
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
           <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
-          <a href="/community">Community Hub</a>
+          <a href="/community">Creator Skills</a>
           <a href="/pricing">Pricing</a>
         </nav>
 
@@ -536,7 +684,8 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026083002" defer></script>
-<script src="/page.js?v=2026083001" defer></script>
+<script src="/authui.js?v=2026090922" defer></script>
+<script src="/theme.js?v=2026090922" defer></script>
+<script src="/page.js?v=2026090922" defer></script>
 </body>
 </html>

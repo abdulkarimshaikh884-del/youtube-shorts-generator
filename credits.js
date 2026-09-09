@@ -47,7 +47,9 @@ const COOKIE = "sc_uid";
 
    The paid tiers therefore lead on capability, not volume: no watermark and a
    higher resolution ceiling are what people are really buying. */
-const LIFETIME_SLOTS = 100;
+/* Kept as a compatibility export for older callers. Lifetime sales are no
+   longer offered; every paid plan has a monthly and yearly billing option. */
+const LIFETIME_SLOTS = 0;
 
 const PLANS = {
   free: {
@@ -55,20 +57,29 @@ const PLANS = {
     // Enough for a real first session: try a few templates, export them, and
     // still have room to generate one or two AI scenes. Below this the trial
     // stops proving anything, which costs signups rather than saving CPU.
-    perDay: 8,
+    perDay: 5,
+    monthlyCredits: 150,
+    yearlyPrice: 0,
+    starsPerMonth: 5,
     watermark: true,
-    maxHeight: 720
+    maxHeight: 480
   },
   pro: {
-    id: "pro", label: "Pro", price: 99, inr: "₹99", term: "month",
-    perDay: 50,
+    id: "pro", label: "Pro", price: 199, inr: "₹199", term: "month",
+    yearlyPrice: 1999,
+    perDay: 40,
+    monthlyCredits: 1200,
+    starsPerMonth: 25,
     watermark: false,
     maxHeight: 1080
   },
   promax: {
-    id: "promax", label: "Pro Max", price: 499, inr: "₹499",
-    term: "lifetime", fallbackTerm: "year",
+    id: "promax", label: "Pro Max", price: 399, inr: "₹399",
+    yearlyPrice: 3999,
+    term: "month",
     perDay: 100,
+    monthlyCredits: 3000,
+    starsPerMonth: 60,
     watermark: false,
     maxHeight: 1440
   }
@@ -90,7 +101,10 @@ const PLANS = {
    over its life, which is the right shape. */
 const COST = {
   export: 1,      // rendering a template project to MP4 — the expensive one
-  animate: 2      // one model call to design a brand-new scene
+  animate: 2,     // compatibility alias for the standard model
+  aiStandard: 2,
+  aiDetailed: 5,
+  aiAdvanced: 8
 };
 
 const secret = () => process.env.CREDITS_SECRET || "shortscraft-dev-secret";
@@ -119,9 +133,9 @@ const today = () => new Date().toISOString().slice(0, 10);
    rolled over or the account's plan changed (an upgrade takes effect at
    once — fresh grant — rather than waiting for midnight). `planHint` comes
    from the signed-in account, which is the source of truth for the plan. */
-async function ensureRecord(key, planHint) {
+async function ensureRecord(key, planHint, executor = db) {
   const day = today();
-  const { rows } = await db.query(`select * from public.credits where key = $1`, [key]);
+  const { rows } = await executor.query(`select * from public.credits where key = $1`, [key]);
   let rec = rows[0] || null;
 
   const wanted = PLANS[planHint] ? planHint : (rec && PLANS[rec.plan] ? rec.plan : "free");
@@ -129,7 +143,7 @@ async function ensureRecord(key, planHint) {
   if (!rec || rec.day !== day || rec.plan !== wanted) {
     const perDay = PLANS[wanted].perDay;
     const since = rec ? rec.since : day;
-    const { rows: upserted } = await db.query(
+    const { rows: upserted } = await executor.query(
       `insert into public.credits (key, day, plan, left_credits, spent, since)
        values ($1, $2, $3, $4, 0, $5)
        on conflict (key) do update
@@ -139,6 +153,33 @@ async function ensureRecord(key, planHint) {
       [key, day, wanted, perDay, since]
     );
     rec = upserted[0];
+    await executor.query(
+      `insert into public.credit_transactions
+         (credit_key, user_id, kind, amount, balance_after, idempotency_key, metadata)
+       values ($1, $2, 'grant', $3, $3, $4, $5::jsonb)
+       on conflict (idempotency_key) where idempotency_key is not null do nothing`,
+      [key, key.startsWith("u:") ? key.slice(2) : null, perDay,
+       `grant:${key}:${day}:${wanted}`, JSON.stringify({ plan: wanted, day })]
+    );
+  } else {
+    /* Same day, same plan — but the plan's daily allowance itself may have
+       been changed since this row was granted. Nothing above re-grants in
+       that case, so the row kept yesterday's number and the UI showed
+       balances like "8 / 5": more credits left than the plan even gives.
+
+       Credits only move through grant, charge and refund, so the day's
+       balance is always `perDay - spent`. Restating that heals a row whether
+       the allowance went up or down, and never hands back credits that were
+       already spent. */
+    const perDay = PLANS[wanted].perDay;
+    const correct = Math.max(0, perDay - (Number(rec.spent) || 0));
+    if (Number(rec.left_credits) !== correct) {
+      const { rows: fixed } = await executor.query(
+        `update public.credits set left_credits = $2 where key = $1 returning *`,
+        [key, correct]
+      );
+      rec = fixed[0] || rec;
+    }
   }
   return rec;
 }
@@ -186,6 +227,7 @@ async function state(req) {
   return {
     left: rec.left_credits,
     perDay: plan.perDay,
+    monthlyCredits: plan.monthlyCredits,
     spentToday: rec.spent,
     plan: plan.id,
     planLabel: plan.label,
@@ -216,35 +258,102 @@ async function entitlements(req) {
 /* Charge before doing the work. Returns {ok, left} or {ok:false, need, left}.
    The decrement is one atomic UPDATE guarded by left_credits >= cost, so two
    concurrent requests cannot both succeed past a balance that only covers one. */
+const TRANSACTION_KIND = {
+  export: "export",
+  animate: "ai_standard",
+  aiStandard: "ai_standard",
+  aiDetailed: "ai_detailed",
+  aiAdvanced: "ai_advanced"
+};
+
+function operationKey(req, kind) {
+  req._creditOperationKeys = req._creditOperationKeys || {};
+  if (req._creditOperationKeys[kind]) return req._creditOperationKeys[kind];
+  const supplied = String(req.get?.("Idempotency-Key") || req.body?.idempotencyKey || "").trim();
+  const safe = /^[a-zA-Z0-9._:-]{12,160}$/.test(supplied) ? supplied : crypto.randomUUID();
+  req._creditOperationKeys[kind] = `credit:${req.credits.key}:${kind}:${safe}`;
+  return req._creditOperationKeys[kind];
+}
+
 async function charge(req, kind) {
   const cost = COST[kind];
   if (!cost) throw new Error("Unknown charge kind: " + kind);
+  const idem = operationKey(req, kind);
 
-  const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
-  const { rows } = await db.query(
-    `update public.credits
-        set left_credits = left_credits - $2, spent = spent + $2
-      where key = $1 and left_credits >= $2
-      returning left_credits`,
-    [req.credits.key, cost]
-  );
-  if (!rows[0]) return { ok: false, need: cost, left: rec.left_credits };
-  return { ok: true, left: rows[0].left_credits, charged: cost };
+  return db.tx(async (client) => {
+    await ensureRecord(req.credits.key, req.user ? req.user.plan : null, client);
+    const existing = await client.query(
+      `select id, balance_after from public.credit_transactions where idempotency_key = $1`,
+      [idem]
+    );
+    if (existing.rows[0]) {
+      return { ok: true, left: existing.rows[0].balance_after, charged: 0, reused: true };
+    }
+
+    const locked = await client.query(
+      `select left_credits from public.credits where key = $1 for update`,
+      [req.credits.key]
+    );
+    const left = Number(locked.rows[0]?.left_credits) || 0;
+    if (left < cost) return { ok: false, need: cost, left };
+
+    const updated = await client.query(
+      `update public.credits
+          set left_credits = left_credits - $2, spent = spent + $2
+        where key = $1 returning left_credits`,
+      [req.credits.key, cost]
+    );
+    const balance = Number(updated.rows[0].left_credits);
+    const inserted = await client.query(
+      `insert into public.credit_transactions
+         (credit_key, user_id, kind, amount, balance_after, idempotency_key, metadata)
+       values ($1, $2, $3, $4, $5, $6, $7::jsonb)
+       returning id`,
+      [req.credits.key, req.user?.id || null, TRANSACTION_KIND[kind], -cost,
+       balance, idem, JSON.stringify({ path: req.path })]
+    );
+    req._creditChargeIds = req._creditChargeIds || {};
+    req._creditChargeIds[kind] = inserted.rows[0].id;
+    return { ok: true, left: balance, charged: cost };
+  });
 }
 
 /* Give it back when the work failed — nobody pays for our 500. */
 async function refund(req, kind) {
   const cost = COST[kind] || 0;
-  const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
-  const plan = PLANS[rec.plan] || PLANS.free;
-  const { rows } = await db.query(
-    `update public.credits
-        set left_credits = least($2, left_credits + $3), spent = greatest(0, spent - $3)
-      where key = $1
-      returning left_credits`,
-    [req.credits.key, plan.perDay, cost]
-  );
-  return rows[0] ? rows[0].left_credits : rec.left_credits;
+  if (!cost) return (await ensureRecord(req.credits.key, req.user ? req.user.plan : null)).left_credits;
+  const chargeId = req._creditChargeIds?.[kind] || null;
+  // A reused idempotent charge belongs to an earlier completed request and
+  // must not be refunded by a duplicate retry that happens to fail later.
+  if (!chargeId) return (await ensureRecord(req.credits.key, req.user ? req.user.plan : null)).left_credits;
+  const idem = `refund:${chargeId}`;
+
+  return db.tx(async (client) => {
+    const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null, client);
+    const prior = await client.query(
+      `select balance_after from public.credit_transactions where idempotency_key = $1`,
+      [idem]
+    );
+    if (prior.rows[0]) return Number(prior.rows[0].balance_after);
+    const plan = PLANS[rec.plan] || PLANS.free;
+    const updated = await client.query(
+      `update public.credits
+          set left_credits = least($2, left_credits + $3),
+              spent = greatest(0, spent - $3)
+        where key = $1 returning left_credits`,
+      [req.credits.key, plan.perDay, cost]
+    );
+    const balance = Number(updated.rows[0]?.left_credits ?? rec.left_credits);
+    await client.query(
+      `insert into public.credit_transactions
+         (credit_key, user_id, kind, amount, balance_after, idempotency_key, metadata)
+       values ($1, $2, 'refund', $3, $4, $5, $6::jsonb)
+       on conflict (idempotency_key) where idempotency_key is not null do nothing`,
+      [req.credits.key, req.user?.id || null, cost, balance, idem,
+       JSON.stringify({ refundedTransactionId: chargeId, operation: kind })]
+    );
+    return balance;
+  });
 }
 
 /* Called right after a payment is verified, to grant the new plan's daily

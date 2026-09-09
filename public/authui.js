@@ -41,9 +41,26 @@
     if (on) el.removeAttribute("hidden"); else el.setAttribute("hidden", "");
   }
 
+  function paintAvatar(el, user, initials) {
+    if (!el) return;
+    var url = user && user.avatarUrl ? String(user.avatarUrl) : "";
+    if (url) {
+      el.textContent = "";
+      el.style.backgroundImage = 'url("' + url.replace(/"/g, "%22") + '")';
+      el.style.backgroundSize = "cover";
+      el.style.backgroundPosition = "center";
+    } else {
+      el.textContent = initials;
+      el.style.backgroundImage = "";
+    }
+  }
+
   function paint(user) {
     all('[data-auth="in"]').forEach(function (el) { show(el, !!user); });
     all('[data-auth="out"]').forEach(function (el) { show(el, !user); });
+    all('[data-auth="admin"]').forEach(function (el) {
+      show(el, !!user && (user.role === "admin" || user.role === "super_admin"));
+    });
 
     var uname = user ? (String(user.email).split("@")[0] || "creator") : "Account";
     var dname = user ? (user.displayName || (uname.charAt(0).toUpperCase() + uname.slice(1))) : "Account";
@@ -68,7 +85,7 @@
     });
 
     all("[data-user-avatar]").forEach(function (el) {
-      el.textContent = initials;
+      paintAvatar(el, user, initials);
     });
 
     all("[data-user-plan]").forEach(function (el) {
@@ -80,19 +97,23 @@
       show(box, !!user);
       show(guest, !user);
       if (user) {
-        var bio = user.bio || "Designing viral YouTube Shorts, Instagram Reels & AI kinetic typography motion graphics.";
+        var bio = user.bio || "";
 
         if ($("#accEmail")) $("#accEmail").textContent = user.email;
         if ($("#accPlan")) $("#accPlan").textContent = user.plan ? (user.plan.charAt(0).toUpperCase() + user.plan.slice(1)) : "Free";
-        if ($("#accCredits") && $("#accCredits").textContent.trim() === "—") $("#accCredits").textContent = "8 of 8 left today";
-        if ($("#igCreditsCount")) $("#igCreditsCount").textContent = "8";
+        if ($("#accCredits") && $("#accCredits").textContent.trim() === "—") $("#accCredits").textContent = "Loading…";
+        if ($("#igCreditsCount")) $("#igCreditsCount").textContent = "—";
         if ($("#crDisplayName")) $("#crDisplayName").textContent = dname;
         if ($("#crHandle")) $("#crHandle").textContent = handle;
-        if ($("#crAvatarChar")) $("#crAvatarChar").textContent = initials;
-        if ($("#pageAvatarPreview")) $("#pageAvatarPreview").textContent = initials;
+        paintAvatar($("#crAvatarChar"), user, initials);
+        paintAvatar($("#pageAvatarPreview"), user, initials);
         if ($("#pageAvatarHandle")) $("#pageAvatarHandle").textContent = handle;
         if ($("#crBio")) $("#crBio").textContent = bio;
-        if ($("#crStarsCount")) $("#crStarsCount").textContent = user.stars || 0;
+        if ($("#crStarsCount")) $("#crStarsCount").textContent = user.starsReceived || 0;
+        if ($("#crFollowersCount")) $("#crFollowersCount").textContent = user.followers || 0;
+        if ($("#crFollowingCount")) $("#crFollowingCount").textContent = user.following || 0;
+        if ($("#crVerifiedBadge")) $("#crVerifiedBadge").hidden = user.verified !== true;
+        if ($("#pageRemoveAvatarBtn")) $("#pageRemoveAvatarBtn").hidden = !user.avatarUrl;
 
         fetch("/api/credits").then(function(r) { return r.json(); }).then(function(j) {
           if (j && j.success) {
@@ -122,6 +143,15 @@
             $("#crIgLink").hidden = true;
           }
         }
+        if ($("#crWebsiteLink")) {
+          if (user.website) {
+            $("#crWebsiteLink").href = user.website;
+            $("#crWebsiteLink").querySelector("span").textContent = user.website.replace(/^https?:\/\//, "").replace(/\/$/, "");
+            $("#crWebsiteLink").hidden = false;
+          } else {
+            $("#crWebsiteLink").hidden = true;
+          }
+        }
 
         // Say when a paid plan runs out, or that it never does.
         if ($("#accPlanTerm")) {
@@ -143,11 +173,38 @@
           $("#accSince").textContent = isNaN(d) ? "—" : d.toLocaleDateString();
         }
 
+        // Location is stored and editable but was never rendered anywhere.
+        if ($("#crLocationChip")) {
+          var loc = (user.location || "").trim();
+          $("#crLocationChip").hidden = !loc;
+          if (loc && $("#crLocationText")) $("#crLocationText").textContent = loc;
+        }
+
+        /* The plan pill was hard-coded to "ACTIVE" and shown to everyone,
+           including free accounts with nothing active about them. It now
+           states what the ledger says, or stays hidden. */
+        if ($("#accPlanState")) {
+          var pill = $("#accPlanState");
+          if (!user.plan || user.plan === "free") {
+            pill.hidden = true;
+          } else {
+            pill.hidden = false;
+            pill.textContent = user.planLifetime
+              ? "Lifetime"
+              : (user.billingCycle === "year" ? "Yearly" : "Monthly");
+          }
+        }
+
+        loadStarsPane();
+        loadSupportPane();
+
         if ($("#pageDisplayName")) $("#pageDisplayName").value = dname;
         if ($("#pageHandle")) $("#pageHandle").value = handle;
         if ($("#pageBio")) $("#pageBio").value = bio;
         if ($("#pageYoutube")) $("#pageYoutube").value = user.youtube || "";
         if ($("#pageInstagram")) $("#pageInstagram").value = user.instagram || "";
+        if ($("#pageWebsite")) $("#pageWebsite").value = user.website || "";
+        if ($("#pageLocation")) $("#pageLocation").value = user.location || "";
 
         loadUserCreations();
       }
@@ -253,7 +310,7 @@
       if (avEl) avEl.textContent = ((currentUser.displayName || uname).slice(0, 2)).toUpperCase();
       if ($("#editDisplayName")) $("#editDisplayName").value = currentUser.displayName || uname.charAt(0).toUpperCase() + uname.slice(1);
       if ($("#editHandle")) $("#editHandle").value = currentUser.handle || ("@" + uname);
-      if ($("#editBio")) $("#editBio").value = currentUser.bio || "Designing viral YouTube Shorts, Instagram Reels & AI kinetic typography motion graphics.";
+      if ($("#editBio")) $("#editBio").value = currentUser.bio || "";
       if ($("#editYoutube")) $("#editYoutube").value = currentUser.youtube || "";
       if ($("#editInstagram")) $("#editInstagram").value = currentUser.instagram || "";
       if (note) note.textContent = "";
@@ -324,7 +381,7 @@
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (!j.success || !j.user) throw new Error(j.error || "Failed to update profile");
-          currentUser = j.user;
+          currentUser = Object.assign({}, currentUser, j.user);
           paint(currentUser);
           closeModal();
         })
@@ -353,9 +410,11 @@
       var dname = currentUser.displayName || (uname.charAt(0).toUpperCase() + uname.slice(1));
       if ($("#pageDisplayName")) $("#pageDisplayName").value = dname;
       if ($("#pageHandle")) $("#pageHandle").value = currentUser.handle || ("@" + uname);
-      if ($("#pageBio")) $("#pageBio").value = currentUser.bio || "Designing viral YouTube Shorts, Instagram Reels & AI kinetic typography motion graphics.";
+      if ($("#pageBio")) $("#pageBio").value = currentUser.bio || "";
       if ($("#pageYoutube")) $("#pageYoutube").value = currentUser.youtube || "";
       if ($("#pageInstagram")) $("#pageInstagram").value = currentUser.instagram || "";
+      if ($("#pageWebsite")) $("#pageWebsite").value = currentUser.website || "";
+      if ($("#pageLocation")) $("#pageLocation").value = currentUser.location || "";
       if ($("#pageProfileMsg")) $("#pageProfileMsg").textContent = "";
     }
 
@@ -380,6 +439,8 @@
       var bio = $("#pageBio") ? $("#pageBio").value.trim() : "";
       var youtube = $("#pageYoutube") ? $("#pageYoutube").value.trim() : "";
       var instagram = $("#pageInstagram") ? $("#pageInstagram").value.trim() : "";
+      var website = $("#pageWebsite") ? $("#pageWebsite").value.trim() : "";
+      var locationValue = $("#pageLocation") ? $("#pageLocation").value.trim() : "";
       var saveBtn = $("#pageSaveProfileBtn");
       var msg = $("#pageProfileMsg");
 
@@ -397,13 +458,15 @@
           handle: handle,
           bio: bio,
           youtube: youtube,
-          instagram: instagram
+          instagram: instagram,
+          website: website,
+          location: locationValue
         })
       })
       .then(function (r) { return r.json(); })
       .then(function (j) {
         if (!j.success || !j.user) throw new Error(j.error || "Failed to update profile");
-        currentUser = j.user;
+        currentUser = Object.assign({}, currentUser, j.user);
         paint(currentUser);
         if (msg) {
           msg.style.color = "#10b981";
@@ -424,6 +487,167 @@
         }
       });
     });
+  }
+
+  function setupAvatarUpload() {
+    var input = $("#pageAvatarInput");
+    var choose = $("#pageChooseAvatarBtn");
+    var remove = $("#pageRemoveAvatarBtn");
+    var msg = $("#pageProfileMsg");
+    if (!input || !choose) return;
+
+    choose.addEventListener("click", function () { input.click(); });
+    input.addEventListener("change", function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      if (["image/png", "image/jpeg", "image/webp"].indexOf(file.type) < 0) {
+        if (msg) msg.textContent = "Choose a PNG, JPG, or WebP image.";
+        input.value = "";
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        if (msg) msg.textContent = "Profile photos must be 2 MB or smaller.";
+        input.value = "";
+        return;
+      }
+      choose.disabled = true;
+      choose.textContent = "Uploading…";
+      var reader = new FileReader();
+      reader.onload = function () {
+        fetch("/api/auth/avatar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: reader.result })
+        }).then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok || !j.success) throw new Error(j.error || "Could not upload that photo.");
+            return j;
+          });
+        }).then(function (j) {
+          currentUser = Object.assign({}, currentUser, j.user);
+          paint(currentUser);
+          if (msg) { msg.style.color = "#16803a"; msg.textContent = "Profile photo updated."; }
+        }).catch(function (err) {
+          if (msg) { msg.style.color = "#c53929"; msg.textContent = err.message; }
+        }).finally(function () {
+          choose.disabled = false;
+          choose.textContent = "Change photo";
+          input.value = "";
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    if (remove) remove.addEventListener("click", function () {
+      remove.disabled = true;
+      fetch("/api/auth/avatar", { method: "DELETE" })
+        .then(function (r) { return r.json().then(function (j) {
+          if (!r.ok || !j.success) throw new Error(j.error || "Could not remove the photo.");
+          return j;
+        }); })
+        .then(function (j) {
+          currentUser = Object.assign({}, currentUser, j.user);
+          paint(currentUser);
+          if (msg) { msg.style.color = "#16803a"; msg.textContent = "Profile photo removed."; }
+        })
+        .catch(function (err) { if (msg) { msg.style.color = "#c53929"; msg.textContent = err.message; } })
+        .finally(function () { remove.disabled = false; });
+    });
+  }
+
+  function setupNotifications() {
+    var button = $("#notificationBtn");
+    var panel = $("#notificationPanel");
+    var list = $("#notificationList");
+    var badge = $("#notificationCount");
+    var readButton = $("#notificationsReadBtn");
+    if (!button || !panel || !list || !currentUser || button.dataset.ready === "1") return;
+    button.dataset.ready = "1";
+
+    function updateBadge(n) {
+      n = Number(n) || 0;
+      if (!badge) return;
+      badge.textContent = n > 99 ? "99+" : String(n);
+      badge.hidden = n < 1;
+    }
+
+    function targetFor(item) {
+      if (item.entityType === "creator" && item.actor && item.actor.handle) {
+        return "/creator?handle=" + encodeURIComponent(item.actor.handle.replace(/^@/, ""));
+      }
+      if (item.entityType === "template") return "/community";
+      if (item.type === "support_reply") return "/contact?ticket=" + encodeURIComponent(item.entityId) + "#supportHistory";
+      return "/account";
+    }
+
+    function render(data) {
+      updateBadge(data.unread);
+      list.innerHTML = "";
+      var items = data.notifications || [];
+      if (!items.length) {
+        var empty = document.createElement("p");
+        empty.className = "sh-notification-empty";
+        empty.textContent = "No notifications yet.";
+        list.appendChild(empty);
+        return;
+      }
+      items.forEach(function (item) {
+        var row = document.createElement("a");
+        row.className = "sh-notification-item";
+        row.href = targetFor(item);
+        row.dataset.read = item.read ? "true" : "false";
+        var avatar = document.createElement("span");
+        avatar.className = "sh-notification-item-avatar";
+        var actor = item.actor;
+        avatar.textContent = actor ? String(actor.displayName || actor.handle || "CR").slice(0, 2).toUpperCase() : "SC";
+        if (actor && actor.avatarUrl) {
+          avatar.textContent = "";
+          avatar.style.backgroundImage = 'url("' + actor.avatarUrl + '")';
+          avatar.style.backgroundSize = "cover";
+          avatar.style.backgroundPosition = "center";
+        }
+        var copy = document.createElement("p");
+        var strong = document.createElement("strong");
+        strong.textContent = actor ? (actor.displayName || actor.handle || "Creator") : "ShortsCraft";
+        copy.appendChild(strong);
+        copy.appendChild(document.createTextNode(" " + (item.message || "sent an update")));
+        var time = document.createElement("time");
+        var date = new Date(item.createdAt);
+        time.textContent = isNaN(date) ? "" : date.toLocaleString();
+        copy.appendChild(time);
+        row.appendChild(avatar);
+        row.appendChild(copy);
+        list.appendChild(row);
+      });
+    }
+
+    function loadNotifications() {
+      return fetch("/api/notifications?limit=30", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (j) { if (j && j.success) render(j); });
+    }
+
+    button.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      var opening = panel.hidden;
+      panel.hidden = !opening;
+      button.setAttribute("aria-expanded", opening ? "true" : "false");
+      if (opening) loadNotifications();
+    });
+    document.addEventListener("click", function (ev) {
+      if (!panel.hidden && !panel.contains(ev.target)) {
+        panel.hidden = true;
+        button.setAttribute("aria-expanded", "false");
+      }
+    });
+    if (readButton) readButton.addEventListener("click", function () {
+      fetch("/api/notifications/read", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      }).then(function () { updateBadge(0); return loadNotifications(); }).catch(function () {});
+    });
+    loadNotifications();
   }
 
   function setupStars() {
@@ -463,14 +687,18 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var items = (d && d.creations) ? d.creations : [];
-        if (countEl) countEl.textContent = items.length + " Template" + (items.length === 1 ? "" : "s");
+        if (countEl) countEl.textContent = items.length + " template" + (items.length === 1 ? "" : "s");
         if (igCountEl) igCountEl.textContent = items.length;
+        if ($("#studioPublished")) $("#studioPublished").textContent = items.filter(function (t) { return t.status === "published"; }).length;
+        if ($("#studioScheduled")) $("#studioScheduled").textContent = items.filter(function (t) { return t.status === "scheduled"; }).length;
+        if ($("#studioPrivate")) $("#studioPrivate").textContent = items.filter(function (t) { return t.status === "draft"; }).length;
+        if ($("#studioExports")) $("#studioExports").textContent = items.reduce(function (sum, t) { return sum + (Number(t.downloads) || 0); }, 0);
 
         if (!items.length) {
           grid.innerHTML = '<div class="cr-cre-empty">' +
-            '<h3>No Creations Yet</h3>' +
-            '<p>Design viral motion graphics, Instagram Reels &amp; kinetic typography templates in the Studio and share them with the world!</p>' +
-            '<a href="/editor" class="ig-btn ig-btn-primary">+ Create Your First Short</a>' +
+            '<h3>No templates yet</h3>' +
+            '<p>Customise a template in the Studio, then publish it now, schedule it, or keep it private.</p>' +
+            '<a href="/editor" class="ig-btn ig-btn-primary">Create your first animation</a>' +
           '</div>';
           return;
         }
@@ -486,7 +714,8 @@
             + "&accent=" + encodeURIComponent(t.accent || "#ffffff")
             + "&font=" + encodeURIComponent(t.font || "inter")
             + "&dur=" + encodeURIComponent(t.dur || 4600)
-            + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
+            + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []))
+            + "&commId=" + encodeURIComponent(t.id || "");
 
           var prev = document.createElement("div");
           prev.className = "cr-cre-preview";
@@ -518,15 +747,21 @@
           var tag = document.createElement("span");
           tag.className = "cr-cre-tag";
           tag.textContent = t.category || "Motion";
+          var state = document.createElement("span");
+          state.className = "cr-cre-state is-" + (t.status || "published");
+          state.textContent = t.status === "scheduled"
+            ? "Scheduled " + (t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : "")
+            : t.status === "draft" ? "Private draft" : "Published";
           var stats = document.createElement("div");
           stats.className = "cr-cre-stats";
           var likes = document.createElement("span");
-          likes.textContent = "❤️ " + (Number(t.likes) || 0);
+          likes.textContent = (Number(t.likes) || 0) + " likes";
           var downloads = document.createElement("span");
-          downloads.textContent = "📥 " + (Number(t.downloads) || 0);
+          downloads.textContent = (Number(t.downloads) || 0) + " exports";
           stats.appendChild(likes);
           stats.appendChild(downloads);
           meta.appendChild(tag);
+          meta.appendChild(state);
           meta.appendChild(stats);
 
           var title = document.createElement("h3");
@@ -539,9 +774,11 @@
 
           var acts = document.createElement("div");
           acts.className = "cr-cre-actions";
+          var publicUrl = "/template?id=" + encodeURIComponent(t.tpl || "text-cascade")
+            + "&comm=1&commId=" + encodeURIComponent(t.id || "");
           acts.innerHTML = '<a href="' + editUrl + '" class="pg-bw">Open in Studio</a>'
-            + '<button type="button" class="pg-bo cr-cre-share" data-url="' + editUrl + '" title="Copy Link">🔗</button>'
-            + '<button type="button" class="pg-bo cr-cre-del" data-id="' + t.id + '" title="Delete Template">🗑️</button>';
+            + (t.status === "published" ? '<button type="button" class="pg-bo cr-cre-share" data-url="' + publicUrl + '" title="Copy public link">Copy link</button>' : "")
+            + '<button type="button" class="pg-bo cr-cre-del" data-id="' + t.id + '" title="Delete template">Delete</button>';
 
           body.appendChild(meta);
           body.appendChild(title);
@@ -560,8 +797,8 @@
             if (!tid) return;
             var ask = window.SC_UI && SC_UI.confirm
               ? SC_UI.confirm({
-                  title: "Delete this published template?",
-                  body: "It will disappear from your creator profile and the Community gallery.",
+                  title: "Delete this template?",
+                  body: "This permanently removes it from Creator Studio and, if published, from the Community gallery.",
                   confirmLabel: "Delete",
                   danger: true
                 })
@@ -595,16 +832,196 @@
       .catch(function () {});
   }
 
+  /* Stars and support both had working APIs and no UI. The page asked for
+     neither, so a user could open a support ticket and never see it again,
+     and had no way to know how many Stars they had left to give. */
+  /* Follower and following lists.
+
+     The counts have been on this page since it was built with nothing
+     behind them. These load the real lists and give each row a follow
+     control, so the number is something you can open and act on rather
+     than a figure the page asserts. */
+  function loadPeoplePane(kind) {
+    var box = document.querySelector(kind === "following" ? "#followingList" : "#followersList");
+    if (!box || box.dataset.loaded === "1") return;
+    var handle = (currentUser && currentUser.handle ? currentUser.handle : "").replace(/^@/, "");
+    if (!handle) return;
+
+    box.dataset.loaded = "1";
+    fetch("/api/creators/" + encodeURIComponent(handle) + "/" + kind)
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || j.success === false) throw new Error("unavailable");
+        var people = j.people || [];
+        if (!people.length) {
+          box.innerHTML = kind === "following"
+            ? '<p class="ig-acc-sub">You are not following anyone yet. Open a creator you like and follow them.</p>'
+            : '<p class="ig-acc-sub">No followers yet. Publishing a template is how people find you.</p>';
+          return;
+        }
+        box.innerHTML = "";
+        people.forEach(function (p) { box.appendChild(personRow(p)); });
+      })
+      .catch(function () {
+        box.dataset.loaded = "";
+        box.innerHTML = '<p class="ig-acc-sub">Could not load that list right now.</p>';
+      });
+  }
+
+  function personRow(p) {
+    var row = document.createElement("article");
+    row.className = "ig-person";
+
+    var slug = encodeURIComponent(String(p.handle || "").replace(/^@/, ""));
+    var av = document.createElement("a");
+    av.className = "ig-person-av";
+    av.href = "/creator?handle=" + slug;
+    if (p.avatarUrl) av.style.backgroundImage = 'url("' + p.avatarUrl + '")';
+    else av.textContent = String(p.handle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
+
+    var info = document.createElement("div");
+    info.className = "ig-person-info";
+    var name = document.createElement("a");
+    name.className = "ig-person-name";
+    name.href = "/creator?handle=" + slug;
+    name.textContent = p.displayName || p.handle || "Creator";
+    if (p.verified) {
+      var tick = document.createElement("span");
+      tick.className = "sh-verified";
+      tick.title = "Verified creator";
+      tick.setAttribute("aria-label", "Verified creator");
+      tick.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      name.appendChild(tick);
+    }
+    var meta = document.createElement("span");
+    meta.className = "ig-person-meta";
+    meta.textContent = p.handle + " · " + p.published +
+      (p.published === 1 ? " template" : " templates");
+    info.appendChild(name);
+    info.appendChild(meta);
+
+    row.appendChild(av);
+    row.appendChild(info);
+
+    // You cannot follow yourself, so that row carries no control at all.
+    if (!p.isViewer && p.id) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ig-btn ig-person-follow";
+      var setLabel = function (on) {
+        btn.textContent = on ? "Following" : "Follow";
+        btn.dataset.active = on ? "1" : "0";
+        btn.classList.toggle("is-following", on);
+      };
+      setLabel(p.followedByViewer === true);
+      btn.onclick = function () {
+        var on = btn.dataset.active === "1";
+        btn.disabled = true;
+        fetch("/api/creators/" + encodeURIComponent(p.id) + "/follow",
+          { method: on ? "DELETE" : "POST" })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            if (!j || !j.success) throw new Error(j && j.error);
+            setLabel(j.active === true);
+            var c = document.querySelector("#crFollowingCount");
+            if (c && j.following != null) c.textContent = String(j.following);
+          })
+          .catch(function (err) {
+            if (window.SC_UI && SC_UI.toast) SC_UI.toast((err && err.message) || "Could not update that follow.", true);
+          })
+          .finally(function () { btn.disabled = false; });
+      };
+      row.appendChild(btn);
+    }
+    return row;
+  }
+
+  function loadStarsPane() {
+    if (!$("#starsBalance")) return;
+    fetch("/api/stars")
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || j.success === false) return;
+        var set = function (sel, value) { if ($(sel)) $(sel).textContent = String(value); };
+        set("#starsBalance", j.balance != null ? j.balance : 0);
+        set("#starsReceived", j.received != null ? j.received : 0);
+        set("#starsSent", j.sent != null ? j.sent : 0);
+        if ($("#starsAllowance") && j.allowance != null) {
+          $("#starsAllowance").textContent =
+            "Your plan gives " + j.allowance + " Stars a month. The allowance refreshes on the 1st and does not stack.";
+        }
+      })
+      .catch(function () {});
+  }
+
+  function loadSupportPane() {
+    var list = $("#supportTicketList");
+    if (!list) return;
+    fetch("/api/support/tickets")
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || j.success === false) throw new Error("unavailable");
+        var tickets = j.tickets || [];
+        if (!tickets.length) {
+          list.innerHTML = '<p class="ig-acc-sub">You have not sent a support request yet.</p>';
+          return;
+        }
+        list.innerHTML = "";
+        tickets.forEach(function (t) {
+          var row = document.createElement("article");
+          row.className = "ig-ticket";
+
+          var main = document.createElement("div");
+          main.className = "ig-ticket-main";
+
+          var subj = document.createElement("h4");
+          subj.textContent = t.subject || "(no subject)";
+          main.appendChild(subj);
+
+          var meta = document.createElement("p");
+          meta.className = "ig-acc-sub";
+          var when = new Date(t.updatedAt || t.createdAt);
+          meta.textContent = [
+            t.reference,
+            t.category,
+            isNaN(when) ? null : when.toLocaleDateString(),
+            t.messageCount ? t.messageCount + " message" + (t.messageCount === 1 ? "" : "s") : null
+          ].filter(Boolean).join(" · ");
+          main.appendChild(meta);
+
+          var state = document.createElement("span");
+          state.className = "ig-ticket-state is-" + String(t.status || "open").toLowerCase();
+          state.textContent = t.status || "open";
+
+          row.appendChild(main);
+          row.appendChild(state);
+          var open = document.createElement("a");
+          open.className = "pg-bo";
+          open.textContent = "Read and reply";
+          open.href = "/contact?ticket=" + encodeURIComponent(t.id) + "#supportHistory";
+          row.appendChild(open);
+          list.appendChild(row);
+        });
+      })
+      .catch(function () {
+        list.innerHTML = '<p class="ig-acc-sub">Could not load your requests right now.</p>';
+      });
+  }
+
   function setupInstagramTabs() {
     var tabs = all(".ig-tab-btn");
     if (!tabs.length) return;
 
-    var panes = {
-      creations: $("#igPaneCreations"),
-      saved: $("#igPaneSaved"),
-      account: $("#igPaneAccount"),
-      edit: $("#igPaneEdit")
-    };
+    /* Derived from the markup rather than listed here. The old hard-coded
+       map meant adding a tab to the page silently did nothing until this
+       object was edited too, which is how a tab ends up rendered but
+       dead. */
+    var panes = {};
+    tabs.forEach(function (btn) {
+      var name = btn.getAttribute("data-ig-tab");
+      var pane = document.getElementById(btn.getAttribute("aria-controls"));
+      if (name && pane) panes[name] = pane;
+    });
 
     function switchTab(targetName, options) {
       options = options || {};
@@ -634,11 +1051,24 @@
         }
       });
 
+      // Lazily fetch the list behind a tab the first time it is opened.
+      if (targetName === "followers" || targetName === "following") loadPeoplePane(targetName);
+
       if (options.updateHash && window.history && history.replaceState) {
         var nextHash = targetName === "creations" ? "" : "#" + (targetName === "edit" ? "edit-profile" : targetName);
         history.replaceState(null, "", location.pathname + location.search + nextHash);
       }
     }
+
+    /* The header stats are buttons pointing at the tab that explains them —
+       "3 followers" opens the follower list rather than just sitting there. */
+    all("[data-jump]").forEach(function (stat) {
+      stat.addEventListener("click", function () {
+        switchTab(stat.getAttribute("data-jump"), { updateHash: true });
+        var pane = panes[stat.getAttribute("data-jump")];
+        if (pane && pane.scrollIntoView) pane.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      });
+    });
 
     tabs.forEach(function (btn, index) {
       btn.addEventListener("click", function () {
@@ -691,7 +1121,7 @@
   }
 
   /* ── YouTube Studio Style 3-Step Upload & Publish Wizard ────── */
-  function setupUploadModal() {
+  function setupLegacyUploadModal() {
     var modal = $("#uploadTemplateModal");
     if (!modal) {
       modal = document.createElement("div");
@@ -1352,23 +1782,198 @@
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
   }
 
+  function setupUploadModal() {
+    var existing = $("#publishTemplateModal");
+    if (existing || document.body.dataset.publishModalReady === "1") return;
+    document.body.dataset.publishModalReady = "1";
+
+    var modal = document.createElement("div");
+    modal.id = "publishTemplateModal";
+    modal.className = "sh-modal-backdrop sc-publish-modal";
+    modal.hidden = true;
+    modal.innerHTML = [
+      '<section class="sc-publish-card" role="dialog" aria-modal="true" aria-labelledby="publishTitle">',
+      '  <header class="sc-publish-head"><div><span class="sc-publish-kicker">Creator publishing</span><h2 id="publishTitle">Publish an animation template</h2><p>Choose a real ShortsCraft Studio template, customise its content, then publish now or schedule it.</p></div><button type="button" id="publishClose" aria-label="Close">×</button></header>',
+      '  <nav class="sc-publish-steps" aria-label="Publishing steps"><button type="button" data-step="1" aria-current="step">1. Template</button><button type="button" data-step="2">2. Details</button><button type="button" data-step="3">3. Visibility</button></nav>',
+      '  <div class="sc-publish-body">',
+      '    <section class="sc-publish-panel" data-panel="1">',
+      '      <div class="sc-format-note"><strong>Supported now</strong><p>Templates created in ShortsCraft Studio. They use the same renderer for preview, editing and MP4 export.</p></div>',
+      '      <div class="sc-format-note is-muted"><strong>File import status</strong><p>Lottie JSON (.json) is not enabled yet. XML, arbitrary HTML/JS and .sctemplate are not accepted because they cannot currently pass the editor and export safety checks.</p></div>',
+      '      <label class="sc-publish-field"><span>Studio template</span><select id="publishTpl" required><option value="">Loading templates…</option></select></label>',
+      '      <div class="sc-publish-preview"><iframe id="publishPreview" sandbox="allow-scripts" scrolling="no" title="Template preview"></iframe></div>',
+      '    </section>',
+      '    <section class="sc-publish-panel" data-panel="2" hidden>',
+      '      <label class="sc-publish-field"><span>Title <small>Required</small></span><input id="publishName" maxlength="80" required placeholder="Describe what this template is for"></label>',
+      '      <label class="sc-publish-field"><span>Description</span><textarea id="publishDescription" maxlength="300" rows="3" placeholder="Help creators understand when to use it"></textarea></label>',
+      '      <div class="sc-publish-grid"><label class="sc-publish-field"><span>Category</span><select id="publishCategory"><option value="text">Kinetic text</option><option value="docu">Documentary</option><option value="paper">Paper craft</option><option value="maps">Maps &amp; radar</option><option value="money">Finance</option><option value="ui">UI &amp; devices</option><option value="social">Social media</option><option value="charts">Charts</option></select></label><label class="sc-publish-field"><span>Font</span><select id="publishFont"><option value="inter">Inter</option><option value="grotesk">Space Grotesk</option><option value="roboto">Roboto</option><option value="serif">Serif</option><option value="mono">Mono</option></select></label></div>',
+      '      <div class="sc-publish-grid"><label class="sc-publish-field"><span>Accent colour</span><input id="publishAccent" type="color" value="#2563eb"></label><label class="sc-publish-field"><span>Duration</span><select id="publishDuration"><option value="3000">3 seconds</option><option value="4600" selected>4.6 seconds</option><option value="6000">6 seconds</option><option value="8000">8 seconds</option><option value="10000">10 seconds</option></select></label></div>',
+      '      <fieldset class="sc-publish-lines"><legend>Editable text</legend><input id="publishLine1" maxlength="120" placeholder="Primary text"><input id="publishLine2" maxlength="120" placeholder="Secondary text"><input id="publishLine3" maxlength="120" placeholder="Supporting text"></fieldset>',
+      '    </section>',
+      '    <section class="sc-publish-panel" data-panel="3" hidden>',
+      '      <fieldset class="sc-publish-visibility"><legend>Who should see it?</legend><label><input type="radio" name="publishVisibility" value="public" checked><span><strong>Publish now</strong><small>Appears in the Community gallery immediately.</small></span></label><label><input type="radio" name="publishVisibility" value="private"><span><strong>Private draft</strong><small>Only appears in your Creator Studio.</small></span></label><label><input type="radio" name="publishVisibility" value="scheduled"><span><strong>Schedule</strong><small>Publishes automatically at the selected time.</small></span></label></fieldset>',
+      '      <label class="sc-publish-field" id="publishScheduleWrap" hidden><span>Publish date and time</span><input id="publishSchedule" type="datetime-local"></label>',
+      '      <div class="sc-publish-summary" id="publishSummary"></div>',
+      '    </section>',
+      '    <p class="sc-publish-status" id="publishStatus" role="status" aria-live="polite"></p>',
+      '  </div>',
+      '  <footer class="sc-publish-foot"><button type="button" class="pg-bo" id="publishBack" hidden>Back</button><span></span><button type="button" class="pg-bw" id="publishNext">Continue</button><button type="button" class="pg-bw" id="publishSubmit" hidden>Publish now</button></footer>',
+      '</section>'
+    ].join("");
+    document.body.appendChild(modal);
+
+    var step = 1;
+    var templateMap = {};
+    var tplSelect = $("#publishTpl");
+    var preview = $("#publishPreview");
+    var status = $("#publishStatus");
+    var next = $("#publishNext");
+    var back = $("#publishBack");
+    var submit = $("#publishSubmit");
+    var scheduleWrap = $("#publishScheduleWrap");
+
+    function ensureEngine() {
+      if (window.SC_TPL2) return Promise.resolve(window.SC_TPL2);
+      return new Promise(function (resolve, reject) {
+        var old = document.querySelector('script[data-sc-templates="1"]');
+        if (old) { old.addEventListener("load", function () { resolve(window.SC_TPL2); }); return; }
+        var script = document.createElement("script");
+        script.src = "/templates-v2.js?v=13";
+        script.dataset.scTemplates = "1";
+        script.onload = function () { resolve(window.SC_TPL2); };
+        script.onerror = function () { reject(new Error("Could not load the template library.")); };
+        document.head.appendChild(script);
+      });
+    }
+
+    function populateTemplates() {
+      return ensureEngine().then(function (engine) {
+        var items = engine && engine.list ? engine.list() : [];
+        tplSelect.innerHTML = "";
+        items.forEach(function (item) {
+          templateMap[item.id] = item;
+          var option = document.createElement("option");
+          option.value = item.id;
+          option.textContent = item.name;
+          tplSelect.appendChild(option);
+        });
+        if (items[0]) {
+          tplSelect.value = items[0].id;
+          if (!$("#publishName").value) $("#publishName").value = items[0].name;
+          $("#publishDescription").value = items[0].desc || "";
+          $("#publishCategory").value = items[0].cat || "text";
+        }
+        updatePreview();
+      });
+    }
+
+    function values() {
+      var selectedVisibility = modal.querySelector('input[name="publishVisibility"]:checked');
+      return {
+        tpl: tplSelect.value,
+        title: $("#publishName").value.trim(),
+        description: $("#publishDescription").value.trim(),
+        category: $("#publishCategory").value,
+        font: $("#publishFont").value,
+        accent: $("#publishAccent").value,
+        dur: Number($("#publishDuration").value),
+        lines: [$("#publishLine1").value.trim(), $("#publishLine2").value.trim(), $("#publishLine3").value.trim()].filter(Boolean),
+        visibility: selectedVisibility ? selectedVisibility.value : "public",
+        scheduledAt: $("#publishSchedule").value ? new Date($("#publishSchedule").value).toISOString() : null
+      };
+    }
+
+    function updatePreview() {
+      if (!window.SC_TPL2 || !tplSelect.value) return;
+      var v = values();
+      var html = window.SC_TPL2.build(v.tpl, { lines: v.lines, accent: v.accent, font: v.font, dur: v.dur, aspect: "9:16" });
+      if (html) preview.srcdoc = html;
+      var item = templateMap[v.tpl];
+      if (item && !$("#publishName").value) $("#publishName").value = item.name;
+    }
+
+    function showStep(nextStep) {
+      step = nextStep;
+      modal.querySelectorAll("[data-panel]").forEach(function (panel) { panel.hidden = Number(panel.dataset.panel) !== step; });
+      modal.querySelectorAll(".sc-publish-steps button").forEach(function (button) {
+        if (Number(button.dataset.step) === step) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current");
+      });
+      back.hidden = step === 1;
+      next.hidden = step === 3;
+      submit.hidden = step !== 3;
+      if (step === 3) {
+        var v = values();
+        var item = templateMap[v.tpl];
+        $("#publishSummary").textContent = (v.title || item?.name || "Template") + " · " + (v.visibility === "public" ? "Publish now" : v.visibility === "private" ? "Private draft" : "Scheduled");
+        submit.textContent = v.visibility === "public" ? "Publish now" : v.visibility === "private" ? "Save draft" : "Schedule";
+      }
+      status.textContent = "";
+    }
+
+    function openModal() {
+      if (!currentUser) { location.href = "/login?next=" + encodeURIComponent(location.pathname); return; }
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+      showStep(1);
+      populateTemplates().catch(function (err) { status.textContent = err.message; });
+    }
+    function closeModal() { modal.hidden = true; document.body.style.overflow = ""; }
+
+    all(".sh-tupload-btn, #topbarUploadBtn, #openUploadModalBtn, #popoverUploadBtn, .js-open-upload").forEach(function (button) {
+      /* The label lives in the markup. Setting textContent here replaced
+         every child — including the button's icon — with a bare text node,
+         so the top-bar button silently lost its icon and its wording could
+         not be changed from the template that renders it. */
+      button.addEventListener("click", function (ev) { ev.preventDefault(); openModal(); });
+    });
+    $("#publishClose").addEventListener("click", closeModal);
+    modal.addEventListener("click", function (ev) { if (ev.target === modal) closeModal(); });
+    modal.addEventListener("keydown", function (ev) { if (ev.key === "Escape") closeModal(); });
+    next.addEventListener("click", function () {
+      if (step === 1 && !tplSelect.value) { status.textContent = "Choose a template first."; return; }
+      if (step === 2 && !$("#publishName").value.trim()) { status.textContent = "Add a title before continuing."; $("#publishName").focus(); return; }
+      showStep(Math.min(3, step + 1));
+    });
+    back.addEventListener("click", function () { showStep(Math.max(1, step - 1)); });
+    modal.querySelectorAll(".sc-publish-steps button").forEach(function (button) { button.addEventListener("click", function () { var wanted = Number(button.dataset.step); if (wanted < step) showStep(wanted); }); });
+    modal.querySelectorAll('input[name="publishVisibility"]').forEach(function (radio) { radio.addEventListener("change", function () { scheduleWrap.hidden = radio.value !== "scheduled" || !radio.checked; showStep(3); }); });
+    [tplSelect, $("#publishAccent"), $("#publishFont"), $("#publishDuration"), $("#publishLine1"), $("#publishLine2"), $("#publishLine3")].forEach(function (input) { input.addEventListener("input", updatePreview); });
+    tplSelect.addEventListener("change", function () {
+      var item = templateMap[tplSelect.value];
+      if (item) { $("#publishName").value = item.name; $("#publishDescription").value = item.desc || ""; $("#publishCategory").value = item.cat || "text"; }
+      updatePreview();
+    });
+
+    submit.addEventListener("click", function () {
+      var payload;
+      try { payload = values(); } catch (e) { status.textContent = "Choose a valid schedule date."; return; }
+      if (payload.visibility === "scheduled" && !payload.scheduledAt) { status.textContent = "Choose a publish date and time."; return; }
+      submit.disabled = true;
+      status.textContent = "Saving…";
+      fetch("/api/community-templates", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.success) throw new Error(j.error || "Could not save that template."); return j; }); })
+        .then(function (j) {
+          status.textContent = payload.visibility === "public" ? "Published to the Community gallery." : payload.visibility === "scheduled" ? "Template scheduled." : "Private draft saved.";
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(status.textContent);
+          setTimeout(function () { closeModal(); loadUserCreations(); if (window.SC_SHELL && SC_SHELL.refreshGallery) SC_SHELL.refreshGallery(); }, 700);
+        })
+        .catch(function (err) { status.textContent = err.message; })
+        .finally(function () { submit.disabled = false; });
+    });
+  }
+
+  /* The chip used to open a popover listing the same destinations the rail
+     already shows, so the popover was removed. Without it the chip toggled a
+     hidden element and looked broken — clicking your own name did nothing.
+     It goes to the account page, which is what it looks like it should do. */
   function setupUserTrigger() {
     var trigger = $("#sidebarUserTrigger");
     if (!trigger) return;
-    var wrap = trigger.closest(".sh-user-trigger-wrap");
-    if (!wrap) return;
-
+    trigger.removeAttribute("aria-haspopup");
+    trigger.removeAttribute("aria-expanded");
+    trigger.title = "Your profile and account";
     trigger.addEventListener("click", function (ev) {
-      ev.stopPropagation();
-      var active = wrap.classList.toggle("active");
-      trigger.setAttribute("aria-expanded", active ? "true" : "false");
-    });
-
-    document.addEventListener("click", function (ev) {
-      if (!wrap.contains(ev.target)) {
-        wrap.classList.remove("active");
-        trigger.setAttribute("aria-expanded", "false");
-      }
+      ev.preventDefault();
+      window.location.href = "/account";
     });
   }
 
@@ -1415,6 +2020,8 @@
         paint(currentUser);
         setupEditProfile();
         setupPageProfileForm();
+        setupAvatarUpload();
+        setupNotifications();
         setupStars();
         setupUploadModal();
       })

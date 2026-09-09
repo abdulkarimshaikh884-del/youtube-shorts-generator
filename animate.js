@@ -181,12 +181,34 @@ const INTENSITIES = new Set(["subtle", "balanced", "bold"]);
 const CONTENT_KEYS = ["kicker", "title", "subtitle", "primary", "secondary", "footer"];
 const CONTENT_LIMITS = { kicker: 30, title: 72, subtitle: 140, primary: 52, secondary: 52, footer: 64 };
 
+/* Story definitions are the launch-quality format. A model plans 2-4 beats;
+   the compiler still owns every tag, selector and keyframe. Version 1 remains
+   supported so saved drafts created before this upgrade continue to render. */
+const STORY_VERSION = 2;
+const STORY_LAYOUTS = new Set([
+  "kinetic-hero", "stat-reveal", "split-compare", "ranked-stack", "chat-story",
+  "product-focus", "quote-poster", "steps-flow", "feature-grid", "countdown"
+]);
+const STORY_BACKGROUNDS = new Set(["mesh-grid", "spotlight", "aurora", "paper", "gradient", "minimal"]);
+const STORY_TRANSITIONS = new Set(["crossfade", "zoom-through", "slide-flow", "wipe-up"]);
+const STORY_ENTRANCES = new Set(["blur-rise", "spring", "slide-left", "wipe-up", "zoom", "type", "flip"]);
+const STORY_LIMITS = { eyebrow: 28, title: 64, body: 120, primary: 42, secondary: 42, item: 44 };
+
 function cleanPlainText(value, max) {
   return String(value == null ? "" : value)
     .replace(/[<>{}]/g, "")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, max);
+}
+
+function cleanStoryText(value, max) {
+  const full = cleanPlainText(value, Math.max(max * 3, max));
+  if (full.length <= max) return full;
+  const room = Math.max(1, max - 1);
+  const cut = full.slice(0, room);
+  const lastWord = cut.lastIndexOf(" ");
+  return `${(lastWord > Math.floor(room * .62) ? cut.slice(0, lastWord) : cut).trim()}…`;
 }
 
 function normaliseDefinition(raw, options = {}) {
@@ -241,7 +263,7 @@ function definitionSchema(content) {
   };
 }
 
-function compileDefinition(definition, image) {
+function compileLegacyDefinition(definition, image) {
   const def = normaliseDefinition(definition, { image, prompt: definition && definition.content && definition.content.title });
   const theme = THEMES[def.theme];
   const entranceClass = {
@@ -298,9 +320,164 @@ function compileDefinition(definition, image) {
   };
 }
 
+function normaliseStoryDefinition(raw, options = {}) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new BadScene("story definition missing");
+  const themeName = Object.prototype.hasOwnProperty.call(THEMES, raw.theme) ? raw.theme : "midnight";
+  const theme = THEMES[themeName];
+  const source = Array.isArray(raw.scenes) ? raw.scenes.slice(0, 4) : [];
+  const promptTitle = cleanStoryText(options.prompt || "A premium creator story", STORY_LIMITS.title);
+  const defaults = [
+    { layout: "kinetic-hero", eyebrow: "THE BIG IDEA", title: promptTitle, body: "A sharp opening built to stop the scroll.", primary: "Watch this", secondary: "", items: [] },
+    { layout: "feature-grid", eyebrow: "WHY IT MATTERS", title: "Made for attention", body: "Clear hierarchy, purposeful motion and creator-ready editing.", primary: "Fast", secondary: "Flexible", items: ["Premium motion", "Editable copy", "Clean pacing"] },
+    { layout: "product-focus", eyebrow: "YOUR NEXT MOVE", title: "Make it yours", body: "Change every message, color and visual without rebuilding the animation.", primary: "Create now", secondary: "ShortsCraft", items: [] }
+  ];
+  while (source.length < 2) source.push(defaults[source.length]);
+
+  const scenes = source.map((candidate, index) => {
+    const beat = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate : defaults[index] || defaults[2];
+    const fallback = defaults[index] || defaults[2];
+    const itemsRaw = Array.isArray(beat.items) ? beat.items : [];
+    const items = itemsRaw.slice(0, 4).map((item) => cleanStoryText(item, STORY_LIMITS.item)).filter(Boolean);
+    return {
+      layout: STORY_LAYOUTS.has(beat.layout) ? beat.layout : fallback.layout,
+      eyebrow: cleanStoryText(beat.eyebrow || fallback.eyebrow, STORY_LIMITS.eyebrow),
+      title: cleanStoryText(beat.title || fallback.title, STORY_LIMITS.title),
+      body: cleanStoryText(beat.body || fallback.body, STORY_LIMITS.body),
+      primary: cleanStoryText(beat.primary || fallback.primary, STORY_LIMITS.primary),
+      secondary: cleanStoryText(beat.secondary || fallback.secondary, STORY_LIMITS.secondary),
+      items: items.length ? items : (fallback.items || []).slice(),
+      entrance: STORY_ENTRANCES.has(beat.entrance) ? beat.entrance : ["blur-rise", "slide-left", "spring", "wipe-up"][index % 4]
+    };
+  });
+
+  return {
+    version: STORY_VERSION,
+    name: cleanPlainText(raw.name || "AI Storyboard", 60),
+    theme: themeName,
+    accent: /^#[0-9a-f]{6}$/i.test(String(raw.accent || "")) ? String(raw.accent) : theme.accent,
+    background: STORY_BACKGROUNDS.has(raw.background) ? raw.background : "mesh-grid",
+    transition: STORY_TRANSITIONS.has(raw.transition) ? raw.transition : "crossfade",
+    scenes,
+    hasImage: !!options.image
+  };
+}
+
+function storyFieldKey(index, name) {
+  return `s${index + 1}${name[0].toUpperCase()}${name.slice(1)}`;
+}
+
+function storySchema(scenes) {
+  const fields = [];
+  const defaults = {};
+  scenes.forEach((scene, index) => {
+    const beat = index + 1;
+    const add = (name, label, value, maxLength, type) => {
+      const key = storyFieldKey(index, name);
+      const field = { key, label: `Scene ${beat} · ${label}`, type: type || "text", default: value, maxLength };
+      fields.push(field);
+      defaults[key] = value;
+    };
+    add("eyebrow", "Eyebrow", scene.eyebrow, STORY_LIMITS.eyebrow);
+    add("title", "Headline", scene.title, STORY_LIMITS.title);
+    add("body", "Supporting copy", scene.body, STORY_LIMITS.body, "textarea");
+    add("primary", "Primary value", scene.primary, STORY_LIMITS.primary);
+    add("secondary", "Secondary value", scene.secondary, STORY_LIMITS.secondary);
+    scene.items.forEach((item, itemIndex) => add(`item${itemIndex + 1}`, `List item ${itemIndex + 1}`, item, STORY_LIMITS.item));
+  });
+  return { version: STORY_VERSION, fields, defaults };
+}
+
+function storyHead(index) {
+  return `<span class="ai2-eye">{{${storyFieldKey(index, "eyebrow")}}}</span>`
+    + `<h2 class="ai2-title">{{${storyFieldKey(index, "title")}}}</h2>`
+    + `<p class="ai2-copy">{{${storyFieldKey(index, "body")}}}</p>`;
+}
+
+function storyItems(scene, index, ranked) {
+  return scene.items.map((_, itemIndex) => `<div class="ai2-item"><b>${ranked ? String(itemIndex + 1).padStart(2, "0") : "✦"}</b><span>{{${storyFieldKey(index, `item${itemIndex + 1}`)}}}</span></div>`).join("");
+}
+
+function storyLayout(scene, index, hasImage) {
+  const primary = `{{${storyFieldKey(index, "primary")}}}`;
+  const secondary = `{{${storyFieldKey(index, "secondary")}}}`;
+  const head = storyHead(index);
+  if (scene.layout === "stat-reveal") return `${head}<div class="ai2-stat"><strong>${primary}</strong><span>${secondary}</span></div>`;
+  if (scene.layout === "split-compare") return `${head}<div class="ai2-split"><div class="ai2-card"><small>A</small><strong>${primary}</strong></div><div class="ai2-vs">VS</div><div class="ai2-card"><small>B</small><strong>${secondary}</strong></div></div>`;
+  if (scene.layout === "ranked-stack") return `${head}<div class="ai2-list">${storyItems(scene, index, true)}</div>`;
+  if (scene.layout === "chat-story") return `${head}<div class="ai2-chat"><div class="ai2-bubble">${primary}</div><div class="ai2-bubble ai2-out">${secondary}</div></div>`;
+  if (scene.layout === "product-focus") return `${head}<div class="ai2-device"><div class="ai2-dots"><i></i><i></i><i></i></div><div class="ai2-media${hasImage ? " has-image" : ""}"><strong>${primary}</strong><span>${secondary}</span></div></div>`;
+  if (scene.layout === "quote-poster") return `<div class="ai2-quote"><i>“</i>${head}<strong>${primary}</strong><span>${secondary}</span></div>`;
+  if (scene.layout === "steps-flow") return `${head}<div class="ai2-steps">${storyItems(scene, index, true)}</div>`;
+  if (scene.layout === "feature-grid") return `${head}<div class="ai2-features">${storyItems(scene, index, false)}</div><div class="ai2-pills"><b>${primary}</b><span>${secondary}</span></div>`;
+  if (scene.layout === "countdown") return `<div class="ai2-count"><strong>${primary}</strong></div>${head}<div class="ai2-pills"><b>${secondary}</b></div>`;
+  return `<div class="ai2-hero">${head}<div class="ai2-pills"><b>${primary}</b><span>${secondary}</span></div></div>`;
+}
+
+function beatKeyframes(index, count, entrance, transition) {
+  const slot = 100 / count;
+  const start = index * slot;
+  const end = (index + 1) * slot;
+  const fade = Math.min(4.5, slot * .2);
+  const visibleStart = start + fade;
+  const visibleEnd = end - fade;
+  const enter = {
+    "blur-rise": "opacity:0;filter:blur(2cqw);transform:translateY(5cqh) scale(.98)",
+    spring: "opacity:0;transform:scale(.78)",
+    "slide-left": "opacity:0;transform:translateX(14cqw)",
+    "wipe-up": "opacity:0;clip-path:inset(100% 0 0 0);transform:translateY(3cqh)",
+    zoom: "opacity:0;transform:scale(1.16)",
+    type: "opacity:0;filter:blur(.8cqw);transform:translateY(2cqh)",
+    flip: "opacity:0;transform:perspective(900px) rotateX(24deg) scale(.92)"
+  }[entrance] || "opacity:0;transform:translateY(4cqh)";
+  const exit = transition === "zoom-through" ? "opacity:0;transform:scale(1.12);filter:blur(1cqw)"
+    : transition === "slide-flow" ? "opacity:0;transform:translateX(-12cqw)"
+      : transition === "wipe-up" ? "opacity:0;clip-path:inset(0 0 100% 0);transform:translateY(-3cqh)"
+        : "opacity:0;transform:scale(1.02)";
+  const pct = (n) => Math.max(0, Math.min(100, n)).toFixed(2).replace(/\.00$/, "");
+  const pre = index === 0 ? "0%" : `0%,${pct(start)}%`;
+  const post = index === count - 1 ? "100%" : `${pct(end)}%,100%`;
+  return `@keyframes ai2Beat${index + 1}{${pre}{${enter}}${pct(visibleStart)}%,${pct(visibleEnd)}%{opacity:1;filter:blur(0);transform:none;clip-path:inset(0)}${post}{${exit}}}`;
+}
+
+function compileStoryDefinition(definition, image) {
+  const def = normaliseStoryDefinition(definition, { image, prompt: definition && definition.scenes && definition.scenes[0] && definition.scenes[0].title });
+  const theme = THEMES[def.theme];
+  const count = def.scenes.length;
+  const css = `.ai2{position:absolute;inset:0;overflow:hidden;background:${theme.bg};color:${theme.dark ? "#fff" : "#10131d"};isolation:isolate}`
+    + `.ai2-bg{position:absolute;inset:-12%;z-index:-2}.ai2.mesh-grid .ai2-bg{background:radial-gradient(circle at 18% 20%,color-mix(in srgb,var(--ac) 42%,transparent),transparent 31%),radial-gradient(circle at 82% 78%,rgba(52,117,255,.26),transparent 32%),linear-gradient(${theme.bg},${theme.bg})}.ai2.mesh-grid:after{content:"";position:absolute;inset:0;z-index:-1;opacity:.24;background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:7cqw 7cqw;mask-image:linear-gradient(black,transparent 96%)}`
+    + `.ai2.spotlight .ai2-bg{background:radial-gradient(ellipse at 50% 18%,color-mix(in srgb,var(--ac) 48%,transparent),transparent 45%),linear-gradient(160deg,${theme.bg},#05060a)}.ai2.aurora .ai2-bg{background:conic-gradient(from 210deg at 50% 50%,${theme.bg},color-mix(in srgb,var(--ac) 48%,#10172c),${theme.bg},#203054,${theme.bg});filter:blur(7cqw);animation:ai2Drift var(--D) ease-in-out infinite}.ai2.paper .ai2-bg{background:linear-gradient(135deg,rgba(255,255,255,.1),transparent),repeating-linear-gradient(0deg,transparent 0 4cqh,rgba(255,255,255,.045) 4cqh calc(4cqh + 1px))}.ai2.gradient .ai2-bg{background:linear-gradient(145deg,color-mix(in srgb,var(--ac) 42%,${theme.bg}),${theme.bg} 54%,#131d38)}.ai2.minimal .ai2-bg{background:${theme.bg}}`
+    + `.ai2-beat{position:absolute;inset:0;padding:8cqw;display:flex;align-items:center;justify-content:center;opacity:0;animation-duration:var(--D);animation-timing-function:cubic-bezier(.2,.76,.2,1);animation-iteration-count:infinite;animation-fill-mode:both}.ai2-wrap{width:min(88cqw,900px);position:relative}.ai2-eye{display:inline-flex;padding:1.1cqw 2.2cqw;border-radius:999px;border:1px solid color-mix(in srgb,var(--ac) 55%,transparent);background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--ac);font-size:2.2cqw;font-weight:900;letter-spacing:.15em;text-transform:uppercase}.ai2-title{margin:3cqw 0 2cqw;font-size:8.3cqw;line-height:.94;letter-spacing:-.052em;font-weight:950;overflow-wrap:anywhere}.ai2-copy{max-width:78cqw;margin:0;color:var(--dim);font-size:3.15cqw;line-height:1.4}`
+    + `.ai2-card,.ai2-item,.ai2-device,.ai2-stat{background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.14);box-shadow:0 4cqw 14cqw rgba(0,0,0,.34);backdrop-filter:blur(18px)}.ai2-pills{display:flex;gap:2cqw;align-items:center;margin-top:4cqw}.ai2-pills b,.ai2-pills span{padding:1.6cqw 2.6cqw;border-radius:999px;background:var(--ac);color:#fff;font-size:2.7cqw}.ai2-pills span{background:rgba(255,255,255,.1);color:inherit}.ai2-stat{margin-top:5cqw;border-radius:5cqw;padding:5cqw}.ai2-stat strong{display:block;color:var(--ac);font-size:13cqw;line-height:.9}.ai2-stat span{display:block;margin-top:2cqw;font-size:3.2cqw}.ai2-split{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:2cqw;margin-top:5cqw}.ai2-split .ai2-card{padding:4cqw 2cqw;border-radius:4cqw;text-align:center;min-width:0}.ai2-split small{display:block;color:var(--ac);font-weight:900}.ai2-split strong{display:block;margin-top:2cqw;font-size:4cqw;overflow-wrap:anywhere}.ai2-vs{font-weight:950;color:var(--ac)}`
+    + `.ai2-list,.ai2-steps{display:flex;flex-direction:column;gap:1.7cqw;margin-top:4cqw}.ai2-item{display:flex;align-items:center;gap:2.4cqw;padding:2.2cqw 2.8cqw;border-radius:2.6cqw;font-size:3cqw}.ai2-item b{color:var(--ac);font-size:3.5cqw}.ai2-chat{display:flex;flex-direction:column;gap:2.2cqw;margin-top:4cqw}.ai2-bubble{max-width:78%;padding:2.7cqw 3.2cqw;border-radius:3.6cqw;background:rgba(255,255,255,.1);font-size:3.1cqw}.ai2-bubble.ai2-out{align-self:flex-end;background:var(--ac);color:#fff}.ai2-device{margin-top:4cqw;padding:1.2cqw;border-radius:5cqw}.ai2-dots{height:4.7cqh;display:flex;align-items:center;gap:1cqw;padding:0 2cqw}.ai2-dots i{width:1.2cqw;height:1.2cqw;border-radius:50%;background:rgba(255,255,255,.32)}.ai2-media{position:relative;height:31cqh;border-radius:4cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--ac) 54%,#27324d),#111827 64%)}.ai2-media:not(.has-image):before{content:"✦";position:absolute;font-size:28cqw;color:color-mix(in srgb,var(--ac) 20%,transparent);transform:rotate(12deg)}.ai2-media.has-image{background:linear-gradient(rgba(5,8,15,.22),rgba(5,8,15,.5)),url(var(--img)) center/cover}.ai2-media strong,.ai2-media span{position:relative}.ai2-media strong{font-size:5cqw}.ai2-media span{margin-top:1cqw;color:rgba(255,255,255,.76)}`
+    + `.ai2-quote{padding:5cqw;border-left:1.2cqw solid var(--ac);background:linear-gradient(90deg,color-mix(in srgb,var(--ac) 15%,transparent),transparent);border-radius:0 4cqw 4cqw 0}.ai2-quote i{position:absolute;right:3cqw;top:-5cqw;font-size:25cqw;color:color-mix(in srgb,var(--ac) 28%,transparent);font-family:serif}.ai2-quote strong,.ai2-quote span{display:block;margin-top:2cqw;color:var(--dim)}.ai2-features{display:grid;grid-template-columns:1fr 1fr;gap:1.7cqw;margin-top:4cqw}.ai2-features .ai2-item{min-height:8cqh}.ai2-count{position:absolute;right:0;top:-12cqh;opacity:.18}.ai2-count strong{font-size:39cqw;line-height:1;color:var(--ac)}.ai2-hero{text-align:center}.ai2-hero .ai2-copy{margin-inline:auto}.ai2-hero .ai2-pills{justify-content:center}`
+    + `@keyframes ai2Drift{0%,100%{transform:rotate(-7deg) scale(1.05)}50%{transform:rotate(9deg) scale(1.18)}}`
+    + def.scenes.map((scene, index) => beatKeyframes(index, count, scene.entrance, def.transition)).join("")
+    + def.scenes.map((_, index) => `.ai2-b${index + 1}{animation-name:ai2Beat${index + 1}}`).join("")
+    + `@container (min-aspect-ratio:1/1){.ai2-beat{padding:5cqw}.ai2-wrap{width:76cqw}.ai2-title{font-size:6cqw}.ai2-copy{font-size:2.35cqw}.ai2-media{height:42cqh}.ai2-count strong{font-size:29cqw}}`;
+  const beats = def.scenes.map((scene, index) => `<section class="ai2-beat ai2-b${index + 1}"><div class="ai2-wrap">${storyLayout(scene, index, !!image)}</div></section>`).join("");
+  const body = `<div class="ai2 ${def.background}"><div class="ai2-bg"></div>${beats}</div>`;
+  return {
+    name: def.name,
+    accent: def.accent,
+    dark: theme.dark,
+    css,
+    body,
+    img: cleanImage(image),
+    schema: storySchema(def.scenes),
+    definition: def
+  };
+}
+
+function compileDefinition(definition, image) {
+  if (definition && (Number(definition.version) === STORY_VERSION || Array.isArray(definition.scenes))) {
+    return compileStoryDefinition(definition, image);
+  }
+  return compileLegacyDefinition(definition, image);
+}
+
 function cleanEditableSchema(schema) {
   if (!schema || typeof schema !== "object" || !Array.isArray(schema.fields)) return null;
-  const fields = schema.fields.slice(0, 12).map((field) => {
+  const fields = schema.fields.slice(0, 40).map((field) => {
     const key = String(field && field.key || "");
     if (!/^[A-Za-z][A-Za-z0-9_-]{0,39}$/.test(key)) throw new BadScene("editable field has an invalid key");
     return {
@@ -313,7 +490,7 @@ function cleanEditableSchema(schema) {
   });
   const defaults = {};
   fields.forEach((field) => { defaults[field.key] = field.default; });
-  return { version: 1, fields, defaults };
+  return { version: Number(schema.version) === STORY_VERSION ? STORY_VERSION : 1, fields, defaults };
 }
 
 /* Full check of a scene spec, used by /api/animate AND /api/export. */
@@ -339,23 +516,27 @@ function sanitise(spec) {
    content plus choices from the approved vocabulary above; ShortsCraft owns
    every rendered pixel and keyframe in compileDefinition(). */
 function scenePrompt({ prompt, dur, hasImage }) {
-  return `Arrange ONE premium, editable ShortsCraft motion scene.
+  return `Plan a premium, editable ShortsCraft STORYBOARD with 2 to 4 sequential motion scenes.
 
 USER BRIEF: ${prompt}
 LOOP DURATION: ${dur}ms
 ATTACHED IMAGE: ${hasImage ? "yes" : "no"}
 
 RETURN EXACTLY THIS JSON SHAPE:
-{"name":"Short scene name","theme":"dark-futuristic","layout":"comparison","accent":"#7c5cff","content":{"kicker":"AI COMPARISON","title":"Claude vs ChatGPT","subtitle":"Which one is best for creators?","primary":"Claude","secondary":"ChatGPT","footer":"Pick your winner"},"motion":{"entrance":"blur-reveal","stagger":true,"intensity":"balanced"}}
+{"version":2,"name":"Short story name","theme":"midnight","accent":"#5b8cff","background":"mesh-grid","transition":"zoom-through","scenes":[{"layout":"kinetic-hero","eyebrow":"STOP SCROLLING","title":"A strong opening hook","body":"One clear sentence that creates curiosity.","primary":"Watch this","secondary":"In 15 seconds","items":[],"entrance":"blur-rise"},{"layout":"feature-grid","eyebrow":"THE PAYOFF","title":"Three useful benefits","body":"Make every beat advance the story.","primary":"Fast","secondary":"Editable","items":["Benefit one","Benefit two","Benefit three"],"entrance":"slide-left"},{"layout":"product-focus","eyebrow":"NEXT STEP","title":"End with one action","body":"A clean CTA, not an empty slogan.","primary":"Create now","secondary":"ShortsCraft","items":[],"entrance":"spring"}]}
 
 RULES:
-1. layout MUST be one of: centered-hero, metric-card, comparison, ranked-list, chat, product-showcase.
-2. theme MUST be one of: dark-futuristic, midnight, emerald, warm-editorial, light.
-3. motion.entrance MUST be one of: fade-up, blur-reveal, scale-in, spring-pop.
-4. motion.intensity MUST be subtle, balanced or bold.
-5. Keep title under 72 characters and subtitle under 140. Write clear creator-facing copy.
-6. Use product-showcase when an attached image is central; otherwise choose the layout that best serves the brief.
-7. Output raw JSON only. Never output HTML, CSS, React, JavaScript, URLs or markdown.`;
+1. Return 2-4 scenes. Every scene must add new information: hook, proof/value, then payoff/CTA.
+2. layout MUST be one of: kinetic-hero, stat-reveal, split-compare, ranked-stack, chat-story, product-focus, quote-poster, steps-flow, feature-grid, countdown.
+3. background MUST be one of: mesh-grid, spotlight, aurora, paper, gradient, minimal.
+4. transition MUST be one of: crossfade, zoom-through, slide-flow, wipe-up.
+5. entrance MUST be one of: blur-rise, spring, slide-left, wipe-up, zoom, type, flip.
+6. theme MUST be one of: dark-futuristic, midnight, emerald, warm-editorial, light.
+7. Keep each title under 64 characters, body under 120, and items under 44. Use 2-4 items only when the layout benefits from them.
+8. Match visual hierarchy, pacing and copy to the user's actual brief. Avoid generic filler such as "unlock your potential".
+9. Use product-focus when an attached image is central. Do not invent URLs.
+10. Output raw JSON only. Never output HTML, CSS, React, JavaScript, URLs or markdown.
+`;
 }
 
 /* ── model call ───────────────────────────────────────────── */
@@ -365,8 +546,9 @@ async function generateScene({ prompt, dur, image, model, callModel }) {
     system: "You are the ShortsCraft scene planner. Choose only from the approved layout, theme and motion vocabulary. Reply with strict JSON only; never write code.",
     user: scenePrompt({ prompt, dur, hasImage }),
     model,
-    maxTokens: 1200,
-    temperature: 0.25
+    image: image || null,
+    maxTokens: 2200,
+    temperature: 0.2
   });
 
   let raw = String(text || "").trim();
@@ -387,8 +569,8 @@ async function generateScene({ prompt, dur, image, model, callModel }) {
     throw new BadScene("the model attempted to return code instead of an approved scene definition");
   }
 
-  const definition = normaliseDefinition(parsed, { prompt, image });
-  const compiled = compileDefinition(definition, image || null);
+  const definition = normaliseStoryDefinition(parsed, { prompt, image });
+  const compiled = compileStoryDefinition(definition, image || null);
   return sanitise(compiled);
 }
 
@@ -399,32 +581,34 @@ function createFallbackScene(prompt, dur) {
   const isTech = pLower.includes("ai") || pLower.includes("neon") || pLower.includes("cyber") || pLower.includes("heart") || pLower.includes("code");
 
   const accent = isMoney ? "#00E676" : (isTech ? "#00E5FF" : (isChart ? "#3B82F6" : "#FF5252"));
-  const definition = normaliseDefinition({
+  const definition = normaliseStoryDefinition({
+    version: STORY_VERSION,
     name: isChart ? "Metric Growth Pulse" : "Motion Visualizer",
     theme: isMoney ? "emerald" : "midnight",
-    layout: (isChart || isMoney) ? "metric-card" : "centered-hero",
     accent,
-    content: {
-      kicker: "ShortsCraft AI",
-      title: String(prompt || "Premium motion visual"),
-      subtitle: "A safe fallback built from approved motion primitives.",
-      primary: isChart ? "100K+" : (isMoney ? "+248%" : "✦"),
-      secondary: isChart ? "Audience growth" : (isMoney ? "Creator revenue" : "Ready to animate"),
-      footer: `${Math.max(500, Math.min(Number(dur) || 4000, 30000))}ms loop`
-    },
-    motion: { entrance: "spring-pop", stagger: true, intensity: "balanced" }
+    background: isTech ? "aurora" : "mesh-grid",
+    transition: "zoom-through",
+    scenes: [
+      { layout: "kinetic-hero", eyebrow: "SHORTSCRAFT AI", title: String(prompt || "Premium motion visual"), body: "A clear opening hook designed to earn the next second.", primary: "Watch this", secondary: "Built to move", items: [], entrance: "blur-rise" },
+      { layout: isChart || isMoney ? "stat-reveal" : "feature-grid", eyebrow: "THE PAYOFF", title: isChart ? "Growth you can see" : "Every beat has a job", body: "Premium hierarchy, editable content and purposeful pacing.", primary: isChart ? "100K+" : (isMoney ? "+248%" : "Fast"), secondary: isChart ? "Audience growth" : (isMoney ? "Creator revenue" : "Flexible"), items: ["Strong hierarchy", "Smooth motion", "Easy editing"], entrance: "slide-left" },
+      { layout: "product-focus", eyebrow: "MAKE IT YOURS", title: "Ready for your next short", body: "Customize the story, colors and message inside the editor.", primary: "Create now", secondary: "Edit every detail", items: [], entrance: "spring" }
+    ]
   }, { prompt });
-  return sanitise(compileDefinition(definition, null));
+  return sanitise(compileStoryDefinition(definition, null));
 }
 
 module.exports = {
   sanitise, generateScene, scenePrompt, createFallbackScene,
-  normaliseDefinition, compileDefinition, BadScene,
+  normaliseDefinition, normaliseStoryDefinition, compileDefinition, compileStoryDefinition, BadScene,
   VOCABULARY: {
-    version: DEFINITION_VERSION,
-    layouts: Array.from(LAYOUTS),
+    version: STORY_VERSION,
+    layouts: Array.from(STORY_LAYOUTS),
+    legacyLayouts: Array.from(LAYOUTS),
     themes: Object.keys(THEMES),
-    entrances: Array.from(ENTRANCES),
+    backgrounds: Array.from(STORY_BACKGROUNDS),
+    transitions: Array.from(STORY_TRANSITIONS),
+    entrances: Array.from(STORY_ENTRANCES),
+    legacyEntrances: Array.from(ENTRANCES),
     intensities: Array.from(INTENSITIES),
     contentKeys: CONTENT_KEYS.slice()
   },

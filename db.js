@@ -9,7 +9,7 @@
 
    The app connects as a dedicated, least-privilege role (`shortscraft_app`)
    created specifically for this backend: SELECT/INSERT/UPDATE/DELETE on the
-   six tables it owns, nothing on Supabase's own auth/storage schemas. It is
+   application tables it owns, nothing on Supabase's own auth/storage schemas. It is
    granted BYPASSRLS because it is the only thing that ever talks to these
    tables — the browser never gets Postgres credentials, only our Express API
    — so authorization stays in the application code that already had it,
@@ -76,6 +76,24 @@ function getPool() {
 function assertReady() {
   if (!process.env.DATABASE_URL) throw new Error(MISSING_URL);
   warnIfIpv6Only(process.env.DATABASE_URL);
+  warmUp();
+}
+
+/* Open one connection at boot so the first visitor does not pay for the TLS
+   handshake and the pooler's own connection setup. Measured cold, the first
+   query after a restart took about seven seconds and the next took under
+   half of one; a community page that fetches with a 12s abort was close
+   enough to that ceiling to fail outright on a slow morning.
+
+   Deliberately fire-and-forget: a database that is briefly unreachable at
+   boot should not stop the process from serving static pages. */
+function warmUp() {
+  // Through query(), not getPool().query(), so the warm-up gets the same
+  // retry the rest of the app does — the pooler refused this often enough
+  // during testing that a single attempt frequently gave up.
+  query("select 1")
+    .then(() => console.log("[db] connection pool warm"))
+    .catch((err) => console.warn("[db] warm-up failed (will retry on first query):", err.message));
 }
 
 /* Supabase's direct host, db.<project-ref>.supabase.co, resolves to an AAAA
@@ -112,14 +130,73 @@ function warnIfIpv6Only(url) {
   });
 }
 
-function query(text, params) {
-  return getPool().query(text, params);
+/* Retry once when the connection could not be established.
+
+   The pooler drops idle sockets and occasionally refuses a new one under
+   load; every time it did, a visitor saw a 500 on signup, on their credit
+   balance, or on a follower list. Those are not application failures - the
+   query never reached Postgres - and a second attempt on a fresh connection
+   succeeds.
+
+   The list below is deliberately narrow. It covers only failures that happen
+   while *acquiring* a connection, where the statement provably never ran, so
+   retrying cannot apply a write twice. "Connection terminated unexpectedly"
+   is not in it: that one can land mid-statement, and an INSERT retried after
+   it might already have committed. */
+const RETRYABLE = [
+  "connection terminated due to connection timeout",
+  "timeout exceeded when trying to connect",
+  "econnrefused",
+  "enotfound",
+  "eai_again"
+];
+
+function isRetryable(err) {
+  const message = String((err && err.message) || "").toLowerCase();
+  return RETRYABLE.some((fragment) => message.includes(fragment));
+}
+
+/* Two retries, backing off. One was not enough: forcing a failure against the
+   live pooler showed the second attempt failing as well, so a single retry
+   still surfaced a 500 to the visitor. Three attempts over ~1s covers the
+   blips seen in practice and still fails fast enough that a genuinely down
+   database does not leave a request hanging. */
+const RETRY_DELAYS_MS = [250, 750];
+
+async function query(text, params) {
+  let lastError;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    try {
+      return await getPool().query(text, params);
+    } catch (err) {
+      if (!isRetryable(err)) throw err;
+      lastError = err;
+      const delay = RETRY_DELAYS_MS[attempt];
+      if (delay === undefined) break;
+      console.warn("[db] connection failed, retrying in " + delay + "ms:", err.message);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw lastError;
 }
 
 /* Run a set of queries on one connection inside a transaction. `fn` receives
    a client with the same .query(text, params) shape. */
 async function tx(fn) {
-  const client = await getPool().connect();
+  let client, lastError;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length && !client; attempt++) {
+    try {
+      client = await getPool().connect();
+    } catch (err) {
+      if (!isRetryable(err)) throw err;
+      lastError = err;
+      const delay = RETRY_DELAYS_MS[attempt];
+      if (delay === undefined) throw lastError;
+      console.warn("[db] connection failed, retrying transaction in " + delay + "ms:", err.message);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  if (!client) throw lastError;
   try {
     await client.query("BEGIN");
     const result = await fn(client);

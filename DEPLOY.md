@@ -20,13 +20,13 @@ volume is needed and a restart cannot lose anything.
 
 The schema is already applied to the `youtube-shorts-tool` project
 (`mqsimdmogbycrbizrrsm`): tables `users`, `sessions`, `credits`, `waitlist`,
-`community_templates`, `template_comments`.
+`community_templates`, `template_comments`, and `password_reset_tokens`.
 
 The app connects as a dedicated role, **`shortscraft_app`**, not as `postgres`:
 
-* It has `SELECT/INSERT/UPDATE/DELETE` on exactly those six tables and nothing
+* It has `SELECT/INSERT/UPDATE/DELETE` on exactly those application tables and nothing
   on Supabase's own auth or storage schemas.
-* RLS is enabled on all six with **no policies**, which locks the anon and
+* RLS is enabled on all of them with **no policies**, which locks the anon and
   publishable keys out of them entirely. Only this role reaches the data, and
   it is granted `BYPASSRLS` because our Express API is the only client — the
   browser never gets database credentials. Authorization stays in the
@@ -74,12 +74,20 @@ backend, and session mode supports prepared statements, which `pg` uses.
    | Variable | Needed for | Without it |
    |---|---|---|
    | `DATABASE_URL` | everything with state | the app refuses to start |
+   | `PUBLIC_SITE_URL` | links inside account emails | defaults to `https://shortscraft.online` |
+   | `RESEND_API_KEY` | password-reset delivery | production reset requests answer 503 |
+   | `AUTH_FROM_EMAIL` | verified reset-email sender | production reset requests answer 503 |
    | `GROQ_API_KEY` / `NVIDIA_API_KEY` | AI animations, SEO tools | those routes answer 503 |
    | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | payments | pricing page stays in reserve mode |
    | `PAYMENTS_OPEN_DATE` | optional | the "opens on …" line is omitted |
 
    `CREDITS_SECRET` is generated once by Render. Do not change it later — it
    signs the anonymous-credit cookie, so rotating it resets guest balances.
+
+   Verify `shortscraft.online` in Resend before setting `AUTH_FROM_EMAIL`.
+   Development can complete the flow without an email provider: the forgot
+   page exposes a local one-time reset link. That link is never returned when
+   `NODE_ENV=production`.
 
 4. Deploy. The first build is slow (it installs Chromium and ffmpeg); later
    builds reuse the layer.
@@ -152,3 +160,23 @@ curl -s -o /tmp/t.mp4 -w '%{http_code} %{size_download}\n' \
 The export is the one that proves the container is right — a real MP4 means
 Chromium, ffmpeg and the fonts are all in place. Then sign up, redeploy, and log
 in again: the account surviving proves `DATABASE_URL` is wired correctly.
+
+## Running the verification suite
+
+The suites drive a running server rather than starting one, so point them at
+whichever instance you want to check:
+
+```bash
+DISABLE_RATE_LIMIT=true PORT=3211 node server.js
+```
+
+```bash
+BASE_URL=http://127.0.0.1:3211 npm test
+```
+
+`DISABLE_RATE_LIMIT=true` matters. The auth, password-reset and support suites
+deliberately hammer signup, login, reset and feedback — endpoints that are rate
+limited in production for good reason. Against a normal server the first run
+passes and later runs report 429s that look exactly like broken features, which
+is a slow way to chase a bug that is not there. Never set this on a deployed
+instance; it exists so the tests measure behaviour instead of the limiter.

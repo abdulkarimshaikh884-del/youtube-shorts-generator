@@ -55,6 +55,7 @@
   var cost = { export: 1, animate: 2 };   // overwritten by GET /api/credits
   var attached = null;                    // {name, dataUrl} in the AI composer
   var creating = false;
+  var sourceTemplateId = null;             // community publication, when opened from one
 
   function engine() { return window.SC_TPL2; }
   function cur() { return state.clips[state.sel] || state.clips[0]; }
@@ -83,7 +84,7 @@
     while (lines.length < 3) lines.push("");
     var s = m.schema || { defaults: {} };
     var props = Object.assign({}, s.defaults);
-    return { tpl: tpl || "blank", lines: lines, props: props, accent: m.accent || "#ffffff", font: "inter", dur: 4600 };
+    return { tpl: tpl || "blank", lines: lines, props: props, accent: m.accent || "#ffffff", font: "inter", dur: Number(m.defaultDuration) || 4600 };
   }
 
   /* ── Build / render ───────────────────────────────────── */
@@ -259,6 +260,28 @@
   var currentDraftId = null;
   var draftTimer = 0;
   var projectNamed = false;   // true once the title is the person's own
+  var draftOwnerReady = false;
+  var draftSignedIn = false;
+
+  /* Projects belong to accounts. The editor itself remains usable as a guest,
+     but opening a starter template must not manufacture a saved "project" for
+     someone who never signed in. */
+  var draftOwnerPromise = fetch("/api/auth/me", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      var user = j && j.user;
+      draftSignedIn = !!user;
+      if (window.SC_DRAFTS) {
+        SC_DRAFTS.setOwner(user || null);
+        // Pull the account's projects so one saved on another device opens here.
+        if (user && SC_DRAFTS.sync) SC_DRAFTS.sync();
+      }
+    })
+    .catch(function () {
+      draftSignedIn = false;
+      if (window.SC_DRAFTS) SC_DRAFTS.setOwner(null);
+    })
+    .then(function () { draftOwnerReady = true; });
 
   function draftSnapshot() {
     var nameEl = $("#edProject") || $("#edName");
@@ -281,7 +304,7 @@
   }
 
   function saveDraftNow() {
-    if (!window.SC_DRAFTS || !state.clips.length) return;
+    if (!draftOwnerReady || !draftSignedIn || !window.SC_DRAFTS || !state.clips.length) return;
     var rec = SC_DRAFTS.save(draftSnapshot());
     if (!rec) return;
     // Adopt the id the store minted, so later saves update rather than pile up.
@@ -295,6 +318,7 @@
 
   function scheduleDraftSave() {
     clearTimeout(draftTimer);
+    if (!draftOwnerReady || !draftSignedIn) return;
     draftTimer = setTimeout(saveDraftNow, 600);
   }
 
@@ -624,8 +648,21 @@
     var c = cur();
     if (!c) return;
     var isAi = !!c.spec;
-    $("#edTpl").value = isAi ? "" : c.tpl;
-    $("#edTpl").disabled = isAi;
+    // An AI scene is not one of the library templates, so the select has
+    // nothing to point at. Say that, rather than leaving an empty box that
+    // reads as a control that failed to load.
+    var tplSel = $("#edTpl");
+    var aiOpt = tplSel.querySelector('option[value="__ai"]');
+    if (isAi && !aiOpt) {
+      aiOpt = document.createElement("option");
+      aiOpt.value = "__ai";
+      aiOpt.textContent = "✦ AI-generated scene";
+      tplSel.insertBefore(aiOpt, tplSel.firstChild);
+    } else if (!isAi && aiOpt) {
+      aiOpt.remove();
+    }
+    tplSel.value = isAi ? "__ai" : c.tpl;
+    tplSel.disabled = isAi;
     $("#edFont").value = c.font;
     /* Only auto-label a project the person has not named. syncPanel runs on
        every clip select and every add, so an unconditional write here wiped a
@@ -1135,6 +1172,7 @@
     while (c.lines.length < 3) c.lines.push("");
     c.props = Object.assign({}, (m.schema && m.schema.defaults) || {});
     c.accent = m.accent;
+    sourceTemplateId = null;
     var nameEl = $("#edProject") || $("#edName");
     if (id !== "blank") {
       if (nameEl) nameEl.value = m.name;
@@ -1186,10 +1224,17 @@
     // receive. The server still enforces this; this makes the UI honest too.
     var res = $("#edRes");
     if (res && st.maxHeight) {
+      var cap = Number(st.maxHeight);
+      var best = null;
       Array.prototype.forEach.call(res.options, function (option) {
-        option.disabled = Number(option.value) > Number(st.maxHeight);
+        option.disabled = Number(option.value) > cap;
+        if (!option.disabled) best = option.value;
       });
-      if (Number(res.value) > Number(st.maxHeight)) res.value = String(st.maxHeight);
+      // Fall back to the largest size this plan can actually have, rather than
+      // to the cap itself. Assigning the cap blanked the whole control whenever
+      // no option matched it exactly — which was every Free account, since the
+      // Free cap is 480 and the list started at 720.
+      if (Number(res.value) > cap) res.value = best !== null ? best : "";
     }
   }
 
@@ -1248,7 +1293,7 @@
       btn.disabled = true;
       btn.textContent = "Designing…";
     }
-    status("Designing your animation with NVIDIA AI — please wait 15–25 seconds…");
+    status("Launch Boost AI is planning a multi-scene animation — please wait…");
 
     addChatMessage("user", prompt);
 
@@ -1260,13 +1305,13 @@
       '<div class="ed-thinking-box" id="activeThinkingBox">' +
         '<div class="ed-think-head">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>' +
-          '<span>Reasoning motion physics…</span>' +
+          '<span>Launch Boost AI · Storyboard planning…</span>' +
           '<span id="thElapsed" style="margin-left:auto;font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums;">0s</span>' +
         '</div>' +
         '<div class="ed-shimmer-track"><div class="ed-shimmer-bar"></div></div>' +
-        '<div class="ed-think-step active" id="thStep1">✦ Analyzing prompt &amp; typography hierarchy...</div>' +
-        '<div class="ed-think-step" id="thStep2">✦ NVIDIA Nemotron reasoning keyframes &amp; springs...</div>' +
-        '<div class="ed-think-step" id="thStep3">✦ Compiling &amp; mounting animation scene...</div>' +
+        '<div class="ed-think-step active" id="thStep1">✦ Analyzing hook, message &amp; visual hierarchy...</div>' +
+        '<div class="ed-think-step" id="thStep2">✦ Planning story beats, layouts &amp; motion...</div>' +
+        '<div class="ed-think-step" id="thStep3">✦ Validating editable animation scenes...</div>' +
         '<div style="display:flex;justify-content:flex-end;margin-top:6px;">' +
           '<button type="button" class="ed-result-btn" id="thCancelBtn" style="font-size:11px;padding:3px 9px;color:var(--ink3);background:transparent;border-color:var(--line);">Cancel</button>' +
         '</div>' +
@@ -1282,17 +1327,17 @@
     var stepTimers = [
       setTimeout(function () {
         var s1 = document.getElementById("thStep1"), s2 = document.getElementById("thStep2");
-        if (s1) { s1.className = "ed-think-step done"; s1.textContent = "✓ Motion structure analyzed"; }
+        if (s1) { s1.className = "ed-think-step done"; s1.textContent = "✓ Prompt and story structure analyzed"; }
         if (s2) { s2.className = "ed-think-step active"; }
       }, 3500),
       setTimeout(function () {
         var s2 = document.getElementById("thStep2"), s3 = document.getElementById("thStep3");
-        if (s2) { s2.className = "ed-think-step done"; s2.textContent = "✓ NVIDIA Nemotron reasoning complete"; }
+        if (s2) { s2.className = "ed-think-step done"; s2.textContent = "✓ Multi-scene storyboard planned"; }
         if (s3) { s3.className = "ed-think-step active"; }
       }, 10000),
       setTimeout(function () {
         var s3 = document.getElementById("thStep3");
-        if (s3) { s3.className = "ed-think-step active"; s3.textContent = "✦ Rendering & mounting to canvas..."; }
+        if (s3) { s3.className = "ed-think-step active"; s3.textContent = "✦ Rendering editable scenes to canvas..."; }
       }, 18000)
     ];
 
@@ -1490,6 +1535,7 @@
       aspect: state.aspect,
       height: Number(($("#edRes") || {}).value || 1080),
       fps: fps(),
+      sourceTemplateId: sourceTemplateId,
       clips: state.clips.map(function (c) {
         if (c.spec) {
           return {
@@ -1539,8 +1585,10 @@
       }
       refreshCredits();
       setTimeout(function () {
-        var modal = $("#exportModal");
-        if (modal) modal.hidden = true;
+        var pop = $("#exportPop");
+        if (pop) pop.hidden = true;
+        var openBtn = $("#edExport");
+        if (openBtn) openBtn.setAttribute("aria-expanded", "false");
       }, 2000);
     }).catch(function (err) {
       status(err.message || "Export failed.");
@@ -1626,7 +1674,7 @@
   }
 
   /* ── Boot ─────────────────────────────────────────────── */
-  function init() {
+  async function init() {
     var e = engine();
     if (!e) return;
 
@@ -1920,6 +1968,8 @@
     var qAccent = q.get("accent");
     var qFont = q.get("font");
     var qDur = q.get("dur");
+    var qCommunityId = q.get("commId");
+    sourceTemplateId = /^comm_[a-z0-9]+$/i.test(qCommunityId || "") ? qCommunityId : null;
 
     try { localStorage.removeItem("sc_pending_prompt"); } catch (e) {}
 
@@ -1942,6 +1992,11 @@
 
     // Default to a high-energy starter template if opened directly
     var activeTpl = (tpl && meta[tpl] && tpl !== "blank") ? tpl : "text-cascade";
+    fetch("/api/template-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ templateId: qCommunityId || activeTpl, eventType: "edit" })
+    }).catch(function () {});
     state.clips = [newClip(activeTpl)];
     state.sel = 0;
     mounted = 0;
@@ -1981,6 +2036,7 @@
        coming back to a project means to resume it, not start its first clip
        again. Everything above has already built a valid single-clip state, so
        a missing or corrupt draft simply falls through to that. */
+    await draftOwnerPromise;
     var draftId = q.get("draft");
     var restored = null;
     if (draftId && window.SC_DRAFTS) restored = SC_DRAFTS.get(draftId);
@@ -2016,8 +2072,10 @@
       history.replaceState(null, "", "/editor");
     }
 
-    // From here on every edit is remembered, including this opening state.
-    scheduleDraftSave();
+    // Signed-in work is remembered; guest sessions stay temporary and never
+    // appear as account projects.
+    if (draftSignedIn) scheduleDraftSave();
+    else status("Guest mode — sign in to save this project.");
 
     refreshCredits();
     cancelAnimationFrame(rafId);
@@ -2032,33 +2090,47 @@
   }
 
   function wireExportModal() {
-    var modal = $("#exportModal");
+    var pop = $("#exportPop");
     var openBtn = $("#edExport");
     var closeBtn = $("#exportClose");
     var cancelBtn = $("#exportCancel");
     var downloadBtn = $("#edDownload");
     var msg = $("#exportMsg");
 
-    if (!modal || !openBtn) return;
+    if (!pop || !openBtn) return;
 
-    openBtn.addEventListener("click", function () {
+    function open() {
       if (msg) { msg.textContent = ""; msg.className = "ed-modal-msg"; }
       var aspectEl = $("#edExportAspect");
       if (aspectEl) aspectEl.textContent = AR_LABEL[state.aspect] || state.aspect;
       var durEl = $("#edExportDur");
       if (durEl) durEl.textContent = (total() / 1000).toFixed(1) + "s";
-      modal.hidden = false;
-    });
-
-    function close() {
-      if (!exporting) modal.hidden = true;
+      pop.hidden = false;
+      openBtn.setAttribute("aria-expanded", "true");
     }
+
+    // A render in flight owns this panel: closing it would strip away the only
+    // progress the user can see.
+    function close() {
+      if (exporting) return;
+      pop.hidden = true;
+      openBtn.setAttribute("aria-expanded", "false");
+    }
+
+    openBtn.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      if (pop.hidden) open(); else close();
+    });
 
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (cancelBtn) cancelBtn.addEventListener("click", close);
 
-    modal.addEventListener("click", function (ev) {
-      if (ev.target === modal) close();
+    // Clicks inside the panel are choices, not dismissals — only a click that
+    // lands outside it closes the menu.
+    pop.addEventListener("click", function (ev) { ev.stopPropagation(); });
+    document.addEventListener("click", function () { if (!pop.hidden) close(); });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !pop.hidden) { close(); openBtn.focus(); }
     });
 
     if (downloadBtn) {

@@ -14,6 +14,7 @@
 
   var params = new URLSearchParams(window.location.search);
   var handle = (params.get("handle") || "shortscraft").replace(/^@/, "");
+  var currentCreator = null;
 
   function mountStage(tile) {
     if (!tile || tile.dataset.mounted === "1" || !window.SC_TPL2) return;
@@ -22,7 +23,14 @@
 
     var html = "";
     try {
-      html = window.SC_TPL2.build(tile.dataset.tpl, { aspect: "9:16" });
+      var opts = { aspect: "9:16" };
+      if (tile.dataset.comm === "1") {
+        try { opts.lines = JSON.parse(tile.dataset.lines || "[]"); } catch (e) { opts.lines = []; }
+        opts.accent = tile.dataset.accent || "#ffffff";
+        opts.font = tile.dataset.font || "inter";
+        opts.dur = Number(tile.dataset.dur) || 4600;
+      }
+      html = window.SC_TPL2.build(tile.dataset.tpl, opts);
     } catch (e) {}
     if (!html) return;
 
@@ -84,10 +92,16 @@
   }
 
   function renderProfile(c, commTpls) {
+    currentCreator = c;
     document.title = c.name + " (" + c.handle + ") — ShortsCraft Creator";
 
     var av = $("#creatorAvatar");
-    if (av) av.textContent = c.initials || "CR";
+    if (av) {
+      av.textContent = c.avatarUrl ? "" : (c.initials || "CR");
+      av.style.backgroundImage = c.avatarUrl ? 'url("' + c.avatarUrl + '")' : "";
+      av.style.backgroundSize = "cover";
+      av.style.backgroundPosition = "center";
+    }
 
     var nm = $("#creatorName");
     if (nm) nm.textContent = c.name;
@@ -97,6 +111,12 @@
 
     var bi = $("#creatorBio");
     if (bi) bi.textContent = c.bio;
+    var verified = $("#creatorVerified");
+    if (verified) verified.hidden = c.verified !== true;
+    if ($("#creatorFollowers")) $("#creatorFollowers").textContent = String(Number(c.followers) || 0);
+    if ($("#creatorFollowing")) $("#creatorFollowing").textContent = String(Number(c.following) || 0);
+    if ($("#creatorStars")) $("#creatorStars").textContent = String(Number(c.stars) || 0);
+    setupCreatorActions(c);
 
     // Gather all templates associated with this creator
     var e = window.SC_TPL2;
@@ -124,7 +144,11 @@
         cat: ct.category || "text",
         likes: Number(ct.likes || 0),
         isComm: true,
-        commId: ct.id
+        commId: ct.id,
+        lines: ct.lines || [],
+        accent: ct.accent || "#ffffff",
+        font: ct.font || "inter",
+        dur: ct.dur || 4600
       });
     });
 
@@ -151,27 +175,34 @@
       var tile = document.createElement("article");
       tile.className = "sh-tile";
       tile.dataset.tpl = t.tpl;
+      if (t.isComm) {
+        tile.dataset.comm = "1";
+        tile.dataset.lines = JSON.stringify(t.lines || []);
+        tile.dataset.accent = t.accent;
+        tile.dataset.font = t.font;
+        tile.dataset.dur = t.dur;
+      }
+
+      var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl);
+      if (t.isComm) editUrl += "&accent=" + encodeURIComponent(t.accent) + "&font=" + encodeURIComponent(t.font)
+        + "&dur=" + encodeURIComponent(t.dur) + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
 
       tile.innerHTML = [
         '<div class="sh-stage">',
         '  <a href="' + detailUrl + '" class="sh-stage-link" aria-label="View ' + escapeHtml(t.name) + '"></a>',
         '  <span class="sh-skel">Preview</span>',
-        '  <div class="sh-card-hover-bar">',
-        '    <button type="button" class="sh-card-btn play" aria-label="Replay"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>',
-        '    <a href="/editor?tpl=' + encodeURIComponent(t.tpl) + '" class="sh-card-btn open" title="Customize in Studio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>',
-        '  </div>',
         '</div>',
+        /* Preview and title only, matching the gallery. This page used to add
+           hover controls over the artwork, a clamped description and a
+           like/comment/share row, so the same template looked like a
+           different product depending on where you found it - and at phone
+           width that extra row was 60px wider than the card holding it. */
         '<div class="sh-tmeta">',
         '  <div class="sh-ttitle-row"><a href="' + detailUrl + '" class="sh-ttitle">' + escapeHtml(t.name) + '</a></div>',
-        '  <p class="sh-tdesc">' + escapeHtml(t.desc) + '</p>',
-        '  <div class="sh-tact-bar">',
-        '    <a href="' + detailUrl + '" class="sh-tact-btn like">♥ <span>' + (Number(t.likes) || 0) + '</span></a>',
-        '    <a href="' + detailUrl + '#comments" class="sh-tact-btn comment">💬 <span>' + Math.max(0, Math.floor((Number(t.likes) || 0) / 6)) + '</span></a>',
-        '    <a href="' + detailUrl + '" class="sh-tact-btn share">View Details →</a>',
-        '  </div>',
         '</div>'
       ].join("");
 
+      // The card no longer carries a play button; the preview loops on its own.
       var playB = tile.querySelector(".sh-card-btn.play");
       if (playB) {
         playB.addEventListener("click", function (ev) {
@@ -198,6 +229,53 @@
       }, { rootMargin: "600px 0px" });
       tiles.forEach(function (t) { io.observe(t); });
     }
+  }
+
+  function setupCreatorActions(c) {
+    var wrap = $("#creatorActions");
+    var follow = $("#creatorFollowBtn");
+    var star = $("#creatorStarBtn");
+    if (!wrap || !follow || !star) return;
+    if (!c.id || c.viewerIsSelf) {
+      wrap.hidden = true;
+      return;
+    }
+    wrap.hidden = false;
+    follow.dataset.active = c.followedByMe ? "1" : "0";
+    follow.textContent = c.followedByMe ? "Following" : "Follow";
+    follow.onclick = function () {
+      var active = follow.dataset.active === "1";
+      follow.disabled = true;
+      fetch("/api/creators/" + encodeURIComponent(c.id) + "/follow", { method: active ? "DELETE" : "POST" })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.success) throw new Error(j.error || "Could not update follow."); return j; }); })
+        .then(function (j) {
+          follow.dataset.active = j.active ? "1" : "0";
+          follow.textContent = j.active ? "Following" : "Follow";
+          if ($("#creatorFollowers")) $("#creatorFollowers").textContent = String(Number(j.followers) || 0);
+        })
+        .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true); })
+        .finally(function () { follow.disabled = false; });
+    };
+    star.onclick = function () {
+      if (!window.SC_UI || !SC_UI.prompt) return;
+      SC_UI.prompt({
+        title: "Send Stars",
+        body: "Stars are non-cash appreciation. Enter an amount from 1 to 20.",
+        label: "Stars", value: "1", confirmLabel: "Send"
+      }).then(function (value) {
+        if (value == null) return;
+        var amount = Number(value);
+        star.disabled = true;
+        return fetch("/api/stars/donate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: c.id, amount: amount, idempotencyKey: "star:" + c.id + ":" + Date.now() })
+        }).then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.success) throw new Error(j.error || "Could not send Stars."); return j; }); })
+          .then(function () { if (window.SC_UI && SC_UI.toast) SC_UI.toast("Stars sent to " + c.handle); })
+          .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true); })
+          .finally(function () { star.disabled = false; });
+      });
+    };
   }
 
   function init() {

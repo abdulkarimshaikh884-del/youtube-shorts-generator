@@ -35,6 +35,16 @@ services:
       - key: DATABASE_URL
         sync: false
 
+      # Password recovery. Verify shortscraft.online in Resend, then set the
+      # API key and a sender on that domain. Production returns 503 instead of
+      # pretending a reset email was sent when these are missing.
+      - key: PUBLIC_SITE_URL
+        value: https://shortscraft.online
+      - key: RESEND_API_KEY
+        sync: false
+      - key: AUTH_FROM_EMAIL
+        value: "ShortsCraft <account@shortscraft.online>"
+
       # Signing secret for the anonymous-credit cookie. Generated once by
       # Render and then held constant — changing it resets everyone's balance.
       - key: CREDITS_SECRET

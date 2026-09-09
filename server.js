@@ -8,10 +8,22 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const db = require("./db");
+const mailer = require("./mailer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || "development";
+
+// Never deploy with the predictable development cookie signature or disable
+// abuse limits. Fail before serving any traffic; do not log secret values.
+if (NODE_ENV === "production") {
+  if (String(process.env.CREDITS_SECRET || "").trim().length < 32) {
+    throw new Error("Production requires a random CREDITS_SECRET of at least 32 characters.");
+  }
+  if (process.env.DISABLE_RATE_LIMIT === "true") {
+    throw new Error("DISABLE_RATE_LIMIT must not be enabled in production.");
+  }
+}
 
 /* ── Async route safety net ──────────────────────────────────
    Express 4 does not await route handlers, so a rejected promise inside an
@@ -121,7 +133,7 @@ app.use((req, res, next) => {
   // These two routes accept an attached base64 image. Let their route-level
   // 2 MB parser handle the body; parsing globally at 100 KB first made the
   // larger parser unreachable and every real image upload failed with 413.
-  if (req.path === "/api/animate" || req.path === "/api/export") return next();
+  if (req.path === "/api/animate" || req.path === "/api/export" || req.path === "/api/auth/avatar") return next();
   return jsonSmall(req, res, next);
 });
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
@@ -161,10 +173,15 @@ setInterval(() => {
 }, 600_000);
 
 // ── Static files (with cache control) ───────────────────────
-// The legacy generator remains in /public only as a historical implementation
-// reference. Do not let its obsolete unlimited-credit/4K promises surface via
-// the direct .html URL; both old entry points lead to the maintained SEO tools.
-app.get(["/generator", "/generator.html"], (req, res) => res.redirect(302, "/seo-tools"));
+// These tools are outside the animation-only product scope. Keep old indexed
+// links useful without exposing a second, misleading product surface.
+const RETIRED_TOOL_ROUTES = [
+  "/generator", "/generator.html", "/seo-tools", "/seo-tools.html",
+  "/youtube-shorts-script-generator", "/youtube-shorts-title-generator",
+  "/youtube-shorts-hashtag-generator", "/youtube-shorts-description-generator",
+  "/youtube-shorts-ideas-generator", "/ai-thumbnail-prompt-generator"
+];
+app.get(RETIRED_TOOL_ROUTES, (req, res) => res.redirect(301, "/#templates"));
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: NODE_ENV === "production" ? "7d" : 0,
@@ -200,8 +217,8 @@ app.use((req, res, next) => {
 
 app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), async (req, res) => {
   try {
-    const { email, password } = req.body || {};
-    const out = await auth.signUp(res, email, password);
+    const { email, password, handle } = req.body || {};
+    const out = await auth.signUp(res, email, password, handle);
     if (out.error) return res.status(400).json({ success: false, error: out.error });
     console.log("[auth] new account · total", await auth.count());
     return res.json({ success: true, user: out.user });
@@ -224,6 +241,84 @@ app.post("/api/auth/login", rateLimit({ windowMs: 600_000, max: 20 }), async (re
   }
 });
 
+function publicSiteUrl() {
+  const fallback = NODE_ENV === "production"
+    ? "https://shortscraft.online"
+    : `http://127.0.0.1:${Number(PORT) || 3000}`;
+  const raw = String(process.env.PUBLIC_SITE_URL || fallback).trim().replace(/\/$/, "");
+  try {
+    const url = new URL(raw);
+    const local = /^(localhost|127\.0\.0\.1)$/.test(url.hostname);
+    if (url.protocol !== "https:" && !(NODE_ENV !== "production" && local)) return fallback;
+    return url.origin;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+app.post("/api/auth/forgot", rateLimit({ windowMs: 15 * 60_000, max: 5 }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const startedAt = Date.now();
+  const genericMessage = "If an account exists for that email, a reset link is on its way.";
+
+  /* Do not pretend production email works when its provider is missing. This
+     response is independent of the submitted address, so it reveals nothing
+     about whether an account exists. */
+  if (NODE_ENV === "production" && !mailer.configured()) {
+    return res.status(503).json({
+      success: false,
+      error: "Password reset email is temporarily unavailable. Please contact support."
+    });
+  }
+
+  try {
+    const out = await auth.requestPasswordReset(req.body && req.body.email);
+    let devResetUrl = null;
+    if (out.token) {
+      const resetUrl = `${publicSiteUrl()}/reset-password?token=${encodeURIComponent(out.token)}`;
+      if (mailer.configured()) {
+        try {
+          await mailer.sendPasswordReset({
+            to: out.email,
+            resetUrl,
+            tokenHash: out.tokenHash
+          });
+        } catch (emailError) {
+          await auth.cancelPasswordReset(out.tokenHash).catch(() => {});
+          console.error("[/api/auth/forgot] email delivery failed:", emailError.message);
+          /* The provider's response can depend on the recipient. Returning its
+             failure here would reveal that this submitted address belongs to
+             an account, so keep the same public response and leave the error
+             in server logs for monitoring. The unusable token was removed. */
+        }
+      } else if (NODE_ENV !== "production") {
+        // Local-only test surface. Never returned by a production server.
+        devResetUrl = resetUrl;
+      }
+    }
+
+    // Narrow the easiest response-timing signal for unknown addresses.
+    const waitMs = Math.max(0, 900 - (Date.now() - startedAt));
+    if (waitMs) await new Promise((resolve) => setTimeout(resolve, waitMs));
+    return res.json({ success: true, message: genericMessage, ...(devResetUrl ? { devResetUrl } : {}) });
+  } catch (err) {
+    console.error("[/api/auth/forgot]", err.message);
+    return res.status(500).json({ success: false, error: "Could not start password reset. Please retry." });
+  }
+});
+
+app.post("/api/auth/reset", rateLimit({ windowMs: 15 * 60_000, max: 10 }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    const out = await auth.resetPassword(res, req.body && req.body.token, req.body && req.body.password);
+    if (out.error) return res.status(400).json({ success: false, error: out.error });
+    return res.json({ success: true, user: out.user });
+  } catch (err) {
+    console.error("[/api/auth/reset]", err.message);
+    return res.status(500).json({ success: false, error: "Could not reset the password. Please retry." });
+  }
+});
+
 app.post("/api/auth/logout", async (req, res) => {
   try {
     await auth.logOut(req, res);
@@ -234,9 +329,21 @@ app.post("/api/auth/logout", async (req, res) => {
   }
 });
 
-app.get("/api/auth/me", (req, res) => {
+app.get("/api/auth/me", async (req, res) => {
   res.set("Cache-Control", "no-store");
-  return res.json({ success: true, user: req.user || null });
+  if (!req.user) return res.json({ success: true, user: null });
+  const [socialState, followState] = await Promise.all([
+    social.starSummary(req.user),
+    social.followSummary(req.user.id, req.user)
+  ]);
+  return res.json({ success: true, user: {
+    ...req.user,
+    starBalance: socialState.balance,
+    starsReceived: socialState.received,
+    starsAllowance: socialState.allowance,
+    followers: Number(followState.followers) || 0,
+    following: Number(followState.following) || 0
+  } });
 });
 
 app.post("/api/auth/profile", async (req, res) => {
@@ -253,17 +360,44 @@ app.post("/api/auth/profile", async (req, res) => {
   }
 });
 
+const jsonAvatar = express.json({ limit: "3mb" });
+app.post("/api/auth/avatar", rateLimit({ windowMs: 60_000, max: 10 }), jsonAvatar, async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ success: false, error: "Please log in first." });
+  const out = await auth.saveAvatar(req.user.id, req.body?.image);
+  if (out.error) return res.status(400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.delete("/api/auth/avatar", async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ success: false, error: "Please log in first." });
+  const out = await auth.removeAvatar(req.user.id);
+  if (out.error) return res.status(400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/users/:id/avatar", async (req, res) => {
+  const avatar = await auth.getAvatar(req.params.id);
+  if (!avatar) return res.status(404).end();
+  const etag = `\"${crypto.createHash("sha256").update(avatar.avatar_bytes).digest("base64url").slice(0, 22)}\"`;
+  if (req.headers["if-none-match"] === etag) return res.status(304).end();
+  res.set({
+    "Content-Type": avatar.avatar_mime || "image/webp",
+    "Cache-Control": "public, max-age=3600, must-revalidate",
+    ETag: etag
+  });
+  return res.send(avatar.avatar_bytes);
+});
+
 app.post("/api/auth/star", async (req, res) => {
-  try {
-    const targetId = req.body?.userId || req.user?.id;
-    if (!targetId) return res.status(400).json({ success: false, error: "Target creator is required." });
-    const out = await auth.giveStar(targetId);
-    if (out.error) return res.status(400).json({ success: false, error: out.error });
-    return res.json({ success: true, stars: out.stars });
-  } catch (err) {
-    console.error("[/api/auth/star]", err.message);
-    return res.status(500).json({ success: false, error: "Could not save that. Please retry." });
-  }
+  const out = await social.donateStars(
+    req.user,
+    req.body?.userId || req.body?.handle,
+    req.body?.amount || 1,
+    req.body?.note,
+    req.body?.idempotencyKey
+  );
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
 });
 
 // ── Credits ────────────────────────────────────────────────
@@ -273,6 +407,11 @@ app.post("/api/auth/star", async (req, res) => {
 const credits = require("./credits");
 const waitlist = require("./waitlist");
 const community = require("./community");
+const social = require("./social");
+const support = require("./support");
+const projects = require("./projects");
+const admin = require("./admin");
+const skills = require("./skills");
 app.use(credits.middleware);
 
 app.get("/api/credits", async (req, res) => {
@@ -308,6 +447,95 @@ app.get("/api/community-templates/:id", async (req, res) => {
   }
 });
 
+/* Creator tutorials.
+
+   The community page carried a second copy of the template library and
+   nothing else — every template on it was already in the main gallery, by
+   the same author. These routes are what it carries instead: links to
+   tutorials creators published on their own channels. Nothing here stores a
+   video, so there is no upload path and no file size to police; the whole
+   surface is a URL, a title, and a moderation state. */
+app.get("/api/skills", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store");
+    res.json({ success: true, ...(await skills.listPublished(req.user, req.query.limit)) });
+  } catch (err) {
+    console.error("[GET /api/skills]", err.message);
+    res.status(500).json({ success: false, error: "Could not load tutorials." });
+  }
+});
+
+app.get("/api/skills/mine", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const out = await skills.listMine(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json({ success: true, ...out });
+});
+
+app.post("/api/skills", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
+  try {
+    const out = await skills.submit(req.user, req.body);
+    if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+    return res.json(out);
+  } catch (err) {
+    console.error("[POST /api/skills]", err.message);
+    return res.status(500).json({ success: false, error: "Could not share that tutorial." });
+  }
+});
+
+app.delete("/api/skills/:id", async (req, res) => {
+  const out = await skills.remove(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/skills", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const out = await skills.listForReview(req.user, req.query.status);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json({ success: true, ...out });
+});
+
+app.patch("/api/admin/skills/:id", async (req, res) => {
+  const out = await skills.review(req.user, req.params.id, req.body?.status, req.body?.note);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+/* Projects follow the account, not the browser.
+
+   The account page has always told people that "Drafts and settings follow
+   you to any device". Until now they did not: a project lived in the
+   localStorage of whichever machine made it. These four routes are what
+   makes that sentence true. Every one of them is scoped to req.user inside
+   projects.js, so an id from another account resolves to nothing. */
+app.get("/api/projects", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const out = await projects.list(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.put("/api/projects/:id", rateLimit({ windowMs: 60_000, max: 120 }), async (req, res) => {
+  const out = await projects.save(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.delete("/api/projects/:id", async (req, res) => {
+  const out = await projects.remove(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+/* Signing in on a browser that already holds local drafts hands them to the
+   account once, so work started before logging in is not stranded there. */
+app.post("/api/projects/adopt", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
+  const out = await projects.adopt(req.user, req.body?.drafts);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
 app.get("/api/user/creations", async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
@@ -316,7 +544,7 @@ app.get("/api/user/creations", async (req, res) => {
     }
     const userId = req.user.id;
     const userHandle = req.user.handle || (req.user.email ? req.user.email.split("@")[0] : null);
-    const items = await community.listByAuthor(userId, userHandle);
+    const items = await community.listByAuthor(userId, userHandle, { includeUnpublished: true });
     return res.json({ success: true, creations: items });
   } catch (err) {
     console.error("[/api/user/creations]", err.message);
@@ -361,25 +589,116 @@ app.delete("/api/community-templates/:id", async (req, res) => {
 });
 
 app.post("/api/community-templates/:id/like", async (req, res) => {
-  try {
-    const result = await community.like(req.params.id);
-    if (result.error) return res.status(404).json({ success: false, error: result.error });
-    res.json(result);
-  } catch (err) {
-    console.error("[POST /api/community-templates/:id/like]", err.message);
-    res.status(500).json({ success: false, error: "Could not like that template." });
+  if (!(await community.isPublicTemplateKey(req.params.id)) || !String(req.params.id).startsWith("comm_")) {
+    return res.status(404).json({ success: false, error: "Template not found." });
   }
+  const result = await social.setReaction(req.params.id, req.user, "like", true);
+  if (result.error) return res.status(result.status || 400).json({ success: false, error: result.error });
+  return res.json({ ...result, likes: result.count });
 });
 
 app.post("/api/community-templates/:id/unlike", async (req, res) => {
-  try {
-    const result = await community.unlike(req.params.id);
-    if (result.error) return res.status(404).json({ success: false, error: result.error });
-    res.json(result);
-  } catch (err) {
-    console.error("[POST /api/community-templates/:id/unlike]", err.message);
-    res.status(500).json({ success: false, error: "Could not unlike that template." });
+  if (!(await community.isPublicTemplateKey(req.params.id)) || !String(req.params.id).startsWith("comm_")) {
+    return res.status(404).json({ success: false, error: "Template not found." });
   }
+  const result = await social.setReaction(req.params.id, req.user, "like", false);
+  if (result.error) return res.status(result.status || 400).json({ success: false, error: result.error });
+  return res.json({ ...result, likes: result.count });
+});
+
+app.get("/api/template-reactions", async (req, res) => {
+  try {
+    const ids = String(req.query.ids || "").split(",").filter(Boolean);
+    return res.json({ success: true, reactions: await social.reactionState(req.user, ids) });
+  } catch (err) {
+    console.error("[/api/template-reactions]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load reactions." });
+  }
+});
+
+app.get("/api/template-metrics", async (req, res) => {
+  try {
+    const ids = String(req.query.ids || "").split(",").filter(Boolean);
+    res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=120");
+    return res.json({ success: true, metrics: await social.discoveryMetrics(ids) });
+  } catch (err) {
+    console.error("[/api/template-metrics]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load template activity." });
+  }
+});
+
+app.put("/api/templates/:id/reactions/:reaction", async (req, res) => {
+  if (!(await community.isPublicTemplateKey(req.params.id))) {
+    return res.status(404).json({ success: false, error: "Template not found." });
+  }
+  const out = await social.setReaction(req.params.id, req.user, req.params.reaction, req.body?.active !== false);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/template-events", rateLimit({ windowMs: 60_000, max: 80 }), async (req, res) => {
+  if (!(await community.isPublicTemplateKey(req.body?.templateId))) {
+    return res.status(404).json({ success: false, error: "Template not found." });
+  }
+  const sessionHash = crypto.createHash("sha256")
+    .update(String(req.credits?.token || req.user?.id || req.ip || "anonymous"))
+    .digest("hex").slice(0, 32);
+  const out = await social.recordEvent(
+    req.body?.templateId, req.user, req.body?.eventType, sessionHash, req.body?.idempotencyKey
+  );
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+/* The follower and following lists behind the counts on a profile. Public:
+   who follows a creator is not private, and hiding it would make the number
+   unverifiable. */
+app.get("/api/creators/:target/:kind(followers|following)", async (req, res) => {
+  const target = await social.resolveUser(req.params.target);
+  if (!target) return res.status(404).json({ success: false, error: "Creator not found." });
+  const out = await social.listFollows(
+    target.id, req.params.kind === "following" ? "following" : "followers", req.user
+  );
+  return res.json({ success: true, ...out });
+});
+
+app.post("/api/creators/:target/follow", async (req, res) => {
+  const out = await social.setFollow(req.user, req.params.target, true);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.delete("/api/creators/:target/follow", async (req, res) => {
+  const out = await social.setFollow(req.user, req.params.target, false);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/stars", async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
+  return res.json({ success: true, ...(await social.starSummary(req.user)) });
+});
+
+app.post("/api/stars/donate", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+  const out = await social.donateStars(
+    req.user, req.body?.userId || req.body?.handle, req.body?.amount,
+    req.body?.note, req.body?.idempotencyKey
+  );
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/notifications", async (req, res) => {
+  const out = await social.listNotifications(req.user, req.query.limit);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  res.set("Cache-Control", "no-store");
+  return res.json(out);
+});
+
+app.patch("/api/notifications/read", async (req, res) => {
+  const out = await social.markNotificationsRead(req.user, req.body?.ids);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
 });
 
 // AI Video-to-Template ("deconstruct a video into a template") is not a real
@@ -393,7 +712,8 @@ const comments = require("./comments");
 app.get("/api/comments", async (req, res) => {
   try {
     const tplId = String(req.query.tpl || "docu-red-string");
-    res.json({ success: true, comments: await comments.getComments(tplId) });
+    // The viewer decides which comments offer edit and delete controls.
+    res.json({ success: true, comments: await comments.getComments(tplId, req.user) });
   } catch (err) {
     console.error("[/api/comments]", err.message);
     res.status(500).json({ success: false, error: "Could not load comments." });
@@ -410,11 +730,27 @@ app.post("/api/comments", express.json(), async (req, res) => {
     const text = String(req.body?.text || "").trim();
     if (!text) return res.status(400).json({ success: false, error: "Comment text is required." });
     const newC = await comments.addComment(tplId, req.body, req.user);
+    await social.notifyTemplateComment(tplId, req.user, text);
     res.json({ success: true, comment: newC });
   } catch (err) {
     console.error("[POST /api/comments]", err.message);
     res.status(500).json({ success: false, error: "Could not post that comment." });
   }
+});
+
+/* A comment you posted by mistake, or want to correct, was permanent: there
+   was no way to change or remove one once it was up. Both are scoped to the
+   author inside comments.js. */
+app.patch("/api/comments/:id", express.json(), async (req, res) => {
+  const out = await comments.editComment(req.params.id, req.user, req.body?.text);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.delete("/api/comments/:id", async (req, res) => {
+  const out = await comments.deleteComment(req.params.id, req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
 });
 
 // ── Creator Profile API ─────────────────────────────────────
@@ -424,10 +760,11 @@ app.get("/api/creator", async (req, res) => {
 
   if (handle === "shortscraft" || !handle) {
     const prof = {
-      name: "ShortsCraft Official",
+      name: "ShortsCraft",
       handle: "@shortscraft",
       initials: "SC",
-      bio: "Official curated ShortsCraft animation library presets for viral YouTube Shorts and Reels.",
+      bio: "Animation templates published by the ShortsCraft team.",
+      verified: true,
       youtube: "https://youtube.com/@TechVault-90",
       instagram: "https://instagram.com/tech_vault_in",
       followers: "",
@@ -445,7 +782,8 @@ app.get("/api/creator", async (req, res) => {
   let creatorDbUnavailable = false;
   try {
     const { rows } = await db.query(
-      `select id, email, display_name, handle, bio, youtube, instagram, stars, created_at
+      `select id, email, display_name, handle, bio, youtube, instagram, website, location,
+              verified, stars, plan, plan_until, created_at, (avatar_bytes is not null) as has_avatar
        from public.users
        where lower(handle) = $1 or lower(handle) = $2 or lower(email) = $3 or lower(email) like $4
        limit 1`,
@@ -462,14 +800,22 @@ app.get("/api/creator", async (req, res) => {
   }
 
   const prof = dbUser ? {
+    id: dbUser.id,
     name: dbUser.display_name || (dbUser.email ? dbUser.email.split("@")[0] : "ShortsCraft Creator"),
     handle: dbUser.handle || ("@" + (dbUser.email ? dbUser.email.split("@")[0] : "creator")),
     initials: (dbUser.display_name || dbUser.email || "CR").slice(0, 2).toUpperCase(),
-    bio: dbUser.bio || "Motion designer creating templates on ShortsCraft.",
+    bio: dbUser.bio || "",
+    website: dbUser.website || "",
+    location: dbUser.location || "",
+    verified: dbUser.verified === true,
+    avatarUrl: dbUser.has_avatar ? `/api/users/${encodeURIComponent(dbUser.id)}/avatar` : "",
     youtube: dbUser.youtube || "",
     instagram: dbUser.instagram || "",
-    followers: "",
-    likes: dbUser.stars ? (dbUser.stars + " Stars") : "",
+    followers: 0,
+    following: 0,
+    followedByMe: false,
+    viewerIsSelf: req.user?.id === dbUser.id,
+    stars: 0,
     cat: "all"
   } : null;
 
@@ -478,6 +824,14 @@ app.get("/api/creator", async (req, res) => {
   }
 
   try {
+    const [followState, starState] = await Promise.all([
+      social.followSummary(dbUser.id, req.user),
+      social.starSummary(dbUser)
+    ]);
+    prof.followers = Number(followState.followers) || 0;
+    prof.following = Number(followState.following) || 0;
+    prof.followedByMe = followState.followed_by_me === true;
+    prof.stars = Number(starState.received) || 0;
     const commTemplates = await community.listByAuthor(dbUser?.id || null, "@" + handle);
     res.json({ success: true, creator: prof, communityTemplates: commTemplates });
   } catch (err) {
@@ -497,7 +851,7 @@ app.get("/api/config", (req, res) => {
     supabaseUrl: process.env.SUPABASE_URL || "",
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
     razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
-    proPriceInr: Number(process.env.PRO_PRICE_INR || 99),
+    proPriceInr: credits.PLANS.pro.price,
     freeCreditsPerDay: credits.PLANS.free.perDay,
     plans: Object.values(credits.PLANS),
     cost: credits.COST,
@@ -590,6 +944,10 @@ async function callAI(prompt, {
   maxTokens = 2200,
   system,
   model: modelOverride,
+  models = {},
+  providerOrder,
+  thinkingLevel = "MEDIUM",
+  image = null,
   json = false,
   timeoutMs = DEFAULT_PROVIDER_TIMEOUT_MS,
 } = {}) {
@@ -601,13 +959,16 @@ async function callAI(prompt, {
   if (!nvidiaKey && !groqKey && !geminiKey) throw new Error("AI service not configured");
 
   // OpenAI-compatible chat completion — NVIDIA NIM and Groq share this shape.
-  const openaiStyle = (name, url, key, model) => async () => {
+  const openaiStyle = (name, url, key, model, includeImage) => async () => {
+    const userContent = includeImage && image
+      ? [{ type: "text", text: prompt }, { type: "image_url", image_url: { url: image } }]
+      : prompt;
     const r = await fetchWithTimeout(url, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify(Object.assign({
         model,
-        messages: [{ role: "system", content: sys }, { role: "user", content: prompt }],
+        messages: [{ role: "system", content: sys }, { role: "user", content: userContent }],
         temperature,
         top_p: 0.95,
         max_tokens: Math.min(maxTokens, 2500),
@@ -630,6 +991,19 @@ async function callAI(prompt, {
   };
 
   const geminiCall = (key, model) => async () => {
+    const parts = [{ text: prompt }];
+    if (image) {
+      const match = String(image).match(/^data:(image\/(?:png|jpeg|jpg|webp|gif));base64,([A-Za-z0-9+/=]+)$/);
+      if (match) parts.push({ inlineData: { mimeType: match[1] === "image/jpg" ? "image/jpeg" : match[1], data: match[2] } });
+    }
+    const generationConfig = {
+      maxOutputTokens: Math.min(Math.max(maxTokens * 4, 8192), 32768)
+    };
+    if (!/^gemini-3\.[567]/i.test(model)) generationConfig.temperature = temperature;
+    if (/^gemini-3\.[567]/i.test(model)) {
+      generationConfig.thinkingConfig = { thinkingLevel: String(thinkingLevel || "MEDIUM").toUpperCase() };
+    }
+    if (json) generationConfig.responseMimeType = "application/json";
     const r = await fetchWithTimeout(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
       {
@@ -637,17 +1011,14 @@ async function callAI(prompt, {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: sys }] },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          contents: [{ role: "user", parts }],
           /* Gemini 3 reasons before it answers and charges that reasoning to
              the SAME maxOutputTokens budget — a 3500-token ask spent 3360 on
              thinking and emitted 136, so the scene JSON came back cut in half
              and every AI animation failed on "invalid JSON". The budget has to
              cover thinking AND the answer, hence the generous multiplier.
              (thinkingBudget:0 is rejected outright by these models.) */
-          generationConfig: Object.assign({
-            temperature,
-            maxOutputTokens: Math.min(Math.max(maxTokens * 4, 8192), 32768),
-          }, json ? { responseMimeType: "application/json" } : {}),
+          generationConfig,
         }),
       },
       timeoutMs
@@ -661,8 +1032,8 @@ async function callAI(prompt, {
     }
     const data = await r.json();
     const cand = (data && data.candidates && data.candidates[0]) || null;
-    const parts = (cand && cand.content && cand.content.parts) || [];
-    const content = parts.map((p) => p.text).filter(Boolean).join("").trim();
+    const responseParts = (cand && cand.content && cand.content.parts) || [];
+    const content = responseParts.map((p) => p.text).filter(Boolean).join("").trim();
     // A truncated answer is worse than none: it reaches the caller as malformed
     // JSON or a half-written script. Say so and let the chain try another model.
     if (cand && cand.finishReason === "MAX_TOKENS") {
@@ -678,22 +1049,21 @@ async function callAI(prompt, {
   if (nvidiaKey) {
     const base = (process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1").replace(/\/$/, "");
     available.nvidia = openaiStyle("NVIDIA", `${base}/chat/completions`, nvidiaKey,
-      modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct");
+      models.nvidia || modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct", true);
   }
   if (groqKey) {
     available.groq = openaiStyle("Groq", "https://api.groq.com/openai/v1/chat/completions", groqKey,
-      process.env.GROQ_MODEL || "llama-3.3-70b-versatile");
+      models.groq || process.env.GROQ_MODEL || "qwen/qwen3.8-27b", false);
   }
   if (geminiKey) {
     /* One hosted model can be busy while its siblings are idle — a 503 "high
-       demand" on the lead model is not an outage. Rolling to the next model
-       name costs a second; falling through to the next provider costs its
-       whole timeout. Aliases first: a pinned version can be retired without
-       warning, which is exactly how gemini-2.5-flash started 404ing. */
+       demand" on the preferred model is not an outage. Rolling to an alias or
+       sibling costs less than falling through to another provider, and also
+       protects saved configuration when a pinned model is retired. */
     const geminiModels = String(
-      process.env.GEMINI_MODEL
+      models.gemini || (process.env.GEMINI_MODEL
         ? process.env.GEMINI_MODEL + ",gemini-flash-latest,gemini-3.6-flash"
-        : "gemini-flash-latest,gemini-3.6-flash,gemini-3.5-flash"
+        : "gemini-3.7-flash,gemini-flash-latest,gemini-3.6-flash")
     ).split(",").map((s) => s.trim()).filter(Boolean);
     const uniqueModels = [...new Set(geminiModels)];
 
@@ -719,7 +1089,7 @@ async function callAI(prompt, {
      never responds (its /models endpoint replies in under half a second, so the
      key is fine — the inference route is not). Set AI_PROVIDER_ORDER to
      reorder, e.g. "nvidia,gemini", once that account can serve completions. */
-  const order = String(process.env.AI_PROVIDER_ORDER || "nvidia,gemini,groq")
+  const order = String(providerOrder || process.env.AI_PROVIDER_ORDER || "gemini,groq,nvidia")
     .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
   const chain = [];
   for (const name of order) if (available[name]) chain.push([name, available[name]]);
@@ -916,41 +1286,30 @@ Strict requirements:
   }
 });
 
-/* Pro Max launches as a lifetime deal for the first credits.LIFETIME_SLOTS
-   buyers. Once those seats are taken the same price buys a year instead.
-   The decision is made here, server-side, at the moment of purchase. */
-async function planTermFor(planId) {
+/* Billing cadence is explicit and server-validated. Prices are always read
+   from credits.PLANS, never accepted from the browser. */
+async function planTermFor(planId, billingCycle) {
   const plan = credits.PLANS[planId];
   if (!plan) return "month";
-  if (plan.term !== "lifetime") return plan.term;
-  const taken = await auth.countLifetime(planId);
-  return taken < credits.LIFETIME_SLOTS ? "lifetime" : (plan.fallbackTerm || "year");
+  return billingCycle === "yearly" ? "year" : "month";
 }
 
 const paymentsLive = () =>
   Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 
-// ── Launch offer status (how many lifetime seats are left) ──
+// ── Checkout availability and public plan prices ────────────
 app.get("/api/offer", async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
-    const taken = await auth.countLifetime("promax");
-    const total = credits.LIFETIME_SLOTS;
-    const left = Math.max(0, total - taken);
     res.json({
       success: true,
-      plan: "promax",
-      price: credits.PLANS.promax.price,
-      proPrice: credits.PLANS.pro.price,
-      total, taken, left,
-      lifetimeAvailable: left > 0,
-      term: left > 0 ? "lifetime" : (credits.PLANS.promax.fallbackTerm || "year"),
-      // Until the gateway is configured the pricing page collects reservations
-      // instead of payments. Adding the keys flips it to real checkout with no
-      // code change.
+      plans: [credits.PLANS.pro, credits.PLANS.promax].map((p) => ({
+        id: p.id,
+        monthlyPrice: p.price,
+        yearlyPrice: p.yearlyPrice
+      })),
       paymentsLive: paymentsLive(),
-      opensOn: process.env.PAYMENTS_OPEN_DATE || "",
-      reserved: await waitlist.count()
+      opensOn: process.env.PAYMENTS_OPEN_DATE || ""
     });
   } catch (err) {
     console.error("[/api/offer]", err.message);
@@ -990,6 +1349,7 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
     if (!plan || plan.price <= 0) {
       return res.status(400).json({ success: false, error: "Choose a paid plan." });
     }
+    const billingCycle = String(req.body?.billingCycle || "monthly") === "yearly" ? "yearly" : "monthly";
 
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -997,8 +1357,9 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
       return res.status(503).json({ success: false, error: "Payments are not switched on yet. Please try again shortly." });
     }
 
-    const term = await planTermFor(planId);
-    const amountPaise = plan.price * 100;
+    const term = await planTermFor(planId, billingCycle);
+    const chargedPrice = billingCycle === "yearly" ? plan.yearlyPrice : plan.price;
+    const amountPaise = chargedPrice * 100;
     const userId = req.user.id;
 
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
@@ -1012,7 +1373,7 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
         amount: amountPaise,
         currency: "INR",
         receipt: `sc_${Date.now()}_${userId.slice(0, 12)}`,
-        notes: { product: `ShortsCraft ${plan.label}`, userId, plan: planId, term },
+        notes: { product: `ShortsCraft ${plan.label}`, userId, plan: planId, term, billingCycle },
       }),
     }, 10_000);
 
@@ -1024,7 +1385,7 @@ app.post("/api/razorpay/order", rateLimit({ windowMs: 60_000, max: 10 }), async 
     const order = await r.json();
     res.json({
       success: true, orderId: order.id, amount: order.amount,
-      currency: order.currency, keyId, plan: planId, term
+      currency: order.currency, keyId, plan: planId, term, billingCycle
     });
   } catch (err) {
     console.error("[razorpay/order]", err.message);
@@ -1089,13 +1450,17 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
     const notes = order && order.notes && typeof order.notes === "object" ? order.notes : {};
     const planId = String(notes.plan || "");
     const term = String(notes.term || "");
+    const billingCycle = String(notes.billingCycle || "monthly");
     const plan = credits.PLANS[planId];
-    const expectedAmount = plan ? plan.price * 100 : 0;
+    const expectedAmount = plan
+      ? (billingCycle === "yearly" ? plan.yearlyPrice : plan.price) * 100
+      : 0;
     const orderPaid = order && order.status === "paid" && Number(order.amount_paid) >= Number(order.amount);
     const orderMatches =
       plan && plan.price > 0 &&
       String(notes.userId || "") === String(req.user.id) &&
-      ["month", "year", "lifetime"].includes(term) &&
+      ["monthly", "yearly"].includes(billingCycle) &&
+      ["month", "year"].includes(term) &&
       order.currency === "INR" &&
       Number(order.amount) === expectedAmount &&
       orderPaid;
@@ -1116,7 +1481,8 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
       plan: planId,
-      term
+      term,
+      billingCycle
     });
   } catch (err) {
     console.error("[razorpay/verify]", err.message);
@@ -1124,64 +1490,82 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
   }
 });
 
-// ── Feedback / contact form ─────────────────────────────────
-// Robust route: never breaks the UI if external storage is not configured.
-app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
-  const name = String(req.body?.name || "").trim().slice(0, 80);
-  const email = String(req.body?.email || "").trim().slice(0, 120);
-  const subject = String(req.body?.subject || "Studio feedback").trim().slice(0, 140);
-  const message = String(req.body?.message || "").trim().slice(0, 2000);
+// ── Support tickets ─────────────────────────────────────────
+// /api/feedback remains as a compatibility alias for older cached pages, but
+// both routes create the same durable ticket and never pretend a failed write
+// succeeded.
+async function createSupportTicket(req, res) {
+  const out = await support.createTicket(req.user, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.status(201).json(out);
+}
+app.post("/api/feedback", rateLimit({ windowMs: 60_000, max: 6 }), createSupportTicket);
+app.post("/api/support/tickets", rateLimit({ windowMs: 60_000, max: 6 }), createSupportTicket);
 
-  if (!name || !message || message.length < 5) {
-    return res.status(400).json({ success: false, error: "Name and message (min 5 chars) required." });
-  }
+app.get("/api/support/tickets", async (req, res) => {
+  const out = await support.listMine(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
 
-  const feedback = {
-    name,
-    email,
-    subject,
-    message,
-    ip: req.ip,
-    ua: req.headers["user-agent"] || "",
-    created_at: new Date().toISOString(),
-  };
+app.get("/api/support/tickets/:id", async (req, res) => {
+  const out = await support.getTicket(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
 
-  // 1) Save a local backup. Works on local/dev and does not crash if filesystem is read-only.
-  try {
-    const dir = path.join(__dirname, "data");
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.appendFileSync(path.join(dir, "feedback.jsonl"), JSON.stringify(feedback) + "\n", "utf8");
-  } catch (e) {
-    console.warn("[feedback local backup skipped]", e.message);
-  }
+app.post("/api/support/tickets/:id/messages", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+  const out = await support.addMessage(req.user, req.params.id, req.body?.message);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.status(201).json(out);
+});
 
-  // 2) Store in Supabase only if configured. Failure should not fail the user request.
-  const supaUrl = process.env.SUPABASE_URL;
-  const supaSrv = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (supaUrl && supaSrv && typeof fetch === "function") {
-    try {
-      const r = await fetchWithTimeout(`${supaUrl.replace(/\/$/, "")}/rest/v1/feedback`, {
-        method: "POST",
-        headers: {
-          apikey: supaSrv,
-          Authorization: `Bearer ${supaSrv}`,
-          "Content-Type": "application/json",
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify(feedback),
-      }, 8_000);
-      if (!r.ok) {
-        const t = await r.text().catch(() => "");
-        console.warn("[feedback supabase non-fatal]", r.status, t.slice(0, 200));
-      }
-    } catch (e) {
-      console.warn("[feedback supabase non-fatal]", e.message);
-    }
-  } else {
-    console.log("[feedback]", { name, email, subject, message: message.slice(0, 100) });
-  }
+app.get("/api/admin/support/tickets", async (req, res) => {
+  const out = await support.listAdmin(req.user, req.query);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
 
-  return res.json({ success: true });
+app.patch("/api/admin/support/tickets/:id", async (req, res) => {
+  const out = await support.updateAdmin(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/dashboard", async (req, res) => {
+  const out = await admin.dashboard(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/users", async (req, res) => {
+  const out = await admin.listUsers(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/templates", async (req, res) => {
+  const out = await admin.listContent(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.patch("/api/admin/templates/:id", async (req, res) => {
+  const out = await admin.updateContent(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/feature-flags", async (req, res) => {
+  const out = await admin.listFlags(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.patch("/api/admin/feature-flags/:key", async (req, res) => {
+  const out = await admin.setFlag(req.user, req.params.key, req.body?.enabled === true);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
 });
 
 // ============================================================
@@ -1324,12 +1708,39 @@ async function getBrowser() {
   return _browser;
 }
 
-// Exports are CPU heavy. Serialise them so one request cannot starve the box.
-let _queue = Promise.resolve();
-function serialise(job) {
-  const run = _queue.then(job, job);
-  _queue = run.catch(() => {});
-  return run;
+/* Exports are CPU heavy, so only one runs at a time. Which one runs next is
+   a paid promise: the pricing page sells Pro a "priority export queue" and
+   Pro Max the "highest export queue priority". This used to be a plain
+   promise chain — strictly first-come — so that promise was not kept.
+
+   Waiting jobs are ordered by plan, then by arrival within a plan, so a Free
+   export already running is never interrupted and a Free export still cannot
+   be starved indefinitely by a steady trickle of paid ones: it only yields to
+   work that arrived while it was waiting, and the queue is one deep per
+   request. */
+const QUEUE_PRIORITY = { promax: 2, pro: 1, free: 0 };
+
+const _waiting = [];
+let _running = false;
+let _seq = 0;
+
+function pump() {
+  if (_running || !_waiting.length) return;
+  _waiting.sort((a, b) => (b.priority - a.priority) || (a.seq - b.seq));
+  const next = _waiting.shift();
+  _running = true;
+  Promise.resolve()
+    .then(next.job)
+    .then(next.resolve, next.reject)
+    .finally(() => { _running = false; pump(); });
+}
+
+function serialise(job, plan) {
+  const priority = QUEUE_PRIORITY[plan] || 0;
+  return new Promise((resolve, reject) => {
+    _waiting.push({ job, priority, seq: _seq++, resolve, reject });
+    pump();
+  });
 }
 
 // even dimensions are required by yuv420p
@@ -1385,9 +1796,9 @@ function encodeMp4(fps, renderFrames) {
 // ============================================================
 // AI ANIMATION  —  prompt (+ optional image) -> a real scene
 // ============================================================
-// The model writes only `css` + `body`; the document is assembled by
-// SC_TPL2.buildCustom, so a generated scene is structurally identical to a
-// shipped template and exports through the same frame-stepped pipeline.
+// The model returns a constrained 2-4 beat storyboard, never code. animate.js
+// compiles it into house-owned CSS/body, so an AI scene stays structurally
+// identical to a shipped template and uses the same frame-stepped export path.
 // Costs credits.animate because it burns a model call.
 const anim = require("./animate");
 
@@ -1402,13 +1813,39 @@ app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, asy
   const dur = Math.min(Math.max(Number(b.dur) || 4600, 1500), AI_MAX_DUR_MS);
   const image = b.image ? String(b.image) : null;
 
-  /* The three model tiers are the three plans. A free account cannot silently
-     use the Pro model, and it is told which plan unlocks it rather than being
-     quietly downgraded. */
+  /* Launch Boost deliberately gives Free the same planning intelligence as the
+     paid tiers while the product is finding its first users. The plan gates
+     remain intact, so turning AI_LAUNCH_BOOST=false later restores meaningful
+     tier separation without a frontend or database migration. */
+  const launchBoost = String(process.env.AI_LAUNCH_BOOST || "true").toLowerCase() !== "false";
+  const launchGemini = process.env.GEMINI_MODEL || "gemini-3.7-flash";
+  const launchGeminiChain = `${launchGemini},gemini-flash-latest,gemini-3.6-flash`;
+  const launchGroq = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
   const TIER = {
-    mini: { plans: ["free", "pro", "promax"], label: "Free", model: () => process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct" },
-    pro: { plans: ["pro", "promax"], label: "Pro", model: () => process.env.NVIDIA_MODEL_PRO || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct" },
-    max: { plans: ["promax"], label: "Pro Max", model: () => process.env.NVIDIA_MODEL_MAX || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct" }
+    mini: {
+      plans: ["free", "pro", "promax"], label: "Standard", thinking: launchBoost ? "MEDIUM" : "LOW",
+      models: {
+        gemini: launchBoost ? launchGeminiChain : (process.env.GEMINI_MODEL_FREE || "gemini-3.5-flash-lite"),
+        groq: launchGroq,
+        nvidia: process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct"
+      }
+    },
+    pro: {
+      plans: ["pro", "promax"], label: "Detailed", thinking: "MEDIUM",
+      models: {
+        gemini: launchBoost ? launchGeminiChain : (process.env.GEMINI_MODEL_PRO || "gemini-3.7-flash"),
+        groq: process.env.GROQ_MODEL_PRO || launchGroq,
+        nvidia: process.env.NVIDIA_MODEL_PRO || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct"
+      }
+    },
+    max: {
+      plans: ["pro", "promax"], label: "Advanced", thinking: launchBoost ? "MEDIUM" : "HIGH",
+      models: {
+        gemini: launchBoost ? launchGeminiChain : (process.env.GEMINI_MODEL_MAX || "gemini-3.7-flash"),
+        groq: process.env.GROQ_MODEL_MAX || process.env.GROQ_MODEL_PRO || launchGroq,
+        nvidia: process.env.NVIDIA_MODEL_MAX || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct"
+      }
+    }
   };
   const quality = TIER[b.quality] ? b.quality : "mini";
 
@@ -1427,7 +1864,7 @@ app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, asy
   if (TIER[quality].plans.indexOf(plan) < 0) {
     return res.status(403).json({
       success: false,
-      error: `The ${TIER[quality].label} model needs the ${TIER[quality].label} plan. ` +
+      error: `${TIER[quality].label} generation requires a ${TIER[quality].plans.map(p => credits.PLANS[p].label).join(" or ")} subscription. ` +
         `You are on ${credits.PLANS[plan].label}.`,
       needPlan: TIER[quality].plans[0],
       credits: await credits.state(req)
@@ -1440,11 +1877,12 @@ app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, asy
     });
   }
 
-  const bill = await credits.charge(req, "animate");
+  const billKind = quality === "max" ? "aiAdvanced" : (quality === "pro" ? "aiDetailed" : "aiStandard");
+  const bill = await credits.charge(req, billKind);
   if (!bill.ok) {
     return res.status(402).json({
       success: false,
-      error: `A custom animation costs ${bill.need} credits and you have ${bill.left} left today.`,
+      error: `This generation costs ${bill.need} credits and you have ${bill.left} left today.`,
       credits: await credits.state(req)
     });
   }
@@ -1452,18 +1890,27 @@ app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, asy
   try {
     const scene = await anim.generateScene({
       prompt, dur, image,
-      model: TIER[quality].model(),
-      callModel: ({ system, user, model, maxTokens, temperature }) =>
-        callAI(user, { system, model, maxTokens, temperature, json: true, timeoutMs: 90_000 })
+      model: TIER[quality].models.nvidia,
+      callModel: ({ system, user, model, image: modelImage, maxTokens, temperature }) =>
+        callAI(user, {
+          system, model, image: modelImage, maxTokens, temperature, json: true, timeoutMs: 35_000,
+          models: TIER[quality].models,
+          providerOrder: "gemini,groq,nvidia",
+          thinkingLevel: TIER[quality].thinking
+        })
     });
     /* Report the duration actually used. The request is clamped to
        AI_MAX_DUR_MS, so a client that asked for longer must not go on
        believing it got what it asked for and label the clip with the wrong
        length. */
-    return res.json({ success: true, scene, dur, credits: await credits.state(req) });
+    return res.json({
+      success: true, scene, dur,
+      ai: { mode: launchBoost ? "launch-free" : quality, label: launchBoost ? "Launch model" : TIER[quality].label },
+      credits: await credits.state(req)
+    });
   } catch (err) {
     // nobody pays for our failure
-    await credits.refund(req, "animate");
+    await credits.refund(req, billKind);
     const bad = err instanceof anim.BadScene;
     console.error("[/api/animate]", bad ? "rejected: " : "", err.message);
     return res.status(bad ? 422 : 502).json({
@@ -1553,6 +2000,12 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
     });
   }
   const tpl = clips[0].tpl;
+  let sourceMetricId = tpl;
+  const sourceTemplateId = String(b.sourceTemplateId || "").slice(0, 80);
+  if (/^comm_[a-z0-9]+$/i.test(sourceTemplateId)) {
+    const source = await community.get(sourceTemplateId);
+    if (source && source.tpl === tpl) sourceMetricId = sourceTemplateId;
+  }
 
   const ar = EXPORT_LIMITS.aspects[aspect];
   // "720p" / "1080p" means the SHORT side, the way creators mean it: a 9:16
@@ -1673,7 +2126,7 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
       } finally {
         await compiler.close().catch(() => {});
       }
-    });
+    }, ent.plan);
 
     res.setHeader("Content-Type", "video/mp4");
     res.setHeader("Content-Length", String(mp4.length));
@@ -1681,6 +2134,20 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
       `attachment; filename="shortscraft-${tpl}-${aspect.replace(":", "x")}.mp4"`);
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Credits-Left", String((await credits.state(req)).left));
+    const exportSession = crypto.createHash("sha256")
+      .update(String(req.credits?.token || req.user?.id || req.ip || "anonymous"))
+      .digest("hex").slice(0, 32);
+    try {
+      await social.recordEvent(
+        sourceMetricId,
+        req.user,
+        "export",
+        exportSession,
+        req._creditChargeIds?.export ? `template-export:${req._creditChargeIds.export}` : null
+      );
+    } catch (metricErr) {
+      console.warn("[export metric]", metricErr.message);
+    }
     return res.end(mp4);
   } catch (err) {
     await credits.refund(req, "export");
@@ -1796,6 +2263,8 @@ const PAGES = {
   "/terms": "terms.html",
   "/login": "login.html",
   "/signup": "signup.html",
+  "/forgot-password": "forgot-password.html",
+  "/reset-password": "reset-password.html",
   "/account": "account.html",
   "/tutorials": "tutorials.html",
   "/uploads": "uploads.html",
@@ -1803,34 +2272,11 @@ const PAGES = {
   "/settings": "settings.html",
   "/template": "template.html",
   "/creator": "creator.html",
-
-  // The SEO Tools workspace itself. It must be registered here as well as the
-  // keyword URLs below — without it /seo-tools 404s even though the footer,
-  // the pricing CTA and the /generator redirect all point at it.
-  "/seo-tools": "seo-tools.html",
-
-  // Legacy SEO tool URLs now open the new SEO Tools workspace.
-  "/youtube-shorts-script-generator": "seo-tools.html",
-  "/youtube-shorts-title-generator": "seo-tools.html",
-  "/youtube-shorts-hashtag-generator": "seo-tools.html",
-  "/youtube-shorts-description-generator": "seo-tools.html",
-  "/youtube-shorts-ideas-generator": "seo-tools.html",
-  "/ai-thumbnail-prompt-generator": "seo-tools.html",
+  "/admin": "admin.html",
 };
 
 for (const [route, file] of Object.entries(PAGES)) {
   app.get(route, (req, res) => {
-    if (file === "seo-tools.html") {
-      try {
-        res.type("html").send(renderSeoToolsPage(route));
-        return;
-      } catch (err) {
-        console.error("[seo page render]", route, err.message);
-        res.status(500).send("Could not render page");
-        return;
-      }
-    }
-
     const filePath = path.join(__dirname, "public", file);
     res.sendFile(filePath, (err) => {
       if (err) {

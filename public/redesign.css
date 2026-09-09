@@ -1,0 +1,2690 @@
+/* ============================================================
+   ShortsCraft product shell — September 2026 redesign
+
+   Intent: quiet, professional software UI. Light is the default; dark is an
+   equal theme, not a separate page. This file deliberately comes last so the
+   existing editor/gallery behaviour can be retained while its visual system
+   is replaced progressively.
+   ============================================================ */
+
+.sc-support-conversation { margin-top: 24px; min-width: 0; scroll-margin-top: 90px; }
+.sc-support-message { border-bottom: 1px solid var(--sc-border); padding: 16px 0; }
+.sc-support-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sc-support-message time { color: var(--sc-muted); font-size: 12px; }
+.sc-support-reply { display: grid; gap: 12px; max-width: none; margin-top: 20px; }
+.sc-support-reply textarea { box-sizing: border-box; width: 100%; resize: vertical; min-height: 100px; padding: 12px; font: inherit; color: var(--sc-text); background: var(--sc-surface); border: 1px solid var(--sc-border); border-radius: 8px; }
+.sc-support-conversation:focus-visible { outline: 2px solid var(--sc-brand); outline-offset: 4px; }
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --sc-canvas: #f7f7f5;
+  --sc-surface: #ffffff;
+  --sc-surface-2: #f1f1ee;
+  --sc-surface-3: #e9e9e5;
+  --sc-text: #1c1c1a;
+  --sc-muted: #686863;
+  --sc-subtle: #8a8a84;
+  --sc-border: #ddddda;
+  --sc-border-strong: #c9c9c4;
+  --sc-brand: #2856d8;
+  --sc-brand-hover: #1f46b5;
+  --sc-brand-soft: #edf2ff;
+  --sc-danger: #b42318;
+  --sc-success: #18794e;
+  --sc-shadow-sm: 0 1px 2px rgba(20, 20, 18, .06);
+  --sc-shadow-md: 0 12px 28px rgba(20, 20, 18, .09);
+  --sc-radius-sm: 8px;
+  --sc-radius: 12px;
+  --sc-radius-lg: 18px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --sc-canvas: #11110f;
+  --sc-surface: #191917;
+  --sc-surface-2: #20201e;
+  --sc-surface-3: #292926;
+  --sc-text: #f4f4f1;
+  --sc-muted: #ababA4;
+  --sc-subtle: #85857f;
+  --sc-border: #30302c;
+  --sc-border-strong: #45453f;
+  --sc-brand: #82a0ff;
+  --sc-brand-hover: #a4b7ff;
+  --sc-brand-soft: #202a47;
+  --sc-danger: #ff8e87;
+  --sc-success: #66d39e;
+  --sc-shadow-sm: 0 1px 2px rgba(0, 0, 0, .28);
+  --sc-shadow-md: 0 16px 34px rgba(0, 0, 0, .34);
+}
+
+html,
+html body.sh-body {
+  background: var(--sc-canvas) !important;
+  background-image: none !important;
+  color: var(--sc-text) !important;
+}
+
+body.sh-body {
+  --sh-ink: var(--sc-text);
+  --sh-ink2: var(--sc-muted);
+  --sh-ink3: var(--sc-subtle);
+  --sh-ink4: var(--sc-subtle);
+  --sh-bg1: var(--sc-surface);
+  --sh-bg2: var(--sc-surface-2);
+  --sh-bg3: var(--sc-surface-3);
+  --sh-card: var(--sc-surface);
+  --sh-line: var(--sc-border);
+  --sh-line2: var(--sc-border-strong);
+  min-height: 100vh;
+}
+
+body.sh-body ::selection { background: #cfdcff; color: #101b3f; }
+body.sh-body :focus-visible:not(input):not(textarea):not(select) {
+  outline-color: var(--sc-brand);
+}
+
+/* Global header ---------------------------------------------------------- */
+.sh-rail { display: none !important; }
+.sh-wrap { display: block; min-height: 100vh; overflow: visible; }
+.sh-main {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  overflow: visible;
+}
+
+.sh-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  padding: 0 max(24px, calc((100vw - 1320px) / 2));
+  background: color-mix(in srgb, var(--sc-surface) 94%, transparent);
+  border-bottom: 1px solid var(--sc-border);
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.sh-topbrand,
+.sh-topbrand .sh-brand-name {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  color: var(--sc-text) !important;
+}
+.sh-topbrand { gap: 9px; }
+.sh-topbrand .sh-brand-mark,
+.pg-wordmark .sh-brand-mark {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--sc-border-strong);
+  box-shadow: none;
+  animation: none;
+}
+.sh-brand-name { color: var(--sc-text) !important; font-size: 18px; }
+.sh-brand-name i { color: var(--sc-subtle) !important; }
+
+.sh-primary-nav {
+  display: flex;
+  align-items: stretch;
+  align-self: stretch;
+  gap: 4px;
+}
+.sh-primary-nav a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  color: var(--sc-muted) !important;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.sh-primary-nav a:hover { color: var(--sc-text) !important; }
+.sh-primary-nav a[aria-current="page"] { color: var(--sc-text) !important; }
+.sh-primary-nav a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--sc-text);
+}
+
+.sh-top-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.sh-credit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface);
+  color: var(--sc-text) !important;
+  box-shadow: var(--sc-shadow-sm);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.sh-credit-plan {
+  padding-right: 8px;
+  border-right: 1px solid var(--sc-border);
+  color: var(--sc-muted);
+  font-weight: 650;
+}
+.sh-credit-balance { font-variant-numeric: tabular-nums; font-weight: 650; }
+
+.sh-theme-toggle {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface);
+  color: var(--sc-muted);
+  cursor: pointer;
+  box-shadow: var(--sc-shadow-sm);
+}
+.sh-notification-wrap { position: relative; }
+.sh-notification-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--sc-border);
+  border-radius: 10px;
+  background: var(--sc-surface);
+  color: var(--sc-muted);
+  cursor: pointer;
+}
+.sh-notification-btn svg { width: 18px; height: 18px; }
+/* The unread count only. The button also carries a visible text label in
+   the rail, and styling every span as the badge turned that label into a
+   red pill reading "Notifications". */
+.sh-notification-btn > span:not(.sh-nav-label) {
+  position: absolute;
+  right: -4px;
+  top: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--sc-surface);
+  border-radius: 20px;
+  background: #c83f31;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 750;
+}
+.sh-notification-panel {
+  position: absolute;
+  z-index: 200;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(380px, calc(100vw - 24px));
+  max-height: 480px;
+  overflow: auto;
+  border: 1px solid var(--sc-border);
+  border-radius: 14px;
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  box-shadow: var(--sc-shadow-md);
+}
+.sh-notification-panel > header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--sc-border);
+  background: var(--sc-surface);
+}
+.sh-notification-panel header button { border: 0; background: none; color: var(--sc-brand); font-weight: 650; cursor: pointer; }
+.sh-notification-item { display: flex; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--sc-border); color: inherit; text-decoration: none; }
+.sh-notification-item[data-read="false"] { background: var(--sc-brand-soft); }
+.sh-notification-item-avatar { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--sc-surface-2); font-size: 11px; font-weight: 750; }
+.sh-notification-item p { margin: 0; color: var(--sc-muted); font-size: 13px; line-height: 1.45; }
+.sh-notification-item p strong { color: var(--sc-text); }
+.sh-notification-item time { display: block; margin-top: 3px; color: var(--sc-subtle); font-size: 11px; }
+.sh-notification-empty { margin: 0; padding: 28px 18px; text-align: center; color: var(--sc-muted); font-size: 13px; }
+.sh-theme-toggle:hover { color: var(--sc-text); border-color: var(--sc-border-strong); }
+.sh-theme-toggle svg { width: 17px; height: 17px; }
+.sh-theme-sun { display: none; }
+:root[data-theme="dark"] .sh-theme-sun { display: block; }
+:root[data-theme="dark"] .sh-theme-moon { display: none; }
+
+/* .sh-tupload-btn is deliberately absent here: it is defined once, further
+   down, together with its own background. Listing it in a shared sizing rule
+   that also forces a colour is what produced three competing !important
+   colours for one button. */
+.sh-create-btn,
+.sh-top-actions .sh-tline,
+.sh-top-actions .sh-tlink {
+  min-height: 38px;
+  height: 38px;
+  border-radius: var(--sc-radius-sm);
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+  font: 650 13px/1 var(--sh-font);
+  box-shadow: none;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.sh-create-btn {
+  background: var(--sc-text);
+  border: 1px solid var(--sc-text);
+  color: var(--sc-surface) !important;
+}
+.sh-create-btn:hover { opacity: .86; }
+.sh-top-actions .sh-tline,
+.sh-top-actions .sh-tlink {
+  background: var(--sc-surface);
+  border: 1px solid var(--sc-border);
+  color: var(--sc-text) !important;
+}
+.sh-tupload-btn::after,
+.sh-top-actions .sh-tline::after { display: none; }
+.sh-top-actions .sh-tline:hover,
+.sh-top-actions .sh-tlink:hover {
+  transform: none;
+  background: var(--sc-surface-2);
+  border-color: var(--sc-border-strong);
+  color: var(--sc-text) !important;
+  box-shadow: none;
+}
+
+#navBurger { order: -1; }
+body.sh-body #navBurger span { background: var(--sc-text); }
+body.sh-body #navMobile:not([hidden]) {
+  position: fixed;
+  top: 68px;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: calc(100dvh - 68px);
+  padding: 12px 18px max(18px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--sc-surface);
+  border-bottom: 1px solid var(--sc-border);
+  box-shadow: var(--sc-shadow-md);
+}
+body.sh-body #navMobile a,
+body.sh-body #navMobile button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: transparent;
+  color: var(--sc-text) !important;
+  font: 600 15px/1 var(--sh-font);
+  text-align: left;
+}
+body.sh-body #navMobile a:hover,
+body.sh-body #navMobile button:hover { background: var(--sc-surface-2); }
+body.sh-body #navMobile .sh-mfill {
+  margin-top: 8px;
+  justify-content: center;
+  background: var(--sc-text);
+  color: var(--sc-surface) !important;
+}
+
+/* Homepage --------------------------------------------------------------- */
+.sh-home {
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  padding: 0 24px 72px;
+}
+.sh-hero {
+  padding: clamp(56px, 8vw, 104px) 16px 20px;
+  overflow: visible;
+  text-align: center;
+}
+.sh-hero::before { display: none; }
+.sh-home-kicker {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--sc-brand);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.sh-hero h1 {
+  max-width: 760px;
+  margin: 0 auto 14px;
+  color: var(--sc-text);
+  font-family: var(--sh-display);
+  font-size: clamp(38px, 5.3vw, 64px);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -.045em;
+}
+.sh-hero-sub {
+  max-width: 620px;
+  color: var(--sc-muted);
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.6;
+}
+
+.sh-composer {
+  width: min(780px, 100%);
+  max-width: none;
+  margin: 20px auto 72px;
+  padding: 16px;
+  border: 1px solid var(--sc-border-strong);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-md);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.sh-composer:hover,
+.sh-composer:focus-within {
+  border-color: var(--sc-text);
+  box-shadow: var(--sc-shadow-md);
+}
+.sh-composer textarea {
+  min-height: 68px;
+  padding: 3px 2px;
+  color: var(--sc-text);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.sh-composer textarea::placeholder { color: var(--sc-subtle); }
+.sh-cbar { border-color: var(--sc-border); }
+.sh-imgbtn,
+.sh-imgchip,
+.sh-csel-btn {
+  border-color: var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface);
+  color: var(--sc-muted);
+}
+.sh-imgbtn:hover,
+.sh-imgchip:hover,
+.sh-csel-btn:hover {
+  transform: none;
+  border-color: var(--sc-border-strong);
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+}
+.sh-csel-menu {
+  border-color: var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-md);
+  backdrop-filter: none;
+}
+.sh-csel-opt:hover,
+.sh-csel-opt.selected { transform: none; background: var(--sc-surface-2); }
+.sh-csel-opt-main b { color: var(--sc-text); }
+.sh-csel-opt-main span { color: var(--sc-muted); }
+.sh-csel-check { stroke: var(--sc-text); }
+.sh-cgo {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-brand);
+  /* No !important: shell.css no longer forces a colour here, so ordinary
+     specificity works - and it has to, or the disabled rule below can
+     never override this and the button reads white-on-grey. */
+  color: #fff;
+  box-shadow: none;
+}
+.sh-cgo::after { display: none; }
+.sh-cgo:hover:not(:disabled) { transform: none; background: var(--sc-text); opacity: .86; box-shadow: none; }
+
+.sh-gallery-sec { padding: 0 0 36px; overflow: visible; }
+.sh-gallery-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+  margin: 0 0 22px;
+  padding-top: 4px;
+  border-top: 1px solid var(--sc-border);
+}
+.sh-gallery-title > div { padding-top: 42px; }
+.sh-gallery-title .sh-home-kicker { margin-bottom: 9px; }
+.sh-gallery-title h2 {
+  margin: 0;
+  color: var(--sc-text);
+  font-family: var(--sh-display);
+  font-size: clamp(27px, 3.4vw, 40px);
+  font-weight: 650;
+  letter-spacing: -.035em;
+}
+.sh-gallery-title > p {
+  max-width: 390px;
+  margin: 0 0 3px;
+  color: var(--sc-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: right;
+}
+.sh-ghead { padding: 0 0 18px; }
+.sh-search-bar-row { align-items: center; gap: 10px; }
+.sh-search-box {
+  flex: 0 0 250px;
+  height: 42px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-sm);
+}
+.sh-search-box:focus-within { border-color: var(--sc-text); box-shadow: none; }
+.sh-search-box input { color: var(--sc-text); }
+.sh-search-box input::placeholder { color: var(--sc-subtle); }
+.sh-filters-scroll { gap: 6px; }
+.sh-chip {
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface);
+  color: var(--sc-muted);
+  font-size: 12.5px;
+}
+.sh-chip:hover { background: var(--sc-surface-2); border-color: var(--sc-border-strong); color: var(--sc-text); }
+.sh-chip.active,
+.sh-chip[aria-pressed="true"] {
+  border-color: var(--sc-text);
+  background: var(--sc-text);
+  color: var(--sc-surface) !important;
+}
+
+.sh-gallery {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px 16px;
+  padding: 0;
+}
+.sh-tile {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.sh-tile:hover { transform: none; border: 0; box-shadow: none; }
+.sh-stage {
+  aspect-ratio: 9 / 14;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: #0d0d0c;
+  box-shadow: none;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .18s ease;
+}
+.sh-tile:hover .sh-stage {
+  transform: translateY(-2px);
+  border-color: var(--sc-border-strong);
+  box-shadow: var(--sc-shadow-md);
+}
+.sh-skel { background: var(--sc-surface-2); color: var(--sc-subtle); animation: none; }
+.sh-pro-badge,
+.sh-comm-badge { display: none !important; }
+.sh-card-hover-bar { opacity: 1; transform: none; }
+.sh-card-btn {
+  border-color: rgba(255,255,255,.24);
+  background: rgba(16,16,15,.84);
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.sh-card-btn.open { background: #fff; color: #111; }
+.sh-card-btn:hover { transform: none; opacity: .82; }
+.sh-tmeta { padding: 10px 1px 0; }
+.sh-ttitle { color: var(--sc-text); font-size: 14px; font-weight: 650; }
+.sh-tdesc { color: var(--sc-muted); font-size: 12px; -webkit-line-clamp: 2; min-height: 32px; }
+.sh-tcreator-name { color: var(--sc-text); }
+.sh-tcreator-handle { color: var(--sc-subtle); }
+.sh-tcreator-avatar { border-color: var(--sc-border); background: var(--sc-surface-2); color: var(--sc-text); }
+.sh-tact-bar { border-color: var(--sc-border); }
+.sh-tact-btn { color: var(--sc-muted); }
+.sh-tact-btn:hover { color: var(--sc-text); background: var(--sc-surface-2); }
+.sh-tact-btn.liked { color: #c22835; }
+.sh-verified {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  margin-left: 4px;
+  vertical-align: -2px;
+  color: #2476df;
+}
+.sh-verified svg { width: 100%; height: 100%; }
+.sh-empty-state { color: var(--sc-muted); }
+
+/* Homepage must stay focused: prompt first, templates second. */
+.sh-workflow-sec,
+.sh-banner-sec,
+.sh-finale { display: none !important; }
+
+/* Shared content pages --------------------------------------------------- */
+.pg {
+  --ink: var(--sc-text);
+  --ink2: var(--sc-muted);
+  --ink3: var(--sc-subtle);
+  --ink4: var(--sc-subtle);
+  --bg1: var(--sc-surface);
+  --bg2: var(--sc-surface-2);
+  --bg3: var(--sc-surface-3);
+  --line: var(--sc-border);
+  --line2: var(--sc-border-strong);
+  width: min(1120px, 100%);
+  max-width: none;
+  margin: 0 auto;
+  padding: 56px 24px 88px;
+  color: var(--sc-text);
+}
+.pg-head { border-color: var(--sc-border); }
+.pg-head h1,
+.pg-sec > h2,
+.pg-card h3,
+.pg-card h2,
+.pg-prose strong,
+.pg-accsec-head h2 { color: var(--sc-text); }
+.pg-head > p,
+.pg-prose p,
+.pg-prose li,
+.pg-card p { color: var(--sc-muted); }
+.pg-card,
+.pg-plan,
+.pg-faq details,
+.pg-tool,
+.pg-gate {
+  border-color: var(--sc-border);
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.pg-card:hover,
+.pg-plan:hover { transform: translateY(-2px); border-color: var(--sc-border-strong); box-shadow: var(--sc-shadow-md); }
+.pg-plan.pg-hot,
+.pg-plan.pg-max { background: var(--sc-surface); border-color: var(--sc-border-strong); box-shadow: var(--sc-shadow-sm); animation: none; }
+.pg-bw,
+.pg a.pg-bw,
+.pg button.pg-bw {
+  border-radius: var(--sc-radius-sm);
+  border-color: var(--sc-text);
+  background: var(--sc-text);
+  color: var(--sc-surface) !important;
+  box-shadow: none;
+}
+.pg-bw::after { display: none; }
+.pg-bo,
+.pg a.pg-bo,
+.pg button.pg-bo {
+  border-radius: var(--sc-radius-sm);
+  border-color: var(--sc-border-strong);
+  background: var(--sc-surface);
+  color: var(--sc-text) !important;
+}
+.pg-bw:hover:not(:disabled),
+.pg-bo:hover:not(:disabled) { transform: none; box-shadow: none; opacity: .84; }
+.pg-f input,
+.pg-f select,
+.pg-f textarea { border-color: var(--sc-border); background: var(--sc-surface); color: var(--sc-text); }
+.pg-handle-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--sc-border-strong);
+  border-radius: 10px;
+  background: var(--sc-surface);
+  overflow: hidden;
+}
+.pg-handle-input > span { padding-left: 13px; color: var(--sc-muted); }
+.pg-handle-input input {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding-left: 4px !important;
+}
+.pg-f small { color: var(--sc-muted); font-size: 12px; line-height: 1.5; }
+.pg-billing-switch {
+  width: fit-content;
+  margin: 0 0 22px auto;
+  padding: 3px;
+  display: flex;
+  gap: 3px;
+  border: 1px solid var(--sc-border);
+  border-radius: 10px;
+  background: var(--sc-surface-2);
+}
+.pg-billing-switch button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--sc-muted);
+  font: 650 13px/1 var(--sh-font);
+  cursor: pointer;
+}
+.pg-billing-switch button[aria-pressed="true"] {
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  box-shadow: var(--sc-shadow-sm);
+}
+.pg-billing-switch button span { margin-left: 5px; color: var(--sc-success); font-size: 11px; }
+.pg-callout {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border-left: 3px solid var(--sc-brand);
+  background: var(--sc-brand-soft);
+  color: var(--sc-muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* Creator publishing ---------------------------------------------------- */
+.sc-publish-modal { padding: 24px; background: rgba(20, 23, 28, .46); }
+.sc-publish-card {
+  width: min(900px, 100%);
+  max-height: min(820px, calc(100vh - 48px));
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--sc-border);
+  border-radius: 18px;
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  box-shadow: var(--sc-shadow-md);
+}
+.sc-publish-head { display: flex; justify-content: space-between; gap: 20px; padding: 22px 24px 18px; border-bottom: 1px solid var(--sc-border); }
+.sc-publish-head h2 { margin: 4px 0 5px; color: var(--sc-text); font: 720 clamp(21px, 3vw, 27px)/1.2 var(--sh-display); }
+.sc-publish-head p { max-width: 650px; margin: 0; color: var(--sc-muted); font-size: 13px; line-height: 1.55; }
+.sc-publish-kicker { color: var(--sc-brand); font-size: 11px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+.sc-publish-head > button { width: 36px; height: 36px; border: 1px solid var(--sc-border); border-radius: 9px; background: var(--sc-surface-2); color: var(--sc-text); font-size: 22px; cursor: pointer; }
+.sc-publish-steps { display: flex; gap: 4px; padding: 10px 24px; border-bottom: 1px solid var(--sc-border); background: var(--sc-surface-2); }
+.sc-publish-steps button { min-height: 35px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--sc-muted); font: 650 12px/1 var(--sh-font); }
+.sc-publish-steps button[aria-current="step"] { background: var(--sc-surface); color: var(--sc-text); box-shadow: var(--sc-shadow-sm); }
+.sc-publish-body { min-height: 0; overflow: auto; padding: 22px 24px; }
+.sc-publish-panel { display: grid; gap: 16px; }
+.sc-format-note { padding: 14px 16px; border: 1px solid var(--sc-border); border-left: 3px solid var(--sc-success); border-radius: 10px; background: var(--sc-surface-2); }
+.sc-format-note.is-muted { border-left-color: var(--sc-muted); }
+.sc-format-note strong { display: block; margin-bottom: 4px; font-size: 13px; }
+.sc-format-note p { margin: 0; color: var(--sc-muted); font-size: 12.5px; line-height: 1.55; }
+.sc-publish-field { display: grid; gap: 7px; color: var(--sc-text); font-size: 13px; font-weight: 650; }
+.sc-publish-field small { color: var(--sc-muted); font-weight: 500; }
+.sc-publish-field input,
+.sc-publish-field select,
+.sc-publish-field textarea,
+.sc-publish-lines input { width: 100%; border: 1px solid var(--sc-border-strong); border-radius: 9px; background: var(--sc-surface); color: var(--sc-text); padding: 11px 12px; font: 500 14px/1.4 var(--sh-font); }
+.sc-publish-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.sc-publish-preview { width: min(250px, 100%); aspect-ratio: 9/16; margin: 4px auto; overflow: hidden; border: 1px solid var(--sc-border); border-radius: 14px; background: #0a0b0e; }
+.sc-publish-preview iframe { width: 100%; height: 100%; border: 0; }
+.sc-publish-lines,
+.sc-publish-visibility { display: grid; gap: 10px; margin: 0; padding: 0; border: 0; }
+.sc-publish-lines legend,
+.sc-publish-visibility legend { margin-bottom: 7px; font-size: 13px; font-weight: 700; }
+.sc-publish-visibility label { display: flex; align-items: flex-start; gap: 11px; padding: 13px 14px; border: 1px solid var(--sc-border); border-radius: 10px; cursor: pointer; }
+.sc-publish-visibility input { margin-top: 3px; accent-color: var(--sc-brand); }
+.sc-publish-visibility span { display: grid; gap: 3px; }
+.sc-publish-visibility small { color: var(--sc-muted); font-size: 12px; font-weight: 450; }
+.sc-publish-summary { padding: 14px 16px; border-radius: 10px; background: var(--sc-brand-soft); color: var(--sc-text); font-size: 13px; }
+.sc-publish-status { min-height: 20px; margin: 14px 0 0; color: var(--sc-muted); font-size: 13px; }
+.sc-publish-foot { display: grid; grid-template-columns: auto 1fr auto auto; gap: 9px; padding: 14px 24px; border-top: 1px solid var(--sc-border); }
+.sc-publish-foot .pg-bw,
+.sc-publish-foot .pg-bo { min-height: 40px; padding: 0 16px; }
+.ig-avatar-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.cp-title-row,
+.cp-actions { display: flex; align-items: center; gap: 9px; }
+.cp-actions { margin-left: auto; align-self: flex-start; }
+.cp-actions .pg-bw,
+.cp-actions .pg-bo { min-height: 40px; padding: 0 15px; }
+
+/* Auth pages ------------------------------------------------------------- */
+body.pg-bare,
+body.pg-auth-page {
+  background: var(--sc-canvas) !important;
+  background-image: none !important;
+  color: var(--sc-text) !important;
+}
+.pg-screen { position: relative; }
+.pg-theme-toggle { position: fixed; top: 18px; right: 18px; }
+.pg-wordmark { color: var(--sc-text); }
+.pg-screen .pg-form {
+  border-color: var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-md);
+}
+.pg-screenfoot a { color: var(--sc-muted); }
+.pg-screenfoot a:hover { color: var(--sc-text); }
+.auth-ambient { display: none !important; }
+.auth-shell {
+  border-color: var(--sc-border);
+  border-radius: 20px;
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-md);
+}
+
+/* Footer ----------------------------------------------------------------- */
+.sh-footer {
+  padding: 40px max(24px, calc((100vw - 1120px) / 2)) 26px;
+  border-color: var(--sc-border);
+  background: var(--sc-surface);
+}
+.sh-footer .sh-brand-name,
+.sh-fcol h2 { color: var(--sc-text); }
+.sh-fbrand p,
+.sh-fcol a,
+.sh-fbot { color: var(--sc-muted); }
+.sh-fcol a:hover { color: var(--sc-text); }
+.sh-fbot { border-color: var(--sc-border); }
+.sh-status { color: var(--sc-success); }
+.sh-status i { background: currentColor; box-shadow: none; }
+
+/* Creator Studio status and genuine engagement counters. */
+.cr-cre-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cr-cre-stats { margin-left: auto; display: flex; gap: 10px; color: var(--sh-ink3); font-size: 12px; }
+.cr-cre-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--sh-line);
+  border-radius: 999px;
+  color: var(--sh-ink2);
+  background: var(--sh-bg);
+  font-size: 11px;
+  font-weight: 700;
+}
+.cr-cre-state.is-published { color: #067647; border-color: rgba(6,118,71,.24); background: rgba(6,118,71,.08); }
+.cr-cre-state.is-scheduled { color: #175cd3; border-color: rgba(23,92,211,.24); background: rgba(23,92,211,.08); }
+.cr-cre-state.is-draft { color: var(--sh-ink3); }
+
+/* Solo Admin Console ------------------------------------------------------ */
+.admin-page { max-width: 1280px; }
+.admin-gate { max-width: 620px; margin: 80px auto; text-align: center; }
+.admin-gate h1 { margin: 12px 0; font: 700 clamp(32px,5vw,52px)/1.05 var(--sh-display); color: var(--sh-ink); }
+.admin-gate p { color: var(--sh-ink2); margin: 0 auto 24px; }
+.admin-tabs {
+  position: sticky; top: 70px; z-index: 8;
+  display: flex; gap: 4px; overflow-x: auto;
+  margin: 0 0 26px; padding: 5px;
+  border: 1px solid var(--sh-line); border-radius: 14px;
+  background: color-mix(in srgb, var(--sh-bg) 92%, transparent);
+  backdrop-filter: blur(14px);
+}
+.admin-tabs button { border: 0; border-radius: 10px; padding: 10px 14px; background: transparent; color: var(--sh-ink2); font: inherit; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.admin-tabs button[aria-pressed="true"] { color: var(--sh-ink); background: var(--sh-bg2); box-shadow: inset 0 0 0 1px var(--sh-line); }
+.admin-panel { min-height: 420px; }
+.admin-stat-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+.admin-stat-grid article { min-height: 126px; padding: 20px; border: 1px solid var(--sh-line); border-radius: 16px; background: var(--sh-bg2); }
+.admin-stat-grid span { display: block; color: var(--sh-ink3); font-size: 13px; }
+.admin-stat-grid strong { display: block; margin-top: 20px; color: var(--sh-ink); font: 720 34px/1 var(--sh-display); }
+.admin-list { display: grid; gap: 9px; }
+.admin-row { display: flex; align-items: center; gap: 18px; padding: 15px 16px; border: 1px solid var(--sh-line); border-radius: 14px; background: var(--sh-bg2); }
+.admin-row-main { display: grid; gap: 4px; min-width: 0; flex: 1; }
+.admin-row-main strong { color: var(--sh-ink); }
+.admin-row-main span,.admin-row-main small { overflow-wrap: anywhere; color: var(--sh-ink3); }
+.admin-row-controls { display: grid; grid-template-columns: 130px minmax(180px,300px) auto; gap: 8px; }
+.admin-row select,.admin-row input,.admin-ticket-state select,.admin-reply-form textarea { border: 1px solid var(--sh-line); border-radius: 10px; background: var(--sh-bg); color: var(--sh-ink); padding: 9px 10px; font: inherit; }
+.admin-support-layout { display: grid; grid-template-columns: minmax(250px,.8fr) minmax(380px,1.35fr); gap: 16px; align-items: start; }
+.admin-ticket-button { display: grid; gap: 4px; width: 100%; padding: 14px; text-align: left; border: 1px solid var(--sh-line); border-radius: 12px; background: var(--sh-bg2); color: var(--sh-ink); cursor: pointer; }
+.admin-ticket-button:hover { border-color: var(--sh-line2); }
+.admin-ticket-button span,.admin-ticket-button small { color: var(--sh-ink3); }
+.admin-ticket-view { position: sticky; top: 135px; padding: 18px; border: 1px solid var(--sh-line); border-radius: 16px; background: var(--sh-bg2); }
+.admin-ticket-view h3 { margin-top: 0; color: var(--sh-ink); }
+.admin-ticket-messages { display: grid; gap: 10px; max-height: 390px; margin: 18px 0; overflow-y: auto; }
+.admin-message { padding: 12px; border-radius: 12px; background: var(--sh-bg); color: var(--sh-ink2); }
+.admin-message.is-admin { margin-left: 30px; background: color-mix(in srgb, var(--sh-accent) 10%, var(--sh-bg)); }
+.admin-message p { white-space: pre-wrap; }
+.admin-message small { color: var(--sh-ink3); }
+.admin-reply-form { display: grid; gap: 8px; }
+.admin-ticket-state { display: flex; gap: 8px; margin-top: 12px; }
+.admin-flag-row > input { width: 20px; height: 20px; accent-color: var(--sh-accent); }
+.creator-studio-stats { margin-bottom: 34px; }
+.creator-studio-tools { margin-top: 42px; }
+
+@media (max-width: 900px) {
+  .admin-stat-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .admin-support-layout { grid-template-columns: 1fr; }
+  .admin-ticket-view { position: static; }
+  .admin-row { align-items: stretch; flex-direction: column; }
+  .admin-row-controls { grid-template-columns: 1fr; width: 100%; }
+}
+
+/* Responsive ------------------------------------------------------------- */
+@media (max-width: 1120px) {
+  .sh-credit-chip { display: none; }
+  .sh-primary-nav { gap: 0; }
+  .sh-primary-nav a { padding-inline: 9px; }
+}
+
+@media (max-width: 900px) {
+  body.sh-body #navBurger { display: flex; width: 42px; height: 42px; }
+  .sh-primary-nav { display: none; }
+  .sh-topbar { height: 68px; padding: 0 18px; gap: 10px; }
+  .sh-top-actions { gap: 7px; }
+  .sh-top-actions > .sh-tlink,
+  .sh-top-actions > .sh-tline,
+  .sh-top-actions > .sh-tupload-btn { display: none !important; }
+  .sh-gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .sh-home { padding-inline: 16px; }
+  .sh-hero { padding-top: 54px; }
+  .sh-composer { margin-bottom: 56px; }
+  .sh-gallery-title { align-items: start; flex-direction: column; gap: 10px; }
+  .sh-gallery-title > p { text-align: left; }
+  .sh-search-bar-row { align-items: stretch; flex-direction: column; }
+  .sh-search-box { flex-basis: 44px; width: 100%; }
+  .sh-filters-scroll { width: 100%; }
+  .sh-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 10px; }
+  .pg { padding: 38px 18px 70px; }
+}
+
+@media (max-width: 520px) {
+  .sh-topbrand .sh-brand-name { display: none; }
+  .sh-topbar { padding-inline: 12px; }
+  .sh-top-actions { margin-left: auto; }
+  .sh-create-btn { min-width: 0; padding-inline: 11px; font-size: 12.5px; }
+  .sh-theme-toggle { width: 40px; height: 40px; }
+  .sh-hero h1 { font-size: clamp(34px, 11vw, 46px); }
+  .sh-hero-sub { font-size: 15px; }
+  .sh-composer { padding: 13px; }
+  .sh-cbar { flex-wrap: wrap; }
+  .sh-custom-select { max-width: calc(100% - 54px); }
+  .sh-csel-btn { max-width: 100%; }
+  .sh-cgrow { display: none; }
+  .sh-cgo { width: 100%; justify-content: center; order: 5; }
+  .sh-gallery-title > div { padding-top: 32px; }
+  .sh-tdesc { display: none; }
+  .sh-tact-bar { grid-template-columns: repeat(3, 1fr); }
+  .sh-tact-btn { min-width: 0; padding-inline: 3px; font-size: 10.5px; }
+  .sh-footer { padding-inline: 18px; }
+  .sc-publish-modal { padding: 0; }
+  .sc-publish-card { max-height: 100vh; min-height: 100vh; border: 0; border-radius: 0; }
+  .sc-publish-head,
+  .sc-publish-body,
+  .sc-publish-foot { padding-left: 16px; padding-right: 16px; }
+  .sc-publish-steps { padding-left: 12px; padding-right: 12px; overflow-x: auto; }
+  .sc-publish-grid { grid-template-columns: 1fr; }
+  .cp-actions { width: 100%; margin: 8px 0 0; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-stage,
+  .sh-tile,
+  .pg-card,
+  .pg-plan { transition: none !important; animation: none !important; }
+}
+
+/* ============================================================
+   Density + card framing pass — September 2026
+
+   The light redesign was correct about restraint but read as a
+   generic document site: the gallery lost its identity as a video
+   product. Three concrete causes, fixed here rather than by
+   abandoning the light theme.
+
+   1. Every preview stage was 9/14 while the template engine renders
+      a fixed 9/16 canvas. A 9/16 canvas letterboxed inside a wider
+      9/14 frame leaves a dark bar down each side, so 58 cards read
+      as a wall of black rectangles. Matching the stage to the
+      content removes the bars entirely.
+
+   2. Vertical rhythm was tuned for a marketing page, not a library.
+      A creator opening the gallery wants to see templates, not one
+      hero filling the fold.
+
+   3. Hover feedback was stripped to `transform: none` everywhere.
+      Restraint means no decoration; it does not mean the interface
+      should stop responding to the pointer. Motion here is opacity
+      and transform only, so it stays off the main thread, and the
+      whole block yields to prefers-reduced-motion below.
+   ============================================================ */
+
+/* 1. Preview stages match the 9/16 the engine actually renders. */
+.sh-stage {
+  aspect-ratio: 9 / 16;
+  border-color: var(--sc-border-strong);
+  /* A dark preview against a light page needs a defined edge, or it
+     reads as a hole punched in the layout. The inset hairline does
+     that without adding a visible decorative frame. */
+  box-shadow:
+    0 1px 2px rgba(20, 20, 18, .06),
+    inset 0 0 0 1px rgba(255, 255, 255, .07);
+}
+
+/* 2. Tighter vertical rhythm so templates reach the fold. */
+.sh-hero { padding: clamp(32px, 4.2vw, 58px) 16px 14px; }
+.sh-hero h1 {
+  margin-bottom: 10px;
+  font-size: clamp(31px, 3.6vw, 46px);
+  line-height: 1.05;
+}
+.sh-hero-sub { font-size: clamp(14px, 1.15vw, 16px); }
+.sh-composer { margin: 16px auto 40px; }
+.sh-gallery-title { margin-bottom: 16px; }
+.sh-gallery-title > div { padding-top: 24px; }
+.sh-gallery-title h2 { font-size: clamp(21px, 2.4vw, 29px); }
+.sh-gallery-sec { padding-bottom: 28px; }
+
+/* More templates per screen; the card, not the gutter, is the point. */
+.sh-gallery { gap: 18px 14px; }
+@media (min-width: 1500px) {
+  .sh-gallery { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/* 3. The interface responds to the pointer again. */
+.sh-tile:hover .sh-stage {
+  transform: translateY(-3px);
+  border-color: var(--sc-brand);
+  box-shadow:
+    0 10px 24px rgba(20, 20, 18, .13),
+    inset 0 0 0 1px rgba(255, 255, 255, .07);
+}
+.sh-card-btn {
+  transition: transform .14s ease, opacity .14s ease;
+}
+.sh-card-btn:hover { transform: scale(1.06); opacity: 1; }
+.sh-cgo:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--sc-shadow-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-tile:hover .sh-stage,
+  .sh-card-btn:hover,
+  .sh-cgo:hover:not(:disabled) { transform: none; }
+}
+
+/* ============================================================
+   Sidebar workspace layout — September 2026
+
+   The plan asked for "one shared full-width top navigation" and
+   "no duplicated or conflicting desktop sidebars", so the rail was
+   hidden outright. The real problem was the *duplicate* — the rail
+   and the topbar both carried the same destinations. A creator tool
+   still wants a persistent rail: it keeps Create, the library, the
+   projects and the plan one click away from every page, instead of
+   burying them behind a nav that scrolls with the page.
+
+   So the rail comes back as the single navigation surface, and the
+   topbar gives up its copy of the same links rather than the rail
+   being deleted to resolve the conflict.
+
+   The markup already exists in build_pages.js; only the layout and
+   the dark-era styling needed replacing.
+   ============================================================ */
+
+:root,
+:root[data-theme="light"] {
+  /* Nothing on the page is pure white any more. Cards still separate
+     from the page, but the whole surface sits a step down from #fff
+     so it reads as a workspace rather than a blank document. */
+  --sc-canvas: #e9e7e1;
+  --sc-surface: #f7f6f2;
+  --sc-surface-2: #eeece6;
+  --sc-surface-3: #e3e1d9;
+  --sc-border: #d5d2c9;
+  --sc-border-strong: #bcb8ad;
+  --sc-rail: #f2f0eb;
+  --sh-rail: 250px;
+}
+:root[data-theme="dark"] { --sc-rail: #171715; }
+
+@media (min-width: 1060px) {
+  .sh-rail {
+    display: flex !important;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 110;
+    width: var(--sh-rail);
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px 14px;
+    border-right: 1px solid var(--sc-border);
+    background: var(--sc-rail);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* The rail owns navigation, so the topbar drops its duplicate set
+     and keeps only account-level controls. */
+  .sh-primary-nav { display: none !important; }
+  .sh-topbrand { display: none !important; }
+  .sh-top-actions { margin-left: auto; }
+
+  /* .sh-main is the only element offset past the rail — the topbar and
+     footer live inside it, so offsetting them too would double the gap
+     and push the layout off the right edge. The redesign forced
+     width:100%, which with a left margin overflows by the rail width;
+     auto lets it fill exactly what is left. */
+  .sh-main {
+    margin-left: var(--sh-rail) !important;
+    width: auto !important;
+  }
+  .sh-topbar { padding-left: 24px; padding-right: 24px; }
+  .sh-footer { padding-left: 24px; padding-right: 24px; }
+}
+
+/* Rail contents, restyled off the dark gradient they were built for. */
+.sh-rail .sh-brand,
+.sh-rail .sh-brand-name { color: var(--sc-text); }
+.sh-rail .sh-brand-name i { color: var(--sc-muted); font-style: normal; }
+
+.sh-rail .sh-social a {
+  border: 1px solid var(--sc-border);
+  background: var(--sc-surface);
+  color: var(--sc-muted);
+}
+.sh-rail .sh-social a:hover {
+  border-color: var(--sc-border-strong);
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+  transform: translateY(-1px);
+}
+
+.sh-rail .sh-cta {
+  border: 0;
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+  box-shadow: var(--sc-shadow-sm);
+}
+.sh-rail .sh-cta::after { display: none; }
+.sh-rail .sh-cta:hover {
+  transform: translateY(-1px);
+  opacity: .92;
+  box-shadow: var(--sc-shadow-md);
+}
+
+.sh-rail .sh-nav a {
+  border: 0;
+  background: transparent;
+  color: var(--sc-muted);
+  font-weight: 550;
+}
+.sh-rail .sh-nav a:hover {
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+}
+.sh-rail .sh-nav a[aria-current="page"] {
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  font-weight: 650;
+  box-shadow: var(--sc-shadow-sm);
+}
+
+.sh-rail .sh-rail-foot { margin-top: auto; display: grid; gap: 10px; }
+.sh-rail .sh-plan-badge {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  box-shadow: none;
+}
+.sh-rail .sh-plan-badge:hover {
+  border-color: var(--sc-border-strong);
+  box-shadow: var(--sc-shadow-sm);
+}
+.sh-rail .sh-plan-credits,
+.sh-rail .sh-plan-rates { color: var(--sc-muted); }
+.sh-rail .sh-plan-upgrade-link { color: var(--sc-brand); font-weight: 650; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-rail .sh-cta:hover,
+  .sh-rail .sh-social a:hover { transform: none; }
+}
+
+/* Rail text colours.
+
+   The rail's contents were written for a dark gradient, so every
+   label was white and the accent pills were neon on translucent
+   violet. Dropped onto a light rail they measured between 1.0 and
+   2.6:1 against their own background — the account menu was, in
+   practice, invisible. These restate each one against the light
+   surface it now sits on rather than leaving the rail hidden. */
+.sh-rail .sh-cta,
+.sh-rail .sh-cta span,
+.sh-rail .sh-cta svg { color: var(--sc-canvas); fill: currentColor; }
+
+.sh-rail .sh-plan-badge-head b { color: var(--sc-text); }
+.sh-rail .sh-plan-arrow { color: var(--sc-muted); }
+
+.sh-rail .sh-user-popover,
+.sh-rail .sh-user-trigger {
+  border: 1px solid var(--sc-border);
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-md);
+}
+.sh-rail .sh-upop-name,
+.sh-rail .sh-user-trigger-name,
+.sh-rail .sh-upop-link b,
+.sh-rail .sh-upop-item b { color: var(--sc-text); }
+.sh-rail .sh-upop-handle,
+.sh-rail .sh-upop-email { color: var(--sc-muted); }
+
+.sh-rail .sh-upop-av,
+.sh-rail .sh-user-trigger-av {
+  border: 1px solid var(--sc-border);
+  background: var(--sc-surface-3);
+  color: var(--sc-text);
+}
+
+.sh-rail .sh-upop-plan-pill {
+  border: 1px solid var(--sc-border);
+  background: var(--sc-brand-soft);
+  color: var(--sc-brand-hover);
+}
+.sh-rail .sh-upop-credits-pill {
+  border: 1px solid var(--sc-border);
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+}
+
+.sh-rail .sh-upop-link:hover,
+.sh-rail .sh-upop-item:hover { background: var(--sc-surface-2); }
+.sh-rail [class*="logout"],
+.sh-rail [class*="logout"] span { color: var(--sc-danger); }
+
+/* ============================================================
+   Workspace pass — 3 September 2026
+
+   Four corrections, all from watching the product being used rather
+   than from the spec:
+
+   1. The composer was sized like a landing-page hero and pushed the
+      template grid out of the first screen. It is an input, not the
+      headline: a smaller one asks the same question.
+   2. Navigation had drifted back into a popover hanging off the
+      account chip. Every destination now lives in the rail itself.
+   3. The top bar had collected eight controls. It keeps four —
+      credits, upload, account, log out — and nothing else.
+   4. Almost every control had an outline. Borders were doing the work
+      that weight, spacing and a single filled button should do.
+   ============================================================ */
+
+/* 1. A smaller composer, so templates start in the fold. */
+.sh-hero { padding: clamp(24px, 3vw, 40px) 16px 10px; }
+.sh-hero h1 { font-size: clamp(26px, 2.7vw, 36px); margin-bottom: 8px; }
+.sh-hero-sub { font-size: clamp(13.5px, 1vw, 15px); }
+.sh-home-kicker { margin-bottom: 9px; font-size: 11px; }
+.sh-composer {
+  width: min(660px, 100%);
+  margin: 12px auto 30px;
+  padding: 12px;
+  border-radius: var(--sc-radius);
+}
+.sh-composer textarea,
+.sh-composer .sh-cinput { min-height: 62px; font-size: 14.5px; }
+
+/* 2. Rail rows, including the two controls that moved in from the top. */
+.sh-rail .sh-nav { gap: 1px; }
+.sh-rail .sh-nav a,
+.sh-rail .sh-notification-btn,
+.sh-rail .sh-theme-toggle {
+  width: 100%;
+  height: auto;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: transparent;
+  box-shadow: none;
+  color: var(--sc-muted);
+  font-size: 13.5px;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+}
+.sh-rail .sh-notification-btn:hover,
+.sh-rail .sh-theme-toggle:hover { background: var(--sc-surface-2); color: var(--sc-text); }
+.sh-rail .sh-nav svg,
+.sh-rail .sh-notification-btn svg,
+.sh-rail .sh-theme-toggle svg { width: 17px; height: 17px; flex: none; }
+.sh-rail .sh-notification-wrap { position: relative; width: 100%; }
+.sh-rail .sh-notification-btn > span:not(.sh-nav-label) {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 1px 6px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--sc-danger);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.sh-rail .sh-notification-panel {
+  left: 0;
+  right: auto;
+  width: min(340px, calc(100vw - 40px));
+}
+/* Which of the two theme icons shows is already decided further up this
+   file (light shows the moon you would press to go dark, and vice versa).
+   Restating it here inverted hid both at once, leaving a labelled row with
+   no icon — so this only restores the sizing the rail rows expect. */
+.sh-rail .sh-theme-toggle svg { display: block; }
+:root .sh-rail .sh-theme-sun { display: none; }
+:root[data-theme="dark"] .sh-rail .sh-theme-sun { display: block; }
+:root[data-theme="dark"] .sh-rail .sh-theme-moon { display: none; }
+
+/* The account chip is identity, not a menu — its destinations are rows
+   in the rail now, so the popover it used to open is gone. */
+.sh-user-popover { display: none !important; }
+
+/* 3. Four controls, and the credit chip reads as information. */
+.sh-topbar { gap: 10px; }
+.sh-credit-chip {
+  border: 0;
+  background: var(--sc-surface-2);
+  box-shadow: none;
+}
+.sh-tupload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+  font-size: 13px;
+  font-weight: 620;
+  cursor: pointer;
+}
+.sh-tupload-btn:hover { opacity: .9; }
+.sh-tlink,
+.sh-tline,
+#logoutBtn {
+  height: 36px;
+  padding: 0 11px;
+  border: 0 !important;
+  border-radius: var(--sc-radius-sm);
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--sc-muted) !important;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sh-tlink:hover,
+.sh-tline:hover,
+#logoutBtn:hover { background: var(--sc-surface-2) !important; color: var(--sc-text) !important; }
+
+/* 4. Outlines only where something is genuinely an edge. Inputs and the
+   surfaces that hold content keep theirs; buttons stop shouting. */
+.sh-theme-toggle,
+.sh-notification-btn,
+.sh-card-btn,
+.sh-chip,
+.sh-fnav-btn {
+  border-width: 0;
+  box-shadow: none;
+}
+.sh-chip {
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+}
+.sh-chip:hover { background: var(--sc-surface-3); color: var(--sc-text); }
+.sh-chip.is-active,
+.sh-chip[aria-pressed="true"] {
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+}
+
+/* Cards: preview, title, creator. The rows below them are gone, so the
+   meta block tightens up to match. */
+.sh-tmeta { padding: 9px 2px 0; display: grid; gap: 6px; }
+.sh-ttitle { font-size: 13.5px; font-weight: 620; }
+.sh-tcreator-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  text-decoration: none;
+}
+.sh-tcreator-avatar { width: 20px; height: 20px; font-size: 9px; }
+.sh-tcreator-name { font-size: 12px; font-weight: 550; }
+.sh-tcreator-handle { font-size: 11.5px; }
+
+/* The template dialog.
+
+   It kept the old dark treatment, so opening a template from a light page
+   dropped a near-black panel over it and ten of its labels measured below
+   4.5:1 against their own background. The preview stage stays dark — that
+   is the artwork — while the panel around it follows the theme. */
+.sh-modal-overlay {
+  background: color-mix(in srgb, var(--sc-text) 45%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.sh-modal-card {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-surface) !important;
+  box-shadow: var(--sc-shadow-md);
+}
+.sh-modal-left,
+.sh-modal-right { background: transparent !important; }
+.sh-modal-stage {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: #0d0d0c;
+  overflow: hidden;
+}
+.sh-modal-close {
+  border: 0;
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+}
+.sh-modal-close:hover { background: var(--sc-surface-3); }
+
+.sh-m-cat { color: var(--sc-brand); }
+.sh-m-title { color: var(--sc-text); }
+.sh-m-desc { color: var(--sc-muted); }
+.sh-m-spec {
+  border: 0;
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+}
+.sh-m-spec b { color: var(--sc-text); }
+
+.sh-m-creator {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface-2);
+  text-decoration: none;
+}
+.sh-m-creator:hover { background: var(--sc-surface-3); }
+.sh-m-c-av {
+  border: 1px solid var(--sc-border);
+  background: var(--sc-surface-3);
+  color: var(--sc-text);
+}
+.sh-m-c-name { color: var(--sc-text); }
+.sh-m-c-handle,
+.sh-m-c-bio { color: var(--sc-muted); }
+
+.sh-m-comm-head { color: var(--sc-text); }
+.sh-m-comm-input {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-canvas);
+  color: var(--sc-text);
+}
+.sh-m-comm-input::placeholder { color: var(--sc-subtle); }
+.sh-m-comm-btn,
+.sh-modal-cta {
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+  cursor: pointer;
+}
+.sh-m-comm-btn:hover,
+.sh-modal-cta:hover { opacity: .9; }
+.sh-modal-act-btn {
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+  cursor: pointer;
+}
+.sh-modal-act-btn:hover { background: var(--sc-surface-3); color: var(--sc-text); }
+.sh-modal-act-btn.liked { color: var(--sc-danger); }
+
+/* The dialog's primary action was built as a light button for a dark panel,
+   so its text colour is still black while the button itself is now dark. */
+.sh-modal-cta { color: var(--sc-canvas) !important; }
+
+/* The rail now carries every destination, so on a short window its content
+   is taller than the viewport and the account chip fell off the bottom.
+   The brand, the create button and the plan/account footer stay put; only
+   the list of destinations between them scrolls. */
+@media (min-width: 1060px) {
+  .sh-rail { overflow: hidden; }
+  .sh-rail .sh-brand,
+  .sh-rail .sh-social,
+  .sh-rail .sh-cta,
+  .sh-rail .sh-rail-foot { flex: none; }
+  .sh-rail .sh-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    /* Declaring one axis scrollable turns the other from `visible` into `auto`,
+       so the rail grew a horizontal scrollbar under its rows the moment it
+       became tall enough to scroll at all. Nothing in a nav row is ever meant
+       to be reachable sideways. */
+    overflow-x: hidden;
+    /* Reserve the scrollbar's width whether or not it is showing. Without this
+       the bar appearing narrows the rows, which re-wraps a label, which changes
+       the height that decided whether to show a bar — the rail visibly settling
+       up and down after load. */
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+  }
+  .sh-rail .sh-nav::-webkit-scrollbar { width: 6px; }
+  .sh-rail .sh-nav::-webkit-scrollbar-thumb {
+    border-radius: 6px;
+    background: var(--sc-border-strong);
+  }
+  /* The panel is anchored to a row that can now scroll, so it hangs off the
+     rail instead of being clipped inside it. */
+  .sh-rail .sh-notification-panel { position: fixed; left: 12px; top: auto; }
+}
+
+/* Support & Legal added four rows, which pushed the rail past the viewport on
+   a normal laptop — the sidebar started scrolling under its own scrollbar
+   while the page scrolled separately. Rather than take rows away, tighten the
+   rail only on the short screens where it would otherwise not fit. Nothing
+   changes on a tall display. */
+@media (min-width: 1060px) and (max-height: 900px) {
+  .sh-rail { gap: 10px; padding: 12px 12px; }
+  .sh-rail .sh-nav a,
+  .sh-rail .sh-notification-btn,
+  .sh-rail .sh-theme-toggle { min-height: 31px; }
+  .sh-navgroup + .sh-navgroup { margin-top: 7px; }
+  .sh-navgroup-title { margin-bottom: 0; }
+  .sh-rail .sh-cta { min-height: 38px; }
+}
+
+/* A signed-in rail carries twelve destinations, not nine, and no amount of
+   row-trimming fits twelve of them plus the brand, the button and the plan
+   chip into a laptop's height. The group headings are the cheapest thing to
+   lose: the gaps between the groups still read as grouping without them. */
+@media (min-width: 1060px) and (max-height: 820px) {
+  .sh-rail .sh-social { display: none; }
+  .sh-navgroup-title {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden; clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sh-navgroup + .sh-navgroup {
+    margin-top: 7px;
+    padding-top: 7px;
+    border-top: 1px solid var(--sc-border);
+  }
+
+  /* The plan chip was the second-largest block in the rail at 186px, for four
+     lines of status. The per-action rates are the one line that is detail
+     rather than status — the balance above it is what people actually check,
+     and the editor prints the cost again at the moment it is charged. */
+  .sh-rail .sh-rail-foot { gap: 6px; }
+  .sh-rail .sh-plan-rates { display: none; }
+  .sh-rail .sh-plan-badge { padding: 9px 11px; }
+
+  .sh-rail { gap: 8px; }
+  .sh-rail .sh-nav a,
+  .sh-rail .sh-notification-btn,
+  .sh-rail .sh-theme-toggle { min-height: 30px; }
+}
+
+
+/* ============================================================
+   Profile page (.ig-*) — 3 September 2026
+
+   This page was built against the dark theme and never restyled, so on
+   the light workspace it rendered white-on-white: 42 of its labels
+   measured under 4.5:1, most of them around 1.2 — the handle, every
+   stat, the display name and the tab labels were invisible rather than
+   merely faint. The avatar also carried a neon glow ring, which is the
+   one decoration the product deliberately does not use.
+   ============================================================ */
+
+.ig-prof-container,
+.ig-main { background: transparent; color: var(--sc-text); }
+
+/* Header ---------------------------------------------------------------- */
+.ig-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 34px;
+  padding: 28px 0 22px;
+  border-bottom: 1px solid var(--sc-border);
+}
+.ig-avatar-col { flex: none; }
+
+/* A plain ring, not a glow. */
+.ig-story-ring {
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--sc-border-strong);
+  box-shadow: none;
+  animation: none;
+}
+.ig-avatar {
+  width: 128px;
+  height: 128px;
+  border: 3px solid var(--sc-surface);
+  border-radius: 50%;
+  background: var(--sc-surface-3);
+  background-size: cover;
+  background-position: center;
+  color: var(--sc-text);
+  font-size: 38px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  box-shadow: none;
+}
+
+.ig-info-col { flex: 1 1 auto; min-width: 0; display: grid; gap: 14px; }
+.ig-user-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ig-username {
+  margin: 0;
+  color: var(--sc-text);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.ig-fullname { color: var(--sc-text); font-weight: 620; }
+.ig-bio, .ig-bio-block, .ig-hint, .ig-acc-sub { color: var(--sc-muted); }
+
+.ig-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+
+.ig-stats-row {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  padding: 0;
+  border: 0;
+  color: var(--sc-muted);
+  font-size: 14px;
+}
+.ig-stat { color: var(--sc-muted); }
+.ig-stat b,
+.ig-stat strong { color: var(--sc-text); font-weight: 650; }
+
+.ig-badge,
+.ig-badge-pill,
+.ig-link-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--sc-border);
+  border-radius: 20px;
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+  font-size: 12px;
+  text-decoration: none;
+}
+.ig-link-pill:hover { background: var(--sc-surface-3); color: var(--sc-text); }
+
+/* Buttons --------------------------------------------------------------- */
+.ig-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.ig-btn:hover { background: var(--sc-surface-3); }
+.ig-btn-primary { background: var(--sc-text); color: var(--sc-canvas); }
+.ig-btn-primary:hover { background: var(--sc-text); opacity: .9; }
+.ig-btn-secondary { background: var(--sc-surface-2); color: var(--sc-text); }
+.ig-btn-danger {
+  background: transparent;
+  color: var(--sc-danger);
+  box-shadow: inset 0 0 0 1px var(--sc-border);
+}
+.ig-btn-danger:hover { background: var(--sc-surface-2); }
+
+/* Tabs ------------------------------------------------------------------ */
+.ig-tabs {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  border-bottom: 1px solid var(--sc-border);
+}
+.ig-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 16px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--sc-muted);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.ig-tab-btn:hover { color: var(--sc-text); }
+.ig-tab-btn.is-active,
+.ig-tab-btn[aria-selected="true"] {
+  border-bottom-color: var(--sc-text);
+  color: var(--sc-text);
+}
+
+/* Panes, cards and forms ------------------------------------------------ */
+.ig-pane { padding-top: 22px; }
+.ig-grid,
+.ig-saved-grid,
+.ig-account-grid { gap: 16px; }
+.ig-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+
+.ig-account-card,
+.ig-saved-card,
+.ig-edit-container {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface);
+  box-shadow: none;
+}
+.ig-account-card:hover,
+.ig-saved-card:hover { border-color: var(--sc-border-strong); }
+.ig-acc-head, .ig-acc-lbl, .ig-edit-header { color: var(--sc-text); }
+.ig-acc-val { color: var(--sc-text); font-weight: 650; }
+.ig-acc-highlight { color: var(--sc-brand); }
+.ig-saved-icon {
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+}
+.ig-saved-info { color: var(--sc-muted); }
+.ig-card-cta { color: var(--sc-brand); font-weight: 620; }
+
+.ig-label { color: var(--sc-text); font-size: 13px; font-weight: 620; }
+.ig-input,
+.ig-textarea {
+  width: 100%;
+  min-height: 38px;
+  padding: 9px 11px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-canvas);
+  color: var(--sc-text);
+  font-size: 14px;
+}
+.ig-input:focus,
+.ig-textarea:focus {
+  outline: 2px solid var(--sc-brand);
+  outline-offset: -1px;
+  border-color: var(--sc-brand);
+}
+.ig-input::placeholder,
+.ig-textarea::placeholder { color: var(--sc-subtle); }
+.ig-input-wrap { position: relative; }
+.ig-msg { color: var(--sc-muted); font-size: 13px; }
+.ig-form-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+.ig-form-foot .ig-btn-primary { margin-left: auto; }
+
+.ig-edit-av {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--sc-border);
+  border-radius: 50%;
+  background: var(--sc-surface-3);
+  background-size: cover;
+  background-position: center;
+  color: var(--sc-text);
+  font-weight: 700;
+}
+.ig-edit-av-info h3 { color: var(--sc-text); margin: 0 0 3px; }
+
+.ig-danger-zone {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface);
+}
+.ig-danger-info { color: var(--sc-muted); }
+
+@media (max-width: 720px) {
+  .ig-header { flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+  .ig-avatar { width: 92px; height: 92px; font-size: 28px; }
+  .ig-actions-row { margin-left: 0; justify-content: center; }
+  .ig-stats-row { justify-content: center; gap: 20px; }
+  .ig-tabs { overflow-x: auto; justify-content: flex-start; }
+}
+
+/* Empty states.
+
+   These were written with literal dark-theme colours (#ffffff headings on
+   what is now a light page, and a slate body colour), so "No templates
+   yet" — the first thing a new account ever sees — was invisible. */
+.cr-cre-empty h3 { color: var(--sc-text); }
+.cr-cre-empty p { color: var(--sc-muted); }
+.cr-cre-empty .ig-btn-primary,
+.cr-cre-empty a.ig-btn-primary {
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+}
+.cr-cre-empty .ig-btn-primary:hover { opacity: .9; }
+
+/* The wordmark's second half sat on the subtle tone, which is a hairline
+   colour rather than a text one — it read as greyed-out branding. */
+.sh-brand-name i,
+.sh-topbrand .sh-brand-name i { color: var(--sc-muted) !important; }
+
+/* The rail's account chip is persistent identity, not a hint, so its handle
+   and disclosure arrow move off the subtle hairline tone. */
+.sh-rail .sh-user-trigger-handle,
+.sh-rail .sh-user-trigger-arrow { color: var(--sc-muted); }
+
+/* Text tones, corrected.
+
+   --sc-muted and --sc-subtle were picked as *hairline* values and then used
+   as text colours all over the product: the creator handle under every card,
+   section eyebrows, plan tiers, form fine print. At #8a8a84 that is 2.8:1 on
+   the light surface — legible to someone who already knows what it says.
+
+   These keep the same three-step hierarchy (ink, muted, subtle stay visibly
+   different) with every step above 4.5:1 on both --sc-surface and
+   --sc-surface-2, which are the two grounds they actually sit on. */
+:root,
+:root[data-theme="light"] {
+  --sc-muted: #5a5a55;
+  --sc-subtle: #6a6a64;
+}
+:root[data-theme="dark"] {
+  --sc-muted: #b4b4ad;
+  --sc-subtle: #91918a;
+}
+
+/* page.css keeps a second, older palette scoped to .pg — --ink:#fff, dark
+   translucent surfaces, white-alpha rules. body.sh-body's --sh-* names were
+   remapped onto the theme when the redesign landed, but this set never was,
+   so every page built on .pg carried a dark theme inside the light one.
+   That is where the rest of the unreadable text came from, and remapping it
+   here fixes all of them at once rather than class by class. */
+body.sh-body .pg,
+.pg {
+  --ink: var(--sc-text);
+  --ink2: var(--sc-muted);
+  --ink3: var(--sc-muted);
+  --ink4: var(--sc-subtle);
+  --bg1: var(--sc-surface);
+  --bg2: var(--sc-surface-2);
+  --bg3: var(--sc-surface-3);
+  --line: var(--sc-border);
+  --line2: var(--sc-border-strong);
+}
+
+/* --sc-subtle has to clear 4.5:1 on the canvas as well as on cards: the
+   creator handle under every gallery card sits directly on the page. */
+:root,
+:root[data-theme="light"] { --sc-subtle: #656560; }
+
+/* Labels inside a filled button inherit the page's ink unless told not to,
+   which left "Upload Animation" dark-on-dark. */
+.sh-tupload-btn,
+.sh-tupload-btn span,
+.sh-tupload-btn svg { color: var(--sc-canvas); }
+
+/* The publish button was a white pill for the dark top bar, pinned with
+   !important, plus a white-and-violet glow on hover. On the light bar it
+   became white-on-white, and the glow is the decoration the product
+   deliberately avoids. Matching !important is the only way past the
+   original, so the whole button is restated here rather than half of it. */
+.sh-tupload-btn {
+  background: var(--sc-text) !important;
+  border-color: transparent !important;
+  color: var(--sc-canvas) !important;
+  box-shadow: none !important;
+}
+.sh-tupload-btn span,
+.sh-tupload-btn svg { color: var(--sc-canvas) !important; }
+.sh-tupload-btn:hover {
+  background: var(--sc-text) !important;
+  border-color: transparent !important;
+  color: var(--sc-canvas) !important;
+  box-shadow: none !important;
+  opacity: .9;
+  transform: none;
+}
+
+/* Creator profile and settings.
+
+   The last of the literal #fff text: the creator's display name, their
+   follower/template counts, the section heading, the settings profile name,
+   and two buttons that were built as white-on-dark. */
+.cp-title-row h1,
+.cp-sec-title,
+.cp-stat b,
+.pg-prof-name { color: var(--sc-text); }
+.cp-stat { color: var(--sc-muted); }
+
+.cr-cre-btn-ren {
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+  border-color: var(--sc-border);
+}
+.cr-cre-btn-ren:hover { background: var(--sc-surface-3); }
+
+.pg-cardlink.pg-danger,
+.pg-linkbtn.pg-danger { color: var(--sc-danger); }
+
+/* The Stars count used a dark-theme gold that measures 1.69:1 on the light
+   page. Stars stay recognisably amber; the tone just changes with the
+   theme so the number is actually readable. */
+:root,
+:root[data-theme="light"] { --sc-star: #8a5a06; }
+:root[data-theme="dark"] { --sc-star: #f5b43c; }
+.pg-prof-stars,
+.pg-prof-stars b { color: var(--sc-star); }
+
+/* Profile header, second pass.
+
+   The first pass made this page readable; it was still an Instagram
+   pastiche, which is a layout that needs a wall of images under it to
+   work and reads as an empty stage when a creator has one template.
+   This leads with the person's name, keeps the identity block compact,
+   and gives the tab content the room instead. */
+.ig-header { align-items: center; gap: 28px; }
+.ig-story-ring { padding: 2px; background: var(--sc-border); }
+.ig-avatar { width: 96px; height: 96px; font-size: 30px; }
+
+.ig-user-row { align-items: flex-start; gap: 16px; }
+.ig-name-block { display: grid; gap: 3px; min-width: 0; }
+.ig-fullname {
+  margin: 0;
+  color: var(--sc-text);
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -.015em;
+}
+.ig-handle-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ig-username { font-size: 14px; font-weight: 500; color: var(--sc-muted); }
+.ig-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--sc-brand-soft);
+  color: var(--sc-brand-hover);
+  font-size: 11.5px;
+  font-weight: 620;
+}
+.ig-bio { margin: 0; max-width: 62ch; font-size: 14px; line-height: 1.55; }
+.ig-links-row { display: flex; gap: 7px; flex-wrap: wrap; }
+
+/* Panes ----------------------------------------------------------------- */
+.ig-account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+.ig-account-card { padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.ig-acc-lbl { font-size: 12px; font-weight: 620; color: var(--sc-muted); letter-spacing: .02em; }
+.ig-acc-val { margin: 0; font-size: 21px; font-weight: 650; line-height: 1.25; }
+.ig-acc-wrap { font-size: 15px; overflow-wrap: anywhere; }
+.ig-acc-sub { margin: 0; font-size: 12.5px; line-height: 1.5; }
+.ig-card-cta { margin-top: 4px; font-size: 13px; text-decoration: none; }
+
+.ig-note-block {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface-2);
+}
+.ig-note-block h4 { margin: 0 0 7px; font-size: 14px; color: var(--sc-text); }
+.ig-note-block p { margin: 0 0 7px; font-size: 13.5px; line-height: 1.55; color: var(--sc-muted); }
+.ig-note-block p:last-child { margin-bottom: 0; }
+.ig-note-block strong { color: var(--sc-text); }
+
+.ig-support-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.ig-support-head h3 { margin: 0 0 4px; font-size: 16px; color: var(--sc-text); }
+.ig-support-head .ig-acc-sub { max-width: 56ch; }
+.ig-support-list { display: grid; gap: 8px; }
+.ig-ticket {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface);
+}
+.ig-ticket-main { min-width: 0; }
+.ig-ticket-main h4 { margin: 0 0 3px; font-size: 14px; font-weight: 620; color: var(--sc-text); }
+.ig-ticket-state {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+  font-size: 11.5px;
+  font-weight: 620;
+  text-transform: capitalize;
+}
+.ig-ticket-state.is-open { background: var(--sc-brand-soft); color: var(--sc-brand-hover); }
+.ig-ticket-state.is-resolved,
+.ig-ticket-state.is-closed { color: var(--sc-success); }
+
+@media (max-width: 720px) {
+  .ig-user-row { flex-direction: column; }
+  .ig-actions-row { margin-left: 0; }
+  .ig-ticket { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
+
+/* Filled buttons rendered as links. A page-level `a { color }` rule beats a
+   single-class button rule, so an <a class="ig-btn-primary"> came out dark
+   text on the dark fill. Naming the element raises specificity past it. */
+/* Buttons that are links.
+
+   shell.css carries `body.sh-body a { color: inherit }`, which is (0,1,2)
+   and therefore outweighs any single-class button rule — every <a> styled
+   as a filled button silently inherited the page's ink and came out dark
+   text on a dark fill. These are scoped through body.sh-body so they carry
+   the same weight and win on order, rather than reaching for !important. */
+body.sh-body a.ig-btn-primary,
+body.sh-body a.ig-btn-primary:hover { color: var(--sc-canvas); }
+body.sh-body a.ig-btn-secondary { color: var(--sc-text); }
+body.sh-body a.ig-btn { text-decoration: none; }
+body.sh-body a.sh-cta,
+body.sh-body a.sh-cta span { color: var(--sc-canvas); }
+
+/* The 404 numeral was drawn in the surface tone as a watermark, which put
+   the one thing on the page that says what happened at about 1.1:1. It
+   stays quiet, but it is now legible. */
+.pg-404code { color: var(--sc-border-strong); }
+
+/* .pg-fine holds the "No account yet? Create one." line. The link inside it
+   inherits, and shell.css's `body.sh-body a { color: inherit }` outweighs
+   any single-class rule, so give the link its own weight-matched colour. */
+body.sh-body .pg-fine a { color: var(--sc-brand-hover); }
+
+/* Large enough that it only needs 3:1, but the border tone did not reach
+   even that. This keeps the numeral quiet without hiding it. */
+.pg-404code { color: var(--sc-subtle); }
+
+/* ============================================================
+   Gallery and dialog pass — 3 September 2026
+   ============================================================ */
+
+/* Each template gets its own frame. The previews are mostly dark and mostly
+   full-bleed, so without an edge the grid read as one continuous dark mass
+   rather than 58 separate things you can pick between. */
+.sh-tile {
+  padding: 8px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-surface);
+  transition: border-color .15s ease, box-shadow .15s ease, transform .18s ease;
+}
+.sh-tile:hover {
+  border-color: var(--sc-border-strong);
+  box-shadow: var(--sc-shadow-md);
+  transform: translateY(-2px);
+}
+.sh-tile .sh-stage {
+  border: 0;
+  border-radius: var(--sc-radius);
+  box-shadow: none;
+}
+/* The card carries the lift now, so the stage no longer moves inside it. */
+.sh-tile:hover .sh-stage { transform: none; box-shadow: none; border: 0; }
+.sh-tmeta { padding: 10px 4px 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-tile:hover { transform: none; }
+}
+
+/* Less air above the grid: the standfirst is gone, so the heading sits
+   closer to the search row and more templates reach the first screen. */
+.sh-gallery-title { margin-bottom: 12px; padding-top: 0; border-top: 0; }
+.sh-gallery-title > div { padding-top: 14px; }
+.sh-gallery-title h2 { font-size: clamp(20px, 2.1vw, 26px); }
+.sh-ghead { padding-bottom: 12px; }
+.sh-composer { margin-bottom: 20px; }
+
+/* The end of the grid ------------------------------------------------- */
+.sh-gallery-end {
+  margin-top: 34px;
+  padding: 30px 24px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-surface);
+  text-align: center;
+}
+.sh-gallery-end h3 {
+  margin: 0 0 7px;
+  color: var(--sc-text);
+  font-family: var(--sh-display);
+  font-size: clamp(18px, 2vw, 23px);
+  font-weight: 650;
+  letter-spacing: -.02em;
+}
+.sh-gallery-end p {
+  margin: 0 auto 18px;
+  max-width: 52ch;
+  color: var(--sc-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.sh-gallery-end-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.sh-ge-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+  font-size: 13.5px;
+  font-weight: 620;
+  text-decoration: none;
+}
+.sh-ge-btn:hover { background: var(--sc-surface-3); }
+body.sh-body a.sh-ge-primary {
+  border-color: transparent;
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+}
+body.sh-body a.sh-ge-primary:hover { opacity: .9; background: var(--sc-text); }
+
+/* Dialog actions ------------------------------------------------------ */
+.sh-modal-ctrls { display: flex; gap: 8px; margin-top: 10px; }
+.sh-modal-act-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.sh-modal-act-btn svg { width: 15px; height: 15px; flex: none; }
+
+/* Liking should feel like something happened. The heart fills, the button
+   settles back, and the whole thing is transform and colour only. */
+.sh-act-like.liked { color: var(--sc-danger); }
+.sh-act-like.liked svg { fill: currentColor; stroke: currentColor; }
+.sh-act-like.liked svg { animation: sh-like-pop .32s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes sh-like-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-act-like.liked svg { animation: none; }
+}
+
+/* Comment threads.
+
+   A posted comment used to appear as one faint grey line with no picture and
+   no actions: you could not tell who wrote it, reply to it, fix a typo, or
+   remove one posted by mistake. */
+.sh-m-comm-list { display: grid; gap: 2px; margin-top: 14px; }
+.sh-m-comm-empty { margin: 12px 0 0; color: var(--sc-muted); font-size: 13px; }
+
+.sh-m-comm-item {
+  display: flex;
+  gap: 11px;
+  padding: 12px 0;
+  border-top: 1px solid var(--sc-border);
+}
+.sh-m-comm-item:first-child { border-top: 0; }
+/* A reply is indented and marked, so a thread reads as a conversation. */
+.sh-m-comm-item.is-reply {
+  margin-left: 34px;
+  padding-left: 13px;
+  border-top: 0;
+  border-left: 2px solid var(--sc-border);
+}
+
+.sh-m-c-item-av {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sc-surface-3);
+  background-size: cover;
+  background-position: center;
+  color: var(--sc-text);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.sh-m-c-item-body { min-width: 0; flex: 1; }
+.sh-m-c-item-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 3px;
+}
+.sh-m-c-item-name {
+  color: var(--sc-text);
+  font-size: 13.5px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.sh-m-c-item-name:hover { text-decoration: underline; }
+.sh-m-c-item-handle,
+.sh-m-c-item-time { color: var(--sc-muted); font-size: 12px; }
+.sh-m-c-item-time { margin-left: auto; }
+.sh-m-c-edited {
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.sh-m-c-item-text {
+  margin: 0;
+  color: var(--sc-text);
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sh-m-c-actions { display: flex; gap: 4px; margin-top: 6px; }
+.sh-m-c-action {
+  padding: 3px 8px;
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: transparent;
+  color: var(--sc-muted);
+  font-size: 12px;
+  font-weight: 620;
+  cursor: pointer;
+}
+.sh-m-c-action:hover { background: var(--sc-surface-2); color: var(--sc-text); }
+.sh-m-c-danger:hover { background: var(--sc-surface-2); color: var(--sc-danger); }
+.sh-m-c-replyhint {
+  display: block;
+  width: 100%;
+  margin-bottom: 7px;
+  text-align: left;
+  background: var(--sc-brand-soft);
+  color: var(--sc-brand-hover);
+}
+
+.sh-m-c-editor { display: grid; gap: 8px; margin-top: 7px; }
+.sh-m-c-editor-row { display: flex; align-items: center; gap: 7px; }
+.sh-m-c-editor .sh-m-comm-input { min-height: 64px; }
+
+/* Touch targets in the dialog. The desktop row is compact by design, but a
+   38px control is below the 44px a finger needs, so on a phone the actions
+   grow and wrap rather than staying a tight row. */
+@media (max-width: 720px) {
+  .sh-modal-ctrls { flex-wrap: wrap; }
+  .sh-modal-act-btn { min-height: 44px; flex: 1 1 30%; }
+  .sh-modal-cta { min-height: 46px; }
+}
+
+/* Grouped rail.
+
+   Ten flat rows is a list you re-read every time. Grouping them under
+   Workspace / Account / Help turns it into something you scan once and
+   then aim at. The headings are quiet by design — they are signposts,
+   not content. */
+.sh-navgroup { display: grid; gap: 1px; }
+.sh-navgroup + .sh-navgroup { margin-top: 14px; }
+.sh-navgroup-title {
+  margin: 0 0 4px;
+  padding: 0 11px;
+  color: var(--sc-subtle);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+/* Controls that are not links but belong to the same rhythm. */
+.sh-rail .sh-navgroup-loose { margin-top: 14px; }
+
+/* The composer's primary action is the one thing on the home page we want
+   pressed, so it reads as the primary action rather than as another grey
+   control. */
+body.sh-body .sh-cgo {
+  background: var(--sc-brand);
+  border-color: transparent;
+  color: #fff;
+}
+body.sh-body .sh-cgo:hover:not(:disabled) { background: var(--sc-brand-hover); }
+/* A disabled button still has to say what it is - you just cannot press it
+   yet. The first attempt at this measured 1.21:1, which is not "muted", it
+   is invisible. */
+body.sh-body .sh-cgo:disabled {
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+  cursor: not-allowed;
+}
+
+.sh-cnote {
+  margin-left: auto;
+  padding-right: 12px;
+  color: var(--sc-muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .sh-cnote { display: none; }
+}
+
+
+/* Card titles on a narrow screen.
+
+   At 390px the grid gives each card about 180px, and a title like "Elastic
+   Typography Wave Stream" was running 57px past the edge of its own card —
+   invisible on a desktop, obvious on the phone most of these users are on.
+   Flex and grid children default to min-width:auto, which refuses to shrink
+   below their content, so the row has to be told it may.
+*/
+.sh-tmeta { min-width: 0; }
+.sh-ttitle-row,
+.sh-tcreator-row,
+.sh-tcreator-info { min-width: 0; }
+.sh-ttitle {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.sh-tcreator-name,
+.sh-tcreator-handle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Card titles wrap.
+
+   .sh-ttitle carried white-space:nowrap from the old design, so a long
+   name could not break at all - on a 140px card it ran 60px past the edge
+   and was cut off mid-word. Two lines, then an ellipsis: the title is the
+   only thing identifying the template, so truncating it silently on line
+   one is worse than letting it use a second. */
+.sh-ttitle {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The profile avatar sits inside a ring that draws the border around it.
+   The ring was a block, so it took the width of its column rather than of
+   the avatar, and the avatar's own 3px border pushed it 12px past the ring
+   it was supposed to sit inside. */
+.ig-story-ring {
+  display: inline-flex;
+  width: max-content;
+  flex: none;
+}
+
+/* Community cards.
+
+   This page builds its own cards, so it kept the title, a description and
+   an author/likes row after the gallery was cut back to preview + title.
+   At phone width that row ran 24px past the card. The card shows what the
+   gallery shows; the description and the like control live on the detail
+   page the card opens, which is where liking a specific template is
+   unambiguous. */
+.sh-tmeta > span,
+.sh-tmeta .sh-author-row { min-width: 0; }
+.sh-tmeta > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.sh-tmeta > b {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.sh-author-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.sh-author-row .sh-author {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Pricing: credit calculator
+   ============================================================ */
+
+/* A measured, tabular tone for numbers and small caps labels — the design
+   uses it to separate "this is a figure" from prose. */
+:root { --sc-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.pg-calc {
+  display: flex;
+  gap: 34px;
+  align-items: center;
+  margin: 0 0 22px;
+  padding: 24px 26px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-surface);
+}
+.pg-calc-ask { flex: 1; min-width: 0; display: grid; gap: 13px; }
+.pg-calc-ask h2 {
+  margin: 0;
+  color: var(--sc-text);
+  font-family: var(--sh-display);
+  font-size: clamp(20px, 2.2vw, 26px);
+  font-weight: 650;
+  letter-spacing: -.02em;
+  line-height: 1.14;
+}
+.pg-calc-ask > p { margin: 0; color: var(--sc-muted); font-size: 14px; line-height: 1.5; }
+
+.pg-calc-read { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pg-calc-read > b {
+  color: var(--sc-brand);
+  font-family: var(--sh-display);
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.pg-calc-read span { color: var(--sc-muted); font-size: 14px; }
+.pg-calc-read span b { color: var(--sc-text); font-weight: 650; }
+
+#calcRange {
+  width: 100%;
+  height: 28px;
+  accent-color: var(--sc-brand);
+  cursor: pointer;
+}
+.pg-calc-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--sc-subtle);
+  font-family: var(--sc-mono);
+  font-size: 11px;
+}
+
+.pg-calc-rec {
+  width: 270px;
+  flex: none;
+  display: grid;
+  gap: 9px;
+  align-content: start;
+  padding-left: 34px;
+  border-left: 1px solid var(--sc-border);
+}
+.pg-calc-kicker {
+  color: var(--sc-subtle);
+  font-family: var(--sc-mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.pg-calc-plan { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.pg-calc-plan b {
+  color: var(--sc-text);
+  font-family: var(--sh-display);
+  font-size: 26px;
+  font-weight: 650;
+}
+.pg-calc-plan span { color: var(--sc-muted); font-size: 14px; }
+.pg-calc-rec > p { margin: 0; color: var(--sc-muted); font-size: 13px; line-height: 1.5; }
+
+body.sh-body a.pg-calc-cta {
+  height: 38px;
+  margin-top: 2px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--sc-radius-sm);
+  background: var(--sc-brand);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 620;
+  text-decoration: none;
+}
+body.sh-body a.pg-calc-cta:hover { background: var(--sc-brand-hover); }
+
+/* The two halves stack before the recommendation gets too narrow to read. */
+@media (max-width: 900px) {
+  .pg-calc { flex-direction: column; align-items: stretch; gap: 20px; padding: 20px; }
+  .pg-calc-rec {
+    width: auto;
+    padding-left: 0;
+    padding-top: 18px;
+    border-left: 0;
+    border-top: 1px solid var(--sc-border);
+  }
+}
+
+/* The rail's group headings and the plan card figures use the same measured
+   tone, so a number reads as a number wherever it appears. */
+.sh-navgroup-title,
+.pg-calc-kicker { font-family: var(--sc-mono); }
+
+/* ============================================================
+   Palette, aligned to the design system — 4 September 2026
+
+   The handoff's tokens are a cooler, more neutral grey than the warm
+   off-white this was using. Backgrounds and borders are taken exactly as
+   specified.
+
+   The two text tones are not. The design system uses #8a8a84 for secondary
+   text, which measures about 2.8:1 on its own surface — that is the value
+   this codebase already shipped once and had to fix, because it made the
+   creator handle under every card, the plan tiers and the form fine print
+   unreadable. These keep the design's neutral hue at a lightness that
+   clears 4.5:1 on both --sc-surface and --sc-canvas, so the page looks like
+   the mockup and can still be read.
+   ============================================================ */
+:root,
+:root[data-theme="light"] {
+  --sc-canvas: #e4e4e0;
+  --sc-surface: #f7f7f5;
+  --sc-surface-2: #f1f1ee;
+  --sc-surface-3: #e9e9e5;
+  --sc-border: #ddddda;
+  --sc-border-strong: #c9c9c4;
+  --sc-muted: #5c5c58;
+  --sc-subtle: #5f5f58;   /* #67675f measured 4.47:1 - just under AA */
+  /* The design gives the rail a white ground so it separates from the
+     canvas without a heavy border. */
+  --sc-rail: #ffffff;
+  --sc-brand: #2856d8;
+  --sc-brand-hover: #1f46b5;
+  --sc-brand-soft: #edf2ff;
+}
+
+/* People lists — followers and following.
+
+   The counts were on the profile from the start with nothing behind them.
+   Each row is a person you can open and follow back, which is what makes
+   the number worth printing. */
+.ig-people { display: grid; gap: 8px; }
+.ig-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  background: var(--sc-surface);
+}
+.ig-person-av {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sc-surface-3);
+  background-size: cover;
+  background-position: center;
+  color: var(--sc-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.ig-person-info { min-width: 0; flex: 1; display: grid; gap: 1px; }
+.ig-person-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--sc-text);
+  font-size: 14px;
+  font-weight: 620;
+  text-decoration: none;
+  min-width: 0;
+}
+.ig-person-name:hover { text-decoration: underline; }
+.ig-person-meta {
+  color: var(--sc-muted);
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ig-person-follow { flex: none; min-height: 34px; padding: 0 14px; font-size: 13px; }
+.ig-person-follow.is-following {
+  background: transparent;
+  color: var(--sc-muted);
+  box-shadow: inset 0 0 0 1px var(--sc-border);
+}
+.ig-person-follow.is-following:hover { color: var(--sc-danger); }
+
+/* Stats are controls now, so they need to look pressable without becoming
+   buttons visually — the number stays the loudest thing in the row.
+
+   The hover chip is painted by a pseudo-element that reaches outside the
+   button rather than by padding it. Padding the control made it wider than
+   its own text, and every attempt to claw that back with a negative margin
+   just moved the overflow up a level — first the button escaped its <li>,
+   then the <li> escaped the <ul>. Drawing the chip outside the layout box
+   means the row measures exactly its text: nothing to compensate for, so
+   nothing escapes, and the stats still line up with the name above them. */
+.ig-stat { margin: 0; }
+.ig-stat button {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ig-stat button::before {
+  content: "";
+  position: absolute;
+  inset: -2px -6px;
+  z-index: -1;               /* behind the label, in front of the page */
+  border-radius: var(--sc-radius-sm);
+  transition: background-color .12s ease;
+}
+.ig-stat button:hover::before,
+.ig-stat button:focus-visible::before { background: var(--sc-surface-2); }
+.ig-stat button strong { color: var(--sc-text); font-weight: 650; }
+
+@media (max-width: 560px) {
+  .ig-person { flex-wrap: wrap; }
+  .ig-person-follow { width: 100%; }
+}
+
+/* Community page, aligned with the gallery.
+
+   It is the same page type as the home library, so it gets the same
+   heading rhythm and the same closing section rather than its own. */
+.sh-comm-head { align-items: flex-start; padding-bottom: 14px; }
+.sh-comm-head h1 {
+  margin: 0;
+  font-family: var(--sh-display);
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 650;
+  letter-spacing: -.025em;
+}
+.sh-comm-head .sh-eyebrow {
+  color: var(--sc-brand);
+  font-family: var(--sc-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.sh-comm-head + .sh-ratio-switch { padding-top: 0 !important; }
+.sh-ratio-lbl { color: var(--sc-muted); font-family: var(--sc-mono); font-size: 11.5px; }
+main.sh-home > .sh-gallery-end { margin: 34px 28px 0; }
+
+/* The community card's author row loses its divider now that it is the last
+   thing in the card rather than a separator above a likes control. */
+.sh-tmeta .sh-author-row {
+  margin-top: 5px;
+  padding-top: 0;
+  border-top: 0;
+  justify-content: flex-start;
+}

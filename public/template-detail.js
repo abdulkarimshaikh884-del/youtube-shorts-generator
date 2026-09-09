@@ -24,9 +24,19 @@
       var name = t.authorName || t.authorHandle;
       var handle = t.authorHandle.replace(/^@/, "");
       var initials = handle.slice(0, 2).toUpperCase();
-      return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft." };
+      return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft.", verified: t.authorVerified === true, avatarUrl: t.authorAvatarUrl || "" };
     }
-    return { name: "ShortsCraft Official", handle: "@shortscraft", initials: "SC", bio: "Official ShortsCraft motion graphics library preset." };
+    return { name: "ShortsCraft", handle: "@shortscraft", initials: "SC", bio: "Animation templates published by the ShortsCraft team.", verified: true, avatarUrl: "" };
+  }
+
+  function reactionId() { return currentTpl && currentTpl.isCommunity ? commId : tplId; }
+
+  function recordEvent(type) {
+    fetch("/api/template-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ templateId: reactionId(), eventType: type })
+    }).catch(function () {});
   }
 
   function mountStage(t) {
@@ -120,6 +130,8 @@
             isCommunity: true,
             authorHandle: cFound.authorHandle || "creator",
             authorName: cFound.authorName || "Creator",
+            authorVerified: cFound.authorVerified === true,
+            authorAvatarUrl: cFound.authorAvatarUrl || "",
             likes: Number(cFound.likes || 0)
           };
           renderDetails();
@@ -158,9 +170,11 @@
         editUrl += "&accent=" + encodeURIComponent(currentTpl.accent || "#ffffff")
           + "&font=" + encodeURIComponent(currentTpl.font || "inter")
           + "&dur=" + encodeURIComponent(currentTpl.dur || 4600)
-          + "&lines=" + encodeURIComponent(JSON.stringify(currentTpl.lines || []));
+          + "&lines=" + encodeURIComponent(JSON.stringify(currentTpl.lines || []))
+          + "&commId=" + encodeURIComponent(commId || "");
       }
       studioBtn.href = editUrl;
+      studioBtn.addEventListener("click", function () { recordEvent("edit"); });
     }
 
     // Creator Profile Card
@@ -170,7 +184,12 @@
     if (creatorCard) {
       creatorCard.href = creatorUrl;
       var av = creatorCard.querySelector(".td-creator-avatar");
-      if (av) av.textContent = currentAuthor.initials;
+      if (av) {
+        av.textContent = currentAuthor.avatarUrl ? "" : currentAuthor.initials;
+        av.style.backgroundImage = currentAuthor.avatarUrl ? 'url("' + currentAuthor.avatarUrl + '")' : "";
+        av.style.backgroundSize = "cover";
+        av.style.backgroundPosition = "center";
+      }
 
       var nm = creatorCard.querySelector(".td-creator-name");
       if (nm) nm.textContent = currentAuthor.name;
@@ -186,28 +205,36 @@
     var likeBtn = $("#detailLikeBtn");
     if (likeBtn) {
       var lCount = likeBtn.querySelector(".td-like-count");
-      if (lCount) lCount.textContent = String(currentTpl.likes);
+      fetch("/api/template-reactions?ids=" + encodeURIComponent(reactionId()))
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var state = j && j.reactions && j.reactions[reactionId()];
+          if (!state) return;
+          currentTpl.likes = Number(state.likeCount) || 0;
+          likeBtn.classList.toggle("liked", state.like === true);
+          likeBtn.setAttribute("aria-pressed", state.like === true ? "true" : "false");
+          if (lCount) lCount.textContent = currentTpl.likes ? String(currentTpl.likes) : "Like";
+        }).catch(function () {});
 
-      likeBtn.addEventListener("click", function () {
-        var isLiked = likeBtn.classList.contains("liked");
-        if (isLiked) {
-          likeBtn.classList.remove("liked");
-          likeBtn.dataset.liked = "0";
-          currentTpl.likes = Math.max(0, (currentTpl.likes || 0) - 1);
-          if (lCount) lCount.textContent = String(currentTpl.likes);
-          if (commId) {
-            fetch("/api/community-templates/" + encodeURIComponent(commId) + "/unlike", { method: "POST" }).catch(function () {});
-          }
-        } else {
-          likeBtn.classList.add("liked");
-          likeBtn.dataset.liked = "1";
-          currentTpl.likes = (currentTpl.likes || 0) + 1;
-          if (lCount) lCount.textContent = String(currentTpl.likes);
-          if (commId) {
-            fetch("/api/community-templates/" + encodeURIComponent(commId) + "/like", { method: "POST" }).catch(function () {});
-          }
-        }
-      });
+      likeBtn.onclick = function () {
+        var active = !likeBtn.classList.contains("liked");
+        likeBtn.disabled = true;
+        fetch("/api/templates/" + encodeURIComponent(reactionId()) + "/reactions/like", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ active: active })
+        }).then(function (r) { return r.json().then(function (j) {
+          if (!r.ok || !j.success) throw new Error(j.error || "Could not update that like.");
+          return j;
+        }); }).then(function (j) {
+          currentTpl.likes = Number(j.count) || 0;
+          likeBtn.classList.toggle("liked", j.active === true);
+          likeBtn.setAttribute("aria-pressed", j.active === true ? "true" : "false");
+          if (lCount) lCount.textContent = currentTpl.likes ? String(currentTpl.likes) : "Like";
+        }).catch(function (err) {
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true);
+        }).finally(function () { likeBtn.disabled = false; });
+      };
     }
 
     // Share Button
@@ -217,6 +244,7 @@
         var url = window.location.href;
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(url).then(function () {
+            recordEvent("share");
             var sp = shareBtn.querySelector("span");
             if (sp) sp.textContent = "Copied Link!";
             shareBtn.classList.add("copied");
@@ -240,6 +268,7 @@
     }
 
     mountStage(currentTpl);
+    recordEvent("open");
     loadComments();
   }
 
@@ -249,7 +278,7 @@
     var countEl = $("#commentsCount");
     if (!listEl) return;
 
-    fetch("/api/comments?tpl=" + encodeURIComponent(tplId))
+    fetch("/api/comments?tpl=" + encodeURIComponent(reactionId()))
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var comments = (d && d.comments) || [];
@@ -311,7 +340,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tpl: tplId,
+          tpl: reactionId(),
           text: text
         })
       })
