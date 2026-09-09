@@ -1205,11 +1205,62 @@ body.pg-auth-page {
 .sh-rail .sh-plan-badge-head b { color: var(--sc-text); }
 .sh-rail .sh-plan-arrow { color: var(--sc-muted); }
 
+/* The same dark-era hover that broke the account chip, in three places on the
+   plan card: the upgrade link and the arrow are both forced to #ffffff on
+   hover, which on a light card is white on near-white — the link visibly
+   disappeared under the cursor. The card also lifted and lit a purple glow
+   that belongs to a theme this product no longer has. */
+.sh-rail .sh-plan-badge:hover {
+  border-color: var(--sc-border-strong);
+  box-shadow: var(--sc-shadow-sm);
+  transform: none;
+  background-color: var(--sc-surface-2);
+}
+.sh-rail .sh-plan-badge:hover .sh-plan-upgrade-link { color: var(--sc-brand); }
+.sh-rail .sh-plan-badge:hover .sh-plan-arrow {
+  color: var(--sc-text);
+  transform: none;
+}
+/* A white streak sweeping across the card every seven seconds was drawn for a
+   dark surface. On a light one it is either invisible or a smear, and it is
+   motion nobody asked for next to a credit balance. */
+.sh-rail .sh-plan-badge::after { display: none; }
+
 .sh-rail .sh-user-popover,
 .sh-rail .sh-user-trigger {
   border: 1px solid var(--sc-border);
   background: var(--sc-surface);
   box-shadow: var(--sc-shadow-md);
+}
+
+/* The hover state had to be re-themed separately, and not re-theming it is
+   what made the chip unusable. Setting `background` above resets the resting
+   background-image to none, but shell.css paints its dark-era gradient on
+   :hover — a background-image, which sits on top of whatever colour is
+   underneath. So the chip stayed light until the cursor arrived and then went
+   near-black while the name stayed near-black with it. The arrow had the same
+   problem in reverse: it was forced to #fff, invisible on a light surface.
+
+   Hovering matches the rest of the rail now — a surface tint, no lift and no
+   glow. */
+.sh-rail .sh-user-trigger:hover,
+.sh-rail .sh-user-trigger-wrap:hover .sh-user-trigger,
+.sh-rail .sh-user-trigger-wrap.active .sh-user-trigger {
+  background-image: none;
+  background-color: var(--sc-surface-2);
+  border-color: var(--sc-border-strong);
+  color: var(--sc-text);
+  transform: none;
+  box-shadow: var(--sc-shadow-sm);
+}
+.sh-rail .sh-user-trigger-wrap:hover .sh-user-trigger-name,
+.sh-rail .sh-user-trigger-wrap.active .sh-user-trigger-name { color: var(--sc-text); }
+.sh-rail .sh-user-trigger-wrap:hover .sh-user-trigger-handle,
+.sh-rail .sh-user-trigger-wrap.active .sh-user-trigger-handle,
+.sh-rail .sh-user-trigger-wrap:hover .sh-user-trigger-arrow,
+.sh-rail .sh-user-trigger-wrap.active .sh-user-trigger-arrow {
+  color: var(--sc-muted);
+  opacity: 1;
 }
 .sh-rail .sh-upop-name,
 .sh-rail .sh-user-trigger-name,

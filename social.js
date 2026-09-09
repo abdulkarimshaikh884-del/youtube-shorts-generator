@@ -331,15 +331,33 @@ async function ensureStarGrant(user) {
 
 async function starSummary(user) {
   if (!user || !user.id) return { balance: 0, received: 0, sent: 0, allowance: 0, period: monthKey() };
-  const grant = await ensureStarGrant(user);
-  const { rows } = await db.query(
+  const plan = PLANS[user.plan] || PLANS.free;
+  const period = monthKey();
+
+  const summary = () => db.query(
     `select
        coalesce(sum(amount) filter (where receiver_id = $1 and kind in ('monthly_grant','refund','admin_adjustment')), 0)::int as granted,
        coalesce(sum(amount) filter (where sender_id = $1 and kind = 'donation'), 0)::int as sent,
-       coalesce(sum(amount) filter (where receiver_id = $1 and kind = 'donation'), 0)::int as received
+       coalesce(sum(amount) filter (where receiver_id = $1 and kind = 'donation'), 0)::int as received,
+       coalesce(sum(amount) filter (where receiver_id = $1 and kind = 'monthly_grant' and period_key = $2), 0)::int as this_period
      from public.star_transactions`,
-    [user.id]
+    [user.id, period]
   );
+
+  let { rows } = await summary();
+
+  /* The grant used to run unconditionally, ahead of this read. It opens a
+     transaction and takes an advisory lock — five round trips to a pooler in
+     another region — to top up a row that changes once a month, and
+     /api/auth/me is on every page load. The read above already reports what
+     this period has been granted, so the write only happens when it is
+     genuinely short. The guarantee is unchanged: a user who has not been
+     granted this month still gets granted, on the first request that notices. */
+  if ((Number(rows[0]?.this_period) || 0) < plan.starsPerMonth) {
+    await ensureStarGrant(user);
+    ({ rows } = await summary());
+  }
+
   const row = rows[0] || {};
   const sent = Number(row.sent) || 0;
   const granted = Number(row.granted) || 0;
@@ -347,8 +365,8 @@ async function starSummary(user) {
     balance: Math.max(0, granted - sent),
     received: Number(row.received) || 0,
     sent,
-    allowance: grant.allowance,
-    period: grant.period
+    allowance: plan.starsPerMonth,
+    period
   };
 }
 

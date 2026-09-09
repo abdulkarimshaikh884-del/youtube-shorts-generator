@@ -332,6 +332,72 @@ function ok(pass, label, extra) {
   ok(mob.opened && mob.closed, "mobile nav opens and closes");
   ok(mob.hOverflow, "no horizontal overflow on mobile");
 
+  /* Hover states, in both themes.
+
+     The contrast audit measures pages at rest, so a dark-era rule that only
+     fires on :hover survives it untouched. That is where two of them were
+     found: the theme layer sets `background`, which clears the resting
+     background-image, but shell.css repaints a near-black gradient on hover —
+     a background-image, so it covers whatever colour the theme put down while
+     the text underneath stays dark. The element is fine until the cursor
+     reaches it, which is the one moment nothing was looking. */
+  console.log("\n---- hover states stay readable ----");
+  await page.setViewport({ width: 1440, height: 900 });
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((t) => {
+      document.documentElement.setAttribute("data-theme", t);
+      try { localStorage.setItem("sc_theme", t); } catch (e) {}
+    }, theme);
+    await new Promise((r) => setTimeout(r, 400));
+
+    // Hovered for real rather than by forcing a class: the plan card's rules
+    // hang off :hover, which no class can stand in for.
+    const CASES = [
+      { box: ".sh-rail .sh-user-trigger", text: ".sh-rail .sh-user-trigger-name" },
+      { box: ".sh-rail .sh-plan-badge", text: ".sh-rail .sh-plan-upgrade-link" },
+      { box: ".sh-rail .sh-plan-badge", text: ".sh-rail .sh-plan-credits" }
+    ];
+
+    for (const c of CASES) {
+      const present = await page.$(c.box);
+      const hasText = await page.$(c.text);
+      if (!present || !hasText) continue;
+      await page.hover(c.box).catch(() => {});
+      await new Promise((r) => setTimeout(r, 250));
+
+      const m = await page.evaluate((sel) => {
+        const lum = (col) => {
+          const n = (col.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
+          const f = n.slice(0, 3).map((v) => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); });
+          return .2126 * f[0] + .7152 * f[1] + .0722 * f[2];
+        };
+        const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
+        const box = document.querySelector(sel.box);
+        const text = document.querySelector(sel.text);
+        // Walk up for the nearest painted background, since the hovered box
+        // may itself be transparent.
+        let bg = getComputedStyle(box).backgroundColor;
+        for (let el = box; el && (bg === "rgba(0, 0, 0, 0)" || bg === "transparent"); el = el.parentElement) {
+          bg = getComputedStyle(el).backgroundColor;
+        }
+        return {
+          gradient: getComputedStyle(box).backgroundImage !== "none",
+          ratio: +ratio(bg, getComputedStyle(text).color).toFixed(2)
+        };
+      }, c);
+
+      ok(!m.gradient && m.ratio >= 4.5,
+        `${theme} · ${c.text.replace(".sh-rail ", "")} stays readable while hovered`,
+        `${m.ratio}:1${m.gradient ? " · a background-image the theme never set is painting over it" : ""}`);
+    }
+    // Park the cursor away from the rail so the next theme starts clean.
+    await page.mouse.move(1200, 500);
+  }
+  await page.evaluate(() => {
+    document.documentElement.removeAttribute("data-theme");
+    try { localStorage.removeItem("sc_theme"); } catch (e) {}
+  });
+
   console.log("\n---- errors ----");
   ok(errs.length === 0, "no console or page errors", errs.length ? errs[0] : 0);
 

@@ -107,7 +107,14 @@ const CLIPS = [{ tpl: "ui-toggle", dur: 4600, props: { line1: "Made on device on
 
   // And through the store the pages actually use, not just the raw API.
   await two.page.goto(BASE + "/drafts", { waitUntil: "networkidle2" });
-  await new Promise((r) => setTimeout(r, 2500));
+  // The page renders local drafts first and reconciles with the account after,
+  // so the project arrives whenever that round trip lands. Waiting a fixed
+  // 2500ms reported a working sync as a missing project the moment the round
+  // trip took longer than the guess.
+  await two.page.waitForFunction(
+    () => window.SC_DRAFTS && SC_DRAFTS.list().some((d) => d.name === "Cross device project"),
+    { timeout: 25000, polling: 400 }
+  ).catch(() => {});
   const throughStore = await two.page.evaluate(() =>
     (window.SC_DRAFTS ? SC_DRAFTS.list() : []).map((d) => d.name));
   ok(throughStore.includes("Cross device project"),
