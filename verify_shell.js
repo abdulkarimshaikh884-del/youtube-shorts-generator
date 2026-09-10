@@ -187,6 +187,12 @@ function ok(pass, label, extra) {
       railGroups: shown(".sh-rail .sh-navgroup-title").map((h) => h.textContent.trim()),
       footerHrefs: [...document.querySelectorAll(".sh-foot a, footer a")]
         .map((a) => a.getAttribute("href")),
+      ctaHref: (document.querySelector(".sh-rail .sh-cta") || {}).getAttribute
+        ? document.querySelector(".sh-rail .sh-cta").getAttribute("href") : null,
+      // The popover is hidden until opened, so read the markup rather than
+      // what is currently on screen.
+      accountMenuHrefs: [...document.querySelectorAll(".sh-user-popover a")]
+        .map((a) => a.getAttribute("href")),
       topbarCount: shown(".sh-top-actions > *").length,
       topbarHasNav: shown('.sh-top-actions a[href="/#templates"], .sh-top-actions a[href="/community"]').length,
       metaChildren: meta ? [...meta.children].map((c) => String(c.className)) : [],
@@ -198,12 +204,20 @@ function ok(pass, label, extra) {
       })()
     };
   });
-  // Creator Studio opens the Studio itself now, so /editor is the rail's
-  // destination and /uploads — the page that manages published work — is
-  // reached from the account menu instead.
-  ok(shape.railHrefs.length >= 7 && ["/editor", "/settings", "/admin", "/drafts", "/community"]
+  ok(shape.railHrefs.length >= 7 && ["/settings", "/admin", "/drafts", "/community"]
     .every((h) => shape.railHrefs.includes(h)),
     "the rail carries every workspace destination", shape.railHrefs.join(" "));
+
+  /* Two pages are deliberately not rail rows: the editor, because the
+     "Create Animation" button above the rail already opens it, and Creator
+     Studio, which lives in the account menu. Neither may become unreachable
+     as a side effect of that — a destination nothing links to is a page that
+     has quietly ceased to exist. */
+  ok(shape.ctaHref === "/editor",
+    "the editor is still reachable from the Create Animation button", shape.ctaHref);
+  ok(shape.accountMenuHrefs.includes("/uploads"),
+    "Creator Studio is still reachable from the account menu",
+    shape.accountMenuHrefs.join(" ") || "(none)");
   // Privacy and Terms left the rail for the footer. They still have to be
   // reachable from every page — that is the point of putting them there.
   ok(["/privacy", "/terms"].every((h) => shape.footerHrefs.includes(h)),

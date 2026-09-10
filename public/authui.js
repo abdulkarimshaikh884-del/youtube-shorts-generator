@@ -2016,7 +2016,7 @@
     var ref = editorLink ? editorLink.nextSibling : menu.firstChild;
     [
       { href: "/drafts", label: "My Projects" },
-      { href: "/uploads", label: "My published templates", auth: true },
+      { href: "/uploads", label: "Creator Studio", auth: true },
       { href: "/settings", label: "Settings", auth: true },
       { href: "/tutorials", label: "Tutorials & Help" }
     ].forEach(function (item) {

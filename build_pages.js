@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026090932";
+const V = "2026091001";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -95,8 +95,6 @@ const NAV = [
      hiding half the workspace behind a click made the sidebar look emptier
      than the product actually is, and duplicated the same links in the top
      bar. `auth` gates a row the same way data-auth gates anything else. */
-  { href: "/editor", label: "Creator Studio", key: "uploads", auth: "in", group: "Workspace",
-    icon: '<path d="M12 19V5"/><path d="M5 12l7-7 7 7"/><path d="M3 21h18"/>' },
   { href: "/settings", label: "Profile & settings", key: "settings", auth: "in", group: "Account",
     icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
   { href: "/pricing", label: "Subscription & Plans", key: "pricing", group: "Account",
@@ -300,7 +298,7 @@ ${nav}
               <a href="/uploads" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
                 <div class="sh-upop-item-txt">
-                  <b>My published templates</b>
+                  <b>Creator Studio</b>
                   <span>Published, scheduled and private templates</span>
                 </div>
               </a>
@@ -416,8 +414,7 @@ ${nav}
       <a href="/#templates">Templates</a>
       <a href="/community">Creator Skills</a>
       <a href="/drafts">My Projects</a>
-      <a href="/editor" data-auth="in" hidden>Creator Studio</a>
-      <a href="/uploads" data-auth="in" hidden>My published templates</a>
+      <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/pricing">Pricing</a>
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
@@ -2335,7 +2332,7 @@ ${pageHead("Settings", "Account settings",
           <article class="pg-card">
             <h3>Published templates</h3>
             <p>Everything you have shared with the Community gallery.</p>
-            <a href="/uploads" class="pg-cardlink">Open my published templates →</a>
+            <a href="/uploads" class="pg-cardlink">Open Creator Studio →</a>
           </article>
           <article class="pg-card">
             <h3>Drafts &amp; projects</h3>
