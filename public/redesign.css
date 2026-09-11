@@ -2746,3 +2746,37 @@ main.sh-home > .sh-gallery-end { margin: 34px 28px 0; }
   border-top: 0;
   justify-content: flex-start;
 }
+
+/* ── Focus on form controls ────────────────────────────────
+   shell.css draws the site's focus ring with
+   `:focus-visible:not(input):not(textarea):not(select)` — every text control
+   is excluded, which does not mean "no ring", it means "the browser's ring".
+   Chrome draws that in its own accent, so clicking into any field produced a
+   blue rectangle in a design with no blue in it. Worse inside the composer,
+   where the browser's ring sat nested inside the card's own focus ring: two
+   blue boxes for one cursor.
+
+   These get the same ink ring as every other control instead. Removing it
+   outright is not an option — a keyboard user needs to see where they are. */
+body.sh-body input:focus-visible,
+body.sh-body textarea:focus-visible,
+body.sh-body select:focus-visible {
+  outline: 2px solid var(--sc-text);
+  outline-offset: 1px;
+  border-radius: 6px;
+}
+
+/* Where a wrapper already announces focus, the control inside stays quiet.
+   One indicator per cursor, not a ring drawn around a ring. */
+body.sh-body .sh-composer :focus-visible,
+body.sh-body .sh-search-box :focus-visible { outline: none; }
+
+/* ── Focus ring colour ─────────────────────────────────────
+   A neutral ring, defined per theme so nothing has to hardcode an ink value
+   that would vanish on the other one. Blue was never a colour in this design;
+   it arrived from the browser's own focus ring and from one composer rule. */
+:root, :root[data-theme="light"] { --sc-focus-ring: rgba(28, 28, 26, .13); }
+:root[data-theme="dark"]        { --sc-focus-ring: rgba(244, 244, 241, .18); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --sc-focus-ring: rgba(244, 244, 241, .18); }
+}

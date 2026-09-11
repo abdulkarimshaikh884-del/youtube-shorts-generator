@@ -168,9 +168,13 @@ body.sh-body .sh-composer {
     box-shadow var(--sc-t-switch) var(--sc-ease);
 }
 body.sh-body .sh-composer:hover { border-color: var(--sc-border-strong); }
+/* Focusing the composer used to paint it brand blue and add a 3px blue glow,
+   which is not how anything else on the site says "you are here" — the search
+   box simply darkens its border. Same treatment, so typing in one field does
+   not look like a different product from typing in another. */
 body.sh-body .sh-composer:focus-within {
-  border-color: var(--sc-brand);
-  box-shadow: 0 0 0 3px rgba(40, 86, 216, .14), var(--sc-shadow-md);
+  border-color: var(--sc-text);
+  box-shadow: 0 0 0 3px var(--sc-focus-ring), var(--sc-shadow-md);
 }
 body.sh-body .sh-cbar { border-top: 1px solid var(--sc-surface-2); }
 
