@@ -171,6 +171,33 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   ok(replayed.user === null, "the old cookie cannot be replayed after logout",
     JSON.stringify(replayed.user));
 
+  /* The pricing page promises a verified badge for the length of a yearly
+     plan. Nothing granted it: changePlan wrote the plan dates and the badge
+     was read from a stored column, so the promise was simply untrue. It is
+     derived now, which also means it lapses on its own — these assertions are
+     what fail if it ever goes back to being a flag somebody has to remember
+     to clear. */
+  console.log("\n---- the yearly verification badge ----");
+  {
+    const far = new Date(Date.now() + 200 * 864e5);
+    const gone = new Date(Date.now() - 864e5);
+    const cases = [
+      [{ plan: "free", handle: "@a" }, false, "a free account is not verified"],
+      [{ plan: "pro", billing_cycle: "monthly", plan_until: far, handle: "@b" }, false,
+        "a monthly subscriber is not verified"],
+      [{ plan: "pro", billing_cycle: "yearly", plan_until: far, handle: "@c" }, true,
+        "an active yearly subscriber is"],
+      [{ plan: "pro", billing_cycle: "yearly", plan_until: gone, handle: "@d" }, false,
+        "and loses it when the year runs out, with no job to run"],
+      [{ plan: "free", handle: "@shortscraft" }, true, "@shortscraft stays permanently verified"],
+      [{ plan: "free", handle: "@e", verified: true }, true,
+        "an owner-granted badge is independent of any plan"]
+    ];
+    for (const [row, want, label] of cases) {
+      ok(authMod.isVerified(row) === want, label, String(authMod.isVerified(row)));
+    }
+  }
+
   console.log("\n---- model tiers are gated by plan ----");
   for (const [tier, label] of [["pro", "Pro"], ["max", "Pro Max"]]) {
     const rr = await api(j, "/api/animate", {

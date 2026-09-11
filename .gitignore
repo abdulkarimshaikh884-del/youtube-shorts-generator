@@ -34,6 +34,9 @@ verify_*.js
 # regression too — and `npm test` calls this file by name, which means an
 # ignored copy breaks the suite on a fresh clone rather than just thinning it.
 !verify_skills.js
+# Publishing silently dropped everything a creator had edited. This is the
+# assertion that fails first if any link in that chain loses props again.
+!verify_publish.js
 diag_studio.js
 DEPENDENCY_REPORT.md
 

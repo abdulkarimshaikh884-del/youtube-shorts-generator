@@ -778,3 +778,41 @@ body.ed-body {
   outline-color: #2856d8;
 }
 :root[data-theme="light"] .ed-skip { background: #1c1c1a; color: #f7f6f2; }
+
+/* The published-template link used an inline colour that only worked on the
+   dark editor of the time; it now follows the theme like every other link. */
+.ed-pub-seeit { margin-left: 6px; }
+.ed-pub-seeit a { color: var(--ink); font-weight: 650; text-decoration: underline; }
+.ed-pub-seeit a:hover { color: var(--ink2); }
+
+/* ── Image upload chips ────────────────────────────────────
+   These carried their colours inline — white text on a translucent white
+   ground — which was fine on the dark editor and invisible once it went
+   light. An inline style also outranks every stylesheet, so no theme layer
+   could correct it. The appearance lives here now. */
+.ed-upload-chip{
+  /* Positioned so the visually-hidden input below anchors inside this chip.
+     Without it the input resolves against the initial containing block, lands
+     wherever that puts it, and stretches the document — which broke the
+     editor's "the page never scrolls, the panels do" rule. */
+  position:relative;
+  display:inline-flex;align-items:center;gap:6px;
+  height:38px;padding:0 12px;
+  border:1px solid var(--line2);border-radius:10px;
+  background:var(--bg3);color:var(--ink);
+  font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;
+  transition:background .15s ease,border-color .15s ease;
+}
+.ed-upload-chip:hover{background:var(--bg2);border-color:var(--ink3)}
+
+/* Visually hidden, still focusable. display:none would drop the input out of
+   the tab order and leave these reachable by mouse only. */
+.ed-upload-input{
+  position:absolute;width:1px;height:1px;
+  margin:-1px;padding:0;border:0;
+  overflow:hidden;clip-path:inset(50%);white-space:nowrap;
+}
+.ed-upload-chip:focus-within{
+  border-color:var(--ink);
+  box-shadow:0 0 0 2px var(--line2);
+}

@@ -89,12 +89,40 @@ function publicUser(row) {
     instagram: row.instagram || "",
     website: row.website || "",
     location: row.location || "",
-    verified: row.verified === true || String(row.handle || "").replace(/^@/, "").toLowerCase() === "shortscraft",
+    verified: isVerified(row),
     role: row.role || "user",
     billingCycle: row.billing_cycle || null,
     avatarUrl: row.avatar_bytes ? `/api/users/${encodeURIComponent(row.id)}/avatar` : "",
     stars: Number(row.stars) || 0
   };
+}
+
+/* Verification has two sources, and conflating them is how a badge stops
+   meaning anything.
+
+   Permanent: the `verified` column, plus @shortscraft. Owner-granted, an
+   official mark, nothing to do with money.
+
+   Subscription: an active yearly plan. The pricing page promises this and the
+   product plan (§6) requires it to last "only while the entitlement is
+   active" — which is exactly why it is derived here rather than written to the
+   column at purchase. A stored flag would have stayed lit after the
+   subscription lapsed, quietly turning a rented badge into a permanent one,
+   and would have needed an expiry job to ever go out. Computed, it simply
+   stops being true the day the plan does. */
+function yearlyVerified(row) {
+  if (!row || !row.plan || row.plan === "free") return false;
+  if (row.billing_cycle !== "yearly") return false;
+  if (row.plan_lifetime === true) return true;
+  const until = row.plan_until ? new Date(row.plan_until) : null;
+  return Boolean(until && until.getTime() > Date.now());
+}
+
+function isVerified(row) {
+  if (!row) return false;
+  return row.verified === true
+    || String(row.handle || "").replace(/^@/, "").toLowerCase() === "shortscraft"
+    || yearlyVerified(row);
 }
 
 function effectivePlanFromRow(row) {
@@ -519,5 +547,5 @@ async function count() {
 module.exports = {
   middleware, signUp, logIn, logOut, requestPasswordReset, cancelPasswordReset, resetPassword,
   changePlan, countLifetime, effectivePlan, updateProfile, saveAvatar, removeAvatar, getAvatar, giveStar, count,
-  COOKIE, MIN_PASSWORD, RESET_MINUTES, publicUser
+  COOKIE, MIN_PASSWORD, RESET_MINUTES, publicUser, isVerified
 };

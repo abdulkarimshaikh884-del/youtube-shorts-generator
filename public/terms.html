@@ -24,12 +24,12 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091003">
-<link rel="stylesheet" href="/page.css?v=2026091003">
-<link rel="stylesheet" href="/redesign.css?v=2026091003">
+<link rel="stylesheet" href="/shell.css?v=2026091109">
+<link rel="stylesheet" href="/page.css?v=2026091109">
+<link rel="stylesheet" href="/redesign.css?v=2026091109">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091003">
+<link rel="stylesheet" href="/polish.css?v=2026091109">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 </head>
 <body class="sh-body">
@@ -109,7 +109,7 @@
            account it belongs to, and it was the one rail row that opened a
            panel rather than going somewhere. The theme switch stays: it is a
            setting, and settings live with the rest of the destinations. -->
-      <button type="button" class="sh-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+      <button type="button" class="sh-theme-toggle" id="themeToggle" data-theme-toggle aria-label="Switch to dark theme" aria-pressed="false">
         <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
         <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <span class="sh-nav-label">Theme</span>
@@ -294,6 +294,11 @@
       <a href="/account" data-auth="in" hidden>Account</a>
       <a href="/admin" data-auth="admin" hidden>Admin Console</a>
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
+      <button type="button" class="sh-m-theme" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span data-theme-label>Dark theme</span>
+      </button>
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
@@ -381,8 +386,8 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091003" defer></script>
-<script src="/theme.js?v=2026091003" defer></script>
-<script src="/page.js?v=2026091003" defer></script>
+<script src="/authui.js?v=2026091109" defer></script>
+<script src="/theme.js?v=2026091109" defer></script>
+<script src="/page.js?v=2026091109" defer></script>
 </body>
 </html>

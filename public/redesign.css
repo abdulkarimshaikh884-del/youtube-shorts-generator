@@ -2780,3 +2780,59 @@ body.sh-body .sh-search-box :focus-visible { outline: none; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { --sc-focus-ring: rgba(244, 244, 241, .18); }
 }
+
+/* The drawer's theme switch. The rail carries the desktop one, but the rail
+   does not exist on a phone, so this is the only way to change theme there. */
+#navMobile .sh-m-theme {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+#navMobile .sh-m-theme svg { flex: none; }
+
+/* A community template that cannot be shown. Previously any failure rendered
+   a different built-in animation under the creator's URL, so nobody could
+   tell whose work they were looking at. */
+.detail-problem {
+  max-width: 520px;
+  margin: 64px auto;
+  padding: 0 20px;
+  text-align: center;
+}
+.detail-problem h1 {
+  margin: 0 0 10px;
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--sc-text);
+}
+.detail-problem p {
+  margin: 0 0 22px;
+  color: var(--sc-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.detail-problem-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Form error text.
+
+   page.css paints it #ff8b7a — a salmon chosen when every form sat on a
+   near-black panel. On the light theme it measures 2.12:1 against the page,
+   so the one line that exists to tell you something went wrong was the
+   hardest line on the page to read. --sc-danger is the themed equivalent and
+   is already dark enough in light and light enough in dark. */
+body.sh-body .pg-formnote[data-bad="1"],
+.pg .pg-formnote[data-bad="1"] { color: var(--sc-danger); }

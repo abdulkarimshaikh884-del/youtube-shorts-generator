@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091003";
+const V = "2026091109";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -242,7 +242,7 @@ ${nav}
            account it belongs to, and it was the one rail row that opened a
            panel rather than going somewhere. The theme switch stays: it is a
            setting, and settings live with the rest of the destinations. -->
-      <button type="button" class="sh-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
+      <button type="button" class="sh-theme-toggle" id="themeToggle" data-theme-toggle aria-label="Switch to dark theme" aria-pressed="false">
         <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
         <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <span class="sh-nav-label">Theme</span>
@@ -427,6 +427,11 @@ ${nav}
       <a href="/account" data-auth="in" hidden>Account</a>
       <a href="/admin" data-auth="admin" hidden>Admin Console</a>
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
+      <button type="button" class="sh-m-theme" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span data-theme-label>Dark theme</span>
+      </button>
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
@@ -2441,6 +2446,73 @@ const adminPage = {
 };
 
 /* ── write ────────────────────────────────────────────────── */
+/* Password recovery.
+
+   These two were hand-written HTML from before the redesign and were never
+   generated, so every later fix walked straight past them: they still loaded
+   shell.css at ?v=2026083001, never loaded redesign.css or polish.css, and had
+   no theme bootstrap at all. Following "forgotten your password?" from a light
+   signup page dropped you onto a dark purple one — the same product wearing a
+   different skin at the exact moment someone is already unsure whether they
+   are in the right place.
+
+   Generated from the same chrome as login and signup now, with the ids page.js
+   binds to kept exactly as they were. */
+const recoveryPage = (kind) => {
+  const isReset = kind === "reset";
+  return {
+    bare: true,
+    route: isReset ? "/reset-password" : "/forgot-password",
+    active: null,
+    robots: "noindex, nofollow",
+    title: (isReset ? "Choose a new password" : "Reset your password") + " — ShortsCraft",
+    desc: isReset
+      ? "Set a new ShortsCraft password using your single-use reset link."
+      : "Send yourself a secure, single-use link to reset your ShortsCraft password.",
+    body: `    <main class="pg pg-narrow">
+      <section class="pg-head">
+        <span class="pg-eyebrow">Password recovery</span>
+        <h1>${isReset ? "Choose a new password" : "Find your way back"}</h1>
+        <p>${isReset
+      ? "Your link works once and expires 30 minutes after it was sent. Setting a new password signs out every other session."
+      : "Enter the email on your ShortsCraft account. If it exists, a single-use reset link is on its way."}</p>
+      </section>
+
+      ${isReset ? `<form class="pg-form pg-auth" id="resetForm" novalidate>
+        <div class="pg-f">
+          <label for="resetPassword">New password <span>— at least 8 characters</span></label>
+          <input id="resetPassword" name="password" type="password"
+                 autocomplete="new-password" minlength="8" maxlength="200" required>
+        </div>
+        <div class="pg-f">
+          <label for="resetConfirm">Confirm new password</label>
+          <input id="resetConfirm" name="confirm" type="password"
+                 autocomplete="new-password" minlength="8" maxlength="200" required>
+        </div>
+        <button class="pg-bw" type="submit" id="resetSend">Set new password</button>
+        <p class="pg-formnote" id="resetNote" role="status" aria-live="polite"></p>
+        <p class="pg-fine">Remembered it? <a href="/login">Log in instead</a>.</p>
+      </form>` : `<form class="pg-form pg-auth" id="forgotForm" novalidate>
+        <div class="pg-f">
+          <label for="forgotEmail">Email</label>
+          <input id="forgotEmail" name="email" type="email" autocomplete="email"
+                 maxlength="140" required>
+        </div>
+        <button class="pg-bw" type="submit" id="forgotSend">Send reset link</button>
+        <p class="pg-formnote" id="forgotNote" role="status" aria-live="polite"></p>
+        <!-- Development only: the route returns a one-time preview link so the
+             flow stays testable without a mail provider. Production never
+             fills this in. -->
+        <p class="pg-fine"><a id="forgotDevLink" hidden></a></p>
+        <p class="pg-fine">
+          Remembered it? <a href="/login">Log in</a>. No account yet?
+          <a href="/signup">Create one</a>.
+        </p>
+      </form>`}
+    </main>`
+  };
+};
+
 const PAGES = [
   ["index.html", indexPage],
   ["template.html", templatePage],
@@ -2455,6 +2527,8 @@ const PAGES = [
   ["404.html", notfound],
   ["login.html", authPage("login")],
   ["signup.html", authPage("signup")],
+  ["forgot-password.html", recoveryPage("forgot")],
+  ["reset-password.html", recoveryPage("reset")],
   ["account.html", account],
   ["uploads.html", uploads],
   ["drafts.html", drafts],

@@ -54,6 +54,7 @@
   var mounted = -1, pps = 60;
   var cost = { export: 1, animate: 2 };   // overwritten by GET /api/credits
   var attached = null;                    // {name, dataUrl} in the AI composer
+  var uploadSeq = 0;                      // unique ids so each label targets its own input
   var creating = false;
   var sourceTemplateId = null;             // community publication, when opened from one
 
@@ -1044,14 +1045,28 @@
             queueRender();
           });
 
+          /* This chip used to carry its colours inline — white text on
+             rgba(255,255,255,.08) — which was written for the dark editor and
+             left it white-on-near-white once the editor went light. Inline
+             styles also beat every stylesheet, so no theme fix could reach it.
+             The class owns the appearance now and editor.css themes it. */
+          var uploadId = "edUpload_" + field.key.replace(/[^a-zA-Z0-9_]/g, "") + "_" + (uploadSeq++);
           var fileBtn = document.createElement("label");
           fileBtn.className = "ed-upload-chip";
-          fileBtn.style.cssText = "cursor:pointer;padding:0 12px;height:38px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;";
-          fileBtn.innerHTML = '<span>📁 Upload</span>';
+          fileBtn.setAttribute("for", uploadId);
+          fileBtn.innerHTML = '<span>Upload image</span>';
+
           var fileInput = document.createElement("input");
           fileInput.type = "file";
+          fileInput.id = uploadId;
           fileInput.accept = "image/png,image/jpeg,image/webp,image/gif";
-          fileInput.style.display = "none";
+          /* Not display:none. A hidden file input is removed from the tab
+             order, so the only way to reach these was a mouse — the control
+             existed for pointer users only. Visually hidden but still
+             focusable keeps Tab and Enter working, and the label shows the
+             focus because it styles :focus-within. */
+          fileInput.className = "ed-upload-input";
+          fileInput.setAttribute("aria-label", "Upload an image for " + (field.label || field.key));
           fileInput.addEventListener("change", function () {
             var file = fileInput.files && fileInput.files[0];
             if (!file) return;
@@ -2022,6 +2037,44 @@
     if (qFont && (qFont === "grotesk" || qFont === "inter")) state.clips[0].font = qFont;
     if (qDur && Number(qDur) >= 2000 && Number(qDur) <= 9000) state.clips[0].dur = Number(qDur);
 
+    /* Opening someone's published template rebuilt it from a handful of URL
+       parameters — the text lines, accent, font and duration. Everything else
+       they had edited lives in `props`, which does not travel in a query
+       string, so "Customize in Studio" quietly handed you the template's
+       defaults instead of their work. Fetch the row and apply it. The URL
+       values above stay as the immediate paint, so the canvas is never blank
+       while this is in flight. */
+    if (sourceTemplateId) {
+      fetch("/api/community-templates/" + encodeURIComponent(sourceTemplateId),
+        { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          var t = j && j.success && j.template;
+          if (!t || !state.clips[0]) return;
+          var clip = state.clips[0];
+          if (t.props && typeof t.props === "object") {
+            clip.props = Object.assign({}, clip.props, t.props);
+            for (var i = 0; i < 3; i++) {
+              if (t.props["line" + i] != null) clip.lines[i] = String(t.props["line" + i]);
+            }
+          }
+          if (t.accent) clip.accent = t.accent;
+          if (t.font) clip.font = t.font;
+          if (Number(t.dur)) clip.dur = Number(t.dur);
+          if (t.aspect && AR_LABEL[t.aspect]) {
+            state.aspect = t.aspect;
+            var sel = $("#edAspect");
+            if (sel) sel.value = t.aspect;
+            all(".ed-dev").forEach(function (b) {
+              b.setAttribute("aria-pressed", String(b.dataset.ar === state.aspect));
+            });
+          }
+          renderAll();
+          syncPanel();
+        })
+        .catch(function () { /* the URL values already painted something usable */ });
+    }
+
     if (topic) {
       var tMeta = meta[state.clips[0].tpl];
       if (tMeta && Array.isArray(tMeta.fields)) {
@@ -2205,13 +2258,30 @@
       submitBtn.disabled = true;
       submitBtn.textContent = "Publishing…";
 
+      /* `props` is where every edit actually lives — each field the Properties
+         panel wrote, the image references, the per-element choices. Publishing
+         without it sent the clip's starting text and nothing else, so a
+         template came back from the gallery looking unedited. Same for the
+         aspect: composing at 16:9 and publishing produced a 9:16 row.
+
+         `lines` is folded from props the same way renderClip does it, because
+         the Properties fields write props.line0/1/2 while c.lines still holds
+         what the clip started with. */
+      var pr = c.props || {};
+      var pubLines = (c.lines || []).slice();
+      for (var li = 0; li < 3; li++) {
+        if (pr["line" + li] != null) pubLines[li] = pr["line" + li];
+      }
+
       var payload = {
         title: $("#pubTitle").value.trim(),
         category: $("#pubCategory").value,
         description: $("#pubDesc").value.trim(),
         authorHandle: $("#pubAuthor").value.trim() || "creator",
         tpl: c.tpl || "text-cascade",
-        lines: c.lines || [],
+        lines: pubLines,
+        props: pr,
+        aspect: state.aspect || "9:16",
         accent: c.accent || "#ffffff",
         font: c.font || "inter",
         dur: c.dur || 4600
@@ -2227,7 +2297,17 @@
         if (res && res.success) {
           if (msg) {
             msg.className = "ed-modal-msg success";
-            msg.innerHTML = '🎉 Published! <a href="/community" style="color:#34d17a;text-decoration:underline;margin-left:6px;" target="_blank">View on Community Gallery →</a>';
+            /* This used to point at /community, which now carries creator
+               tutorials rather than templates — so "view what you just
+               published" opened a page your template was not on. Published
+               templates appear in the main library, and each one has its own
+               page; link to that, and fall back to the library only if the
+               response somehow arrived without an id. */
+            var pubId = res.template && res.template.id;
+            var seeIt = pubId
+              ? '<a href="/template?id=' + encodeURIComponent(pubId) + '" target="_blank" rel="noopener">View your template →</a>'
+              : '<a href="/#templates" target="_blank" rel="noopener">Open the template library →</a>';
+            msg.innerHTML = '🎉 Published! <span class="ed-pub-seeit">' + seeIt + "</span>";
           }
           submitBtn.textContent = "Published!";
           status("Template published to Community!");

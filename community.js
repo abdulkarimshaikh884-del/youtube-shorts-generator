@@ -43,6 +43,11 @@ function toTemplate(row) {
     category: row.category,
     tpl: row.tpl,
     lines: parseLines(row.lines),
+    // Everything the person actually edited. Without these the detail page
+    // rebuilds the template from defaults and the published result silently
+    // differs from what was composed.
+    props: row.props && typeof row.props === "object" ? row.props : {},
+    aspect: row.aspect || "9:16",
     accent: row.accent,
     font: row.font,
     dur: row.dur,
@@ -171,12 +176,27 @@ async function publish(data, user) {
     scheduledAt = parsed;
   }
 
+  /* The edited state, not just the headline fields. `props` is whatever the
+     template's own schema produced, so it is stored as given rather than
+     picked over here — but it is capped, because it is user input that lands
+     in a jsonb column and one pasted data: URI could otherwise arrive as
+     megabytes. Aspect is validated against the four the composer offers. */
+  const ASPECTS = new Set(["9:16", "16:9", "1:1", "4:5"]);
+  const aspect = ASPECTS.has(String(data.aspect)) ? String(data.aspect) : "9:16";
+  let props = data.props && typeof data.props === "object" && !Array.isArray(data.props)
+    ? data.props
+    : {};
+  const propsJson = JSON.stringify(props);
+  if (propsJson.length > 400_000) {
+    return { error: "That template carries too much embedded data to publish. Try smaller images." };
+  }
+
   const { rows } = await db.query(
     `insert into public.community_templates
-       (id, title, description, category, tpl, lines, accent, font, dur,
+       (id, title, description, category, tpl, lines, props, aspect, accent, font, dur,
         author_id, author_name, author_handle, likes, downloads, source_format,
         status, scheduled_at, published_at)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,0,0,'shortscraft_preset',$13,$14,$15)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,0,0,'shortscraft_preset',$15,$16,$17)
      returning *`,
     [
       id,
@@ -185,6 +205,8 @@ async function publish(data, user) {
       category,
       data.tpl,
       JSON.stringify(lines),
+      propsJson,
+      aspect,
       accent,
       font,
       dur,

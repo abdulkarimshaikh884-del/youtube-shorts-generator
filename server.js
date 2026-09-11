@@ -782,8 +782,12 @@ app.get("/api/creator", async (req, res) => {
   let creatorDbUnavailable = false;
   try {
     const { rows } = await db.query(
+      // billing_cycle and plan_lifetime are what decide whether an active
+      // yearly subscription earns its badge; without them every paying member
+      // read as unverified here.
       `select id, email, display_name, handle, bio, youtube, instagram, website, location,
-              verified, stars, plan, plan_until, created_at, (avatar_bytes is not null) as has_avatar
+              verified, stars, plan, plan_until, plan_lifetime, billing_cycle,
+              created_at, (avatar_bytes is not null) as has_avatar
        from public.users
        where lower(handle) = $1 or lower(handle) = $2 or lower(email) = $3 or lower(email) like $4
        limit 1`,
@@ -807,7 +811,7 @@ app.get("/api/creator", async (req, res) => {
     bio: dbUser.bio || "",
     website: dbUser.website || "",
     location: dbUser.location || "",
-    verified: dbUser.verified === true,
+    verified: auth.isVerified(dbUser),
     avatarUrl: dbUser.has_avatar ? `/api/users/${encodeURIComponent(dbUser.id)}/avatar` : "",
     youtube: dbUser.youtube || "",
     instagram: dbUser.instagram || "",
@@ -1136,155 +1140,17 @@ async function callAI(prompt, {
 }
 const callGroq = callAI;
 
-function sanitizeTopic(s) {
-  return String(s || "")
-    .replace(/[<>]/g, "")
-    .trim()
-    .slice(0, 200);
-}
+/* /api/generate is gone.
 
-const generationLimiter = rateLimit({ windowMs: 60_000, max: 12 });
+   It served the retired SEO tool pages, which now 301 away — nothing on the
+   site called it any more. It stayed registered, though, and it called the
+   language model on any signed-in request: seoGate returned ok for every
+   logged-in user, and the handler never touched the animation credit ledger.
+   A rate limit caps how fast someone can spend, not whether they are entitled
+   to spend at all, so a free account could run the model without ever
+   consuming a credit. A route with a provider bill behind it and no
+   entitlement check is not made safe by hiding its UI. */
 
-/* The SEO tools are the site's main organic entry point — six keyword URLs
-   that bring people in from search — so they stay usable without an account.
-   But each call is a model call we pay for, and previously they were free,
-   unlimited and unauthenticated: 12/minute per IP is over 17,000 model calls a
-   day from one address, with no revenue and nothing tying the usage to anyone.
-
-   The compromise: a few goes to prove the tool works, then an account. That
-   turns the traffic these pages already earn into signups instead of pure
-   cost, without putting a wall in front of a search visitor's first
-   impression. Signed-in users are not limited here — their spending is
-   governed by the credit ledger elsewhere. */
-const SEO_FREE_USES = 3;
-const seoFreeUses = new Map();   // ip -> { n, day }
-
-function seoGate(req) {
-  if (req.user) return { ok: true };
-  const ip = req.ip || req.headers["x-forwarded-for"] || "unknown";
-  const day = new Date().toISOString().slice(0, 10);
-  const rec = seoFreeUses.get(ip);
-  const n = rec && rec.day === day ? rec.n : 0;
-  if (n >= SEO_FREE_USES) {
-    return {
-      ok: false,
-      error: `You have used your ${SEO_FREE_USES} free generations for today. ` +
-        `Create a free account to keep going — it takes a few seconds.`
-    };
-  }
-  seoFreeUses.set(ip, { n: n + 1, day });
-  return { ok: true, remaining: SEO_FREE_USES - (n + 1) };
-}
-
-// The map is per-IP-per-day; drop yesterday's entries so it cannot grow forever.
-setInterval(() => {
-  const day = new Date().toISOString().slice(0, 10);
-  for (const [ip, rec] of seoFreeUses.entries()) {
-    if (rec.day !== day) seoFreeUses.delete(ip);
-  }
-}, 3_600_000);
-
-app.post("/api/generate", generationLimiter, async (req, res) => {
-  try {
-    const topic = sanitizeTopic(req.body?.topic);
-    const type = String(req.body?.type || "all").toLowerCase();
-    if (!topic || topic.length < 2) {
-      return res.status(400).json({ success: false, error: "Topic is required (min 2 characters)." });
-    }
-
-    // Checked after validating the request, so a malformed call never burns
-    // one of the free goes.
-    const gate = seoGate(req);
-    if (!gate.ok) {
-      return res.status(401).json({ success: false, error: gate.error, needAccount: true });
-    }
-
-    const prompts = {
-      all: `Topic: "${topic}"
-
-Generate a complete YouTube Shorts / Instagram Reels content pack in natural Hinglish. Use this EXACT format with these section headers:
-
-=== SCRIPT ===
-[HOOK]
-(3-4 punchy lines that grab attention in the first 3 seconds. Make it human, not robotic.)
-
-[MAIN]
-(Professional 1-2 minute voiceover script: 180-260 words, 10-16 short spoken lines, simple examples, curiosity, retention, and smooth flow. Use Hinglish that Indian creators can record directly.)
-
-[CTA]
-(2 strong but natural CTA lines, not spammy.)
-
-=== TITLES ===
-1. (clickable Hinglish title with emoji, under 60 chars)
-2. (...)
-3. (...)
-4. (...)
-5. (...)
-
-=== DESCRIPTION ===
-(Full YouTube description: 3-4 lines hook + bullet points + CTA + relevant keywords. Mix Hinglish and English.)
-
-=== HASHTAGS ===
-#tag1 #tag2 #tag3 ... (15 hashtags total: mix broad + niche + Hindi creator tags)
-
-=== IDEAS ===
-1. (related video idea)
-2. (...)
-3. (...)
-4. (...)
-5. (...)
-6. (...)
-7. (...)
-
-=== THUMBNAIL ===
-1. (Detailed English AI image prompt for Midjourney/DALL-E with subject, mood, lighting, composition, style — for YouTube thumbnail)
-2. (...)
-3. (...)
-`,
-      script: `Write a professional 1-2 minute YouTube Shorts / Instagram Reels voiceover script in natural Hinglish for the topic: "${topic}".
-
-Strict requirements:
-- Total length: 180-260 words
-- Hook: first 3 seconds must be powerful
-- Main section: 10-16 short spoken lines with simple examples, curiosity, and retention
-- CTA: 2 natural closing lines
-- Tone: human, confident, premium, Indian creator style
-- No robotic intro like "hello guys"
-- Format strictly as:
-[HOOK]
-(...)
-[MAIN]
-(...)
-[CTA]
-(...)`,
-      titles: `Generate 5 click-worthy Hinglish YouTube Shorts titles for: "${topic}". Number them 1-5. Each under 60 characters with emojis.`,
-      description: `Write a full SEO-optimized YouTube description in Hinglish for: "${topic}". Include hook lines, bullet points, CTA, and relevant keywords. No hashtags.`,
-      hashtags: `Generate 15 relevant YouTube Shorts hashtags for: "${topic}". Mix broad (#shorts #viral), niche, and Indian creator tags. Output only hashtags space-separated.`,
-      ideas: `Generate 7 related YouTube Shorts video ideas for: "${topic}". Number them 1-7. Each one a single line in Hinglish.`,
-      thumbnail: `Generate 3 detailed English AI image prompts for YouTube thumbnails on the topic: "${topic}". Each prompt should describe subject, mood, lighting, composition, style, and text overlay suggestion. Number them 1-3.`,
-    };
-
-    const prompt = prompts[type] || prompts.all;
-    const content = await callGroq(prompt, { temperature: 0.85, maxTokens: type === "all" ? 3400 : type === "script" ? 1800 : 900 });
-
-    if (!content) {
-      return res.status(502).json({ success: false, error: "AI returned empty response. Please retry." });
-    }
-
-    res.json({ success: true, type, topic, content, generatedAt: new Date().toISOString() });
-  } catch (err) {
-    console.error("[/api/generate]", err.message);
-    // 503, not 500: when every provider is down this is an upstream outage, and
-    // saying so lets the browser show "try again shortly" instead of a bug.
-    const down = err.allProvidersFailed || /not configured/.test(err.message || "");
-    res.status(down ? 503 : 500).json({
-      success: false,
-      error: down
-        ? "The AI service is not responding right now. Please try again in a minute."
-        : "Generation failed. Please retry in a few seconds.",
-    });
-  }
-});
 
 /* Billing cadence is explicit and server-validated. Prices are always read
    from credits.PLANS, never accepted from the browser. */
@@ -1473,8 +1339,53 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
       });
     }
 
-    await auth.changePlan(req.user.id, planId, term);
-    await credits.setPlan(req, planId);
+    /* Claim the payment before granting anything.
+
+       Everything above proves the payment is genuine; none of it proved it was
+       new. The grant ran unconditionally, so the same signed order submitted
+       twice granted twice — and since changePlan computes expiry from the
+       moment it runs, a replay a day later added a day. A double-submit or a
+       refreshed success page was enough to do it by accident.
+
+       The insert is the decision. payment_id is the primary key, so of two
+       concurrent verifications of one payment exactly one can win, without a
+       lock or a read-then-write race. */
+    const claim = await db.query(
+      `insert into public.processed_payments
+         (payment_id, order_id, user_id, plan, term, amount_paise)
+       values ($1, $2, $3, $4, $5, $6)
+       on conflict (payment_id) do nothing
+       returning payment_id`,
+      [String(razorpay_payment_id), String(razorpay_order_id), req.user.id,
+       planId, term, Number(order.amount) || null]
+    );
+
+    if (!claim.rows.length) {
+      // Already delivered. Answer exactly as the first call did: a retry is a
+      // retry, not a failure the person has to do something about.
+      return res.json({
+        success: true,
+        alreadyProcessed: true,
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id,
+        plan: planId,
+        term,
+        billingCycle
+      });
+    }
+
+    try {
+      await auth.changePlan(req.user.id, planId, term);
+      await credits.setPlan(req, planId);
+    } catch (err) {
+      /* The claim is recorded but the plan did not land, which would leave the
+         payment marked delivered and the account still on Free — the one
+         outcome worse than granting twice, because a retry could never fix it.
+         Release the claim so the next attempt can. */
+      await db.query(`delete from public.processed_payments where payment_id = $1`,
+        [String(razorpay_payment_id)]).catch(() => {});
+      throw err;
+    }
 
     res.json({
       success: true,

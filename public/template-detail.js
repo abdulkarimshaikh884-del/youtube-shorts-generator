@@ -46,7 +46,11 @@
     var html = "";
     try {
       if (t.isCommunity) {
+        // props carries every field the creator actually edited. Rebuilding
+        // from lines/accent/font alone showed the template's defaults back to
+        // them, which read as the editor having thrown their work away.
         html = window.SC_TPL2.build(t.tpl, {
+          props: t.props || {},
           lines: t.lines || [],
           accent: t.accent || "#ffffff",
           font: t.font || "inter",
@@ -103,6 +107,45 @@
       renderDetails();
     }
 
+    /* A community template that cannot be shown gets said so, rather than
+       being replaced by whatever built-in happens to share its id. */
+    function showCommunityProblem(isGone) {
+      var stage = $("#detailStage");
+      var host = stage && stage.parentElement ? stage.parentElement : document.querySelector("main");
+      if (!host) { showBuiltInOrFallback(); return; }
+
+      var box = document.createElement("div");
+      box.className = "detail-problem";
+      var head = document.createElement("h1");
+      head.textContent = isGone ? "This template is no longer available" : "Could not load this template";
+      var copy = document.createElement("p");
+      copy.textContent = isGone
+        ? "The creator removed it, or the link is out of date. The library has everything that is still published."
+        : "Something went wrong reaching the server. The template is probably fine — the request was not.";
+
+      var actions = document.createElement("div");
+      actions.className = "detail-problem-actions";
+      if (!isGone) {
+        var retry = document.createElement("button");
+        retry.type = "button";
+        retry.className = "pg-bw";
+        retry.textContent = "Try again";
+        retry.addEventListener("click", function () { location.reload(); });
+        actions.appendChild(retry);
+      }
+      var browse = document.createElement("a");
+      browse.className = isGone ? "pg-bw" : "pg-bo";
+      browse.href = "/#templates";
+      browse.textContent = "Browse the library";
+      actions.appendChild(browse);
+
+      box.appendChild(head);
+      box.appendChild(copy);
+      box.appendChild(actions);
+      host.innerHTML = "";
+      host.appendChild(box);
+    }
+
     /* Every community row points at a built-in template id, so looking up the
        built-in first made this branch unreachable and silently discarded the
        creator's custom title, colours and lines. Community URLs must resolve
@@ -112,12 +155,22 @@
       var bail = setTimeout(function () { if (ctrl) ctrl.abort(); }, 8_000);
       fetch("/api/community-templates/" + encodeURIComponent(commId), ctrl ? { signal: ctrl.signal } : undefined)
         .then(function (r) {
-          if (!r.ok) throw new Error("HTTP " + r.status);
+          if (!r.ok) {
+            // 404 is an answer, not a failure: this template is gone. Anything
+            // else is the request not getting through, which is temporary.
+            var err = new Error("HTTP " + r.status);
+            err.notFound = r.status === 404;
+            throw err;
+          }
           return r.json();
         })
         .then(function (d) {
           var cFound = d && d.template;
-          if (!cFound) throw new Error("Template not found");
+          if (!cFound) {
+            var gone = new Error("Template not found");
+            gone.notFound = true;
+            throw gone;
+          }
           currentTpl = {
             tpl: cFound.tpl,
             name: cFound.title || "Community Template",
@@ -127,6 +180,7 @@
             accent: cFound.accent || "#ffffff",
             font: cFound.font || "inter",
             lines: cFound.lines || [],
+            props: cFound.props || {},
             isCommunity: true,
             authorHandle: cFound.authorHandle || "creator",
             authorName: cFound.authorName || "Creator",
@@ -134,9 +188,26 @@
             authorAvatarUrl: cFound.authorAvatarUrl || "",
             likes: Number(cFound.likes || 0)
           };
+          /* Open at the ratio it was composed at. The page always started at
+             9:16, so a template built for YouTube arrived letterboxed into a
+             portrait frame and looked like the creator had got it wrong. */
+          if (cFound.aspect) {
+            currentAspect = cFound.aspect;
+            var arBtns = document.querySelectorAll("[data-ar]");
+            Array.prototype.forEach.call(arBtns, function (b) {
+              var on = b.dataset.ar === currentAspect;
+              b.classList.toggle("active", on);
+              b.setAttribute("aria-pressed", String(on));
+            });
+          }
           renderDetails();
         })
-        .catch(showBuiltInOrFallback)
+        /* This used to be .catch(showBuiltInOrFallback): any failure, including
+           a deleted template, quietly rendered a different animation under the
+           creator's URL. A visitor had no way to tell they were looking at
+           stock artwork rather than the work they had followed a link to — and
+           neither did the creator. Say which of the two things happened. */
+        .catch(function (err) { showCommunityProblem(err && err.notFound); })
         .finally(function () { clearTimeout(bail); });
       return;
     }

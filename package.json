@@ -10,7 +10,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "build": "node generate-favicons.js",
-    "test": "node verify_shell.js && node verify_editor.js && node verify_timeline.js && node verify_templates_v2.js && node verify_ai_definition.js && node verify_pages.js && node verify_mobile.js && node verify_auth.js && node verify_password_reset.js && node verify_export.js && node verify_credits.js && node verify_queue.js && node verify_social.js && node verify_projects.js && node verify_admin.js && node verify_support.js && node verify_skills.js && node audit_overlap.js && node verify_contrast.js --quick",
+    "test": "node verify_shell.js && node verify_editor.js && node verify_timeline.js && node verify_templates_v2.js && node verify_ai_definition.js && node verify_pages.js && node verify_mobile.js && node verify_auth.js && node verify_password_reset.js && node verify_export.js && node verify_credits.js && node verify_queue.js && node verify_social.js && node verify_projects.js && node verify_admin.js && node verify_support.js && node verify_skills.js && node verify_publish.js && node audit_overlap.js && node verify_contrast.js --quick",
     "test:shell": "node verify_shell.js",
     "test:templates": "node verify_templates_v2.js",
     "test:export": "node verify_export.js",
@@ -33,7 +33,8 @@
     "test:overlap": "node audit_overlap.js",
     "audit:css": "node audit_css_conflicts.js",
     "audit:site": "node audit_site.js",
-    "test:skills": "node verify_skills.js"
+    "test:skills": "node verify_skills.js",
+    "test:publish": "node verify_publish.js"
   },
   "license": "MIT",
   "type": "commonjs",
