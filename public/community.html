@@ -24,12 +24,12 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091210">
-<link rel="stylesheet" href="/page.css?v=2026091210">
-<link rel="stylesheet" href="/redesign.css?v=2026091210">
+<link rel="stylesheet" href="/shell.css?v=2026091211">
+<link rel="stylesheet" href="/page.css?v=2026091211">
+<link rel="stylesheet" href="/redesign.css?v=2026091211">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091210">
+<link rel="stylesheet" href="/polish.css?v=2026091211">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 <style>
 .sk-head{padding:50px 28px 14px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px}
@@ -79,80 +79,110 @@
 .sk-msg.err{color:#e5484d}
 .sk-msg.ok{color:#2a9d5c}
 
-/* ── Cards ──────────────────────────────────────────────── */
+/* ── Cards ──────────────────────────────────────────
+   A video grid, laid out the way video grids are laid out everywhere people
+   already know how to read one: the thumbnail is the object and everything
+   below it is its caption. The bordered panel these used to sit in drew a
+   second rectangle around a picture that already had edges. */
 .sk-grid{
-  padding:8px 28px 12px;
-  display:grid;gap:18px;
-  grid-template-columns:repeat(auto-fill,minmax(266px,1fr));
+  padding:10px 28px 30px;
+  display:grid;gap:26px 16px;
+  grid-template-columns:repeat(auto-fill,minmax(258px,1fr));
 }
-.sk-card{
-  border:1px solid var(--sh-line);border-radius:16px;overflow:hidden;
-  background:var(--sh-bg2);display:flex;flex-direction:column;
-  transition:border-color .15s ease,transform .15s ease;
-}
-.sk-card:hover{border-color:var(--sh-line2);transform:translateY(-2px)}
+.sk-card{display:flex;flex-direction:column;gap:11px;min-width:0}
 .sk-thumb{
   display:block;position:relative;aspect-ratio:16/9;
-  background:var(--sh-bg3);overflow:hidden;
+  border-radius:13px;overflow:hidden;background:var(--sh-bg3);
 }
-.sk-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.sk-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease}
+.sk-card:hover .sk-thumb img{transform:scale(1.04)}
 /* Instagram publishes no open thumbnail endpoint, so those cards get a drawn
    panel rather than a broken image frame. */
 .sk-thumb-fallback{
   position:absolute;inset:0;display:grid;place-items:center;
   color:var(--sh-ink3);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
 }
+/* The play badge is the hover state, not the resting one — a thumbnail that is
+   already a still from a video does not need to be told it is one. */
 .sk-play{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:44px;height:44px;border-radius:50%;
-  background:rgba(0,0,0,.62);display:grid;place-items:center;
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(.88);
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(0,0,0,.66);display:grid;place-items:center;
+  opacity:0;transition:opacity .18s ease,transform .18s ease;
 }
-.sk-play svg{width:16px;height:16px;fill:#fff;margin-left:2px}
-.sk-body{padding:13px 14px 12px;display:grid;gap:6px;flex:1}
-.sk-title{margin:0;font-size:14.5px;font-weight:650;line-height:1.35;color:var(--sh-ink)}
-.sk-title a{color:inherit;text-decoration:none}
-.sk-title a:hover{text-decoration:underline}
-.sk-summary{
-  margin:0;font-size:12.5px;color:var(--sh-ink3);line-height:1.5;
+.sk-card:hover .sk-play{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.sk-play svg{width:17px;height:17px;fill:#fff;margin-left:2px}
+/* Sits where a duration badge sits and does the same job: one glance says
+   where the video is about to open. */
+.sk-plat{
+  position:absolute;right:8px;bottom:8px;
+  padding:2px 7px;border-radius:5px;
+  background:rgba(0,0,0,.78);color:#fff;
+  font-size:10.5px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;
+}
+.sk-body{display:grid;grid-template-columns:36px 1fr;gap:11px;min-width:0}
+.sk-av{
+  width:36px;height:36px;border-radius:50%;flex:none;overflow:hidden;
+  background:var(--sh-bg3);display:grid;place-items:center;
+  font-size:13px;font-weight:650;color:var(--sh-ink2);text-decoration:none;
+}
+.sk-av img{width:100%;height:100%;object-fit:cover;display:block}
+.sk-text{min-width:0;display:grid;gap:3px;align-content:start}
+.sk-title{
+  margin:0;font-size:14.5px;font-weight:650;line-height:1.32;color:var(--sh-ink);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
-.sk-foot{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  margin-top:auto;padding:9px 14px;border-top:1px solid var(--sh-line);
-  font-size:12px;color:var(--sh-ink3);
+.sk-title a{color:inherit;text-decoration:none}
+.sk-author{display:inline-flex;align-items:center;gap:4px;min-width:0;font-size:12.5px}
+.sk-author a,.sk-author span{
+  color:var(--sh-ink3);text-decoration:none;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.sk-author{display:inline-flex;align-items:center;gap:5px;min-width:0}
-.sk-author a{color:var(--sh-ink);font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sk-author a:hover{text-decoration:underline}
+.sk-author a:hover{color:var(--sh-ink)}
 .sk-tick{width:12px;height:12px;flex:none}
-.sk-plat{
-  flex:none;padding:2px 8px;border:1px solid var(--sh-line);border-radius:999px;
-  font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+.sk-summary{
+  margin:0;font-size:12.5px;color:var(--sh-ink3);line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
 .sk-tpl{
-  display:inline-flex;align-items:center;gap:4px;
+  display:inline-flex;align-items:center;gap:4px;margin-top:1px;
   font-size:11.5px;color:var(--sh-ink3);text-decoration:none;
 }
 .sk-tpl:hover{color:var(--sh-ink);text-decoration:underline}
+/* The card you just shared arrives in place. That landing is the receipt —
+   it is why there is no longer a list telling you the state of your own
+   submission in words. */
+@keyframes sk-land{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sk-card.is-new{animation:sk-land .34s ease both}
+@media (prefers-reduced-motion:reduce){
+  .sk-card.is-new{animation:none}
+  .sk-thumb img,.sk-card:hover .sk-thumb img{transition:none;transform:none}
+}
 
-/* ── Your submissions ───────────────────────────────────── */
-.sk-mine{padding:6px 28px 0;max-width:760px}
-.sk-mine[hidden]{display:none}
-.sk-mine h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--sh-ink3);margin:0 0 10px;font-weight:600}
-.sk-mine-row{
+/* ── Held back ────────────────────────────────────
+   Empty in the normal case, because in the normal case your tutorial is
+   simply on the page and you can see it there. This exists for the one thing
+   a card cannot express: something of yours that was taken down, and why. */
+.sk-holds{padding:4px 28px 0;max-width:760px}
+.sk-holds[hidden]{display:none}
+.sk-holds h2{
+  font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--sh-ink3);margin:0 0 10px;font-weight:600;
+}
+.sk-hold-row{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:10px 13px;border:1px solid var(--sh-line);border-radius:11px;
   background:var(--sh-bg2);margin-bottom:8px;font-size:13px;
 }
-.sk-mine-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sh-ink)}
+.sk-hold-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sh-ink)}
 .sk-pill{
   flex:none;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;
   border:1px solid var(--sh-line);color:var(--sh-ink3);
 }
 .sk-pill.pending{border-color:#c99a2e59;color:#b8860b}
-.sk-pill.published{border-color:#2a9d5c59;color:#2a9d5c}
 .sk-pill.rejected{border-color:#e5484d59;color:#e5484d}
-.sk-mine-note{font-size:12px;color:var(--sh-ink3);margin:-4px 0 10px;padding-left:13px}
+.sk-hold-note{font-size:12px;color:var(--sh-ink3);margin:-4px 0 10px;padding-left:13px}
 
 /* ── Empty state ────────────────────────────────────────── */
 .sk-empty{
@@ -164,9 +194,9 @@
 
 @media (max-width:640px){
   .sk-head{padding:32px 18px 12px}
-  .sk-grid{padding:8px 18px 12px;grid-template-columns:1fr}
+  .sk-grid{padding:8px 18px 22px;grid-template-columns:1fr;gap:22px}
   .sk-form{margin:0 18px 18px}
-  .sk-mine,.sk-empty{margin-left:18px;margin-right:18px;padding-left:0;padding-right:0}
+  .sk-holds,.sk-empty{margin-left:18px;margin-right:18px;padding-left:0;padding-right:0}
 }
 </style></head>
 <body class="sh-body">
@@ -480,9 +510,9 @@
         <p class="sk-msg" id="skMsg" role="status"></p>
       </form>
 
-      <section class="sk-mine" id="skMine" hidden>
-        <h2>Your tutorials</h2>
-        <div id="skMineList"></div>
+      <section class="sk-holds" id="skHolds" hidden>
+        <h2>Not on the page</h2>
+        <div id="skHoldList"></div>
       </section>
 
       <div class="sk-grid" id="skGrid"></div>
@@ -533,9 +563,9 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091210" defer></script>
-<script src="/theme.js?v=2026091210" defer></script>
-<script src="/page.js?v=2026091210" defer></script>
+<script src="/authui.js?v=2026091211" defer></script>
+<script src="/theme.js?v=2026091211" defer></script>
+<script src="/page.js?v=2026091211" defer></script>
 <script>
 (function () {
   "use strict";
@@ -546,8 +576,8 @@
   var cancelBtn = document.getElementById("skCancel");
   var submitBtn = document.getElementById("skSubmit");
   var msg = document.getElementById("skMsg");
-  var mine = document.getElementById("skMine");
-  var mineList = document.getElementById("skMineList");
+  var holds = document.getElementById("skHolds");
+  var holdList = document.getElementById("skHoldList");
   var signedIn = false;
 
   function esc(s) {
@@ -574,30 +604,41 @@
     // not control, opened in a new tab.
     var thumb = s.thumbnail
       ? '<img src="' + esc(s.thumbnail) + '" alt="" loading="lazy" width="480" height="270">'
-      : '<span class="sk-thumb-fallback">' + esc(s.platform) + '</span>';
+      : '<span class="sk-thumb-fallback">' + esc(s.platform) + "</span>";
 
+    var name = s.author.name || "Creator";
     var authorHref = s.author.handle ? "/creator?handle=" + encodeURIComponent(s.author.handle) : "";
-    var authorName = esc(s.author.name) + (s.author.verified ? TICK : "");
+    var authorName = esc(name) + (s.author.verified ? TICK : "");
     var author = authorHref
       ? '<a href="' + esc(authorHref) + '">' + authorName + "</a>"
       : "<span>" + authorName + "</span>";
 
+    // No avatar is the common case for a new account, and an empty grey disc
+    // reads as a broken image. The initial is a real answer to "whose is this".
+    var face = s.author.avatarUrl
+      ? '<img src="' + esc(s.author.avatarUrl) + '" alt="" width="36" height="36">'
+      : esc(name.trim().charAt(0).toUpperCase() || "C");
+    var avatar = authorHref
+      ? '<a class="sk-av" href="' + esc(authorHref) + '" aria-hidden="true" tabindex="-1">' + face + "</a>"
+      : '<span class="sk-av" aria-hidden="true">' + face + "</span>";
+
     el.innerHTML =
       '<a class="sk-thumb" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
         thumb + PLAY +
+        '<span class="sk-plat">' + esc(s.platform) + "</span>" +
       "</a>" +
       '<div class="sk-body">' +
-        '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
-          esc(s.title) + "</a></h3>" +
-        (s.summary ? '<p class="sk-summary">' + esc(s.summary) + "</p>" : "") +
-        (s.templateId
-          ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">Open ' +
-            esc(s.templateId) + " in the Studio →</a>"
-          : "") +
-      "</div>" +
-      '<div class="sk-foot">' +
-        '<span class="sk-author">' + author + "</span>" +
-        '<span class="sk-plat">' + esc(s.platform) + "</span>" +
+        avatar +
+        '<div class="sk-text">' +
+          '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+            esc(s.title) + "</a></h3>" +
+          '<span class="sk-author">' + author + "</span>" +
+          (s.summary ? '<p class="sk-summary">' + esc(s.summary) + "</p>" : "") +
+          (s.templateId
+            ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">Open ' +
+              esc(s.templateId) + " in the Studio →</a>"
+            : "") +
+        "</div>" +
       "</div>";
     return el;
   }
@@ -629,25 +670,30 @@
       });
   }
 
-  function renderMine(list) {
-    if (!mine || !mineList) return;
-    if (!list.length) { mine.hidden = true; return; }
-    mine.hidden = false;
-    mineList.innerHTML = "";
-    list.forEach(function (s) {
+  /* Only what is NOT on the page. Everything published is already visible as
+     a card three lines further down, and repeating it as a row saying
+     "published" was telling you something the page had just shown you. */
+  function renderHolds(list) {
+    if (!holds || !holdList) return;
+    var held = list.filter(function (s) { return s.status !== "published"; });
+    if (!held.length) { holds.hidden = true; return; }
+    holds.hidden = false;
+    holdList.innerHTML = "";
+    held.forEach(function (s) {
       var row = document.createElement("div");
-      row.className = "sk-mine-row";
+      row.className = "sk-hold-row";
       row.innerHTML =
-        '<span class="sk-mine-title">' + esc(s.title) + "</span>" +
-        '<span class="sk-pill ' + esc(s.status) + '">' + esc(s.status) + "</span>";
-      mineList.appendChild(row);
-      // A rejection without its reason is indistinguishable from a submission
+        '<span class="sk-hold-title">' + esc(s.title) + "</span>" +
+        '<span class="sk-pill ' + esc(s.status) + '">' +
+          (s.status === "rejected" ? "removed" : "held") + "</span>";
+      holdList.appendChild(row);
+      // A removal without its reason is indistinguishable from a submission
       // that vanished, so the note is shown to the person who wrote it.
-      if (s.status === "rejected" && s.reviewNote) {
+      if (s.reviewNote) {
         var note = document.createElement("p");
-        note.className = "sk-mine-note";
+        note.className = "sk-hold-note";
         note.textContent = s.reviewNote;
-        mineList.appendChild(note);
+        holdList.appendChild(note);
       }
     });
   }
@@ -655,7 +701,7 @@
   function loadMine() {
     return fetch("/api/skills/mine", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) { if (j && j.skills) renderMine(j.skills); })
+      .then(function (j) { if (j && j.skills) renderHolds(j.skills); })
       .catch(function () {});
   }
 
@@ -695,8 +741,23 @@
             say((out.j && out.j.error) || "Could not share that tutorial.", "err");
             return;
           }
-          say("Shared — it is on the page now.", "ok");
+          /* The response already carries the finished row, so the card is
+             built from that rather than refetching the whole grid: the thing
+             you just shared should be on the page before you have finished
+             reading a sentence about it. */
+          form.hidden = true;
           form.reset();
+          say("");
+          if (out.j.skill) {
+            var made = card(out.j.skill);
+            made.className += " is-new";
+            grid.hidden = false;
+            empty.hidden = true;
+            grid.insertBefore(made, grid.firstChild);
+            made.scrollIntoView({ behavior: "smooth", block: "center" });
+          } else {
+            load();
+          }
           loadMine();
         })
         .catch(function () { say("Could not reach the server. Try again.", "err"); })

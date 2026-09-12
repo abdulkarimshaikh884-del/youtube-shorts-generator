@@ -11,10 +11,29 @@
    a takedown, not a gate: that is what separates a tutorial from a template.
    ============================================================ */
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 const db = require("./db");
 
 const MAX_TITLE = 90;
 const MAX_SUMMARY = 220;
+
+/* Read from the engine itself, the way community.js does, because a tutorial's
+   template id becomes a link into the Studio. An id nobody checked is a link
+   that opens nothing, and the person who clicks it blames the tutorial. */
+const VALID_TPL_IDS = (function () {
+  try {
+    const src = fs.readFileSync(path.join(__dirname, "public", "templates-v2.js"), "utf8");
+    const ids = new Set();
+    const re = /T\["([\w-]+)"\]\s*=/g;
+    let m;
+    while ((m = re.exec(src))) ids.add(m[1]);
+    ids.delete("blank");
+    return ids;
+  } catch {
+    return new Set();
+  }
+})();
 
 /* ── URL parsing ──────────────────────────────────────────
    The same video reaches us spelled several ways. Reducing each to
@@ -92,7 +111,9 @@ function toSkill(row, viewer) {
     url: row.url,
     platform: row.platform,
     thumbnail: thumbnailFor(row.platform, row.video_key),
-    templateId: row.template_id || null,
+    // Checked on the way out as well as the way in, so a template that is
+    // retired later stops being a link instead of becoming a dead one.
+    templateId: row.template_id && VALID_TPL_IDS.has(row.template_id) ? row.template_id : null,
     status: row.status,
     reviewNote: row.review_note || "",
     createdAt: row.created_at,
@@ -100,14 +121,18 @@ function toSkill(row, viewer) {
       id: row.author_id,
       name: row.display_name || "Creator",
       handle: row.handle ? String(row.handle).replace(/^@/, "") : "",
-      verified: row.verified === true
+      verified: row.verified === true,
+      avatarUrl: row.author_has_avatar
+        ? `/api/users/${encodeURIComponent(row.author_id)}/avatar`
+        : ""
     },
     canDelete: mine || admin
   };
 }
 
 const SELECT = `
-  select s.*, u.display_name, u.handle, u.verified
+  select s.*, u.display_name, u.handle, u.verified,
+         (u.avatar_bytes is not null) as author_has_avatar
     from public.creator_skills s
     join public.users u on u.id = s.author_id`;
 
@@ -126,6 +151,9 @@ async function submit(user, data) {
   const id = "skill_" + crypto.randomBytes(6).toString("hex");
   const summary = String(data?.summary || "").trim().slice(0, MAX_SUMMARY);
   const templateId = String(data?.templateId || "").trim().slice(0, 60) || null;
+  if (templateId && VALID_TPL_IDS.size && !VALID_TPL_IDS.has(templateId)) {
+    return { error: `There is no template called "${templateId}". Leave the field blank, or use the id shown on the template's own page — for example text-cascade.` };
+  }
 
   try {
     const { rows } = await db.query(
