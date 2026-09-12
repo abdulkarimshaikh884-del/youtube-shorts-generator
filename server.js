@@ -1816,6 +1816,12 @@ app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, asy
        length. */
     return res.json({
       success: true, scene, dur,
+      /* The editor no longer offers a ratio switcher, because ShortsCraft
+         makes vertical video and the choice was a control nobody meant to
+         touch. A brief that explicitly asks for something else is the one
+         case that should still be honoured, so it is read from the words
+         rather than from a button. */
+      aspect: anim.aspectFromPrompt(prompt),
       ai: { mode: launchBoost ? "launch-free" : quality, label: launchBoost ? "Launch model" : TIER[quality].label },
       credits: await credits.state(req)
     });

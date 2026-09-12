@@ -1138,13 +1138,6 @@
     }
   }
 
-  function markSwatch(hex) {
-    all(".ed-swb").forEach(function (b) {
-      b.setAttribute("aria-pressed",
-        String(b.dataset.c.toLowerCase() === String(hex).toLowerCase()));
-    });
-  }
-
   function backgroundFor(c) {
     if (!c) return "#08080d";
     var schema = c.spec ? c.spec.schema : ((meta[c.tpl] || {}).schema || {});
@@ -1162,18 +1155,16 @@
       cur().props.customBackground = true;
       cur().props.backgroundColor = hex;
     }
-    if (!fromInput || fromInput !== "color") $("#edColor").value = hex;
-    if (!fromInput || fromInput !== "hex") $("#edHex").value = hex;
-    $("#edChip").value = hex;
-    markSwatch(hex);
   }
 
+  /* ShortsCraft makes vertical short-form video, so 9:16 is the product, not
+     a per-project setting. The five ratio buttons in the top bar and the
+     Aspect select in Properties were two controls for one value, and both
+     implied every template had been designed for all five. The value is still
+     real — the renderer and the exporter need it, and an AI scene may ask for
+     16:9 — it just is not something to pick here. */
   function setAspect(ar) {
     state.aspect = AR_LABEL[ar] ? ar : "9:16";
-    $("#edAspect").value = state.aspect;
-    all(".ed-dev").forEach(function (b) {
-      b.setAttribute("aria-pressed", String(b.dataset.ar === state.aspect));
-    });
     renderAll(false);
   }
 
@@ -1412,6 +1403,10 @@
       cleanup();
       paintCredits(j.credits);
       var scene = j.scene;
+      /* A brief that names a ratio gets it; everything else stays vertical.
+         This is the only route to a non-9:16 project now that the editor has
+         no ratio switcher. */
+      if (j.aspect && AR_LABEL[j.aspect] && j.aspect !== state.aspect) setAspect(j.aspect);
       var elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       var clip = {
         tpl: null, spec: scene, prompt: prompt,
@@ -1788,47 +1783,8 @@
       renderClip(state.sel, true);
     });
 
-    // aspect select
-    var asel = $("#edAspect");
-    e.aspects().forEach(function (ar) {
-      var op = document.createElement("option");
-      op.value = ar; op.textContent = AR_LABEL[ar] || ar;
-      asel.appendChild(op);
-    });
-    asel.addEventListener("change", function () { setAspect(asel.value); });
 
-    // swatches
-    var sw = $("#edSwatches");
-    SWATCHES.forEach(function (hex) {
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "ed-swb"; b.dataset.c = hex;
-      b.style.background = hex;
-      b.setAttribute("aria-label", "Template background " + hex);
-      b.addEventListener("click", function () {
-        setBackgroundPicker(hex); renderClip(state.sel, true); scheduleDraftSave();
-      });
-      sw.appendChild(b);
-    });
-
-    // device buttons
-    all(".ed-dev").forEach(function (b) {
-      b.addEventListener("click", function () { setAspect(b.dataset.ar); });
-    });
-
-    // colour inputs
-    $("#edColor").addEventListener("input", function (ev) {
-      setBackgroundPicker(ev.target.value, "color"); queueRender();
-    });
-    $("#edChip").addEventListener("input", function (ev) {
-      setBackgroundPicker(ev.target.value, "chip"); queueRender();
-    });
-    $("#edHex").addEventListener("change", function (ev) {
-      var v = ev.target.value.trim();
-      if (!/^#[0-9a-f]{6}$/i.test(v)) { ev.target.value = backgroundFor(cur()); return; }
-      setBackgroundPicker(v, "hex"); renderClip(state.sel, true); scheduleDraftSave();
-    });
-
-    // duration of the selected clip
+    // duration
     var dur = $("#edDur");
     dur.addEventListener("input", function () {
       var budget = MAX_TOTAL - (total() - cur().dur);
@@ -1999,11 +1955,9 @@
       }
     } catch (err) { /* ignore */ }
 
+    // A ratio can still arrive in the URL — an AI scene that asked for 16:9,
+    // or a published template composed at one. Anything else is 9:16.
     state.aspect = AR_LABEL[ar] ? ar : "9:16";
-    $("#edAspect").value = state.aspect;
-    all(".ed-dev").forEach(function (b) {
-      b.setAttribute("aria-pressed", String(b.dataset.ar === state.aspect));
-    });
 
     // Default to a high-energy starter template if opened directly
     var activeTpl = (tpl && meta[tpl] && tpl !== "blank") ? tpl : "text-cascade";
@@ -2061,14 +2015,7 @@
           if (t.accent) clip.accent = t.accent;
           if (t.font) clip.font = t.font;
           if (Number(t.dur)) clip.dur = Number(t.dur);
-          if (t.aspect && AR_LABEL[t.aspect]) {
-            state.aspect = t.aspect;
-            var sel = $("#edAspect");
-            if (sel) sel.value = t.aspect;
-            all(".ed-dev").forEach(function (b) {
-              b.setAttribute("aria-pressed", String(b.dataset.ar === state.aspect));
-            });
-          }
+          if (t.aspect && AR_LABEL[t.aspect]) state.aspect = t.aspect;
           renderAll();
           syncPanel();
         })

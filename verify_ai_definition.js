@@ -30,7 +30,15 @@ const reply = {
   ok(anim.VOCABULARY.themes.length === 5, "theme choices are bounded");
 
   const prompt = anim.scenePrompt({ prompt: "Compare Claude and ChatGPT", dur: 4600, hasImage: false });
-  ok(/2 to 4 sequential motion scenes/.test(prompt) && /layout MUST be one of/.test(prompt), "model prompt requires a multi-scene story from approved layouts");
+  /* The prompt used to ask for a 2-4 scene storyboard and the model duly
+     produced hook / benefits / CTA every time, whatever the brief said — a
+     slideshow with two invented beats after the real one. It asks for one
+     scene now, and for the reasoning to be written down first so the layout
+     comes from the brief rather than from habit. */
+  ok(/EXACTLY ONE scene/.test(prompt) && /layout MUST be one of/.test(prompt),
+    "model prompt requires exactly one scene from approved layouts");
+  ok(/"plan"/.test(prompt) && /THINK FIRST/.test(prompt),
+    "model prompt makes it plan the scene before choosing anything");
   ok(/Never output HTML, CSS, React, JavaScript/.test(prompt), "model prompt explicitly forbids code");
 
   console.log("\n---- structured generation ----");
@@ -38,11 +46,16 @@ const reply = {
     prompt: "Compare Claude and ChatGPT", dur: 4600, model: "offline-test",
     callModel: async () => "```json\n" + JSON.stringify(reply) + "\n```"
   });
-  ok(scene.definition && scene.definition.version === 2 && scene.definition.scenes.length === 3, "valid storyboard compiles to three timed scenes");
+  ok(scene.definition && scene.definition.version === 2 && scene.definition.scenes.length === 1,
+    "a reply compiles to exactly one scene",
+    scene.definition && scene.definition.scenes.length);
   ok(/@keyframes/.test(scene.css) && !/<script/i.test(scene.body), "compiled scene is animated and script-free");
-  ok((scene.body.match(/ai2-beat/g) || []).length === 3, "compiled body contains three story beats");
-  ok(scene.schema && scene.schema.fields.length >= 18, "every beat exposes editable fields", scene.schema.fields.length);
-  ok(/\{\{s1Title\}\}/.test(scene.body) && /\{\{s3Item1\}\}/.test(scene.body), "compiled body keeps per-scene editable placeholders");
+  ok((scene.body.match(/ai2-beat/g) || []).length === 1,
+    "the compiled body holds one beat, not a sequence",
+    (scene.body.match(/ai2-beat/g) || []).length);
+  ok(scene.schema && scene.schema.fields.length >= 4,
+    "the scene still exposes its content as editable fields", scene.schema.fields.length);
+  ok(/\{\{s1Title\}\}/.test(scene.body), "the compiled body keeps its editable placeholders");
 
   console.log("\n---- editability after generation ----");
   const context = { window: {} };
@@ -50,9 +63,10 @@ const reply = {
   vm.runInContext(fs.readFileSync("public/templates-v2.js", "utf8"), context);
   const html = context.window.SC_TPL2.buildCustom(scene, {
     aspect: "16:9", dur: 4600,
-    props: { s1Title: "Edited after AI", s2Primary: "New left choice", s3Item1: "Custom feature" }
+    props: { s1Title: "Edited after AI", s1Primary: "New left choice" }
   });
-  ok(html.includes("Edited after AI") && html.includes("New left choice") && html.includes("Custom feature"), "edits from multiple beats reach preview/render HTML");
+  ok(html.includes("Edited after AI") && html.includes("New left choice"),
+    "edits to the scene reach preview/render HTML");
   ok(!/\{\{[A-Za-z]/.test(html), "no unresolved placeholders remain");
 
   console.log("\n---- invalid output and fallback normalization ----");
@@ -62,8 +76,10 @@ const reply = {
   }, { prompt: "fallback" });
   ok(normalized.theme === "midnight" && normalized.background === "mesh-grid" && normalized.scenes[0].layout === "kinetic-hero",
     "unsupported theme/background/layout fall back to approved defaults");
-  ok(normalized.transition === "crossfade" && normalized.scenes[0].entrance === "blur-rise" && normalized.scenes.length === 2,
-    "unsupported motion falls back and a short reply receives a second beat");
+  ok(normalized.transition === "crossfade" && normalized.scenes[0].entrance === "blur-rise"
+    && normalized.scenes.length === 1,
+    "unsupported motion falls back, and one scene stays one scene",
+    normalized.scenes.length);
 
   const legacy = anim.sanitise(anim.compileDefinition({
     version: 1, name: "Saved v1", theme: "midnight", layout: "comparison",

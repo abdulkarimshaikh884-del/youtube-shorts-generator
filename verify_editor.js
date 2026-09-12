@@ -71,13 +71,16 @@ const doc = (page) => page.evaluate(() =>
       cols,
       hasBack: !!document.querySelector(".ed-back"),
       hasName: !!document.querySelector("#edProject"),
+      // Both deliberately gone: ShortsCraft makes vertical video, so a ratio
+      // switcher was a control nobody meant to touch, and the top-bar colour
+      // swatch wrote the same value as the template's own background field.
       devices: document.querySelectorAll(".ed-dev").length,
       hasChip: !!document.querySelector("#edChip"),
+      hasSchemaBackground: !!document.querySelector("#edProp_backgroundColor"),
       hasExport: !!document.querySelector("#edExport"),
       scrollers: document.querySelectorAll(".ed-scroll").length,
       sandbox: document.querySelector("#edPreview").getAttribute("sandbox"),
       tpl: document.querySelector("#edTpl").value,
-      aspect: document.querySelector("#edAspect").value,
       arw: document.querySelector("#edFrame").style.getPropertyValue("--arw"),
       tplSelectValue: document.querySelector("#edTpl").value,
       fonts: document.querySelectorAll("#edFont option").length,
@@ -91,13 +94,19 @@ const doc = (page) => page.evaluate(() =>
   ok(boot.overflow === "hidden", "html overflow hidden", boot.overflow);
   ok(boot.cols === 3, "three columns on desktop", boot.cols);
   ok(boot.scrollers >= 2, "panels scroll internally", boot.scrollers);
-  ok(boot.hasBack && boot.hasName && boot.hasChip && boot.hasExport,
+  ok(boot.hasBack && boot.hasName && boot.hasExport,
     "top bar has back, name, background chip and Export");
-  ok(boot.devices === 5, "device/aspect toggles present", boot.devices);
+  ok(boot.devices === 0 && !boot.hasChip,
+    "no ratio switcher and no duplicate top-bar colour control",
+    `${boot.devices} devices, chip ${boot.hasChip}`);
+  ok(boot.hasSchemaBackground,
+    "the template's own background field is the one place colour is set");
   ok(/allow-same-origin/.test(boot.sandbox) && !/allow-scripts/.test(boot.sandbox),
     "preview sandbox: allow-same-origin, no allow-scripts", boot.sandbox);
   ok(boot.tpl === "ui-toggle", "?tpl= honoured", boot.tpl);
-  ok(boot.aspect === "1:1" && boot.arw === "1", "?aspect= honoured", boot.aspect);
+  // The ratio is no longer a control, but it is still real — ?aspect= is how
+  // an AI scene that asked for a different shape arrives.
+  ok(boot.arw === "1", "?aspect= is still honoured without a switcher", boot.arw);
   // The old left template rail was replaced by the AI Assistant panel; the
   // template is now chosen from Properties → Current template, which the
   // "?tpl= honoured" assertion above already covers.
@@ -118,19 +127,20 @@ const doc = (page) => page.evaluate(() =>
   ok(cur !== prev && /SWITCHED/.test(cur), "text edit re-renders");
 
   prev = cur;
-  await page.click(".ed-swb:nth-child(4)");
-  await new Promise((r) => setTimeout(r, 350));
-  cur = await doc(page);
-  ok(cur !== prev, "background swatch re-renders");
-
-  prev = cur;
+  /* Colour used to have three controls: a top-bar swatch, a swatch row and a
+     hex box, all writing the value the template's own schema already exposed.
+     One of them is left, and this is the assertion that it still works. */
   await page.evaluate(() => {
-    const h = document.querySelector("#edHex");
-    h.value = "#ff00aa"; h.dispatchEvent(new Event("change", { bubbles: true }));
+    const toggle = document.querySelector("#edProp_customBackground");
+    if (toggle && !toggle.checked) { toggle.checked = true; toggle.dispatchEvent(new Event("change", { bubbles: true })); }
+    const c = document.querySelector("#edProp_backgroundColor");
+    c.value = "#ff00aa";
+    c.dispatchEvent(new Event("input", { bubbles: true }));
+    c.dispatchEvent(new Event("change", { bubbles: true }));
   });
-  await new Promise((r) => setTimeout(r, 350));
+  await new Promise((r) => setTimeout(r, 500));
   cur = await doc(page);
-  ok(/#ff00aa/i.test(cur), "hex input reaches the animation");
+  ok(/#ff00aa/i.test(cur), "the template's background field reaches the animation");
 
   prev = cur;
   await page.select("#edFont", "serif");
@@ -138,15 +148,12 @@ const doc = (page) => page.evaluate(() =>
   cur = await doc(page);
   ok(/Georgia/.test(cur), "font choice reaches the animation");
 
-  await page.click('.ed-dev[data-ar="9:16"]');
-  await new Promise((r) => setTimeout(r, 400));
   const ar = await page.evaluate(() => ({
     arw: document.querySelector("#edFrame").style.getPropertyValue("--arw"),
-    sel: document.querySelector("#edAspect").value,
-    pressed: document.querySelector('.ed-dev[data-ar="9:16"]').getAttribute("aria-pressed")
+    switchers: document.querySelectorAll(".ed-dev, #edAspect").length
   }));
-  ok(ar.arw === "9" && ar.sel === "9:16" && ar.pressed === "true",
-    "device toggle changes aspect", JSON.stringify(ar));
+  ok(ar.switchers === 0, "the ratio is not something to pick in the editor", ar.switchers);
+  ok(ar.arw === "1", "the frame still holds the project's ratio", ar.arw);
 
   await page.evaluate(() => {
     const d = document.querySelector("#edDur");
@@ -242,24 +249,26 @@ const doc = (page) => page.evaluate(() =>
     "uploaded image is optimised and immediately applied to the animation", JSON.stringify(uploadApplied));
 
   await page.evaluate(() => {
-    const colour = document.querySelector("#edChip");
+    const toggle = document.querySelector("#edProp_customBackground");
+    if (toggle && !toggle.checked) { toggle.checked = true; toggle.dispatchEvent(new Event("change", { bubbles: true })); }
+    const colour = document.querySelector("#edProp_backgroundColor");
     colour.value = "#123456";
     colour.dispatchEvent(new Event("input", { bubbles: true }));
+    colour.dispatchEvent(new Event("change", { bubbles: true }));
   });
-  await wait(450);
+  await wait(600);
   const backgroundApplied = await page.evaluate(() => {
     const frame = document.querySelector("#edPreview");
     const stage = frame && frame.contentDocument && frame.contentDocument.querySelector(".sc-user-stage");
     return {
-      label: document.querySelector('label[for="edHex"]').textContent,
       enabled: !!stage && stage.classList.contains("sc-user-bg"),
       variable: stage && stage.style.getPropertyValue("--sc-user-background"),
       computed: stage && getComputedStyle(stage).backgroundColor
     };
   });
-  ok(backgroundApplied.label === "Template background" && backgroundApplied.enabled
-    && backgroundApplied.variable === "#123456" && backgroundApplied.computed === "rgb(18, 52, 86)",
-    "header colour picker changes the whole template background", JSON.stringify(backgroundApplied));
+  ok(backgroundApplied.enabled && backgroundApplied.variable === "#123456"
+    && backgroundApplied.computed === "rgb(18, 52, 86)",
+    "the template's background field changes the whole stage", JSON.stringify(backgroundApplied));
 
   console.log("\n---- mobile ----");
   await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
@@ -314,7 +323,9 @@ const doc = (page) => page.evaluate(() =>
       selected: document.querySelector('.ed-mobile-tab[aria-selected="true"]').dataset.mobilePanel,
       panel: getComputedStyle(document.querySelector("#edPropertiesPanel")).display,
       lastReachable: last.getBoundingClientRect().bottom <= window.innerHeight + 1,
-      aspectH: Math.round(document.querySelector("#edAspect").getBoundingClientRect().height)
+      // A range slider is thin by design and its thumb is the target, so
+      // this measures a select — the kind of control the assertion is about.
+      aspectH: Math.round(document.querySelector("#edFont").getBoundingClientRect().height)
     };
   });
   ok(mobEdit.selected === "edit" && mobEdit.panel !== "none", "Properties are reachable on mobile");

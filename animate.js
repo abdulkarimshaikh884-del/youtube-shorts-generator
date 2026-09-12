@@ -324,14 +324,18 @@ function normaliseStoryDefinition(raw, options = {}) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new BadScene("story definition missing");
   const themeName = Object.prototype.hasOwnProperty.call(THEMES, raw.theme) ? raw.theme : "midnight";
   const theme = THEMES[themeName];
-  const source = Array.isArray(raw.scenes) ? raw.scenes.slice(0, 4) : [];
+  /* One scene. The compiler used to take up to four and pad up to two, so
+     even a brief with a single thing to say came back as a slideshow with two
+     invented beats after it. A short-form animation is one idea held on
+     screen, not a deck. */
+  const source = Array.isArray(raw.scenes) ? raw.scenes.slice(0, 1) : [];
   const promptTitle = cleanStoryText(options.prompt || "A premium creator story", STORY_LIMITS.title);
   const defaults = [
     { layout: "kinetic-hero", eyebrow: "THE BIG IDEA", title: promptTitle, body: "A sharp opening built to stop the scroll.", primary: "Watch this", secondary: "", items: [] },
     { layout: "feature-grid", eyebrow: "WHY IT MATTERS", title: "Made for attention", body: "Clear hierarchy, purposeful motion and creator-ready editing.", primary: "Fast", secondary: "Flexible", items: ["Premium motion", "Editable copy", "Clean pacing"] },
     { layout: "product-focus", eyebrow: "YOUR NEXT MOVE", title: "Make it yours", body: "Change every message, color and visual without rebuilding the animation.", primary: "Create now", secondary: "ShortsCraft", items: [] }
   ];
-  while (source.length < 2) source.push(defaults[source.length]);
+  if (!source.length) source.push(defaults[0]);
 
   const scenes = source.map((candidate, index) => {
     const beat = candidate && typeof candidate === "object" && !Array.isArray(candidate) ? candidate : defaults[index] || defaults[2];
@@ -352,7 +356,12 @@ function normaliseStoryDefinition(raw, options = {}) {
 
   return {
     version: STORY_VERSION,
-    name: cleanPlainText(raw.name || "AI Storyboard", 60),
+    name: cleanPlainText(raw.name || "AI scene", 60),
+    /* The model is required to write its plan before it chooses anything, so
+       that it has to read the brief rather than reach for a house template.
+       Carrying it through means the editor can show why the scene looks the
+       way it does instead of leaving it as something that just appeared. */
+    plan: cleanPlainText(raw.plan || "", 400),
     theme: themeName,
     accent: /^#[0-9a-f]{6}$/i.test(String(raw.accent || "")) ? String(raw.accent) : theme.accent,
     background: STORY_BACKGROUNDS.has(raw.background) ? raw.background : "mesh-grid",
@@ -515,27 +524,62 @@ function sanitise(spec) {
    The model is a smart arranger, not an unrestricted web designer. It returns
    content plus choices from the approved vocabulary above; ShortsCraft owns
    every rendered pixel and keyframe in compileDefinition(). */
+/* The model used to be asked for a 2-4 scene storyboard, and it obliged: a
+   hook beat, a benefits beat and a CTA beat, every time, whatever the brief
+   said. That is a slideshow, not an animation, and the three beats were mostly
+   filler because one prompt rarely has three things to say.
+
+   It plans one scene now, and it has to write the plan down before the scene —
+   what this is actually about, the single thing the viewer must leave with,
+   which layout carries that, and where the eye goes. Making the reasoning a
+   required field is what stops the model reaching for the generic answer: it
+   has to commit to a reading of the brief first, and the scene then has to
+   match what it just said. */
+/* ShortsCraft is a vertical short-form tool, so 9:16 is the answer unless the
+   person actually asked for something else. The editor no longer offers a
+   ratio switcher — this is the one place a different shape can be chosen, and
+   it has to come from the brief rather than from a control nobody meant to
+   touch. */
+const ASPECT_WORDS = [
+  [/\b16\s*[:x\/]\s*9\b|\blandscape\b|\bwidescreen\b|\byoutube video\b/i, "16:9"],
+  [/\b1\s*[:x\/]\s*1\b|\bsquare\b/i, "1:1"],
+  [/\b4\s*[:x\/]\s*5\b|\bfeed post\b/i, "4:5"],
+  [/\b9\s*[:x\/]\s*16\b|\bvertical\b|\bportrait\b|\bshorts?\b|\breels?\b/i, "9:16"]
+];
+
+function aspectFromPrompt(prompt) {
+  const text = String(prompt || "");
+  for (const [re, ratio] of ASPECT_WORDS) {
+    if (re.test(text)) return ratio;
+  }
+  return "9:16";
+}
+
 function scenePrompt({ prompt, dur, hasImage }) {
-  return `Plan a premium, editable ShortsCraft STORYBOARD with 2 to 4 sequential motion scenes.
+  return `Design ONE premium, editable ShortsCraft motion scene. Not a storyboard, not a sequence — a single scene that works as a loop.
 
 USER BRIEF: ${prompt}
 LOOP DURATION: ${dur}ms
 ATTACHED IMAGE: ${hasImage ? "yes" : "no"}
 
+THINK FIRST, THEN BUILD. The "plan" field is not decoration — write it before you choose anything else, and then make the scene do what it says.
+
 RETURN EXACTLY THIS JSON SHAPE:
-{"version":2,"name":"Short story name","theme":"midnight","accent":"#5b8cff","background":"mesh-grid","transition":"zoom-through","scenes":[{"layout":"kinetic-hero","eyebrow":"STOP SCROLLING","title":"A strong opening hook","body":"One clear sentence that creates curiosity.","primary":"Watch this","secondary":"In 15 seconds","items":[],"entrance":"blur-rise"},{"layout":"feature-grid","eyebrow":"THE PAYOFF","title":"Three useful benefits","body":"Make every beat advance the story.","primary":"Fast","secondary":"Editable","items":["Benefit one","Benefit two","Benefit three"],"entrance":"slide-left"},{"layout":"product-focus","eyebrow":"NEXT STEP","title":"End with one action","body":"A clean CTA, not an empty slogan.","primary":"Create now","secondary":"ShortsCraft","items":[],"entrance":"spring"}]}
+{"version":2,"name":"Short scene name","plan":"What this is about, the one thing the viewer must leave with, why this layout carries it, and what the eye reads first, second, third.","theme":"midnight","accent":"#5b8cff","background":"mesh-grid","scenes":[{"layout":"kinetic-hero","eyebrow":"STOP SCROLLING","title":"The one message","body":"One clear sentence that earns the next second.","primary":"Watch this","secondary":"In 15 seconds","items":[],"entrance":"blur-rise"}]}
 
 RULES:
-1. Return 2-4 scenes. Every scene must add new information: hook, proof/value, then payoff/CTA.
-2. layout MUST be one of: kinetic-hero, stat-reveal, split-compare, ranked-stack, chat-story, product-focus, quote-poster, steps-flow, feature-grid, countdown.
-3. background MUST be one of: mesh-grid, spotlight, aurora, paper, gradient, minimal.
-4. transition MUST be one of: crossfade, zoom-through, slide-flow, wipe-up.
-5. entrance MUST be one of: blur-rise, spring, slide-left, wipe-up, zoom, type, flip.
-6. theme MUST be one of: dark-futuristic, midnight, emerald, warm-editorial, light.
-7. Keep each title under 64 characters, body under 120, and items under 44. Use 2-4 items only when the layout benefits from them.
-8. Match visual hierarchy, pacing and copy to the user's actual brief. Avoid generic filler such as "unlock your potential".
-9. Use product-focus when an attached image is central. Do not invent URLs.
-10. Output raw JSON only. Never output HTML, CSS, React, JavaScript, URLs or markdown.
+1. Return EXACTLY ONE scene in "scenes". This is a single looping animation, not a slideshow. Everything the viewer needs is on screen at once, arranged in a clear reading order.
+2. Write "plan" first and commit to it: name the subject, the single takeaway, the layout that serves it, and the reading order. Then build the scene to match. Do not describe a scene you did not build.
+3. Choose the layout from the brief, not from habit. A number or metric wants stat-reveal; a comparison wants split-compare; a list wants ranked-stack or feature-grid; a messaging story wants chat-story; a quote wants quote-poster; a product or attached image wants product-focus; a process wants steps-flow; a deadline wants countdown; a pure statement wants kinetic-hero.
+4. Fill only the fields the chosen layout actually uses. Leave the rest as empty strings or an empty array rather than padding them with filler.
+5. layout MUST be one of: kinetic-hero, stat-reveal, split-compare, ranked-stack, chat-story, product-focus, quote-poster, steps-flow, feature-grid, countdown.
+6. background MUST be one of: mesh-grid, spotlight, aurora, paper, gradient, minimal.
+7. entrance MUST be one of: blur-rise, spring, slide-left, wipe-up, zoom, type, flip.
+8. theme MUST be one of: dark-futuristic, midnight, emerald, warm-editorial, light.
+9. Keep the title under 64 characters, body under 120, and items under 44. Use 2-4 items only when the layout benefits from them.
+10. Match visual hierarchy, pacing and copy to the user's actual brief. Avoid generic filler such as "unlock your potential".
+11. Use product-focus when an attached image is central. Do not invent URLs.
+12. Output raw JSON only. Never output HTML, CSS, React, JavaScript, URLs or markdown.
 `;
 }
 
@@ -589,16 +633,23 @@ function createFallbackScene(prompt, dur) {
     background: isTech ? "aurora" : "mesh-grid",
     transition: "zoom-through",
     scenes: [
-      { layout: "kinetic-hero", eyebrow: "SHORTSCRAFT AI", title: String(prompt || "Premium motion visual"), body: "A clear opening hook designed to earn the next second.", primary: "Watch this", secondary: "Built to move", items: [], entrance: "blur-rise" },
-      { layout: isChart || isMoney ? "stat-reveal" : "feature-grid", eyebrow: "THE PAYOFF", title: isChart ? "Growth you can see" : "Every beat has a job", body: "Premium hierarchy, editable content and purposeful pacing.", primary: isChart ? "100K+" : (isMoney ? "+248%" : "Fast"), secondary: isChart ? "Audience growth" : (isMoney ? "Creator revenue" : "Flexible"), items: ["Strong hierarchy", "Smooth motion", "Easy editing"], entrance: "slide-left" },
-      { layout: "product-focus", eyebrow: "MAKE IT YOURS", title: "Ready for your next short", body: "Customize the story, colors and message inside the editor.", primary: "Create now", secondary: "Edit every detail", items: [], entrance: "spring" }
+      {
+        layout: isChart || isMoney ? "stat-reveal" : "kinetic-hero",
+        eyebrow: "SHORTSCRAFT",
+        title: String(prompt || "Premium motion visual"),
+        body: "Edit every word, colour and value of this scene in the Studio.",
+        primary: isChart ? "100K+" : (isMoney ? "+248%" : "Watch this"),
+        secondary: isChart ? "Audience growth" : (isMoney ? "Creator revenue" : ""),
+        items: [],
+        entrance: "blur-rise"
+      }
     ]
   }, { prompt });
   return sanitise(compileStoryDefinition(definition, null));
 }
 
 module.exports = {
-  sanitise, generateScene, scenePrompt, createFallbackScene,
+  sanitise, generateScene, scenePrompt, createFallbackScene, aspectFromPrompt,
   normaliseDefinition, normaliseStoryDefinition, compileDefinition, compileStoryDefinition, BadScene,
   VOCABULARY: {
     version: STORY_VERSION,

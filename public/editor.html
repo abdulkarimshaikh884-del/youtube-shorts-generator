@@ -50,30 +50,11 @@
     <label class="ed-sr" for="edProject">Project name</label>
     <input class="ed-name" id="edProject" type="text" value="Untitled animation" maxlength="60">
 
-    <div class="ed-devices" role="group" aria-label="Aspect ratio">
-      <button class="ed-dev" type="button" data-ar="9:16" aria-pressed="true" title="9:16 Shorts">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="3" width="8" height="18" rx="2"/></svg>
-      </button>
-      <button class="ed-dev" type="button" data-ar="1:1" aria-pressed="false" title="1:1 Square">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
-      </button>
-      <button class="ed-dev" type="button" data-ar="4:5" aria-pressed="false" title="4:5 Feed">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="4" width="12" height="16" rx="2"/></svg>
-      </button>
-      <button class="ed-dev" type="button" data-ar="16:9" aria-pressed="false" title="16:9 YouTube">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="10" rx="2"/></svg>
-      </button>
-      <button class="ed-dev" type="button" data-ar="21:9" aria-pressed="false" title="21:9 Cinematic">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="9" width="20" height="6" rx="1.6"/></svg>
-      </button>
-    </div>
-
     <div class="ed-topright">
       <a href="/pricing" class="ed-credits" id="edCredits" title="Credits left today">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9 10h4.2a2 2 0 0 1 0 4H9"/></svg>
         <b id="edCreditsN">8</b>
       </a>
-      <input class="ed-chip" id="edChip" type="color" value="#ffffff" aria-label="Accent colour" title="Accent colour">
       <button class="ed-pub-btn" id="edPublishOpen" type="button" title="Publish this animation as a community template">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         Publish Template
@@ -278,24 +259,17 @@
             <div id="edFields"></div>
           </div>
 
-          <div class="ed-grp">
-            <h2>Colours</h2>
-            <div class="ed-f">
-              <label for="edHex">Template background</label>
-              <div class="ed-inline">
-                <input type="color" id="edColor" value="#ffffff" aria-label="Template background colour picker">
-                <input type="text" id="edHex" value="#ffffff" maxlength="7" spellcheck="false">
-              </div>
-            </div>
-            <div class="ed-sw" id="edSwatches"></div>
-          </div>
+          <!-- The hand-built "Colours" group lived here. It offered one
+               background picker for every template, while each template's own
+               schema already declares a Background colour field under Style &
+               layout — two controls writing the same value, which is what made
+               a change in one place look like it had been ignored in the
+               other. All 59 templates declare their own, so the schema is the
+               only source now and the panel shows exactly what the template
+               being edited actually exposes. -->
 
           <div class="ed-grp">
             <h2>Format</h2>
-            <div class="ed-f">
-              <label for="edAspect">Aspect ratio</label>
-              <select id="edAspect"></select>
-            </div>
             <div class="ed-f">
               <label for="edDur">Loop length — <span id="edDurVal">4.6s</span></label>
               <input type="range" id="edDur" min="2000" max="9000" step="200" value="4600">
