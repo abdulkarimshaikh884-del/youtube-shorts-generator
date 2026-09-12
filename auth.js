@@ -194,7 +194,7 @@ async function signUp(res, email, password, requestedHandle) {
   if (existing.length) {
     // Signup is the one place we must admit the address is taken, or the user
     // can never work out why nothing happens. Login stays ambiguous.
-    return { error: "There is already an account with that email. Log in instead." };
+    return { error: "There is already an account with that email, and the password you just typed has not been saved — log in with your original one, or reset it if you do not remember." };
   }
 
   const localName = email.split("@")[0].replace(/[^a-z0-9_]/gi, "").toLowerCase();
@@ -222,7 +222,7 @@ async function signUp(res, email, password, requestedHandle) {
        that check. Treat the losing request as a duplicate instead of leaking
        a generic 500 and leaving the creator unsure whether signup worked. */
     if (err && err.code === "23505" && err.constraint === "users_email_lower_unique") {
-      return { error: "There is already an account with that email. Log in instead." };
+      return { error: "There is already an account with that email, and the password you just typed has not been saved — log in with your original one, or reset it if you do not remember." };
     }
     if (err && err.code === "23505" && err.constraint === "users_handle_lower_unique") {
       return { error: "That creator handle is already taken." };

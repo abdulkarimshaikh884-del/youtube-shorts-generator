@@ -1,4 +1,4 @@
-/* Creator tutorials, end to end: URL parsing, the review queue, who can see
+/* Creator tutorials, end to end: URL parsing, takedown, who can see
    what, and who can remove what. Every fixture is created by this run and
    removed in finally. */
 require("dotenv").config();
@@ -104,8 +104,8 @@ function fakeYouTubeKey() {
     ok(made.status === 200 && made.data.success, "a real submission is accepted", made.status);
     const id = made.data.skill && made.data.skill.id;
     if (id) rows.push(id);
-    ok(made.data.skill && made.data.skill.status === "pending",
-      "a new submission waits for review", made.data.skill && made.data.skill.status);
+    ok(made.data.skill && made.data.skill.status === "published",
+      "a new submission is live at once", made.data.skill && made.data.skill.status);
     ok(made.data.skill && made.data.skill.url === `https://www.youtube.com/watch?v=${key}`,
       "the stored link is the canonical one, not what was pasted",
       made.data.skill && made.data.skill.url);
@@ -121,12 +121,12 @@ function fakeYouTubeKey() {
     console.log("\n---- what the public sees ----");
     const publicBefore = await call(null, "GET", "/api/skills");
     ok(publicBefore.status === 200 &&
-       !(publicBefore.data.skills || []).some((s) => s.id === id),
-      "a pending tutorial is not public");
+       (publicBefore.data.skills || []).some((s) => s.id === id),
+      "a tutorial is public the moment it is shared");
 
     const mine = await call(author, "GET", "/api/skills/mine");
     ok(mine.status === 200 && (mine.data.skills || []).some((s) => s.id === id),
-      "the author sees their own pending submission");
+      "the author sees their own submission");
 
     const notMine = await call(other, "GET", "/api/skills/mine");
     ok(!(notMine.data.skills || []).some((s) => s.id === id),
@@ -139,14 +139,19 @@ function fakeYouTubeKey() {
     const reviewAsUser = await call(other, "PATCH", `/api/admin/skills/${id}`, { status: "published" });
     ok(reviewAsUser.status === 403, "an ordinary account cannot approve", reviewAsUser.status);
 
-    const queue = await call(staff, "GET", "/api/admin/skills?status=pending");
+    const queue = await call(staff, "GET", "/api/admin/skills");
     ok(queue.status === 200 && (queue.data.skills || []).some((s) => s.id === id),
-      "an admin sees it in the pending queue");
+      "an admin's list defaults to what is live, and it is there");
 
     const rejected = await call(staff, "PATCH", `/api/admin/skills/${id}`,
       { status: "rejected", note: "Audio is inaudible for the first minute." });
     ok(rejected.status === 200 && rejected.data.skill.status === "rejected",
       "an admin can reject with a reason");
+
+    // Rejection is the whole point of keeping the queue: it is the takedown.
+    const pulled = await call(null, "GET", "/api/skills");
+    ok(!(pulled.data.skills || []).some((s) => s.id === id),
+      "rejecting it takes it off the public page");
 
     const afterReject = await call(author, "GET", "/api/skills/mine");
     const row = (afterReject.data.skills || []).find((s) => s.id === id);
@@ -155,11 +160,11 @@ function fakeYouTubeKey() {
 
     const approved = await call(staff, "PATCH", `/api/admin/skills/${id}`, { status: "published" });
     ok(approved.status === 200 && approved.data.skill.status === "published",
-      "an admin can publish it");
+      "an admin can put it back");
 
     const publicAfter = await call(null, "GET", "/api/skills");
     const live = (publicAfter.data.skills || []).find((s) => s.id === id);
-    ok(!!live, "an approved tutorial is public");
+    ok(!!live, "and it is public again");
     ok(live && live.author && live.author.handle === String(author.handle || "").replace(/^@/, ""),
       "the card credits the creator who submitted it", live && live.author && live.author.handle);
     ok(live && /^https:\/\/i\.ytimg\.com\//.test(live.thumbnail || ""),

@@ -192,19 +192,20 @@
 
   /* Creator tutorials.
 
-     The row leads with the link, opened in a new tab, because approving one
-     of these without watching it is the whole risk: a submission is somebody
-     else's video until a person confirms otherwise. */
+     The row leads with the link, opened in a new tab, because that is the
+     one thing worth checking: a submission is somebody else's video until a
+     person watches it. Tutorials publish on submit, so this list is a
+     takedown tool — the default view is what is already live. */
   function loadSkills() {
     var root = $("#adminSkillList");
     var picker = $("#adminSkillStatus");
-    var status = picker ? picker.value : "pending";
+    var status = picker ? picker.value : "published";
     root.innerHTML = "<p>Loading tutorials…</p>";
     return api("/api/admin/skills?status=" + encodeURIComponent(status)).then(function (j) {
       root.innerHTML = "";
       if (!j.skills.length) {
-        root.appendChild(text("p", status === "pending"
-          ? "Nothing is waiting for review."
+        root.appendChild(text("p", status === "published"
+          ? "No tutorials have been shared yet."
           : "No " + status + " tutorials."));
         return;
       }

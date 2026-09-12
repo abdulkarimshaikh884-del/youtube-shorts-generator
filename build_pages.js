@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091209";
+const V = "2026091210";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -1054,7 +1054,7 @@ const community = {
 
       <form class="sk-form" id="skForm" hidden>
         <h2>Share a tutorial</h2>
-        <p class="sk-form-note">Paste the link to a video you have already published on YouTube or Instagram. We never host the video — people watch it on your channel, so the views stay yours. A moderator checks each submission before it appears here.</p>
+        <p class="sk-form-note">Paste the link to a video you have already published on YouTube or Instagram. We never host the video — people watch it on your channel, so the views stay yours. It appears here as soon as you share it.</p>
 
         <div class="sk-f">
           <label for="skUrl">Video link</label>
@@ -1074,7 +1074,7 @@ const community = {
         </div>
 
         <div class="sk-form-actions">
-          <button type="submit" class="sk-submit" id="skSubmit">Submit for review</button>
+          <button type="submit" class="sk-submit" id="skSubmit">Share tutorial</button>
           <button type="button" class="sk-cancel" id="skCancel">Cancel</button>
         </div>
         <p class="sk-msg" id="skMsg" role="status"></p>
@@ -1255,7 +1255,7 @@ scripts: `<script>
             say((out.j && out.j.error) || "Could not share that tutorial.", "err");
             return;
           }
-          say("Thanks — a moderator will review it before it appears here.", "ok");
+          say("Shared — it is on the page now.", "ok");
           form.reset();
           loadMine();
         })
@@ -2405,17 +2405,16 @@ const adminPage = {
           <div class="admin-list" id="adminTemplateList"><p>Loading templates…</p></div>
         </section>
 
-        <!-- Nothing reaches the tutorials page without passing through here.
+        <!-- Tutorials publish themselves; this is where one comes down.
              Anyone can paste a link to any video and call it their own, so the
-             queue is the only thing standing between a submission and the
-             public page. -->
+             list that matters here is what is already live. -->
         <section class="admin-panel" data-admin-panel="skills" hidden>
           <div class="pg-accsec-head">
-            <div><h2>Creator tutorials</h2><p class="pg-fine">Watch the video before publishing it — a link can claim to be anything.</p></div>
+            <div><h2>Creator tutorials</h2><p class="pg-fine">These are already live. Reject or remove anything that is not the creator’s own video.</p></div>
             <div class="admin-row-controls">
               <select id="adminSkillStatus" aria-label="Which tutorials to show">
-                <option value="pending" selected>Waiting for review</option>
-                <option value="published">Published</option>
+                <option value="published" selected>Published</option>
+                <option value="pending">Held back</option>
                 <option value="rejected">Rejected</option>
               </select>
               <button class="pg-bo" type="button" data-admin-refresh="skills">Refresh</button>

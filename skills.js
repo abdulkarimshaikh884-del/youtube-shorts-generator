@@ -7,7 +7,8 @@
 
    Everything arrives as a URL typed by a person, so the URL is the only thing
    this module really validates. Once parsed, a submission is two strings and a
-   status, and the moderation queue does the rest.
+   status — and a tutorial is published the moment it is shared. Review here is
+   a takedown, not a gate: that is what separates a tutorial from a template.
    ============================================================ */
 const crypto = require("crypto");
 const db = require("./db");
@@ -128,9 +129,19 @@ async function submit(user, data) {
 
   try {
     const { rows } = await db.query(
+      /* Tutorials go live on submit. Templates are the thing that gets
+         reviewed — they are published artefacts other people then build on —
+         while a tutorial is a link to a video that already exists on somebody
+         else's channel, and holding those in a queue only means the page
+         stays empty while the owner is asleep.
+
+         The queue itself is kept: a submitted tutorial can still be rejected
+         from the admin Tutorials tab, which is where a link that turns out to
+         be someone else's video gets taken down. Review happens after the
+         fact now rather than before it. */
       `insert into public.creator_skills
          (id, author_id, title, summary, url, platform, video_key, template_id, status)
-       values ($1,$2,$3,$4,$5,$6,$7,$8,'pending')
+       values ($1,$2,$3,$4,$5,$6,$7,$8,'published')
        returning id`,
       [id, user.id, title.slice(0, MAX_TITLE), summary, video.url,
        video.platform, video.videoKey, templateId]
@@ -169,9 +180,11 @@ async function listMine(user) {
   return { skills: rows.map((r) => toSkill(r, user)) };
 }
 
-async function listForReview(user, status = "pending") {
+/* Defaults to what is live, because that is now the list worth looking at:
+   nothing waits in 'pending' unless an admin deliberately put it back there. */
+async function listForReview(user, status = "published") {
   if (!isAdmin(user)) return { error: "Admin access required.", status: 403 };
-  const wanted = ["pending", "published", "rejected"].includes(status) ? status : "pending";
+  const wanted = ["pending", "published", "rejected"].includes(status) ? status : "published";
   const { rows } = await db.query(
     `${SELECT} where s.status = $1 order by s.created_at asc limit 200`,
     [wanted]
