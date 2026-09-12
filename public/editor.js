@@ -1927,7 +1927,13 @@
     state.aspect = AR_LABEL[ar] ? ar : "9:16";
 
     // Default to a high-energy starter template if opened directly
-    var activeTpl = (tpl && meta[tpl] && tpl !== "blank") ? tpl : "text-cascade";
+    /* No template named means the Studio was opened by "Create Animation"
+       rather than by picking something from the library — an empty canvas to
+       describe into, not a starter animation chosen on the person's behalf.
+       This used to fall back to text-cascade, and the `tpl !== "blank"` guard
+       meant a blank canvas could not be reached at all: asking for it
+       explicitly handed back text-cascade too. A named template still wins. */
+    var activeTpl = (tpl && meta[tpl]) ? tpl : "blank";
     fetch("/api/template-events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
