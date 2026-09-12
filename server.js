@@ -1064,10 +1064,21 @@ async function callAI(prompt, {
        demand" on the preferred model is not an outage. Rolling to an alias or
        sibling costs less than falling through to another provider, and also
        protects saved configuration when a pinned model is retired. */
+    /* The default leads with the alias rather than a pinned version.
+
+       Not for speed: measured against this key, gemini-flash-latest and
+       gemini-3.7-flash both return 503 "high demand" intermittently and
+       neither is reliably better — the order barely matters, and what keeps
+       generation working is having more than one candidate. The reason for
+       the alias is staleness: a pinned version breaks silently the day it is
+       retired, and this chain already exists to survive exactly that.
+
+       Worth knowing while reading the logs: "gemini model X unavailable" is
+       this capacity limit, not a wrong model name. Both names resolve. */
     const geminiModels = String(
       models.gemini || (process.env.GEMINI_MODEL
-        ? process.env.GEMINI_MODEL + ",gemini-flash-latest,gemini-3.6-flash"
-        : "gemini-3.7-flash,gemini-flash-latest,gemini-3.6-flash")
+        ? process.env.GEMINI_MODEL + ",gemini-flash-latest,gemini-3.7-flash"
+        : "gemini-flash-latest,gemini-3.7-flash,gemini-3.6-flash")
     ).split(",").map((s) => s.trim()).filter(Boolean);
     const uniqueModels = [...new Set(geminiModels)];
 

@@ -601,8 +601,14 @@
         (MAX_TOTAL / 1000) + "s.");
       return;
     }
+    /* Never seed a Blank Canvas. `order` comes from list(true), which puts
+       "blank" first, so every second clip used to arrive empty and animating
+       nothing. That was survivable while Properties carried a template
+       select; now that the template is chosen on the way into the Studio,
+       a blank clip is one there is no longer any way to fill. */
     var used = state.clips.map(function (c) { return c.tpl; });
-    var pick = order.filter(function (id) { return used.indexOf(id) < 0; })[0] || order[0];
+    var real = order.filter(function (id) { return id !== "blank"; });
+    var pick = real.filter(function (id) { return used.indexOf(id) < 0; })[0] || real[0];
     var c = newClip(pick);
     c.dur = Math.min(c.dur, room);
     state.clips.push(c);
@@ -648,22 +654,10 @@
   function syncPanel() {
     var c = cur();
     if (!c) return;
+    // An AI scene is not one of the library templates. The template select
+    // that used to say so is gone, but the flag is still what tells the rest
+    // of the panel not to mark a library template as current.
     var isAi = !!c.spec;
-    // An AI scene is not one of the library templates, so the select has
-    // nothing to point at. Say that, rather than leaving an empty box that
-    // reads as a control that failed to load.
-    var tplSel = $("#edTpl");
-    var aiOpt = tplSel.querySelector('option[value="__ai"]');
-    if (isAi && !aiOpt) {
-      aiOpt = document.createElement("option");
-      aiOpt.value = "__ai";
-      aiOpt.textContent = "✦ AI-generated scene";
-      tplSel.insertBefore(aiOpt, tplSel.firstChild);
-    } else if (!isAi && aiOpt) {
-      aiOpt.remove();
-    }
-    tplSel.value = isAi ? "__ai" : c.tpl;
-    tplSel.disabled = isAi;
     $("#edFont").value = c.font;
     /* Only auto-label a project the person has not named. syncPanel runs on
        every clip select and every add, so an unconditional write here wiped a
@@ -879,20 +873,25 @@
 
     var schema = m.schema;
     if (schema && schema.fields && schema.fields.length) {
+      /* Grouped fields used to sit inside a collapsed <details> labelled
+         "Style & layout · 8 controls" — a closed door with a count on it,
+         hiding most of what a template can actually do behind a click. The
+         Properties panel exists to show exactly that, so the group is a
+         heading now and its controls are simply there. */
       var fieldTargets = {};
       schema.fields.forEach(function (field) {
         if (!field.group || fieldTargets[field.group]) return;
-        var details = document.createElement("details");
-        details.className = "ed-schema-group";
-        details.dataset.group = field.group;
-        var summary = document.createElement("summary");
-        var count = schema.fields.filter(function (candidate) { return candidate.group === field.group; }).length;
-        summary.innerHTML = '<span>' + esc(field.group) + '</span><small>' + count + ' controls</small>';
+        var section = document.createElement("section");
+        section.className = "ed-schema-group";
+        section.dataset.group = field.group;
+        var title = document.createElement("h3");
+        title.className = "ed-schema-group-title";
+        title.textContent = field.group;
         var groupFields = document.createElement("div");
         groupFields.className = "ed-schema-fields";
-        details.appendChild(summary);
-        details.appendChild(groupFields);
-        wrap.appendChild(details);
+        section.appendChild(title);
+        section.appendChild(groupFields);
+        wrap.appendChild(section);
         fieldTargets[field.group] = groupFields;
       });
       schema.fields.forEach(function (field) {
@@ -1692,42 +1691,10 @@
     order = list.map(function (t) { return t.id; });
     list.forEach(function (t) { meta[t.id] = t; });
 
-    // right-panel template select, grouped
-    var sel = $("#edTpl");
-    if (sel) {
-      sel.innerHTML = "";
-      var bOp = document.createElement("option");
-      bOp.value = "blank";
-      bOp.textContent = "✦ Blank Canvas";
-      sel.appendChild(bOp);
-
-      var originals = list.filter(function (t) { return t.collection === "originals"; });
-      if (originals.length) {
-        var originalsGroup = document.createElement("optgroup");
-        originalsGroup.label = "✦ ShortsCraft Originals";
-        originals.forEach(function (t) {
-          var originalOption = document.createElement("option");
-          originalOption.value = t.id;
-          originalOption.textContent = t.name;
-          originalsGroup.appendChild(originalOption);
-        });
-        sel.appendChild(originalsGroup);
-      }
-
-      e.cats().forEach(function (c) {
-        var group = list.filter(function (t) { return t.cat === c.id && t.id !== "blank" && t.collection !== "originals"; });
-        if (!group.length) return;
-        var og = document.createElement("optgroup");
-        og.label = c.label;
-        group.forEach(function (t) {
-          var op = document.createElement("option");
-          op.value = t.id; op.textContent = t.name;
-          og.appendChild(op);
-        });
-        sel.appendChild(og);
-      });
-      sel.addEventListener("change", function () { setTemplate(sel.value); });
-    }
+    /* The grouped template select that lived here is gone with its control:
+       the template is chosen from the library on the way in, and setTemplate
+       is still used by the code paths that legitimately swap one (opening a
+       published template, restoring a draft). */
 
     // left rail
     var rail = $("#edRail");

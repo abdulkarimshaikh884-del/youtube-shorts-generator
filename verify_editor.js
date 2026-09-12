@@ -80,9 +80,9 @@ const doc = (page) => page.evaluate(() =>
       hasExport: !!document.querySelector("#edExport"),
       scrollers: document.querySelectorAll(".ed-scroll").length,
       sandbox: document.querySelector("#edPreview").getAttribute("sandbox"),
-      tpl: document.querySelector("#edTpl").value,
       arw: document.querySelector("#edFrame").style.getPropertyValue("--arw"),
-      tplSelectValue: document.querySelector("#edTpl").value,
+      templateSwitchers: document.querySelectorAll("#edTpl").length,
+      projectName: document.querySelector("#edProject").value,
       fonts: document.querySelectorAll("#edFont option").length,
       fields: document.querySelectorAll("#edFields .ed-f").length,
       hasSeek: !!document.querySelector("#edSeek"),
@@ -103,15 +103,18 @@ const doc = (page) => page.evaluate(() =>
     "the template's own background field is the one place colour is set");
   ok(/allow-same-origin/.test(boot.sandbox) && !/allow-scripts/.test(boot.sandbox),
     "preview sandbox: allow-same-origin, no allow-scripts", boot.sandbox);
-  ok(boot.tpl === "ui-toggle", "?tpl= honoured", boot.tpl);
+  /* The template select is gone, so what proves ?tpl= was honoured is the
+     template the editor actually loaded — it names the project after it. */
+  ok(boot.projectName === "Toggle Switch", "?tpl= honoured", boot.projectName);
   // The ratio is no longer a control, but it is still real — ?aspect= is how
   // an AI scene that asked for a different shape arrives.
   ok(boot.arw === "1", "?aspect= is still honoured without a switcher", boot.arw);
-  // The old left template rail was replaced by the AI Assistant panel; the
-  // template is now chosen from Properties → Current template, which the
-  // "?tpl= honoured" assertion above already covers.
-  ok(boot.tplSelectValue === "ui-toggle", "properties panel shows the current template",
-    boot.tplSelectValue);
+  /* Properties used to open with the whole template library in a select,
+     offering a choice already made on the way in. The panel starts at the
+     template's own content now. */
+  ok(boot.templateSwitchers === 0,
+    "Properties does not offer the template choice a second time",
+    boot.templateSwitchers);
   ok(boot.fonts >= 4, "font choices available", boot.fonts);
   ok(boot.fields === 11, "template content plus shared style controls built", boot.fields);
   ok(boot.hasSeek && boot.hasPlay, "playback controls present");

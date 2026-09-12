@@ -2836,3 +2836,23 @@ body.sh-body .sh-search-box :focus-visible { outline: none; }
    is already dark enough in light and light enough in dark. */
 body.sh-body .pg-formnote[data-bad="1"],
 .pg .pg-formnote[data-bad="1"] { color: var(--sc-danger); }
+
+/* ── Page spacing ──────────────────────────────────────────
+   Every .pg page opened with 75px of nothing between the top bar and the
+   first word, where the home and community pages open with about 45. The
+   extra came from two rules each reserving the same gap and neither
+   subtracting: .pg pads 56px down from the top and .pg-head pads another 14
+   below that. Under the standfirst it happened again — .pg-head carries a
+   30px padding and a 34px margin around one dividing rule, 64px for a single
+   hairline.
+
+   These bring the .pg pages in line with the rest of the site. The gap is
+   still a gap; it is just one rule's worth instead of two. */
+/* 40px lands these pages on the same ~45px opening the home and community
+   pages already had, rather than swapping one inconsistency for another. */
+.pg { padding-top: 40px; padding-bottom: 56px; }
+.pg-head {
+  padding-top: 0;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+}

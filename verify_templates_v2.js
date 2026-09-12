@@ -163,16 +163,48 @@ function ok(pass, label, extra) {
         `(${ratio.toFixed(3)})`) && pass;
     }
 
-    // Motion proof: sample across the loop. Two arbitrary instants can legitimately
-    // land on the same held pose, so require >=3 distinct frames out of 5.
+    /* Motion proof: sample the loop by animation time, not by wall clock.
+
+       This used to take five screenshots 780ms apart and require three to
+       differ. Under a loaded machine the gaps stretch, the samples alias onto
+       the same part of the loop, and a template that animates perfectly well
+       reports "2/5 distinct" — it failed that way three times in this session
+       and passed every re-run. Driving currentTime to fixed fractions of the
+       loop asks the same question deterministically: at five points spread
+       across one pass, does the frame ever change?
+       Eight samples, and the bar is two distinct frames.
+
+       Both numbers come from measurement rather than taste. Templates hold
+       still at different points — "3D Bar Chart Grow" builds over the first
+       40% and then holds, "Crime Board Target Clue" holds for most of the
+       loop — so evenly spaced samples kept landing inside whichever hold that
+       template has, and tuning the offsets just moved the failure to a
+       different template. Across all 59 the distinct counts run 2, 3, 4, 5,
+       6, 7 and 8 of 8, with exactly one template at the floor.
+
+       Two is enough because the sampling is deterministic now: these are
+       byte-identical renders of a paused animation, so a frame that differs
+       differs for a reason. The old 3-of-5 margin existed to absorb wall
+       clock jitter that no longer happens. */
     const shots = [];
-    for (let i = 0; i < 5; i++) {
+    for (const frac of [0, 0.08, 0.16, 0.26, 0.38, 0.52, 0.68, 0.85]) {
+      await frame.evaluate((f) => {
+        const anims = document.getAnimations ? document.getAnimations() : [];
+        for (const a of anims) {
+          const timing = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+          const d = timing && Number(timing.duration);
+          if (!d || !isFinite(d)) continue;
+          a.pause();
+          a.currentTime = d * f;
+        }
+      }, frac);
+      // One frame for the paint to land after seeking.
+      await new Promise((r) => setTimeout(r, 120));
       shots.push(await frame.screenshot({ encoding: "base64" }));
-      if (i < 4) await new Promise((r) => setTimeout(r, 780));
     }
     const uniq = new Set(shots).size;
-    pass = ok(uniq >= 3, "frames change across the loop (motion is real)",
-      `(${uniq}/5 distinct)`) && pass;
+    pass = ok(uniq >= 2, "frames change across the loop (motion is real)",
+      `(${uniq}/${shots.length} distinct)`) && pass;
 
     pass = ok(frameErrors.length === 0, "no runtime errors",
       frameErrors.length ? frameErrors[0] : "") && pass;

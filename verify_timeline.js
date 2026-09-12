@@ -199,17 +199,12 @@ function ffprobe(file) {
     "the new clip is selected and mounted", `${added.selected}/${added.previewIsSecond}`);
 
   console.log("\n---- boundary crossing keeps time ----");
-  /* "+ Add" seeds a Blank Canvas, which by design has no CSS animation — so
-     reading getAnimations()[0] off it threw and took the whole harness down.
-     Give clip 2 a real animated template first; that is what a creator does
-     with a new clip anyway, and it makes the timing assertion mean something. */
-  await page.evaluate(() => {
-    const sel = document.querySelector("#edTpl");
-    const opt = [...sel.options].find((o) => o.value === "text-cascade")
-      || [...sel.options].find((o) => o.value && o.value !== "blank");
-    sel.value = opt.value;
-    sel.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+  /* This used to give clip 2 a template through the Properties select. That
+     select is gone, and the setup is not needed: "+ Add" now skips Blank
+     Canvas and seeds a real animated template, which is the only sensible
+     behaviour once the template can no longer be changed after the fact.
+     The assertions below are what prove it — a blank clip has no animation
+     to read a currentTime from. */
   await wait(900);
 
   const cross = await page.evaluate(async () => {

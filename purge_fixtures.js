@@ -43,7 +43,6 @@ const RESERVED = "(email ~* '@(.+\.)?(example|test|invalid|localhost)(\.(com|net
     `select id, email, role, created_at
        from public.users
       where ${RESERVED}
-        and role not in ('admin', 'super_admin')
         and created_at < now() - ($1 || ' hours')::interval
       order by created_at`,
     [String(MIN_AGE_HOURS)]
@@ -55,6 +54,22 @@ const RESERVED = "(email ~* '@(.+\.)?(example|test|invalid|localhost)(\.(com|net
 
   console.log(`real accounts (left untouched) : ${keep[0].n}`);
   console.log(`fixtures older than ${MIN_AGE_HOURS}h        : ${rows.length}`);
+
+  /* Called out on its own line because it is the one kind of leftover that
+     matters beyond tidiness. The support and tutorials suites promote a
+     fixture to admin to test that ordinary accounts are refused; if a run is
+     interrupted before its teardown — a killed terminal, a server that dies
+     mid-chain — that account survives with admin rights.
+
+     This used to skip admins entirely, which protected the owner but also
+     made the one dangerous leftover the only one the sweep could never
+     remove. The owner is already safe: their address is not on a reserved
+     domain, and RESERVED is what decides. */
+  const strays = rows.filter((r) => r.role === "admin" || r.role === "super_admin");
+  if (strays.length) {
+    console.log(`\n  ${strays.length} of these still hold ADMIN rights:`);
+    strays.forEach((r) => console.log(`    ${r.role}  ${r.email}`));
+  }
 
   if (!rows.length) {
     console.log("\nnothing to purge.");

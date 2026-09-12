@@ -563,13 +563,18 @@ body.ed-body :focus-visible:not(input):not(textarea):not(select){outline:2px sol
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b4b4b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
     no-repeat right 9px center/13px 13px;
 }
-.ed-schema-group{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018);overflow:hidden}
-.ed-schema-group > summary{min-height:44px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;list-style:none;color:var(--ink2);font-size:12px;font-weight:700;touch-action:manipulation}
-.ed-schema-group > summary::-webkit-details-marker{display:none}
-.ed-schema-group > summary::after{content:"+";font-size:17px;color:var(--ink4);order:3}
-.ed-schema-group[open] > summary::after{content:"−"}
-.ed-schema-group > summary small{margin-left:auto;color:var(--ink4);font-size:10.5px;font-weight:600}
-.ed-schema-fields{padding:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+/* The schema group used to be a collapsed <details> with a "8 controls"
+   count on its summary. It is an open section now: a small heading and the
+   controls under it, no box and no click to get in. The border came off with
+   the accordion — a panel of stacked outlined boxes reads as heavier than the
+   handful of fields inside them. */
+.ed-schema-group{display:flex;flex-direction:column;gap:8px}
+.ed-schema-group-title{
+  margin:4px 0 0;
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink3);
+}
+.ed-schema-fields{display:flex;flex-direction:column;gap:12px}
 .ed-inline{display:flex;gap:8px;align-items:center}
 .ed-inline input[type="color"]{
   width:42px;height:38px;flex:none;padding:2px;
