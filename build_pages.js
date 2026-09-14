@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091211";
+const V = "2026091324";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -37,6 +37,7 @@ const TPL_COUNT = (function () {
     let m;
     while ((m = re.exec(src))) ids.add(m[1]);
     ids.delete("blank");
+    ids.delete("lottie"); // the upload renderer, not a library template
     const retired = src.match(/var\s+RETIRED_TEMPLATE_IDS\s*=\s*\{([\s\S]*?)\};/);
     if (retired) {
       const retiredId = /"([\w-]+)"\s*:\s*true/g;
@@ -206,7 +207,10 @@ ${p.robots ? `<meta name="robots" content="${p.robots}"/>\n` : ""}<meta property
      visual system without restating any of it. -->
 <link rel="stylesheet" href="/polish.css?v=${V}">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
-${p.head || ""}</head>
+${p.head || ""}
+<!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
+<link rel="stylesheet" href="/mobile.css?v=${V}">
+</head>
 `;
 
   // a bare page (log in / sign up) has no sidebar, top bar or footer
@@ -355,7 +359,7 @@ ${nav}
           <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
             <div class="sh-user-trigger-av" data-user-avatar>KA</div>
             <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-auth-email>Account</span>
+              <span class="sh-user-trigger-name" data-user-name>Account</span>
               <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
             </div>
             <span class="sh-user-trigger-arrow">▲</span>
@@ -365,7 +369,7 @@ ${nav}
     </div>
   </aside>
 
-  <div class="sh-main" id="main" role="main" tabindex="-1">
+  <div class="sh-main" id="main" tabindex="-1">
 
     <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -508,10 +512,12 @@ ${perks.map(p => `            <li>${p}</li>`).join("")}
         </div>
       </section>`;
 
-const pageHead = (eyebrow, h1, sub, extra) => `    <section class="pg-head">
-      <span class="pg-eyebrow">${eyebrow}</span>
-      <h1>${h1}</h1>
-      <p>${sub}</p>
+/* A page header is the page's name. It used to be three things — a small
+   uppercase label, a display-size marketing sentence and a paragraph under
+   it — on every page, which pushed each page's actual content below the fold
+   and said the same thing three ways. The owner asked for the title alone. */
+const pageHead = (title, extra) => `    <section class="pg-head">
+      <h1>${title}</h1>
 ${extra || ""}    </section>`;
 
 /* ── PRICING ──────────────────────────────────────────────── */
@@ -526,8 +532,7 @@ const pricingLegacy = {
   title: "Pricing — ShortsCraft",
   desc: `ShortsCraft pricing: Free gives ${P.free.perDay} watermarked exports a day, Pro is ₹${P.pro.price}/month for watermark-free 1080p and ${P.pro.perDay} exports a day, and Pro Max is a one-time ₹${P.promax.price} — lifetime for the first ${LIFETIME_SLOTS} members. Editing and preview are unlimited on every plan.`,
   body: `    <main class="pg">
-${pageHead("Pricing", "Three plans. One currency: credits.",
-    `Editing, previewing and browsing every template are free and unlimited — they run in your browser. You only spend a credit when you export a video (${C.export}) or ask the AI to design a brand-new scene (${C.animate}). Credits refill every day.`)}
+${pageHead("Pricing")}
 
       <div class="pg-offer" id="offerBanner" hidden>
         <span class="pg-offer-tag">Launch offer</span>
@@ -621,8 +626,7 @@ const pricing = {
   title: "Plans and credits — ShortsCraft",
   desc: "Compare ShortsCraft Free, Pro and Pro Max plans. Editing and previewing are unlimited; credits are used only for AI generation and video export.",
   body: `    <main class="pg pg-pricing">
-${pageHead("Plans and credits", "Choose the output you need.",
-    `Every plan includes the complete template library and unlimited editing. Credits refresh daily; the monthly total below makes the plans easy to compare.`)}
+${pageHead("Plans and credits")}
 
       <!-- Credit calculator.
 
@@ -740,7 +744,7 @@ const about = {
   title: "About — ShortsCraft",
   desc: "ShortsCraft is an animation-template workspace for short-form creators, with a practical editor and server-side MP4 export.",
   body: `    <main class="pg">
-${pageHead("About", "A practical animation workspace for short-form creators.", "Start with an editable template or describe a new scene, customise it in the Studio, and export a vertical MP4.")}
+${pageHead("About ShortsCraft")}
 
       <section class="pg-sec pg-prose">
         <h2>Why we rebuilt it</h2>
@@ -787,27 +791,26 @@ const tutorials = {
   title: "Tutorials & Help — ShortsCraft",
   desc: "How to make an animated YouTube Short with ShortsCraft: pick a template, edit the text, export an MP4, and what the credits and plans mean.",
   body: `    <main class="pg">
-${pageHead("Tutorials & Help", "Make your first Short in three minutes.",
-    "Everything here is short on purpose. If something is still unclear, the last section goes straight to a human.")}
+${pageHead("Tutorials &amp; Help")}
 
       <section class="pg-sec">
         <h2>Make your first animation</h2>
         <ol class="pg-steps">
           <li>
             <b>Pick a template.</b>
-            <span>Open <a href="/#templates">Templates</a> and click any card. There are ${TPL_COUNT} of them across ${8} categories — documentary, paper craft, kinetic text, maps, finance, UI, social and charts. Every one previews live, so you can judge it before you commit.</span>
+            <span>Browse <a href="/#templates">${TPL_COUNT} templates</a> across ${8} categories. Open a preview, then choose Customise in Studio.</span>
           </li>
           <li>
             <b>Change the words.</b>
-            <span>In the Studio the right-hand panel has a field for each line of text. Type and the preview updates as you go. Editing and previewing are free and unlimited — you are never charged to look.</span>
+            <span>Open the Edit panel to change text and replace images where supported. Your preview updates as you work. Editing and previewing do not cost credits.</span>
           </li>
           <li>
             <b>Set the look.</b>
-            <span>One accent colour drives the whole scene, so a single click restyles it. Below that: the font, the aspect ratio (9:16 for Shorts and Reels, 16:9 for YouTube) and the loop length.</span>
+            <span>Adjust the background, font, timing and available layout controls. Choose 9:16 for Shorts and Reels, or 16:9 for a landscape video.</span>
           </li>
           <li>
             <b>Export the MP4.</b>
-            <span>Press Export. Rendering takes roughly 15 to 40 seconds depending on length and resolution — the video is built frame by frame on our server, which is why it is not instant. The file downloads when it is done.</span>
+            <span>Choose Export, review the resolution and ${C.export}-credit cost, then download your MP4. Render time depends on the animation, quality and queue.</span>
           </li>
         </ol>
       </section>
@@ -838,8 +841,8 @@ ${pageHead("Tutorials & Help", "Make your first Short in three minutes.",
             <p>Exporting a video costs ${C.export}. Standard, Detailed and Advanced AI generation cost ${C.aiStandard}, ${C.aiDetailed} and ${C.aiAdvanced} credits. Browsing, editing and previewing cost nothing.</p>
           </article>
           <article class="pg-card">
-            <h3>Why exports are the thing we charge for</h3>
-            <p>They are the only part that runs on our machines. Everything else happens in your browser, so it is free to give away and we do.</p>
+            <h3>What your credits cover</h3>
+            <p>AI generation and MP4 rendering use server resources. The editor shows the credit cost before you submit either action.</p>
           </article>
           <article class="pg-card">
             <h3>They refill daily</h3>
@@ -857,11 +860,11 @@ ${pageHead("Tutorials & Help", "Make your first Short in three minutes.",
           </details>
           <details>
             <summary>My export is taking a long time.</summary>
-            <p>Between 15 and 40 seconds is normal. Exports run one at a time, so if someone else started just before you, yours waits its turn. Longer videos and higher resolutions take proportionally longer.</p>
+            <p>A busy render queue, longer animation or higher resolution can take more time. Keep the export status open. If it reports a failure, note the message and contact support rather than repeatedly starting another export.</p>
           </details>
           <details>
             <summary>Where did my project go?</summary>
-            <p>Projects are saved in the browser you made them in, so they do not follow you to another device, and clearing site data removes them. Publishing a scene to the community keeps it on your account instead.</p>
+            <p>Sign in to the same account and open My Projects. Signed-in projects sync to your account; guest work is stored in that browser. Before leaving the editor, check its save status. Publishing a template makes a separate creator listing.</p>
           </details>
           <details>
             <summary>Can I use the videos commercially?</summary>
@@ -904,8 +907,8 @@ const community = {
   head: `<style>
 .sk-head{padding:50px 28px 14px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .sk-head h1{
-  font-family:var(--sh-display);font-size:clamp(28px,4vw,44px);
-  margin:0 0 8px;font-weight:700;letter-spacing:-.03em;
+  font-family:var(--sh-display);font-size:clamp(26px,2.6vw,32px);
+  margin:0;font-weight:700;letter-spacing:-.02em;
 }
 .sk-head p{margin:0;font-size:15px;color:var(--sh-ink2);max-width:540px;line-height:1.55}
 
@@ -991,7 +994,10 @@ const community = {
   background:rgba(0,0,0,.78);color:#fff;
   font-size:10.5px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;
 }
-.sk-body{display:grid;grid-template-columns:36px 1fr;gap:11px;min-width:0}
+/* Three columns, and the last one is reserved whether or not the menu button
+   is currently visible — a control that appears on hover must not push the
+   title sideways when it does. */
+.sk-body{display:grid;grid-template-columns:36px 1fr 30px;gap:11px;min-width:0}
 .sk-av{
   width:36px;height:36px;border-radius:50%;flex:none;overflow:hidden;
   background:var(--sh-bg3);display:grid;place-items:center;
@@ -1015,11 +1021,50 @@ const community = {
   margin:0;font-size:12.5px;color:var(--sh-ink3);line-height:1.45;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
+.sk-title a:hover{text-decoration:underline}
+/* Author and age on one line, the way a video caption carries its channel and
+   its date together. We have no view count and will not invent one. */
+.sk-when{color:var(--sh-ink3);white-space:nowrap}
+.sk-dot{color:var(--sh-ink3);opacity:.6}
 .sk-tpl{
-  display:inline-flex;align-items:center;gap:4px;margin-top:1px;
-  font-size:11.5px;color:var(--sh-ink3);text-decoration:none;
+  display:inline-flex;align-items:center;gap:5px;margin-top:4px;width:fit-content;
+  padding:3px 9px;border:1px solid var(--sh-line);border-radius:999px;
+  font-size:11.5px;color:var(--sh-ink2);text-decoration:none;
+  transition:border-color .15s ease,color .15s ease;
 }
-.sk-tpl:hover{color:var(--sh-ink);text-decoration:underline}
+.sk-tpl:hover{border-color:var(--sh-line2);color:var(--sh-ink)}
+.sk-tpl svg{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2}
+
+/* ── Card menu ───────────────────────────────────
+   Hidden until the card is hovered, which is the convention everywhere this
+   control appears — but never hidden from the keyboard, and never hidden on a
+   touch screen, where there is no hover to reveal it with. */
+.sk-menu{position:relative;justify-self:end}
+.sk-menu-btn{
+  width:30px;height:30px;border:0;border-radius:50%;cursor:pointer;
+  background:none;color:var(--sh-ink3);display:grid;place-items:center;padding:0;
+  opacity:0;transition:opacity .15s ease,background .15s ease,color .15s ease;
+}
+.sk-card:hover .sk-menu-btn,.sk-menu-btn:focus-visible,.sk-menu.is-open .sk-menu-btn{opacity:1}
+.sk-menu-btn:hover{background:var(--sh-bg3);color:var(--sh-ink)}
+.sk-menu-btn svg{width:16px;height:16px;fill:currentColor}
+@media (hover:none){.sk-menu-btn{opacity:1}}
+.sk-menu-pop{
+  position:absolute;right:0;top:34px;z-index:30;min-width:190px;padding:6px;
+  border:1px solid var(--sh-line);border-radius:13px;background:var(--sh-bg1);
+  box-shadow:0 14px 34px rgba(0,0,0,.17);display:grid;gap:2px;
+}
+.sk-menu-pop[hidden]{display:none}
+.sk-mi{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;border:0;border-radius:9px;background:none;
+  color:var(--sh-ink);font:inherit;font-size:13px;text-align:left;
+  cursor:pointer;text-decoration:none;
+}
+.sk-mi:hover{background:var(--sh-bg3)}
+.sk-mi svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8}
+.sk-mi-danger{color:#e5484d}
+.sk-card.is-going{opacity:0;transform:scale(.97);transition:opacity .2s ease,transform .2s ease}
 /* The card you just shared arrives in place. That landing is the receipt —
    it is why there is no longer a list telling you the state of your own
    submission in words. */
@@ -1028,6 +1073,7 @@ const community = {
 @media (prefers-reduced-motion:reduce){
   .sk-card.is-new{animation:none}
   .sk-thumb img,.sk-card:hover .sk-thumb img{transition:none;transform:none}
+  .sk-card.is-going{transition:none}
 }
 
 /* ── Held back ────────────────────────────────────
@@ -1072,9 +1118,7 @@ const community = {
   body: `    <main class="sh-home">
       <section class="sk-head">
         <div>
-          <span class="sh-eyebrow">Creator skills</span>
-          <h1>Learn from other creators</h1>
-          <p>Walkthroughs and teaching videos made by people who use ShortsCraft. Every video plays on the creator's own channel.</p>
+          <h1>Creator Skills</h1>
         </div>
         <button type="button" class="sk-share-btn" id="skShareBtn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -1156,6 +1200,48 @@ scripts: `<script>
 
   var PLAY = '<span class="sk-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
 
+  var ICON = {
+    dots: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>',
+    link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+    open: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    studio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>'
+  };
+
+  var PLATFORM_NAME = { youtube: "YouTube", instagram: "Instagram" };
+
+  /* "2 days ago" rather than a date, because on a feed the question is how
+     fresh this is, not which Tuesday it was. */
+  function when(iso) {
+    var t = Date.parse(iso);
+    if (!t) return "";
+    var secs = Math.max(0, (Date.now() - t) / 1000);
+    var units = [[31536000, "year"], [2592000, "month"], [604800, "week"],
+                 [86400, "day"], [3600, "hour"], [60, "minute"]];
+    for (var i = 0; i < units.length; i++) {
+      var n = Math.floor(secs / units[i][0]);
+      if (n >= 1) return n + " " + units[i][1] + (n > 1 ? "s" : "") + " ago";
+    }
+    return "just now";
+  }
+
+  /* One menu at a time. Left open, a second would sit under the first and the
+     click that closed one would look like it did nothing. */
+  var openMenu = null;
+  function closeMenu() {
+    if (!openMenu) return;
+    openMenu.el.classList.remove("is-open");
+    openMenu.pop.hidden = true;
+    openMenu.btn.setAttribute("aria-expanded", "false");
+    openMenu = null;
+  }
+  document.addEventListener("click", function (ev) {
+    if (openMenu && !openMenu.el.contains(ev.target)) closeMenu();
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && openMenu) { var b = openMenu.btn; closeMenu(); b.focus(); }
+  });
+
   function card(s) {
     var el = document.createElement("article");
     el.className = "sk-card";
@@ -1167,6 +1253,7 @@ scripts: `<script>
       : '<span class="sk-thumb-fallback">' + esc(s.platform) + "</span>";
 
     var name = s.author.name || "Creator";
+    var platform = PLATFORM_NAME[s.platform] || s.platform;
     var authorHref = s.author.handle ? "/creator?handle=" + encodeURIComponent(s.author.handle) : "";
     var authorName = esc(name) + (s.author.verified ? TICK : "");
     var author = authorHref
@@ -1182,28 +1269,125 @@ scripts: `<script>
       ? '<a class="sk-av" href="' + esc(authorHref) + '" aria-hidden="true" tabindex="-1">' + face + "</a>"
       : '<span class="sk-av" aria-hidden="true">' + face + "</span>";
 
+    var age = when(s.createdAt);
+
     el.innerHTML =
       '<a class="sk-thumb" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
         thumb + PLAY +
-        '<span class="sk-plat">' + esc(s.platform) + "</span>" +
+        '<span class="sk-plat">' + esc(platform) + "</span>" +
       "</a>" +
       '<div class="sk-body">' +
         avatar +
         '<div class="sk-text">' +
           '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
             esc(s.title) + "</a></h3>" +
-          '<span class="sk-author">' + author + "</span>" +
+          '<span class="sk-author">' + author +
+            (age ? ' <span class="sk-dot">·</span> <span class="sk-when">' + esc(age) + "</span>" : "") +
+          "</span>" +
           (s.summary ? '<p class="sk-summary">' + esc(s.summary) + "</p>" : "") +
           (s.templateId
-            ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">Open ' +
-              esc(s.templateId) + " in the Studio →</a>"
+            ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">' +
+              ICON.studio + "Open " + esc(s.templateId) + " in the Studio</a>"
             : "") +
         "</div>" +
+        menu(s, platform) +
       "</div>";
+
+    wireMenu(el, s);
     return el;
   }
 
+  /* The menu carries only things that are true for this card: a link worth
+     copying, the video's own home, and — for the person who shared it or the
+     owner — taking it down. No greyed-out entries for actions you cannot do. */
+  function menu(s, platform) {
+    var items =
+      '<button class="sk-mi" type="button" data-act="copy">' + ICON.link + "Copy link</button>" +
+      '<a class="sk-mi" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+        ICON.open + "Open on " + esc(platform) + "</a>" +
+      (s.canDelete
+        ? '<button class="sk-mi sk-mi-danger" type="button" data-act="remove">' +
+          ICON.trash + "Remove</button>"
+        : "");
+    return '<div class="sk-menu">' +
+      '<button class="sk-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" ' +
+        'aria-label="More actions for ' + esc(s.title) + '">' + ICON.dots + "</button>" +
+      '<div class="sk-menu-pop" role="menu" hidden>' + items + "</div>" +
+    "</div>";
+  }
+
+  function wireMenu(el, s) {
+    var wrap = el.querySelector(".sk-menu");
+    var btn = el.querySelector(".sk-menu-btn");
+    var pop = el.querySelector(".sk-menu-pop");
+    if (!wrap || !btn || !pop) return;
+
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var wasOpen = openMenu && openMenu.el === wrap;
+      closeMenu();
+      if (wasOpen) return;
+      wrap.classList.add("is-open");
+      pop.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      openMenu = { el: wrap, pop: pop, btn: btn };
+    });
+
+    var copyBtn = pop.querySelector('[data-act="copy"]');
+    if (copyBtn) {
+      copyBtn.addEventListener("click", function () {
+        // The label is the confirmation. A toast somewhere else on the page
+        // would be feedback for a click that happened here.
+        var done = function (text) {
+          copyBtn.lastChild.textContent = text;
+          setTimeout(function () { copyBtn.lastChild.textContent = "Copy link"; closeMenu(); }, 900);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(s.url)
+            .then(function () { done("Copied"); })
+            .catch(function () { done("Could not copy"); });
+        } else {
+          done("Could not copy");
+        }
+      });
+    }
+
+    var removeBtn = pop.querySelector('[data-act="remove"]');
+    if (removeBtn) {
+      removeBtn.addEventListener("click", function () {
+        if (!window.confirm("Remove “" + s.title + "” from the page? This cannot be undone.")) return;
+        removeBtn.disabled = true;
+        fetch("/api/skills/" + encodeURIComponent(s.id), { method: "DELETE" })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (out) {
+            if (!out.ok || !out.j.success) {
+              removeBtn.disabled = false;
+              removeBtn.lastChild.textContent = (out.j && out.j.error) || "Could not remove";
+              return;
+            }
+            closeMenu();
+            el.classList.add("is-going");
+            setTimeout(function () {
+              el.remove();
+              // The empty state is a real state, not only a first-load one.
+              if (!grid.querySelector(".sk-card")) { grid.hidden = true; empty.hidden = false; }
+            }, 200);
+            loadMine();
+          })
+          .catch(function () {
+            removeBtn.disabled = false;
+            removeBtn.lastChild.textContent = "Could not remove";
+          });
+      });
+    }
+  }
+
   function render(list) {
+    // Whatever menu was open belonged to a card that is about to stop
+    // existing; leaving the reference behind leaves it pointing at a
+    // detached node.
+    closeMenu();
     grid.innerHTML = "";
     if (!list.length) {
       grid.hidden = true;
@@ -1344,7 +1528,7 @@ const contact = {
   title: "Help & Feedback — ShortsCraft",
   desc: "Report a bug, request a template or ask a question about ShortsCraft. Messages reach the person who builds it.",
   body: `    <main class="pg">
-${pageHead("Help &amp; Feedback", "Tell us what is broken or missing.", "Bug reports and template requests both land in the same inbox, and a person reads them.")}
+${pageHead("Help &amp; Feedback")}
 
       <div class="pg-two">
         <form class="pg-form" id="fbForm" novalidate>
@@ -1416,7 +1600,7 @@ const privacy = {
   title: "Privacy Policy — ShortsCraft",
   desc: "What ShortsCraft collects, why, who processes it and how to get your data removed.",
   body: `    <main class="pg">
-${pageHead("Legal", "Privacy Policy", `Last updated ${UPDATED}. Written to be read, not to hide behind.`)}
+${pageHead("Privacy Policy")}
 
       <section class="pg-sec pg-prose pg-legal">
         <h2>The short version</h2>
@@ -1458,6 +1642,7 @@ ${pageHead("Legal", "Privacy Policy", `Last updated ${UPDATED}. Written to be re
 
         <h2>Contact</h2>
         <p>Questions about privacy go through <a href="/contact">Help &amp; Feedback</a>.</p>
+        <p class="pg-fine">Last updated ${UPDATED}.</p>
       </section>
     </main>`
 };
@@ -1468,7 +1653,7 @@ const terms = {
   title: "Terms of Service — ShortsCraft",
   desc: "The rules for using ShortsCraft: who owns the output, what is not allowed, plans and refunds, and the limits of our liability.",
   body: `    <main class="pg">
-${pageHead("Legal", "Terms of Service", `Last updated ${UPDATED}. By using ShortsCraft you accept these terms.`)}
+${pageHead("Terms of Service")}
 
       <section class="pg-sec pg-prose pg-legal">
         <h2>What the service is</h2>
@@ -1508,6 +1693,7 @@ ${pageHead("Legal", "Terms of Service", `Last updated ${UPDATED}. By using Short
 
         <h2>Contact</h2>
         <p>Anything unclear here — ask through <a href="/contact">Help &amp; Feedback</a>.</p>
+        <p class="pg-fine">Last updated ${UPDATED}. By using ShortsCraft you accept these terms.</p>
       </section>
     </main>`
 };
@@ -1618,11 +1804,7 @@ const authPage = (kind) => {
       : "Log in to ShortsCraft to use your credits and plan.",
     body: `    <main class="pg pg-narrow">
       <section class="pg-head">
-        <span class="pg-eyebrow">${isUp ? "Sign up" : "Log in"}</span>
-        <h1>${isUp ? "Create your account" : "Welcome back"}</h1>
-        <p>${isUp
-      ? `An account keeps your ${P.free.perDay} daily credits and your plan attached to you instead of to one browser. No card, no email confirmation loop.`
-      : "Log in to pick up your credits and plan."}</p>
+        <h1>${isUp ? "Create account" : "Log in"}</h1>
       </section>
 
       <form class="pg-form pg-auth" id="authForm" data-kind="${kind}" novalidate>
@@ -1699,6 +1881,13 @@ const account = {
               </div>
 
               <div class="ig-actions-row">
+                <!-- Stars sit with the actions, not in the count row: it is
+                     the one figure here you act on (open it to see what you
+                     have left to give), so it belongs beside Edit profile. -->
+                <button type="button" class="ig-btn ig-btn-secondary ig-stars-btn" data-jump="stars" title="Stars received — open to see Stars you can give">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+                  <strong id="crStarsCount">0</strong><span>Stars</span>
+                </button>
                 <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
                 <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
               </div>
@@ -1735,7 +1924,6 @@ const account = {
               <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
               <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
               <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
-              <li class="ig-stat"><button type="button" data-jump="stars"><strong id="crStarsCount">0</strong> <span>Stars received</span></button></li>
             </ul>
           </div>
         </header>
@@ -1749,28 +1937,17 @@ const account = {
 
         <!-- Tabs.
 
-             "Saved & Drafts" held three cards that linked to /drafts,
-             /uploads and /editor - all three already rows in the rail, so
-             the tab was navigation wearing a tab's clothes. It is replaced
-             by the two things the plan asks this page to carry and it
-             never did: Stars (non-cash appreciation, monthly allowance)
-             and the user's own support history. -->
+             Followers, Following and Stars used to be tabs here as well as
+             counts in the header, and the counts were already buttons that
+             opened them. Two controls, side by side, doing one thing. The
+             counts won: a number you can open is the more useful of the two,
+             and it is the one that states a fact rather than just offering a
+             destination. Those three panels are still here, still reachable,
+             and they now say what they are and how to get back. -->
         <nav class="ig-tabs" role="tablist">
           <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
             <span>Creations</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabFollowers" data-ig-tab="followers" role="tab" aria-controls="igPaneFollowers" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
-            <span>Followers</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabFollowing" data-ig-tab="following" role="tab" aria-controls="igPaneFollowing" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg>
-            <span>Following</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabStars" data-ig-tab="stars" role="tab" aria-controls="igPaneStars" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.4 12 18.1 5.8 21.4 7 14.5 2 9.6 8.9 8.6 12 2"/></svg>
-            <span>Stars</span>
           </button>
           <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -1787,7 +1964,7 @@ const account = {
         </nav>
 
         <!-- Tab 1: published creations -->
-        <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel" aria-labelledby="igTabCreations">
+        <section class="ig-pane is-active" id="igPaneCreations" data-ig-pane="creations" role="tabpanel" aria-labelledby="igTabCreations">
           <div class="ig-grid" id="userCreationsGrid">
             <!-- Rendered by authui.js -->
           </div>
@@ -1799,13 +1976,21 @@ const account = {
              nothing behind them: no way to see who, and no way to follow
              back. These are the real lists, and each row carries the
              follow control so the list is somewhere you can act. -->
-        <section class="ig-pane" id="igPaneFollowers" role="tabpanel" aria-labelledby="igTabFollowers" hidden>
+        <section class="ig-pane" id="igPaneFollowers" data-ig-pane="followers" role="region" aria-labelledby="igHeadFollowers" hidden>
+          <header class="ig-pane-head">
+            <h2 id="igHeadFollowers">Followers</h2>
+            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+          </header>
           <div class="ig-people" id="followersList" data-kind="followers">
             <p class="ig-acc-sub">Loading…</p>
           </div>
         </section>
 
-        <section class="ig-pane" id="igPaneFollowing" role="tabpanel" aria-labelledby="igTabFollowing" hidden>
+        <section class="ig-pane" id="igPaneFollowing" data-ig-pane="following" role="region" aria-labelledby="igHeadFollowing" hidden>
+          <header class="ig-pane-head">
+            <h2 id="igHeadFollowing">Following</h2>
+            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+          </header>
           <div class="ig-people" id="followingList" data-kind="following">
             <p class="ig-acc-sub">Loading…</p>
           </div>
@@ -1816,7 +2001,11 @@ const account = {
              The plan is explicit that Stars must never read as money while
              monetization is off, so the wording says so on the page rather
              than in a tooltip. -->
-        <section class="ig-pane" id="igPaneStars" role="tabpanel" aria-labelledby="igTabStars" hidden>
+        <section class="ig-pane" id="igPaneStars" data-ig-pane="stars" role="region" aria-labelledby="igHeadStars" hidden>
+          <header class="ig-pane-head">
+            <h2 id="igHeadStars">Stars</h2>
+            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+          </header>
           <div class="ig-account-grid">
             <article class="ig-account-card">
               <div class="ig-acc-head"><span class="ig-acc-lbl">Stars to give this month</span></div>
@@ -1845,7 +2034,7 @@ const account = {
         </section>
 
         <!-- Tab 3: plan and credits -->
-        <section class="ig-pane" id="igPaneAccount" role="tabpanel" aria-labelledby="igTabAccount" hidden>
+        <section class="ig-pane" id="igPaneAccount" data-ig-pane="account" role="tabpanel" aria-labelledby="igTabAccount" hidden>
           <div class="ig-account-grid">
             <article class="ig-account-card ig-acc-highlight">
               <div class="ig-acc-head">
@@ -1891,7 +2080,7 @@ const account = {
              The plan requires a signed-in user to be able to see their own
              tickets. The API existed; the page never asked for it, so the
              contact form was a one-way street. -->
-        <section class="ig-pane" id="igPaneSupport" role="tabpanel" aria-labelledby="igTabSupport" hidden>
+        <section class="ig-pane" id="igPaneSupport" data-ig-pane="support" role="tabpanel" aria-labelledby="igTabSupport" hidden>
           <div class="ig-support-head">
             <div>
               <h3>Your support requests</h3>
@@ -1905,7 +2094,7 @@ const account = {
         </section>
 
         <!-- Tab 4: Edit Profile Form -->
-        <section class="ig-pane" id="igPaneEdit" role="tabpanel" aria-labelledby="igTabEdit" hidden>
+        <section class="ig-pane" id="igPaneEdit" data-ig-pane="edit" role="tabpanel" aria-labelledby="igTabEdit" hidden>
           <div class="ig-edit-container">
             <div class="ig-edit-header">
               <div class="ig-edit-av" id="pageAvatarPreview">KA</div>
@@ -1985,7 +2174,10 @@ const account = {
       </section>
 
 ${guestGate("/account", "Log in to see your account", "Your creator profile, channel links, daily credits, and account settings all live behind a login.", ["Your plan and daily credit balance in one place", "Templates you publish stay tied to your creator name", "Drafts and settings follow you to any device"])}
-    </main>`
+    </main>`,
+  // The creation cards preview each template live. Without the engine on this
+  // page they silently built nothing, and every card was an empty black box.
+  scripts: `<script src="/templates-v2.js?v=${V}"></script>`
 };
 
 const indexPage = {
@@ -1997,9 +2189,7 @@ const indexPage = {
   head: `<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>`,
   body: `    <main class="sh-home">
       <section class="sh-hero">
-        <span class="sh-home-kicker">Animation workspace</span>
         <h1>What do you want to animate?</h1>
-        <p class="sh-hero-sub">Describe a scene or start from a template. You stay in control of the text, colour, timing and layout.</p>
       </section>
 
       <form class="sh-composer" id="composer" action="/editor" method="GET">
@@ -2147,7 +2337,7 @@ const indexPage = {
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=13" defer></script><script src="/shell.js?v=${V}" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
 };
 
 const templatePage = {
@@ -2203,7 +2393,7 @@ const templatePage = {
         </div>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=13"></script><script src="/template-detail.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/template-detail.js?v=4" defer></script>`
 };
 
 const creatorPage = {
@@ -2256,7 +2446,7 @@ const creatorPage = {
         </section>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=13"></script><script src="/creator-profile.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/creator-profile.js?v=4" defer></script>`
 };
 
 /* ── MY UPLOADS ───────────────────────────────────────────── */
@@ -2270,8 +2460,7 @@ const uploads = {
   title: "Creator Studio — ShortsCraft",
   desc: "Manage animation templates you have published, scheduled, or saved privately.",
   body: `    <main class="pg">
-${pageHead("Creator Studio", "Your animation templates",
-  "Manage published templates, scheduled releases and private drafts from one place.")}
+${pageHead("Creator Studio")}
 
       <section class="pg-sec" id="accountBox" hidden>
         <div class="admin-stat-grid creator-studio-stats">
@@ -2304,7 +2493,7 @@ ${pageHead("Creator Studio", "Your animation templates",
 
 ${guestGate("/uploads", "Log in to open Creator Studio", "Manage your published templates, scheduled releases and private drafts under your creator identity.", ["Published, scheduled and private work in one place", "Edit or remove your own templates", "See genuine engagement from other creators"])}
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=13" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}" defer></script>`
 };
 
 /* ── DRAFTS & PROJECTS ────────────────────────────────────── */
@@ -2318,8 +2507,7 @@ const drafts = {
   title: "My Projects — ShortsCraft",
   desc: "Your saved ShortsCraft animation projects, ready to reopen in the Studio.",
   body: `    <main class="pg">
-${pageHead("Workspace", "My Projects",
-  "Manage, preview and continue editing your saved animation projects and drafts.")}
+${pageHead("My Projects")}
 
       <section class="pg-sec">
         <div class="pg-accsec-head">
@@ -2338,7 +2526,7 @@ ${pageHead("Workspace", "My Projects",
         </p>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=13"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=${V}" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=${V}" defer></script>`
 };
 
 /* ── SETTINGS ─────────────────────────────────────────────── */
@@ -2348,72 +2536,82 @@ const settings = {
   robots: "noindex, follow",
   title: "Settings — ShortsCraft",
   desc: "Your ShortsCraft profile, plan and account controls.",
-  body: `    <main class="pg">
-${pageHead("Settings", "Account settings",
-  "Your creator identity, your plan, and the controls for this device.")}
+  /* Settings is a list of facts and a few buttons, and it now looks like one.
+     It had a display-size headline, a sub-headline, a profile card, eleven
+     separate cards under five section labels and a line of fine print —
+     most of them repeating the profile page, the pricing page or the rail.
+     What is left is one row per thing: what it is, its value, what you can
+     do about it. Everything a row showed before is still on this page. */
+  head: `<style>
+.st-page{max-width:760px}
+.st-head{margin:0 0 20px}
+.st-head h1{margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:700;letter-spacing:-.02em;color:var(--sc-text)}
+.st-label{margin:22px 0 8px;font-size:12px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--sc-muted)}
+.st-list{border:1px solid var(--sc-border);border-radius:12px;background:var(--sc-surface);overflow:hidden}
+.st-list + .st-list{margin-top:14px}
+.st-row{display:flex;align-items:center;gap:14px;min-height:54px;padding:10px 16px;color:var(--sc-text);text-decoration:none}
+.st-row + .st-row{border-top:1px solid var(--sc-border)}
+.st-key{flex:0 0 150px;font-size:14px;color:var(--sc-muted)}
+.st-val{flex:1 1 auto;min-width:0;font-size:14px;color:var(--sc-text);overflow-wrap:anywhere}
+.st-sub{display:block;font-size:12.5px;color:var(--sc-muted)}
+.st-sub:empty{display:none}
+.st-grow{flex:1 1 auto;min-width:0;display:grid;gap:1px}
+.st-grow strong{font-size:15px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-av{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--sc-surface-3);background-size:cover;background-position:center;color:var(--sc-text);font-size:15px;font-weight:700}
+.st-btn{flex:none;display:inline-flex;align-items:center;height:34px;padding:0 14px;border:1px solid var(--sc-border);border-radius:9px;background:var(--sc-surface);color:var(--sc-text);font:inherit;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer}
+.st-btn:hover{background:var(--sc-surface-2)}
+.st-danger{color:var(--sc-danger)}
+.st-link .st-key{flex:1 1 auto;color:var(--sc-text)}
+.st-link:hover{background:var(--sc-surface-2)}
+.st-chev{color:var(--sc-muted);font-size:20px;line-height:1}
+@media (max-width:560px){
+  .st-row{flex-wrap:wrap;gap:4px 12px;padding:12px 14px}
+  .st-key{flex:1 0 100%}
+  .st-link .st-key,.st-profile .st-key{flex:1 1 auto}
+}
+</style>`,
+  body: `    <main class="pg st-page">
+      <header class="st-head"><h1>Settings</h1></header>
 
-      <section class="pg-sec" id="accountBox" hidden>
-
-        <h2 class="pg-seclabel">Creator profile</h2>
-        <div class="pg-prof" id="profile">
-          <div class="pg-prof-av" id="crAvatarChar">KA</div>
-          <div class="pg-prof-main">
-            <h3 class="pg-prof-name" id="crDisplayName">Creator</h3>
-            <p class="pg-prof-handle" id="crHandle">@creator</p>
-            <p class="pg-prof-bio" id="crBio"></p>
-            <div class="pg-prof-links">
-              <a id="crYtLink" href="/settings" target="_blank" rel="noopener">YouTube</a>
-              <a id="crIgLink" href="/settings" target="_blank" rel="noopener">Instagram</a>
-              <span class="pg-prof-stars">★ <b id="crStarsCount">0</b></span>
+      <section id="accountBox" hidden>
+        <h2 class="st-label">Profile</h2>
+        <div class="st-list">
+          <div class="st-row st-profile" id="profile">
+            <div class="st-av" id="crAvatarChar" aria-hidden="true">KA</div>
+            <div class="st-grow">
+              <strong id="crDisplayName">Creator</strong>
+              <span class="st-sub" id="crHandle">@creator</span>
             </div>
+            <button type="button" class="st-btn" id="openEditProfileBtn">Edit profile</button>
           </div>
-          <button type="button" class="pg-bo pg-prof-edit" id="openEditProfileBtn">Edit profile</button>
-        </div>
-        <p class="pg-fine">This is what other creators see on every template you publish.</p>
-
-        <h2 class="pg-seclabel">Account</h2>
-        <div class="pg-grid">
-          <article class="pg-card pg-card--wide"><h3>Email</h3><p id="accEmail">—</p></article>
-          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p><p class="pg-cardsub" id="accPlanTerm"></p></article>
-          <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
-          <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
         </div>
 
-        <h2 class="pg-seclabel">Plan &amp; billing</h2>
-        <div class="pg-grid">
-          <article class="pg-card">
-            <h3>Change your plan</h3>
-            <p>Compare Free, Pro and Pro Max, and see exactly what a credit buys.</p>
-            <a href="/pricing" class="pg-cardlink">View plans →</a>
-          </article>
-          <article class="pg-card">
-            <h3>Credits</h3>
-            <p>Credits reset every day at 00:00 UTC. Exporting costs ${C.export}, a custom AI scene costs ${C.animate}.</p>
-            <a href="/pricing#credits" class="pg-cardlink">How credits work →</a>
-          </article>
+        <h2 class="st-label">Account</h2>
+        <div class="st-list">
+          <div class="st-row"><span class="st-key">Email</span><span class="st-val" id="accEmail">—</span></div>
+          <div class="st-row">
+            <span class="st-key">Plan</span>
+            <span class="st-val"><span id="accPlan">—</span><span class="st-sub" id="accPlanTerm"></span></span>
+            <a class="st-btn" href="/pricing">Change plan</a>
+          </div>
+          <div class="st-row">
+            <span class="st-key">Credits</span>
+            <span class="st-val"><span id="accCredits">—</span><span class="st-sub">Resets daily at 00:00 UTC</span></span>
+          </div>
+          <div class="st-row"><span class="st-key">Member since</span><span class="st-val" id="accSince">—</span></div>
         </div>
 
-        <h2 class="pg-seclabel">Your work</h2>
-        <div class="pg-grid">
-          <article class="pg-card">
-            <h3>Published templates</h3>
-            <p>Everything you have shared with the Community gallery.</p>
-            <a href="/uploads" class="pg-cardlink">Open Creator Studio →</a>
-          </article>
-          <article class="pg-card">
-            <h3>Drafts &amp; projects</h3>
-            <p>Projects the Studio has saved in this browser.</p>
-            <a href="/drafts" class="pg-cardlink">Open Drafts →</a>
-          </article>
+        <h2 class="st-label">Your work</h2>
+        <div class="st-list">
+          <a class="st-row st-link" href="/uploads"><span class="st-key">Published templates</span><span class="st-chev" aria-hidden="true">›</span></a>
+          <a class="st-row st-link" href="/drafts"><span class="st-key">Drafts &amp; projects</span><span class="st-chev" aria-hidden="true">›</span></a>
         </div>
 
-        <h2 class="pg-seclabel">This device</h2>
-        <div class="pg-grid">
-          <article class="pg-card">
-            <h3>Sign out</h3>
-            <p>Log out of ShortsCraft here. Your templates and plan stay on your account.</p>
-            <button type="button" class="pg-cardlink pg-linkbtn pg-danger" id="accLogout">Log out →</button>
-          </article>
+        <div class="st-list" style="margin-top:22px">
+          <div class="st-row">
+            <span class="st-key" style="flex:1 1 auto">Log out of this device</span>
+            <button type="button" class="st-btn st-danger" id="accLogout">Log out</button>
+          </div>
         </div>
       </section>
 
@@ -2436,7 +2634,7 @@ const adminPage = {
       </section>
 
       <div id="adminApp" hidden>
-        ${pageHead("Admin Console", "Run ShortsCraft from one place.", "Live product health, creators, published templates and support—without placeholder analytics.")}
+        ${pageHead("Admin Console")}
 
         <nav class="admin-tabs" aria-label="Admin sections">
           <button type="button" data-admin-tab="overview" aria-pressed="true">Overview</button>
@@ -2531,11 +2729,7 @@ const recoveryPage = (kind) => {
       : "Send yourself a secure, single-use link to reset your ShortsCraft password.",
     body: `    <main class="pg pg-narrow">
       <section class="pg-head">
-        <span class="pg-eyebrow">Password recovery</span>
-        <h1>${isReset ? "Choose a new password" : "Find your way back"}</h1>
-        <p>${isReset
-      ? "Your link works once and expires 30 minutes after it was sent. Setting a new password signs out every other session."
-      : "Enter the email on your ShortsCraft account. If it exists, a single-use reset link is on its way."}</p>
+        <h1>${isReset ? "Choose a new password" : "Reset your password"}</h1>
       </section>
 
       ${isReset ? `<form class="pg-form pg-auth" id="resetForm" novalidate>
@@ -2549,6 +2743,7 @@ const recoveryPage = (kind) => {
           <input id="resetConfirm" name="confirm" type="password"
                  autocomplete="new-password" minlength="8" maxlength="200" required>
         </div>
+        <p class="pg-fine">Setting a new password signs you out everywhere else.</p>
         <button class="pg-bw" type="submit" id="resetSend">Set new password</button>
         <p class="pg-formnote" id="resetNote" role="status" aria-live="polite"></p>
         <p class="pg-fine">Remembered it? <a href="/login">Log in instead</a>.</p>
@@ -2558,6 +2753,7 @@ const recoveryPage = (kind) => {
           <input id="forgotEmail" name="email" type="email" autocomplete="email"
                  maxlength="140" required>
         </div>
+        <p class="pg-fine">We will email a single-use link that works for 30 minutes.</p>
         <button class="pg-bw" type="submit" id="forgotSend">Send reset link</button>
         <p class="pg-formnote" id="forgotNote" role="status" aria-live="polite"></p>
         <!-- Development only: the route returns a one-time preview link so the

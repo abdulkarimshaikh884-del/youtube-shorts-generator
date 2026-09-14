@@ -15,6 +15,15 @@
 .sc-support-reply textarea { box-sizing: border-box; width: 100%; resize: vertical; min-height: 100px; padding: 12px; font: inherit; color: var(--sc-text); background: var(--sc-surface); border: 1px solid var(--sc-border); border-radius: 8px; }
 .sc-support-conversation:focus-visible { outline: 2px solid var(--sc-brand); outline-offset: 4px; }
 
+/* Guided help: scan one action at a time instead of a dense block of copy. */
+.pg-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 0; list-style: none; counter-reset: help-step; }
+.pg-steps > li { position: relative; counter-increment: help-step; padding: 22px 22px 22px 62px; border: 1px solid var(--sc-border); border-radius: 12px; background: var(--sc-surface); }
+.pg-steps > li::before { content: counter(help-step); position: absolute; top: 20px; left: 20px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; background: var(--sc-surface-2); color: var(--sc-text); font-weight: 650; }
+.pg-steps b { display: block; margin-bottom: 8px; color: var(--sc-text); font-size: 16px; }
+.pg-steps span { display: block; color: var(--sc-muted); line-height: 1.65; font-size: 14px; }
+.pg-steps a { color: var(--sc-text); text-underline-offset: 3px; }
+@media (max-width: 640px) { .pg-steps { grid-template-columns: 1fr; } }
+
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
@@ -753,9 +762,9 @@ body.sh-body #navMobile .sh-mfill {
 .sc-publish-head h2 { margin: 4px 0 5px; color: var(--sc-text); font: 720 clamp(21px, 3vw, 27px)/1.2 var(--sh-display); }
 .sc-publish-head p { max-width: 650px; margin: 0; color: var(--sc-muted); font-size: 13px; line-height: 1.55; }
 .sc-publish-kicker { color: var(--sc-brand); font-size: 11px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
-.sc-publish-head > button { width: 36px; height: 36px; border: 1px solid var(--sc-border); border-radius: 9px; background: var(--sc-surface-2); color: var(--sc-text); font-size: 22px; cursor: pointer; }
+.sc-publish-head > button { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid var(--sc-border); border-radius: 9px; background: var(--sc-surface-2); color: var(--sc-text); font-size: 22px; cursor: pointer; }
 .sc-publish-steps { display: flex; gap: 4px; padding: 10px 24px; border-bottom: 1px solid var(--sc-border); background: var(--sc-surface-2); }
-.sc-publish-steps button { min-height: 35px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--sc-muted); font: 650 12px/1 var(--sh-font); }
+.sc-publish-steps button { min-height: 44px; flex-shrink: 0; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--sc-muted); font: 650 12px/1 var(--sh-font); }
 .sc-publish-steps button[aria-current="step"] { background: var(--sc-surface); color: var(--sc-text); box-shadow: var(--sc-shadow-sm); }
 .sc-publish-body { min-height: 0; overflow: auto; padding: 22px 24px; }
 .sc-publish-panel { display: grid; gap: 16px; }
@@ -956,7 +965,7 @@ body.pg-auth-page {
   .sh-tact-btn { min-width: 0; padding-inline: 3px; font-size: 10.5px; }
   .sh-footer { padding-inline: 18px; }
   .sc-publish-modal { padding: 0; }
-  .sc-publish-card { max-height: 100vh; min-height: 100vh; border: 0; border-radius: 0; }
+  .sc-publish-card { max-height: 100vh; min-height: 100vh; max-height: 100dvh; min-height: 100dvh; border: 0; border-radius: 0; }
   .sc-publish-head,
   .sc-publish-body,
   .sc-publish-foot { padding-left: 16px; padding-right: 16px; }
@@ -2802,6 +2811,7 @@ body.sh-body .sh-search-box :focus-visible { outline: none; }
    a different built-in animation under the creator's URL, so nobody could
    tell whose work they were looking at. */
 .detail-problem {
+  grid-column: 1 / -1;
   max-width: 520px;
   margin: 64px auto;
   padding: 0 20px;
@@ -2856,3 +2866,447 @@ body.sh-body .pg-formnote[data-bad="1"],
   padding-bottom: 18px;
   margin-bottom: 22px;
 }
+
+/* ============================================================
+   Profile: the header counts are the navigation now
+   ------------------------------------------------------------
+   Followers, Following and Stars lost their duplicate tabs, so these counts
+   are the only way into those three panels. A control that is the only way in
+   has to look like one — they were styled as flat text and read as a caption.
+   ============================================================ */
+.ig-stats-row { gap: 6px; align-items: center; }
+.ig-stat { color: var(--sc-muted); }
+.ig-stat > button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.ig-stat > button:hover {
+  background: var(--sc-surface-2);
+  border-color: var(--sc-border);
+  color: var(--sc-text);
+}
+.ig-stat > button strong { color: var(--sc-text); font-weight: 650; }
+
+/* Each of those three panels now says what it is and how to leave, because
+   arriving at one no longer lights up a tab to explain where you are. */
+.ig-pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--sc-border);
+}
+.ig-pane-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  color: var(--sc-text);
+}
+.ig-pane-back {
+  border: 1px solid var(--sc-border);
+  border-radius: 9px;
+  padding: 7px 13px;
+  background: none;
+  color: var(--sc-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+.ig-pane-back:hover { border-color: var(--sc-border-strong); color: var(--sc-text); }
+
+/* The header reserved a great deal of height for an avatar, a name and four
+   numbers, and the panel below it started far down the page. */
+.ig-header { gap: 30px; padding: 22px 0 18px; }
+.ig-avatar { width: 112px; height: 112px; font-size: 34px; }
+.ig-info-col { gap: 12px; }
+.ig-pane { padding-top: 18px; }
+
+/* The empty state was 60px of padding above and below a three-line message,
+   which made an empty profile look like a loading failure. */
+.cr-cre-empty { padding: 38px 20px; gap: 12px; }
+
+/* ============================================================
+   Creator Studio cards on the profile
+   ------------------------------------------------------------
+   Three buttons were laid side by side in a 220px card, so "Open in Studio"
+   wrapped to three lines and "Delete" was cut off at the card edge. The
+   description had no style at all and rendered at body size over the card.
+   ============================================================ */
+.cr-cre-desc {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--sh-ink3, #a6a6b8);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cr-cre-actions { flex-wrap: wrap; gap: 6px; }
+.cr-cre-actions > a,
+.cr-cre-actions > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+/* The primary action gets its own row; the secondary ones share the next. */
+.cr-cre-actions > .pg-bw { flex: 1 1 100%; }
+.cr-cre-actions > .pg-bo { flex: 1 1 0; min-width: 0; }
+
+.cr-cre-state.is-archived { color: var(--sh-ink3); }
+.cr-cre-state.is-library { color: var(--sh-ink2); border-color: var(--sc-border); }
+
+/* The library heading spans the whole grid so the two groups read as two. */
+.cr-cre-section {
+  grid-column: 1 / -1;
+  margin: 14px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--sc-border);
+}
+.cr-cre-section h3 { margin: 0 0 4px; font-size: 16px; font-weight: 650; color: var(--sc-text); }
+.cr-cre-section p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--sc-muted); max-width: 640px; }
+
+/* ============================================================
+   Template upload
+   ------------------------------------------------------------
+   The first thing in the dialog is the place to put a file. Everything
+   else — what was recognised, the details, who can see it — follows from
+   what that file turns out to be.
+   ============================================================ */
+.sc-drop {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 34px 20px;
+  border: 2px dashed var(--sc-border-strong);
+  border-radius: 14px;
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+  text-align: center;
+  transition: border-color .15s ease, background .15s ease;
+}
+.sc-drop svg { color: var(--sc-text); margin-bottom: 2px; }
+.sc-drop strong { color: var(--sc-text); font-size: 16px; font-weight: 700; }
+.sc-drop > span { font-size: 12.5px; }
+.sc-drop.is-over { border-color: var(--sc-brand); background: var(--sc-brand-soft); }
+.sc-drop.is-busy { opacity: .6; pointer-events: none; }
+.sc-drop-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+.sc-drop-actions .pg-bw,
+.sc-drop-actions .pg-bo { min-height: 40px; padding: 0 18px; }
+.sc-drop-hint { margin: 0; color: var(--sc-muted); font-size: 12.5px; text-align: center; }
+.sc-drop-error {
+  padding: 12px 14px;
+  border: 1px solid var(--sc-border);
+  border-left: 3px solid var(--sc-danger);
+  border-radius: 10px;
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.sc-detect { display: grid; gap: 12px; }
+.sc-detect-head { display: flex; align-items: center; gap: 10px; }
+.sc-detect-head strong { font-size: 15px; color: var(--sc-text); }
+.sc-detect-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--sc-brand-soft);
+  color: var(--sc-brand);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.sc-detect-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 7px 16px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--sc-border);
+  border-radius: 10px;
+  background: var(--sc-surface-2);
+  font-size: 13px;
+}
+.sc-detect-facts dt { color: var(--sc-muted); }
+.sc-detect-facts dd { margin: 0; color: var(--sc-text); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sc-detect-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--sc-border-strong);
+  display: inline-block;
+}
+.sc-detect-warnings {
+  margin: 0;
+  padding: 12px 14px 12px 30px;
+  border: 1px solid var(--sc-border);
+  border-left: 3px solid #b7791f;
+  border-radius: 10px;
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.sc-detect-warnings li + li { margin-top: 4px; }
+.sc-detect-again { justify-self: center; min-height: 38px; padding: 0 16px; }
+
+/* ============================================================
+   Profile page: avatar ring, Stars action, creation cards
+   ============================================================ */
+
+/* The ring was 116 x 144px: page.css gives it a fixed 144px height, and the
+   later fix only made its width follow the avatar. An oval ring with the
+   photo sitting 16px low in it. The ring now takes its size from the avatar
+   on both axes, so it is always a circle centred on the photo. */
+.ig-story-ring {
+  width: auto;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  padding: 3px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sc-border-strong);
+  box-shadow: none;
+  transform: none;
+}
+.ig-story-ring:hover { transform: none; box-shadow: none; }
+.ig-avatar {
+  border: 3px solid var(--sc-canvas);
+  background-size: cover;
+  background-position: center;
+}
+
+.ig-stars-btn { gap: 6px; box-shadow: inset 0 0 0 1px var(--sc-border); }
+.ig-stars-btn svg { color: #d99a1b; flex: none; }
+.ig-stars-btn strong { font-weight: 700; }
+.ig-stars-btn span { color: var(--sc-muted); font-weight: 550; }
+
+/* ── Creation cards ──────────────────────────────────────────
+   These were a hard-coded dark panel with the tag, status and counts crowded
+   into one row above the title, a paragraph of description, and three text
+   buttons that could not fit a 220px card. They are theme cards now: the
+   animation, a status pill on it, the name, one line of facts, and one
+   primary action beside two icon actions.
+
+   page.css still carries an older overlay design further down its file: the
+   card forced to 9:16, and the preview and the text both absolutely
+   positioned over the whole card with white type. Each of those properties is
+   reset here explicitly, or the text lands on top of the animation. */
+#userCreationsGrid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 232px));
+  gap: 18px;
+  justify-content: start;
+}
+.cr-cre-card {
+  position: relative;
+  aspect-ratio: auto;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--sc-border);
+  border-radius: 14px;
+  background: var(--sc-surface);
+  box-shadow: none;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.cr-cre-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--sc-border-strong);
+  box-shadow: none;
+}
+.cr-cre-preview {
+  position: relative;
+  inset: auto;
+  flex: none;
+  width: 100%;
+  max-height: none;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border-bottom: 1px solid var(--sc-border);
+  background: #0a0b0e;
+}
+.cr-cre-preview iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+}
+.cr-cre-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #8b8b94;
+  font-size: 12px;
+}
+.cr-cre-fallback[hidden] { display: none; }
+.cr-cre-preview .cr-cre-state {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  z-index: 1;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(10, 11, 14, .72);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .01em;
+  backdrop-filter: blur(6px);
+}
+.cr-cre-preview .cr-cre-state.is-published::before,
+.cr-cre-preview .cr-cre-state.is-scheduled::before,
+.cr-cre-preview .cr-cre-state.is-draft::before,
+.cr-cre-preview .cr-cre-state.is-archived::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: #9aa0a6;
+}
+.cr-cre-preview .cr-cre-state.is-published::before { background: #35c46f; }
+.cr-cre-preview .cr-cre-state.is-scheduled::before { background: #5b8cff; }
+
+.cr-cre-body {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  display: grid;
+  gap: 3px;
+  padding: 11px 12px 12px;
+  background: none;
+  color: var(--sc-text);
+}
+.cr-cre-title {
+  margin: 0;
+  overflow: hidden;
+  color: var(--sc-text);
+  font-family: var(--sh-font);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cr-cre-body .cr-cre-meta {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  color: var(--sc-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cr-cre-body .cr-cre-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+.cr-cre-card .cr-cre-open {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+  font-size: 12.5px;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cr-cre-card .cr-cre-open:hover { opacity: .9; color: var(--sc-canvas); }
+.cr-cre-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--sc-border);
+  border-radius: 9px;
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  cursor: pointer;
+}
+.cr-cre-icon:hover { background: var(--sc-surface-2); }
+.cr-cre-icon.cr-cre-del { color: var(--sc-danger); }
+
+@media (max-width: 560px) {
+  #userCreationsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cr-cre-body { padding: 9px 10px 10px; }
+  .cr-cre-open { font-size: 12px; padding: 0 6px; }
+  .cr-cre-icon { width: 32px; height: 32px; }
+}
+
+/* On a phone the three profile actions share one row — Stars at its own
+   width, Edit and Share splitting the rest — instead of stacking into three
+   full-width bars that pushed the counts and the cards off the first screen. */
+@media (max-width: 720px) {
+  .ig-actions-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+    gap: 8px;
+    margin-left: 0;
+  }
+  .ig-actions-row .ig-btn {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    padding: 0 10px;
+    justify-content: center;
+    white-space: nowrap;
+  }
+}
+
+/* Page titles. A page header is now just the page's name, so it is sized like
+   one: a clear heading, not a display-size headline with room left for a
+   label above and a paragraph below that are no longer there. */
+.pg-head { padding: 0 0 16px; margin-bottom: 22px; }
+.pg-head h1 {
+  margin: 0;
+  font-size: clamp(26px, 2.6vw, 32px);
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+.sk-head h1 { margin: 0; font-size: clamp(26px, 2.6vw, 32px); }
+.sh-hero h1 { margin-bottom: 0; }

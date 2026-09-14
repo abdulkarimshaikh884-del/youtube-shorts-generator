@@ -358,10 +358,10 @@ async function refund(req, kind) {
 
 /* Called right after a payment is verified, to grant the new plan's daily
    allowance immediately. */
-async function setPlan(req, planId) {
+async function setPlan(req, planId, executor = db) {
   if (!PLANS[planId]) return false;
-  await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
-  await db.query(
+  await ensureRecord(req.credits.key, planId, executor);
+  await executor.query(
     `update public.credits set plan = $2, left_credits = $3 where key = $1`,
     [req.credits.key, planId, PLANS[planId].perDay]
   );

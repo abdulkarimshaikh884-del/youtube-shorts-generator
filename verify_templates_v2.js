@@ -70,11 +70,16 @@ function ok(pass, label, extra) {
       const keys = schema.fields.map((field) => field.key);
       maxFields = Math.max(maxFields, schema.fields.length);
       sharedKeys.forEach((key) => { if (!keys.includes(key)) missingShared.push(template.id + ":" + key); });
-      const baseline = window.SC_TPL2.build(template.id, { props: schema.defaults, watermark: false });
+      // The upload renderer's text and colour slots mean something only against
+      // an uploaded document, so it is audited with one named.
+      const context = template.id === "lottie" ? { doc: "lt_verifyfixture0000000" } : {};
+      const base = Object.assign({}, schema.defaults, context);
+      const baseline = window.SC_TPL2.build(template.id, { props: base, watermark: false });
       schema.fields.forEach((field) => {
         let changed;
         if (field.type === "toggle" || field.type === "boolean") changed = !Boolean(field.default);
         else if (field.type === "number" || field.type === "duration") changed = Math.min(Number(field.max == null ? 999 : field.max), Number(field.default || 0) + Number(field.step || 1));
+        else if (field.format === "hex") changed = "#123456";
         else if (field.type === "color") changed = String(field.default).toLowerCase() === "#123456" ? "#654321" : "#123456";
         else if (field.type === "select") {
           const alternative = (field.options || []).find((option) => String(option.val) !== String(field.default));
@@ -82,7 +87,7 @@ function ok(pass, label, extra) {
         } else if (field.type === "image" || field.type === "logo") changed = "https://example.com/" + field.key + ".png";
         else changed = "SHORTSCRAFT_EDIT_" + field.key;
         const html = window.SC_TPL2.build(template.id, {
-          props: Object.assign({}, schema.defaults, { [field.key]: changed }), watermark: false
+          props: Object.assign({}, base, { [field.key]: changed }), watermark: false
         });
         if (html === baseline) dead.push(template.id + ":" + field.key);
       });

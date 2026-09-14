@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const db = require("./db");
+const lottie = require("./lottie");
 
 function loadValidTplIds() {
   try {
@@ -139,6 +140,18 @@ async function get(id) {
   return rows[0] && livesInEngine(rows[0]) ? toTemplate(rows[0]) : null;
 }
 
+// Private/scheduled rows are never returned by the public detail endpoint.
+// Creator Studio resolves them through a session-owned lookup, not a handle.
+async function getOwned(id, user) {
+  if (!user || !user.id) return null;
+  const { rows } = await db.query(
+    `select ct.* from public.community_templates ct
+      where ct.id = $1 and ct.author_id = $2`,
+    [id, user.id]
+  );
+  return rows[0] && livesInEngine(rows[0]) ? toTemplate(rows[0]) : null;
+}
+
 async function publish(data, user) {
   if (!user || !user.id) {
     return { error: "You must be logged in to publish a template." };
@@ -154,7 +167,7 @@ async function publish(data, user) {
   const category = VALID_CATEGORIES.has(String(data.category)) ? String(data.category) : "text";
   const font = VALID_FONTS.has(String(data.font)) ? String(data.font) : "inter";
   const accent = /^#[0-9a-fA-F]{6}$/.test(String(data.accent || "")) ? String(data.accent) : "#ffffff";
-  const dur = Math.min(Math.max(Number(data.dur) || 4600, 1000), 12000);
+  let dur = Math.min(Math.max(Number(data.dur) || 4600, 1000), 12000);
 
   const id = "comm_" + crypto.randomBytes(6).toString("hex");
   const authorName = user.displayName || (user.email
@@ -182,10 +195,31 @@ async function publish(data, user) {
      in a jsonb column and one pasted data: URI could otherwise arrive as
      megabytes. Aspect is validated against the four the composer offers. */
   const ASPECTS = new Set(["9:16", "16:9", "1:1", "4:5"]);
-  const aspect = ASPECTS.has(String(data.aspect)) ? String(data.aspect) : "9:16";
+  let aspect = ASPECTS.has(String(data.aspect)) ? String(data.aspect) : "9:16";
+  let sourceFormat = "shortscraft_preset";
   let props = data.props && typeof data.props === "object" && !Array.isArray(data.props)
     ? data.props
     : {};
+  /* An uploaded animation is published by reference. Its size and length
+     are what the stored document says — not what the request claims — and
+     only the document's owner may publish it. Props are reduced to the upload
+     template's own slots so nothing else rides along. */
+  if (data.tpl === "lottie") {
+    const check = await lottie.assertPublishable(props.doc, user);
+    if (check.error) return { error: check.error };
+    const clean = { doc: String(props.doc) };
+    for (let i = 1; i <= 12; i++) {
+      if (typeof props["t" + i] === "string" && props["t" + i].trim()) clean["t" + i] = props["t" + i].slice(0, 200);
+    }
+    for (let i = 1; i <= 8; i++) {
+      if (/^#[0-9a-f]{6}$/i.test(String(props["c" + i] || ""))) clean["c" + i] = String(props["c" + i]);
+    }
+    props = clean;
+    aspect = ASPECTS.has(check.meta.aspect) ? check.meta.aspect : "9:16";
+    dur = Math.min(Math.max(Number(check.meta.durationMs) || 4600, 1000), 9000);
+    sourceFormat = "lottie_json";
+  }
+
   const propsJson = JSON.stringify(props);
   if (propsJson.length > 400_000) {
     return { error: "That template carries too much embedded data to publish. Try smaller images." };
@@ -196,7 +230,11 @@ async function publish(data, user) {
        (id, title, description, category, tpl, lines, props, aspect, accent, font, dur,
         author_id, author_name, author_handle, likes, downloads, source_format,
         status, scheduled_at, published_at)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,0,0,'shortscraft_preset',$15,$16,$17)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,0,0,$17,$15,$16,
+             -- The database's clock, not this server's: the library shows rows
+             -- whose published_at <= now(), so a timestamp from an app clock
+             -- running ahead hid every new template for as long as the skew.
+             case when $15::text = 'published' then now() end)
      returning *`,
     [
       id,
@@ -215,7 +253,7 @@ async function publish(data, user) {
       authorHandle || "creator",
       status,
       scheduledAt,
-      status === "published" ? new Date() : null
+      sourceFormat
     ]
   );
 
@@ -244,6 +282,13 @@ async function listByAuthor(userId, userHandle, options = {}) {
   await publishDue();
   const includeUnpublished = options.includeUnpublished === true;
   if (userId) {
+    /* An account's templates are the rows it owns by id, plus rows credited to
+       its handle that nobody owns yet. Returning the id rows alone the moment
+       one existed hid every handle-credited template behind the first owned
+       one: @shortscraft showed its four house templates while it owned none,
+       and one template the moment it owned one. Unowned is the limit — a row
+       another account owns is never pulled in by a matching handle. */
+    const handleNorm = userHandle ? String(userHandle).toLowerCase().replace(/^@/, "") : null;
     const { rows } = await db.query(
       `select ct.*, u.verified as author_verified,
               (u.avatar_bytes is not null) as author_has_avatar,
@@ -253,9 +298,12 @@ async function listByAuthor(userId, userHandle, options = {}) {
                 where te.template_id = ct.id and te.event_type = 'export') as real_exports
          from public.community_templates ct
          left join public.users u on u.id = ct.author_id
-        where ct.author_id = $1 and ($2::boolean or (ct.status = 'published' and ct.published_at <= now()))
+        where (ct.author_id = $1
+               or ($3::text is not null and ct.author_id is null
+                   and lower(replace(ct.author_handle, '@', '')) = $3))
+          and ($2::boolean or (ct.status = 'published' and ct.published_at <= now()))
         order by coalesce(ct.published_at, ct.scheduled_at, ct.created_at) desc`,
-      [userId, includeUnpublished]
+      [userId, includeUnpublished, handleNorm]
     );
     if (rows.length) return rows.filter(livesInEngine).map(toTemplate);
   }
@@ -305,4 +353,4 @@ async function isPublicTemplateKey(id) {
   return Boolean(await get(key));
 }
 
-module.exports = { list, get, publish, like, unlike, listByAuthor, remove, isPublicTemplateKey };
+module.exports = { list, get, getOwned, publish, like, unlike, listByAuthor, remove, isPublicTemplateKey };

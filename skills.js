@@ -29,6 +29,7 @@ const VALID_TPL_IDS = (function () {
     let m;
     while ((m = re.exec(src))) ids.add(m[1]);
     ids.delete("blank");
+    ids.delete("lottie"); // renders uploads; a tutorial cannot "cover" it
     return ids;
   } catch {
     return new Set();

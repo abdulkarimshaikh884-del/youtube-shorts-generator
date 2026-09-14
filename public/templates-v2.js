@@ -239,6 +239,49 @@ window.SC_TPL2 = (function () {
     }
   };
 
+  /* ── Uploaded Lottie animations ─────────────────────────────
+     One engine template renders every creator upload. The animation itself
+     is not in this file: `doc` names a stored, already-cleaned Lottie
+     document, and t1–t12 / c1–c8 are the creator's text and colour edits,
+     addressed in the fixed order lottie-inspect.js reads them.
+
+     The page loads the player and the document itself, so it works wherever
+     a template preview is allowed to run script — the gallery, the template
+     page, profiles and the export renderer. The Studio's preview frames run
+     no script at all; the editor mounts the same document into them from
+     outside instead (see editor.js). `system` keeps it out of the library. */
+  T["lottie"] = {
+    name: "Uploaded animation", cat: "social", dark: true, accent: "#ffffff",
+    collection: "system",
+    desc: "A Lottie animation uploaded by a creator",
+    css: '.scl{position:absolute;inset:0;display:grid;place-items:center}.scl svg{width:100%!important;height:100%!important;display:block}.scl.is-missing{color:var(--dim);font-size:3.4cqw;text-align:center;padding:8cqw}',
+    html: function (o) {
+      var p = o.props || {};
+      var doc = /^[A-Za-z0-9_-]{8,64}$/.test(String(p.doc || "")) ? String(p.doc) : "";
+      var edits = { };
+      for (var i = 1; i <= 12; i++) if (p["t" + i]) edits["t" + i] = String(p["t" + i]);
+      for (var j = 1; j <= 8; j++) if (/^#[0-9a-f]{6}$/i.test(String(p["c" + j] || ""))) edits["c" + j] = String(p["c" + j]);
+      // JSON inside a script block: escape "<" so no value can close the tag.
+      var cfg = JSON.stringify({ doc: doc, props: edits }).replace(/</g, String.fromCharCode(92) + "u003c");
+      if (!doc) return '<div class="scl is-missing">This animation is not available.</div>';
+      return '<div class="scl" id="scLottie" aria-hidden="true"></div>'
+        + '<script type="application/json" id="scLottieCfg">' + cfg + '</script>'
+        + '<script>(function(){'
+        + 'var el=document.getElementById("scLottie"),cfg=JSON.parse(document.getElementById("scLottieCfg").textContent);'
+        + 'var done;window.__scReady=new Promise(function(r){done=r;});'
+        + 'function load(src){return new Promise(function(res,rej){var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}'
+        + 'Promise.all([window.lottie?0:load("/vendor/lottie_light.min.js?v=5.12.2"),window.SC_LOTTIE?0:load("/lottie-inspect.js?v=2"),'
+        + 'fetch("/api/lottie/"+encodeURIComponent(cfg.doc)).then(function(r){if(!r.ok)throw new Error("missing");return r.json();})])'
+        + '.then(function(out){var data=window.SC_LOTTIE.applyEdits(out[2],cfg.props);'
+        + 'var anim=window.lottie.loadAnimation({container:el,renderer:"svg",loop:true,autoplay:true,animationData:data,rendererSettings:{preserveAspectRatio:"xMidYMid meet"}});'
+        + 'var total=((data.op-data.ip)/(data.fr||30))*1000;'
+        + 'window.__scSeek=function(ms){anim.goToAndStop(total?ms%total:ms,false);};'
+        + 'anim.addEventListener("DOMLoaded",function(){done();});})'
+        + '.catch(function(){el.className+=" is-missing";el.textContent="This animation could not be loaded.";done();});'
+        + '})();</script>';
+    }
+  };
+
   /* ============================================================
      💥 3 NEW ULTRA-PREMIUM REMOTION KINETIC TEXT TEMPLATES 💥
      ============================================================ */
@@ -6309,6 +6352,19 @@ window.SC_TPL2 = (function () {
 
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
 
+  /* The upload template's fields are generic slots; the Studio relabels them
+     from the uploaded document and shows only the slots it actually has. */
+  SCHEMAS["lottie"] = (function () {
+    var fields = [{ key: "doc", label: "Animation", type: "text", default: "", maxLength: 64, group: "Upload" }];
+    var defaults = { doc: "" };
+    for (var i = 1; i <= 12; i++) { fields.push({ key: "t" + i, label: "Text " + i, type: "text", default: "", maxLength: 200, group: "Upload" }); defaults["t" + i] = ""; }
+    // Colour slots are text so an unset slot can stay empty (a colour field
+    // would coerce "" to a real colour and repaint the animation); `format`
+    // says what a set value looks like.
+    for (var j = 1; j <= 8; j++) { fields.push({ key: "c" + j, label: "Colour " + j, type: "text", format: "hex", default: "", maxLength: 7, group: "Upload" }); defaults["c" + j] = ""; }
+    return { version: 1, fields: fields, defaults: defaults };
+  })();
+
   function schemaFor(id) {
     var source = SCHEMAS[id] || defaultSchema(id);
     var schema = clone(source);
@@ -6422,10 +6478,14 @@ window.SC_TPL2 = (function () {
   }
 
   /* ── Public API ───────────────────────────────────────── */
+  /* System templates (the blank canvas and the upload renderer) are not
+     library entries. list() leaves them out; list(true) is for callers such as
+     the editor that must be able to open any clip, including those two. */
   function list(includeBlank) {
     return Object.keys(T).filter(function (id) {
       if (RETIRED_TEMPLATE_IDS[id]) return false;
-      return includeBlank ? true : id !== "blank";
+      var system = id === "blank" || T[id].collection === "system";
+      return includeBlank ? true : !system;
     }).map(function (id) {
       var s = schemaFor(id);
       var metadata = metaFor(id);

@@ -1,0 +1,322 @@
+/* ============================================================
+   mobile.css — the phone layer
+   ------------------------------------------------------------
+   Every stylesheet before this one was drawn at desktop scale and then
+   narrowed: 44–46px buttons, 68px top bar, 26px page titles, a composer the
+   height of half a phone. On a 375px screen that left one heading and one
+   control per screenful.
+
+   This file only applies at phone width and loads last on every page
+   (after page-specific <style> blocks, and after editor.css in the Studio),
+   so the phone sizing lives in one place instead of being fought out across
+   five files. The rules it keeps while shrinking everything:
+
+   - Nothing tappable is smaller than 30px on its short side; primary actions
+     stay 36–40px. WCAG 2.2 asks for 24px; a thumb wants a little more.
+   - Text you type into is 16px. Below that, iOS Safari zooms the whole page
+     the moment the field is tapped, which is worse than a large field.
+   - Body text does not go below 14px, and small print not below 12px.
+   ============================================================ */
+
+@media (max-width: 640px) {
+
+  /* ── Base type ─────────────────────────────────────────── */
+  body.sh-body,
+  body.pg-body { font-size: 14px; }
+  body.sh-body p,
+  body.sh-body li { line-height: 1.5; }
+
+  /* The skip link hid 60px above the page, but its 24px shadow reached back
+     into view as a grey smudge in the top-left corner of every page. */
+  .sh-skip,
+  .ed-skip { top: -120px; box-shadow: none; }
+  .sh-skip:focus,
+  .ed-skip:focus { top: 0; box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+
+  /* ── Top bar and menu ─────────────────────────────────── */
+  /* Brand on the left, what you act on at the right, the menu last. The bar
+     used to be a menu button and a lone logo floating in the middle: the
+     name was hidden, and the credit balance and Log in — both of which fit —
+     were hidden with it. */
+  body.sh-body .sh-topbar { height: 52px; min-height: 52px; padding: 0 12px; gap: 6px; justify-content: flex-start; }
+  body.sh-body .sh-topbrand {
+    order: 0;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    height: 40px;
+    min-width: 0;
+  }
+  body.sh-body .sh-topbrand .sh-brand-mark,
+  body.sh-body .sh-topbrand img { width: 26px; height: 26px; }
+  body.sh-body .sh-topbrand .sh-brand-name { display: inline; font-size: 16px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; }
+  body.sh-body .sh-top-actions { order: 1; margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  body.sh-body .sh-credit-chip { display: inline-flex; height: 32px; padding: 0 9px; gap: 0; font-size: 12px; }
+  body.sh-body .sh-credit-plan { display: none; }
+  body.sh-body .sh-notification-btn { width: 36px; height: 36px; }
+  body.sh-body .sh-top-actions > .sh-tlink:not([hidden]) {
+    display: inline-flex !important;
+    align-items: center;
+    height: 32px;
+    padding: 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  /* The menu is the way to every page, so it keeps a 40px target. */
+  /* margin-right:auto was left over from when the menu sat on the left and
+     pushed everything else right; with the menu last it split the free space
+     and stranded the button 20px short of the edge. */
+  body.sh-body #navBurger { order: 2; width: 40px; height: 40px; border-radius: 10px; margin: 0; }
+  body.sh-body #navBurger span { width: 15px; }
+  /* Menu panel and notifications: see the blocks at the end of this file. */
+
+  /* ── Page frame and titles ────────────────────────────── */
+  body.sh-body .pg { padding: 18px 14px 32px; }
+  body.sh-body .pg-head { padding: 0 0 12px; margin-bottom: 16px; }
+  body.sh-body .pg-head h1,
+  body.sh-body .sk-head h1,
+  body.sh-body .st-head h1 { font-size: 22px; line-height: 1.2; }
+  body.sh-body .pg-sec { margin-top: 22px; }
+  body.sh-body .pg-sec > h2,
+  body.sh-body .pg h2 { font-size: 17px; line-height: 1.3; }
+  body.sh-body .pg h3 { font-size: 15px; }
+
+  /* ── Buttons ──────────────────────────────────────────── */
+  body.sh-body .pg-bw,
+  body.sh-body .pg-bo,
+  body.sh-body .ig-btn,
+  body.sh-body .sh-ge-btn,
+  body.sh-body .sk-share-btn,
+  body.sh-body .st-btn {
+    min-height: 36px;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+    border-radius: 9px;
+  }
+
+  /* ── Forms ────────────────────────────────────────────── */
+  body.sh-body .pg-f { gap: 5px; }
+  body.sh-body .pg-f label { font-size: 13px; }
+  body.sh-body input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]),
+  body.sh-body select {
+    min-height: 40px;
+    font-size: 16px;
+  }
+  body.sh-body .pg-f input,
+  body.sh-body .pg-f select,
+  body.sh-body .pg-f textarea { padding: 8px 11px; border-radius: 9px; }
+  body.sh-body textarea { font-size: 16px; }
+  body.sh-body .pg-form { padding: 16px; gap: 12px; }
+  body.sh-body .pg-fine { font-size: 12px; margin: 0; }
+  /* An empty status line still reserved its height, leaving a blank band
+     between the submit button and the links under every form. It keeps its
+     place in the page (it is a live region) but takes no room until it
+     has something to say. */
+  body.sh-body .pg-formnote:empty { min-height: 0; }
+  body.sh-body .pg-f textarea { min-height: 110px; height: 130px; }
+  body.sh-body .pg-auth { gap: 10px; }
+  body.sh-body .pg-wordmark { font-size: 16px; }
+  body.sh-body .pg-wordmark img { width: 24px; height: 24px; }
+
+  /* ── Cards ────────────────────────────────────────────── */
+  body.sh-body .pg-card { padding: 14px; border-radius: 12px; }
+  body.sh-body .pg-card h2,
+  body.sh-body .pg-card h3 { font-size: 15px; margin-bottom: 4px; }
+  body.sh-body .pg-card p { font-size: 13.5px; }
+  body.sh-body .pg-cardlink { display: inline-flex; align-items: center; min-height: 32px; }
+  body.sh-body .pg-grid { gap: 10px; }
+
+  /* ── Home: prompt composer ─────────────────────────────── */
+  body.sh-body .sh-hero { padding: 16px 14px 8px; }
+  body.sh-body .sh-hero h1 { font-size: 23px; line-height: 1.2; }
+  body.sh-body .sh-composer { padding: 10px; border-radius: 14px; }
+  body.sh-body #composerPrompt { min-height: 52px; font-size: 16px; line-height: 1.4; }
+  body.sh-body .sh-cbar { padding-top: 8px; gap: 8px; }
+  body.sh-body .sh-cbar button,
+  body.sh-body .sh-csel-btn { height: 34px; min-height: 34px; font-size: 12.5px; }
+  body.sh-body .sh-cbar .sh-cimg,
+  body.sh-body .sh-cbar label[for="composerImg"] { width: 34px; height: 34px; }
+  body.sh-body #composerGo { height: 38px; min-height: 38px; font-size: 13.5px; }
+
+  /* ── Home: template library ───────────────────────────── */
+  body.sh-body .sh-composer { margin-bottom: 0; }
+  body.sh-body .sh-gallery-sec { padding-top: 0; }
+  body.sh-body .sh-gallery-title { padding-top: 0; margin: 18px 0 12px; }
+  body.sh-body .sh-gallery-title > div { padding-top: 14px; }
+  body.sh-body .sh-gallery-title h2 { font-size: 18px; }
+  body.sh-body .sh-gallery-title .sh-home-kicker { font-size: 10.5px; margin-bottom: 4px; }
+  body.sh-body .sh-search-box { height: 38px; }
+  body.sh-body #tplSearch { height: 38px; min-height: 38px; }
+  body.sh-body .sh-filters-scroll { gap: 6px; padding-top: 0; padding-bottom: 2px; }
+  body.sh-body .sh-chip { height: 30px; min-height: 30px; padding: 0 11px; font-size: 12px; border-radius: 8px; }
+  body.sh-body .sh-ttitle { font-size: 13px; display: block; padding: 7px 0; }
+  body.sh-body .sh-tcreator-row { min-height: 32px; }
+
+  /* ── Template detail ──────────────────────────────────── */
+  body.sh-body .sh-modal-left { padding: 10px; gap: 10px; }
+  /* The stage sizes from its width (9:16). Capping its height with width:auto
+     collapsed it to nothing, so the cap is expressed as a width instead:
+     half the screen's height, in 9:16. */
+  body.sh-body .sh-modal-stage { width: min(100%, calc(50vh * 9 / 16)); max-width: 100%; max-height: none; flex: none; }
+  body.sh-body .sh-modal-cta { height: 40px; min-height: 40px; font-size: 13.5px; }
+  body.sh-body .sh-modal-act-btn { height: 34px; min-height: 34px; font-size: 12.5px; }
+  body.sh-body .sh-modal-close { width: 32px; height: 32px; }
+  body.sh-body .sh-modal-right { padding: 14px; }
+  body.sh-body .sh-m-title { font-size: 18px; }
+  body.sh-body .sh-m-comm-btn { height: 34px; }
+
+  /* ── Pricing ──────────────────────────────────────────── */
+  body.sh-body .pg-calc { padding: 14px; gap: 12px; }
+  body.sh-body .pg-calc h2,
+  body.sh-body #calcHead { font-size: 17px; }
+  body.sh-body .pg-plan { padding: 16px; }
+  body.sh-body .pg-billing-switch { height: 38px; }
+  body.sh-body .pg-billing-switch button { height: 30px; font-size: 12.5px; }
+
+  /* ── Profile ──────────────────────────────────────────── */
+  body.sh-body .ig-avatar { width: 80px; height: 80px; font-size: 24px; }
+  body.sh-body .ig-fullname { font-size: 19px; }
+  body.sh-body .ig-actions-row .ig-btn { height: 36px; }
+  body.sh-body .ig-tab-btn { padding: 10px 10px; font-size: 11.5px; }
+  body.sh-body .ig-stat > button { min-height: 32px; padding: 4px 8px; font-size: 13px; }
+
+  /* ── Settings ─────────────────────────────────────────── */
+  body.sh-body .st-row { min-height: 46px; padding: 9px 12px; }
+  body.sh-body .st-key,
+  body.sh-body .st-val { font-size: 13.5px; }
+
+  /* ── Creator Skills ───────────────────────────────────── */
+  body.sh-body .sk-head { padding: 16px 14px 8px; gap: 10px; }
+  body.sh-body .sk-empty { margin: 6px 14px 20px; padding: 24px 16px; }
+  body.sh-body .sk-empty h3 { font-size: 16px; }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  body.sh-body .sh-footer { padding: 24px 14px 20px; font-size: 13px; }
+  body.sh-body .sh-footer h2 { font-size: 12.5px; margin-bottom: 6px; }
+  body.sh-body .sh-footer a { min-height: 30px; display: inline-flex; align-items: center; }
+
+  /* ── Upload dialog ────────────────────────────────────── */
+  body.sh-body .sc-publish-head { padding: 14px 14px 12px; }
+  body.sh-body .sc-publish-head h2 { font-size: 19px; }
+  body.sh-body .sc-publish-head p { font-size: 12.5px; }
+  body.sh-body .sc-publish-head > button { width: 36px; height: 36px; font-size: 18px; }
+  body.sh-body .sc-publish-steps { padding: 6px 10px; overflow-x: auto; }
+  body.sh-body .sc-publish-steps button { min-height: 34px; padding: 0 9px; font-size: 11.5px; }
+  body.sh-body .sc-publish-body { padding: 14px; }
+  body.sh-body .sc-drop { padding: 20px 14px; }
+  body.sh-body .sc-publish-foot { padding: 10px 14px; }
+}
+
+/* ── Studio (editor.html has no sh-body; its own shell) ───── */
+@media (max-width: 640px) {
+  .ed-top { height: 50px; min-height: 50px; padding-top: 0; padding-bottom: 0; gap: 6px; }
+  /* The tab row sticks under the top bar, so its offset follows the bar. */
+  .ed-mobile-nav:not([hidden]) { top: 50px; min-height: 44px; }
+  .ed-back { width: 36px; height: 36px; }
+  .ed-name,
+  #edProject { height: 36px; min-height: 36px; font-size: 16px; }
+  .ed-credits { height: 36px; min-height: 36px; font-size: 12.5px; }
+  .ed-export { height: 36px; min-height: 36px; padding: 0 12px; font-size: 13px; }
+  .ed-mobile-nav { padding: 5px 8px; gap: 6px; }
+  .ed-f input[type="text"], .ed-f input[type="number"], .ed-f select { height: 38px; }
+  .ed-aibtn { width: 36px; min-height: 36px; }
+  .ed-aichip, .ed-aiq { min-height: 34px; }
+  .ed-aigo { min-height: 40px; }
+  .ed-frame { width: min(280px, 76vw); }
+  .ed-mobile-tab,
+  .ed-mobile-publish { height: 34px; min-height: 34px; font-size: 12px; }
+  .ed-stagewrap { padding: 10px; }
+  .ed-transport { padding: 6px 12px; gap: 8px; }
+  .ed-pbtn { width: 36px; height: 36px; }
+  .ed-add { min-height: 44px; font-size: 12.5px; }
+  .ed-status { padding: 7px 12px; font-size: 12px; }
+  /* A 16px-tall slider is hard to catch with a thumb; the track stays thin,
+     the touch area around it does not. */
+  .ed-f input[type="range"] { height: 30px; }
+  /* The checkbox is small, but the whole label around it is the target. */
+  .ed-tog-wrap { min-height: 34px; display: inline-flex; align-items: center; gap: 8px; }
+  .ed-f label { font-size: 12.5px; }
+  .ed-f input:not([type=checkbox]):not([type=color]):not([type=range]),
+  .ed-f select,
+  .ed-f textarea,
+  #edPrompt { font-size: 16px; }
+}
+
+/* The smallest phones (320px). Signed out, brand + credits + Log in + menu is
+   5px too wide; Log in matters more there, so the balance steps aside. */
+@media (max-width: 359px) {
+  body.sh-body .sh-top-actions:has(> .sh-tlink:not([hidden])) .sh-credit-chip { display: none; }
+}
+
+/* ── Menu panel ─────────────────────────────────────────────
+   Whenever the menu button is showing (up to 900px), the menu opens as a
+   small panel under the button at the right edge. It used to be a sheet the
+   full width of the screen and nearly its full height, so opening the menu
+   replaced the page instead of sitting beside it. Tapping outside closes it
+   (authui.js), as do Escape and choosing a link. */
+@media (max-width: 900px) {
+  body.sh-body #navMobile:not([hidden]) {
+    position: fixed;
+    top: 74px;
+    right: 10px;
+    left: auto;
+    bottom: auto;
+    z-index: 120;
+    width: min(248px, calc(100vw - 20px));
+    max-height: calc(100dvh - 90px);
+    padding: 6px;
+    gap: 0;
+    border: 1px solid var(--sc-border);
+    border-bottom: 1px solid var(--sc-border);
+    border-radius: 12px;
+    background: var(--sc-surface);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .18);
+  }
+  body.sh-body #navMobile a,
+  body.sh-body #navMobile button,
+  body.sh-body #navMobile #navMobileLogout {
+    min-height: 34px;
+    height: auto;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 550;
+  }
+  body.sh-body #navMobile .sh-mfill { margin: 0 0 4px; min-height: 36px; font-weight: 650; }
+  /* A hairline between groups: workspace, help, account. */
+  body.sh-body #navMobile .sh-m-group { margin-top: 5px; position: relative; }
+  body.sh-body #navMobile .sh-m-group::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: 10px;
+    right: 10px;
+    height: 1px;
+    background: var(--sc-border);
+  }
+  body.sh-body #navMobile #navMobileLogout { color: var(--sc-danger) !important; }
+}
+@media (max-width: 640px) {
+  body.sh-body #navMobile:not([hidden]) { top: 56px; right: 8px; width: min(224px, calc(100vw - 16px)); max-height: calc(100dvh - 68px); }
+
+  /* The notification panel hung off the bell's right edge. With the menu
+     button now to the bell's right, a 350px panel ran off the left side of the
+     screen. On a phone it sits under the bar, inside the screen. */
+  body.sh-body .sh-notification-panel {
+    position: fixed;
+    top: 56px;
+    right: 8px;
+    left: auto;
+    width: min(320px, calc(100vw - 16px));
+    max-height: min(60vh, 420px);
+    border-radius: 12px;
+  }
+  body.sh-body .sh-notification-panel > header { padding: 10px 12px; font-size: 14px; }
+  body.sh-body .sh-notification-item { padding: 10px 12px; }
+  body.sh-body .sh-notification-empty { padding: 20px 14px; }
+}
+@media (max-width: 359px) {
+  body.sh-body #navMobile:not([hidden]) { width: 204px; }
+}

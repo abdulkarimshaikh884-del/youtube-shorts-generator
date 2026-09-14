@@ -9,6 +9,10 @@ html.ed-html, html.ed-html body{
   overflow:hidden;                /* no page scroll, ever */
 }
 
+.ed-source-error { padding: 14px; margin: 10px; border: 1px solid var(--ink3); border-radius: 10px; background: var(--bg1); color: var(--ink); font-size: 13px; line-height: 1.5; }
+.ed-source-error p { margin: 0 0 10px; }
+.ed-source-error button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--ink3); border-radius: 8px; color: var(--ink); background: var(--bg2); font: inherit; cursor: pointer; }
+
 body.ed-body{
   --ink:#fff;
   --ink2:#b4b4b8;

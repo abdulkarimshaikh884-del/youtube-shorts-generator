@@ -57,6 +57,7 @@
   var uploadSeq = 0;                      // unique ids so each label targets its own input
   var creating = false;
   var sourceTemplateId = null;             // community publication, when opened from one
+  var sourceUnavailable = false;
 
   function engine() { return window.SC_TPL2; }
   function cur() { return state.clips[state.sel] || state.clips[0]; }
@@ -124,8 +125,73 @@
     try {
       var doc = frame && frame.contentDocument;
       if (!doc || !doc.getAnimations) return [];
-      return doc.getAnimations();
+      var list = doc.getAnimations();
+      // An uploaded Lottie clip comes first, so readers that take the first
+      // animation as the clip's clock read the animation, not a watermark.
+      return frame.__scLottie ? [lottieClock(frame.__scLottie)].concat(list) : list;
     } catch (e) { return []; }
+  }
+
+  /* ── Uploaded Lottie clips ─────────────────────────────────
+     Preview frames here run no script (see the note at the top), so a Lottie
+     clip's own loader never runs inside its frame. The editor plays the same
+     cleaned document into the frame from outside, with the same edit rules
+     (SC_LOTTIE.applyEdits), and exposes it through the three members the
+     timeline uses on a CSS animation: play, pause and currentTime. */
+  var lottieDocs = {};
+  function lottieDoc(id) {
+    if (!lottieDocs[id]) {
+      lottieDocs[id] = fetch("/api/lottie/" + encodeURIComponent(id))
+        .then(function (r) { if (!r.ok) throw new Error("missing"); return r.json(); })
+        .catch(function (err) { delete lottieDocs[id]; throw err; });
+    }
+    return lottieDocs[id];
+  }
+  var lottieMetas = {};
+  function lottieMeta(id) {
+    if (!lottieMetas[id]) {
+      lottieMetas[id] = fetch("/api/lottie/" + encodeURIComponent(id) + "/meta")
+        .then(function (r) { if (!r.ok) throw new Error("missing"); return r.json(); })
+        .then(function (j) { return j.meta; })
+        .catch(function (err) { delete lottieMetas[id]; throw err; });
+    }
+    return lottieMetas[id];
+  }
+  function lottieClock(anim) {
+    return {
+      play: function () { anim.play(); },
+      pause: function () { anim.pause(); },
+      get currentTime() { return (anim.currentFrame / (anim.frameRate || 30)) * 1000; },
+      set currentTime(ms) {
+        var total = anim.getDuration(false) * 1000;
+        var t = total ? (Number(ms) || 0) % total : (Number(ms) || 0);
+        if (anim.isPaused) anim.goToAndStop(t, false); else anim.goToAndPlay(t, false);
+      }
+    };
+  }
+  function mountLottie(frame, ready) {
+    var doc = frame.contentDocument;
+    var el = doc && doc.getElementById("scLottie");
+    var cfgEl = doc && doc.getElementById("scLottieCfg");
+    if (!el || !cfgEl || !window.lottie || !window.SC_LOTTIE) return false;
+    var cfg;
+    try { cfg = JSON.parse(cfgEl.textContent); } catch (e) { return false; }
+    lottieDoc(cfg.doc).then(function (data) {
+      if (!frame.isConnected) return;
+      var anim = window.lottie.loadAnimation({
+        container: el, renderer: "svg", loop: true, autoplay: false,
+        animationData: window.SC_LOTTIE.applyEdits(data, cfg.props),
+        rendererSettings: { preserveAspectRatio: "xMidYMid meet" }
+      });
+      anim.addEventListener("DOMLoaded", function () {
+        frame.__scLottie = anim;
+        ready();
+      });
+    }).catch(function () {
+      el.className += " is-missing";
+      el.textContent = "This animation could not be loaded.";
+    });
+    return true;
   }
   function playerEl() {
     return $("#animationPlayer") || $("#edPreview");
@@ -239,14 +305,20 @@
     f.setAttribute("sandbox", "allow-same-origin");
     var isActive = (i === mounted);
     if (!isActive) f.hidden = true; else f.id = "edPreview";
-    f.addEventListener("load", function () {
+    function settle() {
       var a = animsOf(f);
       if (at) a.forEach(function (x) { x.currentTime = at; });
+      // Read playing state now, not when the frame was created: a Lottie
+      // clip settles after its document arrives, which can be after a toggle.
       if (!isActive || !state.playing) {
         a.forEach(function (x) { x.pause(); });
       } else {
         a.forEach(function (x) { x.play(); });
       }
+    }
+    f.addEventListener("load", function () {
+      settle();
+      if (c.tpl === "lottie") mountLottie(f, settle);
     });
     f.srcdoc = htmlFor(c);
 
@@ -275,7 +347,7 @@
       if (window.SC_DRAFTS) {
         SC_DRAFTS.setOwner(user || null);
         // Pull the account's projects so one saved on another device opens here.
-        if (user && SC_DRAFTS.sync) SC_DRAFTS.sync();
+        if (user && SC_DRAFTS.sync) return SC_DRAFTS.sync();
       }
     })
     .catch(function () {
@@ -305,7 +377,7 @@
   }
 
   function saveDraftNow() {
-    if (!draftOwnerReady || !draftSignedIn || !window.SC_DRAFTS || !state.clips.length) return;
+    if (sourceUnavailable || !draftOwnerReady || !draftSignedIn || !window.SC_DRAFTS || !state.clips.length) return;
     var rec = SC_DRAFTS.save(draftSnapshot());
     if (!rec) return;
     // Adopt the id the store minted, so later saves update rather than pile up.
@@ -607,9 +679,10 @@
        select; now that the template is chosen on the way into the Studio,
        a blank clip is one there is no longer any way to fill. */
     var used = state.clips.map(function (c) { return c.tpl; });
-    var real = order.filter(function (id) { return id !== "blank"; });
+    var real = order.filter(function (id) { return id !== "blank" && id !== "lottie"; });
     var pick = real.filter(function (id) { return used.indexOf(id) < 0; })[0] || real[0];
     var c = newClip(pick);
+    clearSourceError();
     c.dur = Math.min(c.dur, room);
     state.clips.push(c);
     state.sel = state.clips.length - 1;
@@ -659,6 +732,10 @@
     // of the panel not to mark a library template as current.
     var isAi = !!c.spec;
     $("#edFont").value = c.font;
+    // An uploaded animation carries its own fonts, so the scene font does
+    // nothing to it; a control that changes nothing is not shown.
+    var fontGroup = $("#edFont").closest(".ed-grp");
+    if (fontGroup) fontGroup.hidden = c.tpl === "lottie";
     /* Only auto-label a project the person has not named. syncPanel runs on
        every clip select and every add, so an unconditional write here wiped a
        typed title the moment a second clip appeared — and now that drafts are
@@ -867,6 +944,10 @@
       if (!c.spec.schema || !Array.isArray(c.spec.schema.fields)) return;
     }
 
+    // An uploaded animation's controls come from its own document: only the
+    // texts and colours it really has, labelled with its own layer names.
+    if (c.tpl === "lottie") buildLottieFields(wrap, c);
+
     var m = c.spec ? { schema: c.spec.schema } : meta[c.tpl];
     if (!m) return;
     if (!c.props) c.props = Object.assign({}, (m.schema && m.schema.defaults) || {});
@@ -880,6 +961,7 @@
          heading now and its controls are simply there. */
       var fieldTargets = {};
       schema.fields.forEach(function (field) {
+        if (field.group === "Upload") return; // generic slots; shown by buildLottieFields
         if (!field.group || fieldTargets[field.group]) return;
         var section = document.createElement("section");
         section.className = "ed-schema-group";
@@ -895,6 +977,10 @@
         fieldTargets[field.group] = groupFields;
       });
       schema.fields.forEach(function (field) {
+        if (field.group === "Upload") return;
+        // Text colour is a CSS override; Lottie draws its own text colours,
+        // which the Animation section above already offers.
+        if (c.tpl === "lottie" && (field.key === "customTextColor" || field.key === "textColor")) return;
         var f = document.createElement("div");
         f.className = "ed-f ed-f-custom";
         f.dataset.key = field.key;
@@ -1137,6 +1223,81 @@
     }
   }
 
+  function buildLottieFields(wrap, c) {
+    var section = document.createElement("section");
+    section.className = "ed-schema-group";
+    var title = document.createElement("h3");
+    title.className = "ed-schema-group-title";
+    title.textContent = "Animation";
+    var box = document.createElement("div");
+    box.className = "ed-schema-fields";
+    var note = document.createElement("p");
+    note.className = "ed-note";
+    note.textContent = "Loading this animation's editable text and colours...";
+    box.appendChild(note);
+    section.appendChild(title);
+    section.appendChild(box);
+    wrap.appendChild(section);
+
+    var docId = c.props && c.props.doc;
+    if (!docId) { note.textContent = "This clip has no uploaded animation."; return; }
+
+    lottieMeta(docId).then(function (m) {
+      if (cur() !== c) return;
+      box.innerHTML = "";
+      var texts = (m && m.texts) || [], colors = (m && m.colors) || [];
+      texts.forEach(function (t) {
+        var row = document.createElement("div");
+        row.className = "ed-f ed-f-custom";
+        var id = "edLottie_" + t.key;
+        var lb = document.createElement("label");
+        lb.htmlFor = id;
+        lb.textContent = t.label;
+        var input = document.createElement("input");
+        input.type = "text";
+        input.id = id;
+        input.maxLength = 200;
+        input.value = c.props[t.key] || t.value;
+        input.addEventListener("input", function () {
+          c.props[t.key] = input.value;
+          queueRender();
+        });
+        row.appendChild(lb);
+        row.appendChild(input);
+        box.appendChild(row);
+      });
+      colors.forEach(function (col) {
+        var row = document.createElement("div");
+        row.className = "ed-f ed-f-custom";
+        var id = "edLottie_" + col.key;
+        var lb = document.createElement("label");
+        lb.htmlFor = id;
+        lb.textContent = col.label;
+        var input = document.createElement("input");
+        input.type = "color";
+        input.id = id;
+        input.value = /^#[0-9a-f]{6}$/i.test(c.props[col.key] || "") ? c.props[col.key] : col.value;
+        input.addEventListener("input", function () {
+          c.props[col.key] = input.value;
+          queueRender();
+        });
+        row.appendChild(lb);
+        row.appendChild(input);
+        box.appendChild(row);
+      });
+      if (!texts.length && !colors.length) {
+        var none = document.createElement("p");
+        none.className = "ed-note";
+        none.textContent = m && m.hasGlyphs
+          ? "This animation's text was exported as shapes, so it cannot be edited here."
+          : "This animation has no editable text or colours.";
+        box.appendChild(none);
+      }
+    }).catch(function () {
+      if (cur() === c) note.textContent = "This animation could not be loaded.";
+    });
+  }
+
   function backgroundFor(c) {
     if (!c) return "#08080d";
     var schema = c.spec ? c.spec.schema : ((meta[c.tpl] || {}).schema || {});
@@ -1167,10 +1328,22 @@
     renderAll(false);
   }
 
+  function clearSourceError() {
+    if (sourceUnavailable) {
+      projectNamed = false;
+      var nameEl = $("#edProject") || $("#edName");
+      if (nameEl) nameEl.value = "Untitled animation";
+    }
+    sourceUnavailable = false;
+    var sourceNotice = document.querySelector('.ed-source-error');
+    if (sourceNotice) sourceNotice.remove();
+  }
+
   /* swap the template of the SELECTED clip */
   function setTemplate(id) {
     var m = meta[id];
     if (!m) return;
+    clearSourceError();
     var c = cur();
     c.tpl = id;
     c.lines = m.demo.slice(0, 3);
@@ -1207,16 +1380,20 @@
      where clearing storage refilled it. Here we only display it. */
   function paintCredits(st) {
     if (!st) {
-      // Graceful default so user never sees a bare dash
+      // An unavailable balance must not impersonate real credits.
       var pill0 = $("#edCredits");
-      if (pill0 && $("#edCreditsN")) $("#edCreditsN").textContent = "8";
+      if ($("#edCreditsN")) $("#edCreditsN").textContent = "—";
+      if (pill0) {
+        pill0.title = "Credit balance unavailable. Please retry shortly.";
+        pill0.removeAttribute("data-low");
+      }
       return;
     }
     if (st.cost) cost = st.cost;
     var pill = $("#edCredits");
-    if ($("#edCreditsN")) $("#edCreditsN").textContent = String(st.left != null ? st.left : 8);
+    if ($("#edCreditsN")) $("#edCreditsN").textContent = String(st.left != null ? st.left : "—");
     if (pill) {
-      pill.title = (st.left != null ? st.left : 8) + " of " + (st.perDay || 8) + " credits left today · " +
+      pill.title = (st.left != null ? st.left : "—") + " of " + (st.perDay != null ? st.perDay : "—") + " credits left today · " +
         (st.planLabel || "Free") + " plan · export " + cost.export + ", AI scene " + cost.animate;
       pill.setAttribute("data-low", (st.left < cost.animate) ? "1" : "0");
     }
@@ -1246,8 +1423,8 @@
   function refreshCredits() {
     return fetch("/api/credits", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
-      .then(function (j) { if (j && j.success) paintCredits(j); })
-      .catch(function () { paintCredits({ left: 8, perDay: 8, planLabel: "Free", maxHeight: 720 }); });
+      .then(function (j) { paintCredits(j && j.success ? j : null); })
+      .catch(function () { paintCredits(null); });
   }
 
   /* ── Chat history helper ────────────────────────────────── */
@@ -1402,6 +1579,7 @@
       cleanup();
       paintCredits(j.credits);
       var scene = j.scene;
+      clearSourceError();
       /* A brief that names a ratio gets it; everything else stays vertical.
          This is the only route to a non-9:16 project now that the editor has
          no ratio switcher. */
@@ -1719,7 +1897,7 @@
         });
       }
       e.cats().forEach(function (c) {
-        var group = list.filter(function (t) { return t.cat === c.id && t.id !== "blank" && t.collection !== "originals"; });
+        var group = list.filter(function (t) { return t.cat === c.id && t.collection !== "system" && t.collection !== "originals"; });
         if (!group.length) return;
         var h = document.createElement("div");
         h.className = "ed-tgroup"; h.textContent = c.label;
@@ -1880,6 +2058,7 @@
     // export / reset
     wireExportModal();
     $("#edReset").addEventListener("click", function () {
+      clearSourceError();
       var keep = state.clips[0].tpl;
       layers().forEach(function (f) { f.remove(); });
       state.clips = [newClip(keep)];
@@ -1971,14 +2150,25 @@
        defaults instead of their work. Fetch the row and apply it. The URL
        values above stay as the immediate paint, so the canvas is never blank
        while this is in flight. */
-    if (sourceTemplateId) {
-      fetch("/api/community-templates/" + encodeURIComponent(sourceTemplateId),
-        { headers: { Accept: "application/json" } })
-        .then(function (r) { return r.ok ? r.json() : null; })
+    if (sourceTemplateId && !q.get("draft")) {
+      var sourcePath = q.get("owner") === "1" ? "/api/user/creations/" : "/api/community-templates/";
+      var sourceController = new AbortController();
+      var sourceTimer = setTimeout(function () { sourceController.abort(); }, 12000);
+      var loadingPanels = document.querySelectorAll('.ed-main, .ed-top, .ed-mobile-tabs');
+      loadingPanels.forEach(function (el) { el.inert = true; });
+      status("Loading the creator's saved template…");
+      await fetch(sourcePath + encodeURIComponent(sourceTemplateId),
+        { headers: { Accept: "application/json" }, signal: sourceController.signal })
+        .then(function (r) { if (!r.ok) throw new Error(r.status === 401 ? "Sign in to the owner account to open this template." : "This template could not be loaded. It may be private, removed or temporarily unavailable."); return r.json(); })
         .then(function (j) {
           var t = j && j.success && j.template;
-          if (!t || !state.clips[0]) return;
-          var clip = state.clips[0];
+          if (!t || !meta[t.tpl]) throw new Error("The template's animation is unavailable.");
+          var clip = newClip(t.tpl);
+          state.clips = [clip];
+          activeTpl = t.tpl;
+          if (Array.isArray(t.lines)) clip.lines = t.lines.slice();
+          if (nameEl) nameEl.value = t.title || "Creator template";
+          projectNamed = true;
           if (t.props && typeof t.props === "object") {
             clip.props = Object.assign({}, clip.props, t.props);
             for (var i = 0; i < 3; i++) {
@@ -1989,10 +2179,32 @@
           if (t.font) clip.font = t.font;
           if (Number(t.dur)) clip.dur = Number(t.dur);
           if (t.aspect && AR_LABEL[t.aspect]) state.aspect = t.aspect;
-          renderAll();
-          syncPanel();
         })
-        .catch(function () { /* the URL values already painted something usable */ });
+        .catch(function (err) {
+          sourceUnavailable = true;
+          sourceTemplateId = null;
+          activeTpl = "blank";
+          state.clips = [newClip("blank")];
+          if (nameEl) nameEl.value = "Template unavailable";
+          projectNamed = true;
+          var notice = document.createElement("div");
+          notice.className = "ed-source-error";
+          notice.setAttribute("role", "alert");
+          notice.tabIndex = -1;
+          var message = document.createElement("p");
+          message.textContent = err.name === "AbortError" ? "Loading timed out. Retry to open the original template." : err.message;
+          var retry = document.createElement("button");
+          retry.type = "button";
+          retry.textContent = "Retry original template";
+          var originalUrl = location.href;
+          retry.addEventListener("click", function () { location.href = originalUrl; });
+          notice.appendChild(message);
+          notice.appendChild(retry);
+          $("#main").prepend(notice);
+        }).finally(function () {
+          clearTimeout(sourceTimer);
+          loadingPanels.forEach(function (el) { el.inert = false; });
+        });
     }
 
     if (topic) {
@@ -2054,6 +2266,11 @@
     cancelAnimationFrame(rafId);
     tick();
 
+    if (sourceUnavailable) {
+      var sourceError = document.querySelector('.ed-source-error');
+      if (sourceError) sourceError.focus();
+    }
+
     var qMode = q.get("mode");
     if (qMode === "ai" && topic) {
       setTimeout(function () {
@@ -2073,6 +2290,7 @@
     if (!pop || !openBtn) return;
 
     function open() {
+      if (sourceUnavailable) { status("Retry the original template or add a new clip before exporting."); return; }
       if (msg) { msg.textContent = ""; msg.className = "ed-modal-msg"; }
       var aspectEl = $("#edExportAspect");
       if (aspectEl) aspectEl.textContent = AR_LABEL[state.aspect] || state.aspect;
@@ -2124,6 +2342,7 @@
     if (!modal || !openBtn || !form) return;
 
     openBtn.addEventListener("click", function () {
+      if (sourceUnavailable) { status("Retry the original template or add a new clip before publishing."); return; }
       fetch("/api/credits", { headers: { Accept: "application/json" } })
         .then(function (r) { return r.json(); })
         .then(function (cred) {
@@ -2225,12 +2444,12 @@
                response somehow arrived without an id. */
             var pubId = res.template && res.template.id;
             var seeIt = pubId
-              ? '<a href="/template?id=' + encodeURIComponent(pubId) + '" target="_blank" rel="noopener">View your template →</a>'
+              ? '<a href="/template?id=' + encodeURIComponent(payload.tpl) + '&amp;comm=1&amp;commId=' + encodeURIComponent(pubId) + '" target="_blank" rel="noopener">View your template →</a>'
               : '<a href="/#templates" target="_blank" rel="noopener">Open the template library →</a>';
             msg.innerHTML = '🎉 Published! <span class="ed-pub-seeit">' + seeIt + "</span>";
           }
           submitBtn.textContent = "Published!";
-          status("Template published to Community!");
+          status("Template published to the library!");
           setTimeout(function () {
             close();
             submitBtn.disabled = false;

@@ -298,7 +298,7 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
     () => !document.querySelector('a[href="/login"][data-auth="out"]:not([hidden])'),
     { timeout: 15000 }
   ).catch(() => {});
-  const chrome = await page.evaluate(() => {
+  const chrome = await page.evaluate(async () => {
     const vis = (s) => [...document.querySelectorAll(s)]
       .filter((el) => !el.hasAttribute("hidden") && el.offsetParent !== null).length;
     return {
@@ -306,7 +306,10 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
       signupLinks: vis('a[href="/signup"]'),
       accountLinks: vis('a[href="/account"]'),
       logout: vis("#logoutBtn"),
-      email: (document.querySelector("[data-auth-email]") || {}).textContent || "",
+      // The sidebar chip names the account the way its profile does — the
+      // display name — not the part of the email before the @.
+      name: (document.querySelector(".sh-user-trigger-name") || {}).textContent || "",
+      me: await fetch("/api/auth/me").then((r) => r.json()).then((j) => j.user || {}).catch(() => ({})),
       badge: (document.querySelector(".sh-plan-badge span") || {}).textContent || ""
     };
   });
@@ -314,7 +317,11 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
     "Log in / Sign up are hidden when signed in", `${chrome.loginLinks}/${chrome.signupLinks}`);
   ok(chrome.accountLinks >= 1 && chrome.logout >= 1, "Account + Log out are shown",
     `${chrome.accountLinks}/${chrome.logout}`);
-  ok(chrome.email === email2.split("@")[0], "the sidebar shows who I am", chrome.email);
+  {
+    const local = email2.split("@")[0];
+    const expected = chrome.me.displayName || (local.charAt(0).toUpperCase() + local.slice(1));
+    ok(chrome.name === expected && chrome.name !== "Account", "the sidebar shows who I am, by display name", chrome.name);
+  }
   ok(/credits left today/.test(chrome.badge), "the sidebar shows my credits", chrome.badge);
 
   console.log("\n---- /account ----");
@@ -393,7 +400,9 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
       // signing out is still reachable — rather than pinning a count.
       buttonsVisible: actionButtons.length >= 2 && actionButtons.every((button) => {
         const box = button.getBoundingClientRect();
-        return box.width >= 80 && box.height >= 44 && box.left >= 0 && box.right <= window.innerWidth;
+        // Phone target rule (public/mobile.css): actions at least 36px tall;
+        // the Stars action is deliberately compact, so 64px wide is the floor.
+        return box.width >= 64 && box.height >= 36 && box.left >= 0 && box.right <= window.innerWidth;
       }),
       logoutReachable: reachable("#logoutBtn") || reachable("#accLogoutPane"),
       tabsContained: tabs.scrollWidth >= tabs.clientWidth && tabs.getBoundingClientRect().right <= window.innerWidth

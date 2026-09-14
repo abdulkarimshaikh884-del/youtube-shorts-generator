@@ -315,7 +315,10 @@ const doc = (page) => page.evaluate(() =>
   });
   ok(mobAi.selected === "ai" && mobAi.panel !== "none" && mobAi.prompt !== "none",
     "AI Assistant and composer are reachable on mobile");
-  ok(mobAi.createH >= 44, "AI create action has a touch-sized target", mobAi.createH);
+  /* Phone targets follow the compact rule in public/mobile.css (owner's
+     decision, 14 Sep 2026): primary actions and form fields at least 36px,
+     nothing tappable under 30px. WCAG 2.2 AA asks for 24px. */
+  ok(mobAi.createH >= 36, "AI create action has a touch-sized target", mobAi.createH);
 
   await page.click("#edMobileEdit");
   await wait(150);
@@ -333,7 +336,7 @@ const doc = (page) => page.evaluate(() =>
   });
   ok(mobEdit.selected === "edit" && mobEdit.panel !== "none", "Properties are reachable on mobile");
   ok(mobEdit.lastReachable, "last Properties control is reachable by scrolling");
-  ok(mobEdit.aspectH >= 44, "mobile form controls avoid tiny tap targets", mobEdit.aspectH);
+  ok(mobEdit.aspectH >= 36, "mobile form controls avoid tiny tap targets", mobEdit.aspectH);
 
   console.log("\n---- short desktop viewport ----");
   await page.setViewport({ width: 1440, height: 700, isMobile: false, hasTouch: false });

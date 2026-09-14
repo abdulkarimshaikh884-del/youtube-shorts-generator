@@ -24,18 +24,18 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091211">
-<link rel="stylesheet" href="/page.css?v=2026091211">
-<link rel="stylesheet" href="/redesign.css?v=2026091211">
+<link rel="stylesheet" href="/shell.css?v=2026091324">
+<link rel="stylesheet" href="/page.css?v=2026091324">
+<link rel="stylesheet" href="/redesign.css?v=2026091324">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091211">
+<link rel="stylesheet" href="/polish.css?v=2026091324">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 <style>
 .sk-head{padding:50px 28px 14px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .sk-head h1{
-  font-family:var(--sh-display);font-size:clamp(28px,4vw,44px);
-  margin:0 0 8px;font-weight:700;letter-spacing:-.03em;
+  font-family:var(--sh-display);font-size:clamp(26px,2.6vw,32px);
+  margin:0;font-weight:700;letter-spacing:-.02em;
 }
 .sk-head p{margin:0;font-size:15px;color:var(--sh-ink2);max-width:540px;line-height:1.55}
 
@@ -121,7 +121,10 @@
   background:rgba(0,0,0,.78);color:#fff;
   font-size:10.5px;font-weight:650;letter-spacing:.05em;text-transform:uppercase;
 }
-.sk-body{display:grid;grid-template-columns:36px 1fr;gap:11px;min-width:0}
+/* Three columns, and the last one is reserved whether or not the menu button
+   is currently visible — a control that appears on hover must not push the
+   title sideways when it does. */
+.sk-body{display:grid;grid-template-columns:36px 1fr 30px;gap:11px;min-width:0}
 .sk-av{
   width:36px;height:36px;border-radius:50%;flex:none;overflow:hidden;
   background:var(--sh-bg3);display:grid;place-items:center;
@@ -145,11 +148,50 @@
   margin:0;font-size:12.5px;color:var(--sh-ink3);line-height:1.45;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
+.sk-title a:hover{text-decoration:underline}
+/* Author and age on one line, the way a video caption carries its channel and
+   its date together. We have no view count and will not invent one. */
+.sk-when{color:var(--sh-ink3);white-space:nowrap}
+.sk-dot{color:var(--sh-ink3);opacity:.6}
 .sk-tpl{
-  display:inline-flex;align-items:center;gap:4px;margin-top:1px;
-  font-size:11.5px;color:var(--sh-ink3);text-decoration:none;
+  display:inline-flex;align-items:center;gap:5px;margin-top:4px;width:fit-content;
+  padding:3px 9px;border:1px solid var(--sh-line);border-radius:999px;
+  font-size:11.5px;color:var(--sh-ink2);text-decoration:none;
+  transition:border-color .15s ease,color .15s ease;
 }
-.sk-tpl:hover{color:var(--sh-ink);text-decoration:underline}
+.sk-tpl:hover{border-color:var(--sh-line2);color:var(--sh-ink)}
+.sk-tpl svg{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2}
+
+/* ── Card menu ───────────────────────────────────
+   Hidden until the card is hovered, which is the convention everywhere this
+   control appears — but never hidden from the keyboard, and never hidden on a
+   touch screen, where there is no hover to reveal it with. */
+.sk-menu{position:relative;justify-self:end}
+.sk-menu-btn{
+  width:30px;height:30px;border:0;border-radius:50%;cursor:pointer;
+  background:none;color:var(--sh-ink3);display:grid;place-items:center;padding:0;
+  opacity:0;transition:opacity .15s ease,background .15s ease,color .15s ease;
+}
+.sk-card:hover .sk-menu-btn,.sk-menu-btn:focus-visible,.sk-menu.is-open .sk-menu-btn{opacity:1}
+.sk-menu-btn:hover{background:var(--sh-bg3);color:var(--sh-ink)}
+.sk-menu-btn svg{width:16px;height:16px;fill:currentColor}
+@media (hover:none){.sk-menu-btn{opacity:1}}
+.sk-menu-pop{
+  position:absolute;right:0;top:34px;z-index:30;min-width:190px;padding:6px;
+  border:1px solid var(--sh-line);border-radius:13px;background:var(--sh-bg1);
+  box-shadow:0 14px 34px rgba(0,0,0,.17);display:grid;gap:2px;
+}
+.sk-menu-pop[hidden]{display:none}
+.sk-mi{
+  display:flex;align-items:center;gap:10px;width:100%;
+  padding:8px 10px;border:0;border-radius:9px;background:none;
+  color:var(--sh-ink);font:inherit;font-size:13px;text-align:left;
+  cursor:pointer;text-decoration:none;
+}
+.sk-mi:hover{background:var(--sh-bg3)}
+.sk-mi svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8}
+.sk-mi-danger{color:#e5484d}
+.sk-card.is-going{opacity:0;transform:scale(.97);transition:opacity .2s ease,transform .2s ease}
 /* The card you just shared arrives in place. That landing is the receipt —
    it is why there is no longer a list telling you the state of your own
    submission in words. */
@@ -158,6 +200,7 @@
 @media (prefers-reduced-motion:reduce){
   .sk-card.is-new{animation:none}
   .sk-thumb img,.sk-card:hover .sk-thumb img{transition:none;transform:none}
+  .sk-card.is-going{transition:none}
 }
 
 /* ── Held back ────────────────────────────────────
@@ -198,7 +241,10 @@
   .sk-form{margin:0 18px 18px}
   .sk-holds,.sk-empty{margin-left:18px;margin-right:18px;padding-left:0;padding-right:0}
 }
-</style></head>
+</style>
+<!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
+<link rel="stylesheet" href="/mobile.css?v=2026091324">
+</head>
 <body class="sh-body">
 
 <a class="sh-skip" href="#main">Skip to content</a>
@@ -389,7 +435,7 @@
           <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
             <div class="sh-user-trigger-av" data-user-avatar>KA</div>
             <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-auth-email>Account</span>
+              <span class="sh-user-trigger-name" data-user-name>Account</span>
               <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
             </div>
             <span class="sh-user-trigger-arrow">▲</span>
@@ -399,7 +445,7 @@
     </div>
   </aside>
 
-  <div class="sh-main" id="main" role="main" tabindex="-1">
+  <div class="sh-main" id="main" tabindex="-1">
 
     <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -472,9 +518,7 @@
     <main class="sh-home">
       <section class="sk-head">
         <div>
-          <span class="sh-eyebrow">Creator skills</span>
-          <h1>Learn from other creators</h1>
-          <p>Walkthroughs and teaching videos made by people who use ShortsCraft. Every video plays on the creator's own channel.</p>
+          <h1>Creator Skills</h1>
         </div>
         <button type="button" class="sk-share-btn" id="skShareBtn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -563,9 +607,9 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091211" defer></script>
-<script src="/theme.js?v=2026091211" defer></script>
-<script src="/page.js?v=2026091211" defer></script>
+<script src="/authui.js?v=2026091324" defer></script>
+<script src="/theme.js?v=2026091324" defer></script>
+<script src="/page.js?v=2026091324" defer></script>
 <script>
 (function () {
   "use strict";
@@ -596,6 +640,48 @@
 
   var PLAY = '<span class="sk-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
 
+  var ICON = {
+    dots: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>',
+    link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+    open: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    studio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M3 8h18"/><path d="M3 16h18"/></svg>'
+  };
+
+  var PLATFORM_NAME = { youtube: "YouTube", instagram: "Instagram" };
+
+  /* "2 days ago" rather than a date, because on a feed the question is how
+     fresh this is, not which Tuesday it was. */
+  function when(iso) {
+    var t = Date.parse(iso);
+    if (!t) return "";
+    var secs = Math.max(0, (Date.now() - t) / 1000);
+    var units = [[31536000, "year"], [2592000, "month"], [604800, "week"],
+                 [86400, "day"], [3600, "hour"], [60, "minute"]];
+    for (var i = 0; i < units.length; i++) {
+      var n = Math.floor(secs / units[i][0]);
+      if (n >= 1) return n + " " + units[i][1] + (n > 1 ? "s" : "") + " ago";
+    }
+    return "just now";
+  }
+
+  /* One menu at a time. Left open, a second would sit under the first and the
+     click that closed one would look like it did nothing. */
+  var openMenu = null;
+  function closeMenu() {
+    if (!openMenu) return;
+    openMenu.el.classList.remove("is-open");
+    openMenu.pop.hidden = true;
+    openMenu.btn.setAttribute("aria-expanded", "false");
+    openMenu = null;
+  }
+  document.addEventListener("click", function (ev) {
+    if (openMenu && !openMenu.el.contains(ev.target)) closeMenu();
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape" && openMenu) { var b = openMenu.btn; closeMenu(); b.focus(); }
+  });
+
   function card(s) {
     var el = document.createElement("article");
     el.className = "sk-card";
@@ -607,6 +693,7 @@
       : '<span class="sk-thumb-fallback">' + esc(s.platform) + "</span>";
 
     var name = s.author.name || "Creator";
+    var platform = PLATFORM_NAME[s.platform] || s.platform;
     var authorHref = s.author.handle ? "/creator?handle=" + encodeURIComponent(s.author.handle) : "";
     var authorName = esc(name) + (s.author.verified ? TICK : "");
     var author = authorHref
@@ -622,28 +709,125 @@
       ? '<a class="sk-av" href="' + esc(authorHref) + '" aria-hidden="true" tabindex="-1">' + face + "</a>"
       : '<span class="sk-av" aria-hidden="true">' + face + "</span>";
 
+    var age = when(s.createdAt);
+
     el.innerHTML =
       '<a class="sk-thumb" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
         thumb + PLAY +
-        '<span class="sk-plat">' + esc(s.platform) + "</span>" +
+        '<span class="sk-plat">' + esc(platform) + "</span>" +
       "</a>" +
       '<div class="sk-body">' +
         avatar +
         '<div class="sk-text">' +
           '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
             esc(s.title) + "</a></h3>" +
-          '<span class="sk-author">' + author + "</span>" +
+          '<span class="sk-author">' + author +
+            (age ? ' <span class="sk-dot">·</span> <span class="sk-when">' + esc(age) + "</span>" : "") +
+          "</span>" +
           (s.summary ? '<p class="sk-summary">' + esc(s.summary) + "</p>" : "") +
           (s.templateId
-            ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">Open ' +
-              esc(s.templateId) + " in the Studio →</a>"
+            ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">' +
+              ICON.studio + "Open " + esc(s.templateId) + " in the Studio</a>"
             : "") +
         "</div>" +
+        menu(s, platform) +
       "</div>";
+
+    wireMenu(el, s);
     return el;
   }
 
+  /* The menu carries only things that are true for this card: a link worth
+     copying, the video's own home, and — for the person who shared it or the
+     owner — taking it down. No greyed-out entries for actions you cannot do. */
+  function menu(s, platform) {
+    var items =
+      '<button class="sk-mi" type="button" data-act="copy">' + ICON.link + "Copy link</button>" +
+      '<a class="sk-mi" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
+        ICON.open + "Open on " + esc(platform) + "</a>" +
+      (s.canDelete
+        ? '<button class="sk-mi sk-mi-danger" type="button" data-act="remove">' +
+          ICON.trash + "Remove</button>"
+        : "");
+    return '<div class="sk-menu">' +
+      '<button class="sk-menu-btn" type="button" aria-haspopup="true" aria-expanded="false" ' +
+        'aria-label="More actions for ' + esc(s.title) + '">' + ICON.dots + "</button>" +
+      '<div class="sk-menu-pop" role="menu" hidden>' + items + "</div>" +
+    "</div>";
+  }
+
+  function wireMenu(el, s) {
+    var wrap = el.querySelector(".sk-menu");
+    var btn = el.querySelector(".sk-menu-btn");
+    var pop = el.querySelector(".sk-menu-pop");
+    if (!wrap || !btn || !pop) return;
+
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var wasOpen = openMenu && openMenu.el === wrap;
+      closeMenu();
+      if (wasOpen) return;
+      wrap.classList.add("is-open");
+      pop.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      openMenu = { el: wrap, pop: pop, btn: btn };
+    });
+
+    var copyBtn = pop.querySelector('[data-act="copy"]');
+    if (copyBtn) {
+      copyBtn.addEventListener("click", function () {
+        // The label is the confirmation. A toast somewhere else on the page
+        // would be feedback for a click that happened here.
+        var done = function (text) {
+          copyBtn.lastChild.textContent = text;
+          setTimeout(function () { copyBtn.lastChild.textContent = "Copy link"; closeMenu(); }, 900);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(s.url)
+            .then(function () { done("Copied"); })
+            .catch(function () { done("Could not copy"); });
+        } else {
+          done("Could not copy");
+        }
+      });
+    }
+
+    var removeBtn = pop.querySelector('[data-act="remove"]');
+    if (removeBtn) {
+      removeBtn.addEventListener("click", function () {
+        if (!window.confirm("Remove “" + s.title + "” from the page? This cannot be undone.")) return;
+        removeBtn.disabled = true;
+        fetch("/api/skills/" + encodeURIComponent(s.id), { method: "DELETE" })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (out) {
+            if (!out.ok || !out.j.success) {
+              removeBtn.disabled = false;
+              removeBtn.lastChild.textContent = (out.j && out.j.error) || "Could not remove";
+              return;
+            }
+            closeMenu();
+            el.classList.add("is-going");
+            setTimeout(function () {
+              el.remove();
+              // The empty state is a real state, not only a first-load one.
+              if (!grid.querySelector(".sk-card")) { grid.hidden = true; empty.hidden = false; }
+            }, 200);
+            loadMine();
+          })
+          .catch(function () {
+            removeBtn.disabled = false;
+            removeBtn.lastChild.textContent = "Could not remove";
+          });
+      });
+    }
+  }
+
   function render(list) {
+    // Whatever menu was open belonged to a card that is about to stop
+    // existing; leaving the reference behind leaves it pointing at a
+    // detached node.
+    closeMenu();
     grid.innerHTML = "";
     if (!list.length) {
       grid.hidden = true;

@@ -25,13 +25,43 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091211">
-<link rel="stylesheet" href="/page.css?v=2026091211">
-<link rel="stylesheet" href="/redesign.css?v=2026091211">
+<link rel="stylesheet" href="/shell.css?v=2026091324">
+<link rel="stylesheet" href="/page.css?v=2026091324">
+<link rel="stylesheet" href="/redesign.css?v=2026091324">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091211">
+<link rel="stylesheet" href="/polish.css?v=2026091324">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
+<style>
+.st-page{max-width:760px}
+.st-head{margin:0 0 20px}
+.st-head h1{margin:0;font-size:clamp(26px,2.6vw,32px);font-weight:700;letter-spacing:-.02em;color:var(--sc-text)}
+.st-label{margin:22px 0 8px;font-size:12px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--sc-muted)}
+.st-list{border:1px solid var(--sc-border);border-radius:12px;background:var(--sc-surface);overflow:hidden}
+.st-list + .st-list{margin-top:14px}
+.st-row{display:flex;align-items:center;gap:14px;min-height:54px;padding:10px 16px;color:var(--sc-text);text-decoration:none}
+.st-row + .st-row{border-top:1px solid var(--sc-border)}
+.st-key{flex:0 0 150px;font-size:14px;color:var(--sc-muted)}
+.st-val{flex:1 1 auto;min-width:0;font-size:14px;color:var(--sc-text);overflow-wrap:anywhere}
+.st-sub{display:block;font-size:12.5px;color:var(--sc-muted)}
+.st-sub:empty{display:none}
+.st-grow{flex:1 1 auto;min-width:0;display:grid;gap:1px}
+.st-grow strong{font-size:15px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st-av{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--sc-surface-3);background-size:cover;background-position:center;color:var(--sc-text);font-size:15px;font-weight:700}
+.st-btn{flex:none;display:inline-flex;align-items:center;height:34px;padding:0 14px;border:1px solid var(--sc-border);border-radius:9px;background:var(--sc-surface);color:var(--sc-text);font:inherit;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer}
+.st-btn:hover{background:var(--sc-surface-2)}
+.st-danger{color:var(--sc-danger)}
+.st-link .st-key{flex:1 1 auto;color:var(--sc-text)}
+.st-link:hover{background:var(--sc-surface-2)}
+.st-chev{color:var(--sc-muted);font-size:20px;line-height:1}
+@media (max-width:560px){
+  .st-row{flex-wrap:wrap;gap:4px 12px;padding:12px 14px}
+  .st-key{flex:1 0 100%}
+  .st-link .st-key,.st-profile .st-key{flex:1 1 auto}
+}
+</style>
+<!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
+<link rel="stylesheet" href="/mobile.css?v=2026091324">
 </head>
 <body class="sh-body">
 
@@ -223,7 +253,7 @@
           <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
             <div class="sh-user-trigger-av" data-user-avatar>KA</div>
             <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-auth-email>Account</span>
+              <span class="sh-user-trigger-name" data-user-name>Account</span>
               <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
             </div>
             <span class="sh-user-trigger-arrow">▲</span>
@@ -233,7 +263,7 @@
     </div>
   </aside>
 
-  <div class="sh-main" id="main" role="main" tabindex="-1">
+  <div class="sh-main" id="main" tabindex="-1">
 
     <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -303,75 +333,48 @@
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
-    <main class="pg">
-    <section class="pg-head">
-      <span class="pg-eyebrow">Settings</span>
-      <h1>Account settings</h1>
-      <p>Your creator identity, your plan, and the controls for this device.</p>
-    </section>
+    <main class="pg st-page">
+      <header class="st-head"><h1>Settings</h1></header>
 
-      <section class="pg-sec" id="accountBox" hidden>
-
-        <h2 class="pg-seclabel">Creator profile</h2>
-        <div class="pg-prof" id="profile">
-          <div class="pg-prof-av" id="crAvatarChar">KA</div>
-          <div class="pg-prof-main">
-            <h3 class="pg-prof-name" id="crDisplayName">Creator</h3>
-            <p class="pg-prof-handle" id="crHandle">@creator</p>
-            <p class="pg-prof-bio" id="crBio"></p>
-            <div class="pg-prof-links">
-              <a id="crYtLink" href="/settings" target="_blank" rel="noopener">YouTube</a>
-              <a id="crIgLink" href="/settings" target="_blank" rel="noopener">Instagram</a>
-              <span class="pg-prof-stars">★ <b id="crStarsCount">0</b></span>
+      <section id="accountBox" hidden>
+        <h2 class="st-label">Profile</h2>
+        <div class="st-list">
+          <div class="st-row st-profile" id="profile">
+            <div class="st-av" id="crAvatarChar" aria-hidden="true">KA</div>
+            <div class="st-grow">
+              <strong id="crDisplayName">Creator</strong>
+              <span class="st-sub" id="crHandle">@creator</span>
             </div>
+            <button type="button" class="st-btn" id="openEditProfileBtn">Edit profile</button>
           </div>
-          <button type="button" class="pg-bo pg-prof-edit" id="openEditProfileBtn">Edit profile</button>
-        </div>
-        <p class="pg-fine">This is what other creators see on every template you publish.</p>
-
-        <h2 class="pg-seclabel">Account</h2>
-        <div class="pg-grid">
-          <article class="pg-card pg-card--wide"><h3>Email</h3><p id="accEmail">—</p></article>
-          <article class="pg-card"><h3>Plan</h3><p id="accPlan">—</p><p class="pg-cardsub" id="accPlanTerm"></p></article>
-          <article class="pg-card"><h3>Credits today</h3><p id="accCredits">—</p></article>
-          <article class="pg-card"><h3>Member since</h3><p id="accSince">—</p></article>
         </div>
 
-        <h2 class="pg-seclabel">Plan &amp; billing</h2>
-        <div class="pg-grid">
-          <article class="pg-card">
-            <h3>Change your plan</h3>
-            <p>Compare Free, Pro and Pro Max, and see exactly what a credit buys.</p>
-            <a href="/pricing" class="pg-cardlink">View plans →</a>
-          </article>
-          <article class="pg-card">
-            <h3>Credits</h3>
-            <p>Credits reset every day at 00:00 UTC. Exporting costs 1, a custom AI scene costs 2.</p>
-            <a href="/pricing#credits" class="pg-cardlink">How credits work →</a>
-          </article>
+        <h2 class="st-label">Account</h2>
+        <div class="st-list">
+          <div class="st-row"><span class="st-key">Email</span><span class="st-val" id="accEmail">—</span></div>
+          <div class="st-row">
+            <span class="st-key">Plan</span>
+            <span class="st-val"><span id="accPlan">—</span><span class="st-sub" id="accPlanTerm"></span></span>
+            <a class="st-btn" href="/pricing">Change plan</a>
+          </div>
+          <div class="st-row">
+            <span class="st-key">Credits</span>
+            <span class="st-val"><span id="accCredits">—</span><span class="st-sub">Resets daily at 00:00 UTC</span></span>
+          </div>
+          <div class="st-row"><span class="st-key">Member since</span><span class="st-val" id="accSince">—</span></div>
         </div>
 
-        <h2 class="pg-seclabel">Your work</h2>
-        <div class="pg-grid">
-          <article class="pg-card">
-            <h3>Published templates</h3>
-            <p>Everything you have shared with the Community gallery.</p>
-            <a href="/uploads" class="pg-cardlink">Open Creator Studio →</a>
-          </article>
-          <article class="pg-card">
-            <h3>Drafts &amp; projects</h3>
-            <p>Projects the Studio has saved in this browser.</p>
-            <a href="/drafts" class="pg-cardlink">Open Drafts →</a>
-          </article>
+        <h2 class="st-label">Your work</h2>
+        <div class="st-list">
+          <a class="st-row st-link" href="/uploads"><span class="st-key">Published templates</span><span class="st-chev" aria-hidden="true">›</span></a>
+          <a class="st-row st-link" href="/drafts"><span class="st-key">Drafts &amp; projects</span><span class="st-chev" aria-hidden="true">›</span></a>
         </div>
 
-        <h2 class="pg-seclabel">This device</h2>
-        <div class="pg-grid">
-          <article class="pg-card">
-            <h3>Sign out</h3>
-            <p>Log out of ShortsCraft here. Your templates and plan stay on your account.</p>
-            <button type="button" class="pg-cardlink pg-linkbtn pg-danger" id="accLogout">Log out →</button>
-          </article>
+        <div class="st-list" style="margin-top:22px">
+          <div class="st-row">
+            <span class="st-key" style="flex:1 1 auto">Log out of this device</span>
+            <button type="button" class="st-btn st-danger" id="accLogout">Log out</button>
+          </div>
         </div>
       </section>
 
@@ -433,8 +436,8 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091211" defer></script>
-<script src="/theme.js?v=2026091211" defer></script>
-<script src="/page.js?v=2026091211" defer></script>
+<script src="/authui.js?v=2026091324" defer></script>
+<script src="/theme.js?v=2026091324" defer></script>
+<script src="/page.js?v=2026091324" defer></script>
 </body>
 </html>

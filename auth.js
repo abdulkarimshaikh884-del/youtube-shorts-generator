@@ -146,15 +146,13 @@ async function middleware(req, res, next) {
         [sha(token)]
       );
       if (rows[0]) {
-        const owners = String(process.env.SUPER_ADMIN_EMAILS || process.env.SUPER_ADMIN_EMAIL || "")
-          .split(",").map(normEmail).filter(Boolean);
-        if (owners.includes(normEmail(rows[0].email)) && rows[0].role !== "super_admin") {
-          const promoted = await db.query(
-            `update public.users set role = 'super_admin', updated_at = now() where id = $1 returning *`,
-            [rows[0].id]
-          );
-          rows[0] = promoted.rows[0];
-        }
+        /* Owner rights are not granted from an email list. Every request used
+           to promote any account whose email appeared in SUPER_ADMIN_EMAILS,
+           but signup does not prove someone owns the address they type — so a
+           listed address with no account (the previous owner's, once that
+           account was deleted) could be registered by anyone and would become
+           super_admin on its first request. The role lives in the database and
+           is set there deliberately; this read never changes it. */
         req.user = publicUser(rows[0]);
       }
     } catch (e) {
@@ -361,14 +359,14 @@ async function countLifetime(planId) {
 }
 
 /* term: "month" | "year" | "lifetime" | "forever" */
-async function changePlan(userId, planId, term) {
+async function changePlan(userId, planId, term, executor = db) {
   const isLifetime = planId !== "free" && (term === "lifetime" || term === "forever");
   let planUntil = null;
   if (planId !== "free" && !isLifetime) {
     const days = term === "year" ? 365 : 30;
     planUntil = new Date(Date.now() + days * 864e5);
   }
-  const { rowCount } = await db.query(
+  const { rowCount } = await executor.query(
     `update public.users
         set plan = $2, plan_since = now(), plan_until = $3, plan_lifetime = $4,
             billing_cycle = $5, updated_at = now()

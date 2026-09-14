@@ -677,6 +677,21 @@
     loadNotifications();
   }
 
+  /* Close the menu panel when someone taps outside it. shell.js (home) and
+     page.js (every other page) own opening and closing it with the button;
+     this only adds the outside tap, which a small panel needs and a
+     full-screen sheet never did. */
+  function setupMenuOutsideClose() {
+    var menu = $("#navMobile"), burger = $("#navBurger");
+    if (!menu || !burger) return;
+    document.addEventListener("click", function (ev) {
+      if (menu.hidden || menu.contains(ev.target) || burger.contains(ev.target)) return;
+      menu.hidden = true;
+      burger.setAttribute("aria-expanded", "false");
+      burger.setAttribute("aria-label", "Open menu");
+    });
+  }
+
   function setupStars() {
     var starBtn = $("#giveStarBtn");
     var starsCount = $("#crStarsCount");
@@ -714,14 +729,22 @@
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var items = (d && d.creations) ? d.creations : [];
-        if (countEl) countEl.textContent = items.length + " template" + (items.length === 1 ? "" : "s");
-        if (igCountEl) igCountEl.textContent = items.length;
+        /* The gallery credits every built-in library template to @shortscraft,
+           so that account's own profile has to show them too. Showing one
+           template on the profile of the account the whole library is signed
+           by reads as data loss. Only the house account gets this. */
+        var engine = window.SC_TPL2;
+        var isHouse = !!(currentUser && String(currentUser.handle || "").replace(/^@/, "").toLowerCase() === "shortscraft");
+        var library = (isHouse && engine && typeof engine.list === "function") ? engine.list() : [];
+        var total = items.length + library.length;
+        if (countEl) countEl.textContent = total + " template" + (total === 1 ? "" : "s");
+        if (igCountEl) igCountEl.textContent = total;
         if ($("#studioPublished")) $("#studioPublished").textContent = items.filter(function (t) { return t.status === "published"; }).length;
         if ($("#studioScheduled")) $("#studioScheduled").textContent = items.filter(function (t) { return t.status === "scheduled"; }).length;
         if ($("#studioPrivate")) $("#studioPrivate").textContent = items.filter(function (t) { return t.status === "draft"; }).length;
         if ($("#studioExports")) $("#studioExports").textContent = items.reduce(function (sum, t) { return sum + (Number(t.downloads) || 0); }, 0);
 
-        if (!items.length) {
+        if (!items.length && !library.length) {
           grid.innerHTML = '<div class="cr-cre-empty">' +
             '<h3>No templates yet</h3>' +
             '<p>Customise a template in the Studio, then publish it now, schedule it, or keep it private.</p>' +
@@ -733,89 +756,161 @@
         grid.innerHTML = "";
         var e = window.SC_TPL2;
 
-        items.forEach(function (t) {
-          var card = document.createElement("article");
-          card.className = "cr-cre-card";
+        var CATEGORY = { text: "Kinetic text", social: "Social", ui: "UI", charts: "Charts", money: "Finance", maps: "Maps", docu: "Documentary", paper: "Paper craft" };
+        var ICON_LINK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+        var ICON_TRASH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
 
+        /* Every preview mounts when its card nears the viewport. A profile can
+           hold dozens of cards, each a live animation; building them all at
+           once is what stalls a page. */
+        function mountPreview(prevEl) {
+          if (prevEl.dataset.mounted === "1" || !e || typeof e.build !== "function") return;
+          prevEl.dataset.mounted = "1";
+          var spec = prevEl.__spec || {};
+          var html = e.build(spec.tpl, spec.opts || {});
+          if (!html) {
+            prevEl.classList.add("is-missing");
+            prevEl.querySelector(".cr-cre-fallback").hidden = false;
+            return;
+          }
+          var f = document.createElement("iframe");
+          f.setAttribute("sandbox", "allow-scripts");
+          f.setAttribute("scrolling", "no");
+          f.setAttribute("tabindex", "-1");
+          f.setAttribute("aria-hidden", "true");
+          f.srcdoc = html;
+          prevEl.appendChild(f);
+        }
+        var observer = ("IntersectionObserver" in window)
+          ? new IntersectionObserver(function (entries) {
+              entries.forEach(function (en) {
+                if (en.isIntersecting) { mountPreview(en.target); observer.unobserve(en.target); }
+              });
+            }, { rootMargin: "400px 0px" })
+          : null;
+
+        /* One card for everything on this page — your templates and, on the
+           house account, the built-in library — so they cannot drift apart.
+           The card shows what a card needs: the animation, its name, where it
+           stands, and the three things you do with it. Opening in the Studio
+           is the main action; copying the link and deleting are icon buttons
+           so all three fit a narrow card without wrapping or clipping. */
+        function creationCard(o) {
+          var card = document.createElement("article");
+          card.className = "cr-cre-card" + (o.library ? " is-library" : "");
+
+          var prev = document.createElement("div");
+          prev.className = "cr-cre-preview";
+          prev.style.aspectRatio = String(o.aspect || "9:16").replace(":", " / ");
+          prev.__spec = { tpl: o.tpl, opts: o.opts };
+          var fallback = document.createElement("span");
+          fallback.className = "cr-cre-fallback";
+          fallback.textContent = "Preview unavailable";
+          fallback.hidden = true;
+          prev.appendChild(fallback);
+          var pill = document.createElement("span");
+          pill.className = "cr-cre-state is-" + o.status;
+          pill.textContent = o.statusText;
+          prev.appendChild(pill);
+
+          var body = document.createElement("div");
+          body.className = "cr-cre-body";
+          var title = document.createElement("h3");
+          title.className = "cr-cre-title";
+          title.textContent = o.title;
+          title.title = o.title;
+          var meta = document.createElement("p");
+          meta.className = "cr-cre-meta";
+          meta.textContent = o.meta;
+
+          var acts = document.createElement("div");
+          acts.className = "cr-cre-actions";
+          var open = document.createElement("a");
+          open.className = "cr-cre-open";
+          open.href = o.editUrl;
+          open.textContent = "Open in Studio";
+          acts.appendChild(open);
+          if (o.shareUrl) {
+            var share = document.createElement("button");
+            share.type = "button";
+            share.className = "cr-cre-icon cr-cre-share";
+            share.dataset.url = o.shareUrl;
+            share.title = "Copy public link";
+            share.setAttribute("aria-label", "Copy public link to " + o.title);
+            share.innerHTML = ICON_LINK;
+            acts.appendChild(share);
+          }
+          if (o.deleteId) {
+            var del = document.createElement("button");
+            del.type = "button";
+            del.className = "cr-cre-icon cr-cre-del";
+            del.dataset.id = o.deleteId;
+            del.title = "Delete template";
+            del.setAttribute("aria-label", "Delete " + o.title);
+            del.innerHTML = ICON_TRASH;
+            acts.appendChild(del);
+          }
+
+          body.appendChild(title);
+          body.appendChild(meta);
+          body.appendChild(acts);
+          card.appendChild(prev);
+          card.appendChild(body);
+          grid.appendChild(card);
+          if (observer) observer.observe(prev); else mountPreview(prev);
+        }
+
+        items.forEach(function (t) {
+          var status = t.status || "published";
           var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl || "text-cascade")
             + "&accent=" + encodeURIComponent(t.accent || "#ffffff")
             + "&font=" + encodeURIComponent(t.font || "inter")
             + "&dur=" + encodeURIComponent(t.dur || 4600)
             + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []))
-            + "&commId=" + encodeURIComponent(t.id || "");
-
-          var prev = document.createElement("div");
-          prev.className = "cr-cre-preview";
-
-          if (e && typeof e.build === "function") {
-            var html = e.build(t.tpl, {
-              lines: t.lines,
-              accent: t.accent,
-              font: t.font,
-              dur: t.dur,
-              aspect: "9:16"
-            });
-            if (html) {
-              var f = document.createElement("iframe");
-              f.setAttribute("sandbox", "");
-              f.setAttribute("scrolling", "no");
-              f.setAttribute("tabindex", "-1");
-              f.setAttribute("aria-hidden", "true");
-              f.srcdoc = html;
-              prev.appendChild(f);
-            }
-          }
-
-          var body = document.createElement("div");
-          body.className = "cr-cre-body";
-
-          var meta = document.createElement("div");
-          meta.className = "cr-cre-meta";
-          var tag = document.createElement("span");
-          tag.className = "cr-cre-tag";
-          tag.textContent = t.category || "Motion";
-          var state = document.createElement("span");
-          state.className = "cr-cre-state is-" + (t.status || "published");
-          state.textContent = t.status === "scheduled"
-            ? "Scheduled " + (t.scheduledAt ? new Date(t.scheduledAt).toLocaleString() : "")
-            : t.status === "draft" ? "Private draft" : "Published";
-          var stats = document.createElement("div");
-          stats.className = "cr-cre-stats";
-          var likes = document.createElement("span");
-          likes.textContent = (Number(t.likes) || 0) + " likes";
-          var downloads = document.createElement("span");
-          downloads.textContent = (Number(t.downloads) || 0) + " exports";
-          stats.appendChild(likes);
-          stats.appendChild(downloads);
-          meta.appendChild(tag);
-          meta.appendChild(state);
-          meta.appendChild(stats);
-
-          var title = document.createElement("h3");
-          title.className = "cr-cre-title";
-          title.textContent = t.title || "Custom Animation";
-
-          var desc = document.createElement("p");
-          desc.className = "cr-cre-desc";
-          desc.textContent = t.description || (Array.isArray(t.lines) ? t.lines.filter(Boolean).join(" · ") : "Custom motion design animation");
-
-          var acts = document.createElement("div");
-          acts.className = "cr-cre-actions";
-          var publicUrl = "/template?id=" + encodeURIComponent(t.tpl || "text-cascade")
-            + "&comm=1&commId=" + encodeURIComponent(t.id || "");
-          acts.innerHTML = '<a href="' + editUrl + '" class="pg-bw">Open in Studio</a>'
-            + (t.status === "published" ? '<button type="button" class="pg-bo cr-cre-share" data-url="' + publicUrl + '" title="Copy public link">Copy link</button>' : "")
-            + '<button type="button" class="pg-bo cr-cre-del" data-id="' + t.id + '" title="Delete template">Delete</button>';
-
-          body.appendChild(meta);
-          body.appendChild(title);
-          body.appendChild(desc);
-          body.appendChild(acts);
-
-          card.appendChild(prev);
-          card.appendChild(body);
-          grid.appendChild(card);
+            + "&commId=" + encodeURIComponent(t.id || "") + "&owner=1";
+          creationCard({
+            tpl: t.tpl,
+            opts: { props: t.props || {}, lines: t.lines, accent: t.accent, font: t.font, dur: t.dur, aspect: t.aspect || "9:16" },
+            aspect: t.aspect || "9:16",
+            title: t.title || "Custom animation",
+            status: status,
+            // Every status it can actually have gets its own word; "archived"
+            // used to fall through to "Published", which it is not.
+            statusText: status === "scheduled"
+              ? "Scheduled" + (t.scheduledAt ? " · " + new Date(t.scheduledAt).toLocaleDateString() : "")
+              : status === "draft" ? "Draft"
+              : status === "archived" ? "Archived" : "Published",
+            meta: [CATEGORY[t.category] || "Motion", (Number(t.likes) || 0) + " likes", (Number(t.downloads) || 0) + " exports"].join(" · "),
+            editUrl: editUrl,
+            shareUrl: status === "published"
+              ? "/template?id=" + encodeURIComponent(t.tpl || "text-cascade") + "&comm=1&commId=" + encodeURIComponent(t.id || "")
+              : "",
+            deleteId: t.id
+          });
         });
+
+        if (library.length) {
+          var head = document.createElement("div");
+          head.className = "cr-cre-section";
+          head.innerHTML = '<h3>ShortsCraft library</h3><p>' + library.length +
+            ' built-in templates, shown in the gallery under this account. They are part of the engine, so they can be opened and shared but not deleted.</p>';
+          grid.appendChild(head);
+          library.forEach(function (lt) {
+            creationCard({
+              library: true,
+              tpl: lt.id,
+              opts: {},
+              aspect: "9:16",
+              title: lt.name || lt.id,
+              status: "library",
+              statusText: "Library",
+              meta: CATEGORY[lt.cat] || "Motion",
+              editUrl: "/editor?tpl=" + encodeURIComponent(lt.id),
+              shareUrl: "/template?id=" + encodeURIComponent(lt.id),
+              deleteId: ""
+            });
+          });
+        }
 
         // Wire delete & share buttons
         grid.querySelectorAll(".cr-cre-del").forEach(function (btn) {
@@ -1037,18 +1132,18 @@
 
   function setupInstagramTabs() {
     var tabs = all(".ig-tab-btn");
-    if (!tabs.length) return;
 
-    /* Derived from the markup rather than listed here. The old hard-coded
-       map meant adding a tab to the page silently did nothing until this
-       object was edited too, which is how a tab ends up rendered but
-       dead. */
+    /* Read off the panes, not the tab buttons. Followers, Following and Stars
+       are opened from the header counts and have no tab of their own; deriving
+       this map from the buttons made those three panels unreachable the moment
+       their duplicate tabs were removed. A panel exists because it is on the
+       page, not because something points at it. */
     var panes = {};
-    tabs.forEach(function (btn) {
-      var name = btn.getAttribute("data-ig-tab");
-      var pane = document.getElementById(btn.getAttribute("aria-controls"));
-      if (name && pane) panes[name] = pane;
+    all("[data-ig-pane]").forEach(function (pane) {
+      var name = pane.getAttribute("data-ig-pane");
+      if (name) panes[name] = pane;
     });
+    if (!tabs.length && !Object.keys(panes).length) return;
 
     function switchTab(targetName, options) {
       options = options || {};
@@ -1087,13 +1182,21 @@
       }
     }
 
-    /* The header stats are buttons pointing at the tab that explains them —
-       "3 followers" opens the follower list rather than just sitting there. */
+    /* The header stats are buttons pointing at the panel that explains them —
+       "3 followers" opens the follower list rather than just sitting there.
+       For followers, following and Stars this is now the only way in, which is
+       why each of those panels carries its own heading and a way back. */
     all("[data-jump]").forEach(function (stat) {
       stat.addEventListener("click", function () {
         switchTab(stat.getAttribute("data-jump"), { updateHash: true });
         var pane = panes[stat.getAttribute("data-jump")];
         if (pane && pane.scrollIntoView) pane.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      });
+    });
+
+    all("[data-ig-back]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        switchTab(btn.getAttribute("data-ig-back"), { updateHash: true });
       });
     });
 
@@ -1809,10 +1912,27 @@
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
   }
 
+  /* ── Template upload ──────────────────────────────────────
+     Upload first, the way a video site works: pick a file and the site says
+     what it is before it asks for anything else.
+
+       1. Upload     — a Lottie .json, a .zip / .lottie, or a folder
+       2. Detect     — what was recognised, what can be edited, what will not
+                       survive, and the real stored animation playing
+       3. Details    — title, description, category
+       4. Visibility — publish now, draft, or schedule
+
+     Recognition runs in the browser (instant), then the document is stored,
+     and the server repeats every check with the same code before keeping it.
+     The detection screen shows the server's answer, not the browser's. */
   function setupUploadModal() {
     var existing = $("#publishTemplateModal");
     if (existing || document.body.dataset.publishModalReady === "1") return;
     document.body.dataset.publishModalReady = "1";
+
+    var ENGINE_SRC = "/templates-v2.js?v=2026091305";
+    var CATEGORIES = [["text", "Kinetic text"], ["social", "Social media"], ["ui", "UI and devices"], ["charts", "Charts"], ["money", "Finance"], ["maps", "Maps and radar"], ["docu", "Documentary"], ["paper", "Paper craft"]];
+    var ACCEPT = ".json,.zip,.lottie,application/json,application/zip";
 
     var modal = document.createElement("div");
     modal.id = "publishTemplateModal";
@@ -1820,102 +1940,272 @@
     modal.hidden = true;
     modal.innerHTML = [
       '<section class="sc-publish-card" role="dialog" aria-modal="true" aria-labelledby="publishTitle">',
-      '  <header class="sc-publish-head"><div><span class="sc-publish-kicker">Creator publishing</span><h2 id="publishTitle">Publish an animation template</h2><p>Choose a real ShortsCraft Studio template, customise its content, then publish now or schedule it.</p></div><button type="button" id="publishClose" aria-label="Close">×</button></header>',
-      '  <nav class="sc-publish-steps" aria-label="Publishing steps"><button type="button" data-step="1" aria-current="step">1. Template</button><button type="button" data-step="2">2. Details</button><button type="button" data-step="3">3. Visibility</button></nav>',
+      '  <header class="sc-publish-head"><div><h2 id="publishTitle">Upload a template</h2></div><button type="button" id="publishClose" aria-label="Close upload dialog">&times;</button></header>',
+      '  <nav class="sc-publish-steps" aria-label="Upload steps"><button type="button" data-step="1" aria-current="step">1. Upload</button><button type="button" data-step="2">2. Detect</button><button type="button" data-step="3">3. Details</button><button type="button" data-step="4">4. Visibility</button></nav>',
       '  <div class="sc-publish-body">',
       '    <section class="sc-publish-panel" data-panel="1">',
-      '      <div class="sc-format-note"><strong>Supported now</strong><p>Templates created in ShortsCraft Studio. They use the same renderer for preview, editing and MP4 export.</p></div>',
-      '      <div class="sc-format-note is-muted"><strong>File import status</strong><p>Lottie JSON (.json) is not enabled yet. XML, arbitrary HTML/JS and .sctemplate are not accepted because they cannot currently pass the editor and export safety checks.</p></div>',
-      '      <label class="sc-publish-field"><span>Studio template</span><select id="publishTpl" required><option value="">Loading templates…</option></select></label>',
-      '      <div class="sc-publish-preview"><iframe id="publishPreview" sandbox="allow-scripts" scrolling="no" title="Template preview"></iframe></div>',
+      '      <div class="sc-drop" id="uploadDrop">',
+      '        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+      '        <strong>Drop your animation here</strong>',
+      '        <span>.json &middot; .zip &middot; .lottie &middot; folder &mdash; up to 8 MB and 9 seconds</span>',
+      '        <div class="sc-drop-actions"><button type="button" class="pg-bw" id="uploadPickFile">Choose file</button><button type="button" class="pg-bo" id="uploadPickFolder">Choose folder</button></div>',
+      '        <input type="file" id="uploadFile" accept="' + ACCEPT + '" hidden>',
+      '        <input type="file" id="uploadFolder" webkitdirectory multiple hidden>',
+      '      </div>',
+      '      <p class="sc-drop-hint">Made in After Effects? Export it with the free LottieFiles or Bodymovin plugin and upload the .json, or the folder or ZIP it created if it has images. Built it in the ShortsCraft Studio? Use <b>Publish</b> there.</p>',
       '    </section>',
       '    <section class="sc-publish-panel" data-panel="2" hidden>',
-      '      <label class="sc-publish-field"><span>Title <small>Required</small></span><input id="publishName" maxlength="80" required placeholder="Describe what this template is for"></label>',
-      '      <label class="sc-publish-field"><span>Description</span><textarea id="publishDescription" maxlength="300" rows="3" placeholder="Help creators understand when to use it"></textarea></label>',
-      '      <div class="sc-publish-grid"><label class="sc-publish-field"><span>Category</span><select id="publishCategory"><option value="text">Kinetic text</option><option value="docu">Documentary</option><option value="paper">Paper craft</option><option value="maps">Maps &amp; radar</option><option value="money">Finance</option><option value="ui">UI &amp; devices</option><option value="social">Social media</option><option value="charts">Charts</option></select></label><label class="sc-publish-field"><span>Font</span><select id="publishFont"><option value="inter">Inter</option><option value="grotesk">Space Grotesk</option><option value="roboto">Roboto</option><option value="serif">Serif</option><option value="mono">Mono</option></select></label></div>',
-      '      <div class="sc-publish-grid"><label class="sc-publish-field"><span>Accent colour</span><input id="publishAccent" type="color" value="#2563eb"></label><label class="sc-publish-field"><span>Duration</span><select id="publishDuration"><option value="3000">3 seconds</option><option value="4600" selected>4.6 seconds</option><option value="6000">6 seconds</option><option value="8000">8 seconds</option><option value="10000">10 seconds</option></select></label></div>',
-      '      <fieldset class="sc-publish-lines"><legend>Editable text</legend><input id="publishLine1" maxlength="120" placeholder="Primary text"><input id="publishLine2" maxlength="120" placeholder="Secondary text"><input id="publishLine3" maxlength="120" placeholder="Supporting text"></fieldset>',
+      '      <div class="sc-detect" id="uploadDetect"></div>',
+      '      <div class="sc-publish-preview" id="uploadPreviewBox"><iframe id="uploadPreview" sandbox="allow-scripts" scrolling="no" title="Uploaded animation preview"></iframe></div>',
+      '      <button type="button" class="pg-bo sc-detect-again" id="uploadAgain">Choose a different file</button>',
       '    </section>',
       '    <section class="sc-publish-panel" data-panel="3" hidden>',
-      '      <fieldset class="sc-publish-visibility"><legend>Who should see it?</legend><label><input type="radio" name="publishVisibility" value="public" checked><span><strong>Publish now</strong><small>Appears in the Community gallery immediately.</small></span></label><label><input type="radio" name="publishVisibility" value="private"><span><strong>Private draft</strong><small>Only appears in your Creator Studio.</small></span></label><label><input type="radio" name="publishVisibility" value="scheduled"><span><strong>Schedule</strong><small>Publishes automatically at the selected time.</small></span></label></fieldset>',
-      '      <label class="sc-publish-field" id="publishScheduleWrap" hidden><span>Publish date and time</span><input id="publishSchedule" type="datetime-local"></label>',
+      '      <label class="sc-publish-field"><span>Title <small>Required</small></span><input id="publishName" maxlength="80" required placeholder="What is this template for?"></label>',
+      '      <label class="sc-publish-field"><span>Description</span><textarea id="publishDescription" maxlength="300" rows="3" placeholder="When should a creator use it?"></textarea></label>',
+      '      <label class="sc-publish-field"><span>Category</span><select id="publishCategory">' + CATEGORIES.map(function (c) { return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join("") + '</select></label>',
+      '    </section>',
+      '    <section class="sc-publish-panel" data-panel="4" hidden>',
+      '      <fieldset class="sc-publish-visibility"><legend>Who should see it?</legend><label><input type="radio" name="publishVisibility" value="public" checked><span><strong>Publish now</strong><small>Appears in the template library straight away.</small></span></label><label><input type="radio" name="publishVisibility" value="private"><span><strong>Draft</strong><small>Only you can see it, in your Creator Studio.</small></span></label><label><input type="radio" name="publishVisibility" value="scheduled"><span><strong>Schedule</strong><small>Publishes at the time you choose &mdash; at least 10 minutes ahead, within one year.</small></span></label></fieldset>',
+      '      <label class="sc-publish-field" id="publishScheduleWrap" hidden><span>Publish date and time (your device time zone)</span><input id="publishSchedule" type="datetime-local"></label>',
       '      <div class="sc-publish-summary" id="publishSummary"></div>',
       '    </section>',
       '    <p class="sc-publish-status" id="publishStatus" role="status" aria-live="polite"></p>',
       '  </div>',
-      '  <footer class="sc-publish-foot"><button type="button" class="pg-bo" id="publishBack" hidden>Back</button><span></span><button type="button" class="pg-bw" id="publishNext">Continue</button><button type="button" class="pg-bw" id="publishSubmit" hidden>Publish now</button></footer>',
+      '  <footer class="sc-publish-foot"><button type="button" class="pg-bo" id="publishBack" hidden>Back</button><span></span><button type="button" class="pg-bw" id="publishNext" hidden>Continue</button><button type="button" class="pg-bw" id="publishSubmit" hidden>Publish now</button></footer>',
       '</section>'
     ].join("");
     document.body.appendChild(modal);
 
     var step = 1;
-    var templateMap = {};
-    var tplSelect = $("#publishTpl");
-    var preview = $("#publishPreview");
+    var uploaded = null;          // { id, meta, notes, fileName }
+    var busy = false;
     var status = $("#publishStatus");
     var next = $("#publishNext");
     var back = $("#publishBack");
     var submit = $("#publishSubmit");
+    var drop = $("#uploadDrop");
+    var fileInput = $("#uploadFile");
+    var folderInput = $("#uploadFolder");
     var scheduleWrap = $("#publishScheduleWrap");
+    var returnFocus = null;
+    var previousOverflow = "";
 
-    function ensureEngine() {
-      if (window.SC_TPL2) return Promise.resolve(window.SC_TPL2);
+    function loadScript(src, globalName) {
+      if (window[globalName]) return Promise.resolve(window[globalName]);
       return new Promise(function (resolve, reject) {
-        var old = document.querySelector('script[data-sc-templates="1"]');
-        if (old) { old.addEventListener("load", function () { resolve(window.SC_TPL2); }); return; }
-        var script = document.createElement("script");
-        script.src = "/templates-v2.js?v=13";
-        script.dataset.scTemplates = "1";
-        script.onload = function () { resolve(window.SC_TPL2); };
-        script.onerror = function () { reject(new Error("Could not load the template library.")); };
-        document.head.appendChild(script);
+        var s = document.createElement("script");
+        s.src = src;
+        var failMsg = "Part of the uploader did not load. Check your connection and try again.";
+        var timer = setTimeout(function () { s.remove(); reject(new Error(failMsg)); }, 15000);
+        s.onload = function () { clearTimeout(timer); if (window[globalName]) resolve(window[globalName]); else reject(new Error(failMsg)); };
+        s.onerror = function () { clearTimeout(timer); reject(new Error(failMsg)); };
+        document.head.appendChild(s);
       });
     }
 
-    function populateTemplates() {
-      return ensureEngine().then(function (engine) {
-        var items = engine && engine.list ? engine.list() : [];
-        tplSelect.innerHTML = "";
-        items.forEach(function (item) {
-          templateMap[item.id] = item;
-          var option = document.createElement("option");
-          option.value = item.id;
-          option.textContent = item.name;
-          tplSelect.appendChild(option);
+    /* What each well-known non-Lottie file is, and what to do instead. The
+       point is to recognise the file anyway: "not supported" says nothing,
+       "this is an After Effects project; export Lottie from it" is a next step. */
+    var FOREIGN = [
+      [/\.(aep|aepx)$/i, "This is an After Effects project file. Websites cannot open those. In After Effects, export the composition with the LottieFiles or Bodymovin plugin and upload the .json it creates."],
+      [/\.prproj$/i, "This is a Premiere Pro project file. Premiere cannot export Lottie. Build the motion graphic in After Effects and export it with the LottieFiles or Bodymovin plugin."],
+      [/\.mogrt$/i, "This is a Motion Graphics template for Premiere Pro. Open its source in After Effects and export it with the LottieFiles or Bodymovin plugin."],
+      [/\.(mp4|mov|webm|avi|mkv|gif)$/i, "This is a video. A video cannot be edited, so it cannot be a template. Upload the Lottie animation it was made from."],
+      [/\.(drp|fcpbundle|blend|c4d|psd|ai|fig|riv)$/i, "This file belongs to another design app and cannot be edited on the web. Export the animation as Lottie (.json) and upload that."],
+      [/\.(tsx|jsx|ts|js)$/i, "This is code (it looks like a Remotion or React project). Code cannot be uploaded as a template. Export the animation as Lottie (.json) instead."]
+    ];
+    function foreignMessage(names) {
+      for (var i = 0; i < names.length; i++) {
+        for (var j = 0; j < FOREIGN.length; j++) if (FOREIGN[j][0].test(names[i])) return FOREIGN[j][1];
+      }
+      return "";
+    }
+
+    function readBytes(file) {
+      return file.arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
+    }
+    function pathOf(f) { return f.webkitRelativePath || f.relPath || f.name; }
+
+    // Folder or drop: only the files a Lottie package can use are read.
+    function entriesFromFiles(files) {
+      var wanted = files.filter(function (f) { return /\.(json|png|jpe?g|webp|gif)$/i.test(f.name); });
+      var total = wanted.reduce(function (s, f) { return s + f.size; }, 0);
+      if (total > 30 * 1024 * 1024) return Promise.reject(new Error("That folder holds more than 30 MB of animation and images. Upload just the exported Lottie folder."));
+      return Promise.all(wanted.map(function (f) {
+        return readBytes(f).then(function (bytes) { return { path: pathOf(f), bytes: bytes }; });
+      }));
+    }
+
+    function entriesFromZip(file) {
+      if (file.size > 20 * 1024 * 1024) return Promise.reject(new Error("That ZIP is larger than 20 MB."));
+      return loadScript("/vendor/fflate.min.js?v=0.8.2", "fflate").then(function (fflate) {
+        return readBytes(file).then(function (bytes) {
+          var unpacked = 0;
+          var out;
+          try {
+            out = fflate.unzipSync(bytes, {
+              filter: function (f) {
+                if (!/\.(json|png|jpe?g|webp|gif)$/i.test(f.name)) return false;
+                unpacked += f.originalSize;
+                // A small ZIP that expands enormously is refused before it is expanded.
+                if (f.originalSize > 10 * 1024 * 1024 || unpacked > 30 * 1024 * 1024) throw new Error("too-large");
+                return true;
+              }
+            });
+          } catch (e) {
+            throw new Error(e && e.message === "too-large"
+              ? "That ZIP expands to more than 30 MB. Upload only the exported animation and its images."
+              : "That ZIP could not be opened. It may be damaged, or not a ZIP file.");
+          }
+          return Object.keys(out).map(function (name) { return { path: name, bytes: out[name] }; });
         });
-        if (items[0]) {
-          tplSelect.value = items[0].id;
-          if (!$("#publishName").value) $("#publishName").value = items[0].name;
-          $("#publishDescription").value = items[0].desc || "";
-          $("#publishCategory").value = items[0].cat || "text";
-        }
-        updatePreview();
+      });
+    }
+
+    function handleFiles(files, fromFolder) {
+      if (busy || !files.length) return;
+      var names = files.map(pathOf);
+      var single = files.length === 1 && !fromFolder ? files[0] : null;
+
+      var hasCandidate = names.some(function (n) { return /\.(json|zip|lottie)$/i.test(n); });
+      if (!hasCandidate) {
+        showError(foreignMessage(names) || "No Lottie animation was found. Upload a .json exported with the LottieFiles or Bodymovin plugin, or a ZIP or folder that contains one.");
+        return;
+      }
+
+      busy = true;
+      clearError();
+      setDropState("Reading " + (single ? single.name : files.length + " files") + "...");
+
+      Promise.all([loadScript("/lottie-inspect.js?v=2", "SC_LOTTIE"), loadScript(ENGINE_SRC, "SC_TPL2")])
+        .then(function () {
+          if (single && /\.json$/i.test(single.name)) {
+            if (single.size > window.SC_LOTTIE.LIMITS.maxBytes) throw new Error("The animation is larger than 8 MB.");
+            return single.text().then(function (text) {
+              var doc;
+              try { doc = JSON.parse(text); } catch (e) { throw new Error("This file is not valid JSON, so it cannot be a Lottie animation."); }
+              return { doc: doc, notes: [], name: single.name };
+            });
+          }
+          var entries = single && /\.(zip|lottie)$/i.test(single.name) ? entriesFromZip(single) : entriesFromFiles(files);
+          return entries.then(function (list) {
+            var packed = window.SC_LOTTIE.packFromEntries(list);
+            if (!packed.ok) throw new Error(packed.error);
+            return { doc: packed.doc, notes: packed.notes || [], name: single ? single.name : String(names[0] || "").split("/")[0] };
+          });
+        })
+        .then(function (found) {
+          var local = window.SC_LOTTIE.inspect(found.doc);
+          if (!local.ok) throw new Error(local.errors[0]);
+          setDropState("Uploading...");
+          return fetch("/api/lottie", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ animation: local.clean })
+          }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (j) {
+              if (r.status === 413) throw new Error("The animation is too large to upload.");
+              if (!r.ok || !j.success) throw new Error(j.error || "The upload failed. Please try again.");
+              return { id: j.id, meta: j.meta, notes: found.notes, fileName: found.name };
+            });
+          });
+        })
+        .then(function (result) {
+          uploaded = result;
+          renderDetection();
+          var titleEl = $("#publishName");
+          if (!titleEl.value.trim()) {
+            titleEl.value = (result.meta.name || String(result.fileName || "").replace(/\.[^.]+$/, "")).slice(0, 80);
+          }
+          showStep(2);
+        })
+        .catch(function (err) { showError(err.message); })
+        .finally(function () { busy = false; setDropState(""); fileInput.value = ""; folderInput.value = ""; });
+    }
+
+    function setDropState(text) {
+      drop.classList.toggle("is-busy", !!text);
+      drop.setAttribute("aria-busy", text ? "true" : "false");
+      status.textContent = text || "";
+    }
+    function clearError() {
+      var old = modal.querySelector(".sc-drop-error");
+      if (old) old.remove();
+    }
+    function showError(message) {
+      showStep(1);
+      clearError();
+      var box = document.createElement("div");
+      box.className = "sc-drop-error";
+      box.setAttribute("role", "alert");
+      box.textContent = message;
+      drop.insertAdjacentElement("afterend", box);
+    }
+
+    function renderDetection() {
+      var m = uploaded.meta;
+      var box = $("#uploadDetect");
+      box.innerHTML = "";
+
+      var head = document.createElement("div");
+      head.className = "sc-detect-head";
+      var badge = document.createElement("span");
+      badge.className = "sc-detect-badge";
+      badge.textContent = "Lottie";
+      var h = document.createElement("strong");
+      h.textContent = "Animation recognised";
+      head.appendChild(badge);
+      head.appendChild(h);
+      box.appendChild(head);
+
+      var dl = document.createElement("dl");
+      dl.className = "sc-detect-facts";
+      function fact(label, value) {
+        var dt = document.createElement("dt"); dt.textContent = label;
+        var dd = document.createElement("dd"); dd.textContent = value;
+        dl.appendChild(dt); dl.appendChild(dd);
+        return dd;
+      }
+      fact("Size", m.width + " x " + m.height + " (" + m.aspect + ")");
+      fact("Length", (m.durationMs / 1000).toFixed(1) + " s at " + m.fps + " fps");
+      fact("Editable text", m.texts.length ? m.texts.map(function (t) { return t.label; }).join(", ") : "None");
+      var colours = fact("Editable colours", m.colors.length ? "" : "None");
+      m.colors.forEach(function (c) {
+        var s = document.createElement("i");
+        s.className = "sc-detect-swatch";
+        s.style.background = c.value;
+        s.title = c.value;
+        colours.appendChild(s);
+      });
+      fact("Layers", m.layers + (m.images ? " (" + m.images + " image" + (m.images === 1 ? "" : "s") + ")" : ""));
+      box.appendChild(dl);
+
+      var notes = (m.warnings || []).concat(uploaded.notes || []);
+      if (notes.length) {
+        var list = document.createElement("ul");
+        list.className = "sc-detect-warnings";
+        notes.forEach(function (n) { var li = document.createElement("li"); li.textContent = n; list.appendChild(li); });
+        box.appendChild(list);
+      }
+
+      $("#uploadPreviewBox").style.aspectRatio = m.aspect.replace(":", "/");
+      $("#uploadPreview").srcdoc = window.SC_TPL2.build("lottie", {
+        props: { doc: uploaded.id }, aspect: m.aspect, dur: Math.min(m.durationMs, 9000)
       });
     }
 
     function values() {
-      var selectedVisibility = modal.querySelector('input[name="publishVisibility"]:checked');
+      var selected = modal.querySelector('input[name="publishVisibility"]:checked');
+      var visibility = selected ? selected.value : "public";
       return {
-        tpl: tplSelect.value,
+        tpl: "lottie",
+        props: { doc: uploaded ? uploaded.id : "" },
         title: $("#publishName").value.trim(),
         description: $("#publishDescription").value.trim(),
         category: $("#publishCategory").value,
-        font: $("#publishFont").value,
-        accent: $("#publishAccent").value,
-        dur: Number($("#publishDuration").value),
-        lines: [$("#publishLine1").value.trim(), $("#publishLine2").value.trim(), $("#publishLine3").value.trim()].filter(Boolean),
-        visibility: selectedVisibility ? selectedVisibility.value : "public",
-        scheduledAt: $("#publishSchedule").value ? new Date($("#publishSchedule").value).toISOString() : null
+        visibility: visibility,
+        scheduledAt: visibility === "scheduled" && $("#publishSchedule").value ? new Date($("#publishSchedule").value).toISOString() : null
       };
-    }
-
-    function updatePreview() {
-      if (!window.SC_TPL2 || !tplSelect.value) return;
-      var v = values();
-      var html = window.SC_TPL2.build(v.tpl, { lines: v.lines, accent: v.accent, font: v.font, dur: v.dur, aspect: "9:16" });
-      if (html) preview.srcdoc = html;
-      var item = templateMap[v.tpl];
-      if (item && !$("#publishName").value) $("#publishName").value = item.name;
     }
 
     function showStep(nextStep) {
@@ -1925,66 +2215,146 @@
         if (Number(button.dataset.step) === step) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current");
       });
       back.hidden = step === 1;
-      next.hidden = step === 3;
-      submit.hidden = step !== 3;
-      if (step === 3) {
+      next.hidden = step === 1 || step === 4;
+      submit.hidden = step !== 4;
+      if (step === 4) {
         var v = values();
-        var item = templateMap[v.tpl];
-        $("#publishSummary").textContent = (v.title || item?.name || "Template") + " · " + (v.visibility === "public" ? "Publish now" : v.visibility === "private" ? "Private draft" : "Scheduled");
-        submit.textContent = v.visibility === "public" ? "Publish now" : v.visibility === "private" ? "Save draft" : "Schedule";
+        var label = v.visibility === "public" ? "Publish now" : v.visibility === "private" ? "Save draft" : "Schedule";
+        $("#publishSummary").textContent = (v.title || "Untitled template") + " · " + label;
+        submit.textContent = label;
       }
-      status.textContent = "";
+      if (!busy) status.textContent = "";
+    }
+
+    function reset() {
+      uploaded = null;
+      $("#publishName").value = "";
+      $("#publishDescription").value = "";
+      $("#uploadPreview").removeAttribute("srcdoc");
+      clearError();
     }
 
     function openModal() {
       if (!currentUser) { location.href = "/login?next=" + encodeURIComponent(location.pathname); return; }
+      returnFocus = document.activeElement;
+      previousOverflow = document.body.style.overflow;
       modal.hidden = false;
       document.body.style.overflow = "hidden";
-      showStep(1);
-      populateTemplates().catch(function (err) { status.textContent = err.message; });
+      if (!uploaded) showStep(1);
+      $("#publishClose").focus();
     }
-    function closeModal() { modal.hidden = true; document.body.style.overflow = ""; }
+    function closeModal() {
+      if (submit.disabled || busy) return;
+      modal.hidden = true;
+      document.body.style.overflow = previousOverflow;
+      if (returnFocus && returnFocus.isConnected) returnFocus.focus();
+    }
 
     all(".sh-tupload-btn, #topbarUploadBtn, #openUploadModalBtn, #popoverUploadBtn, .js-open-upload").forEach(function (button) {
-      /* The label lives in the markup. Setting textContent here replaced
-         every child — including the button's icon — with a bare text node,
-         so the top-bar button silently lost its icon and its wording could
-         not be changed from the template that renders it. */
+      /* The label lives in the markup; replacing textContent here would also
+         remove the button's icon. */
       button.addEventListener("click", function (ev) { ev.preventDefault(); openModal(); });
     });
     $("#publishClose").addEventListener("click", closeModal);
     modal.addEventListener("click", function (ev) { if (ev.target === modal) closeModal(); });
-    modal.addEventListener("keydown", function (ev) { if (ev.key === "Escape") closeModal(); });
+    modal.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") closeModal();
+      if (ev.key !== "Tab") return;
+      var focusable = Array.from(modal.querySelectorAll('button:not(:disabled), input:not([hidden]), select, textarea, a[href]')).filter(function (el) { return el.getClientRects().length > 0; });
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+      else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+    });
+
+    $("#uploadPickFile").addEventListener("click", function () { fileInput.click(); });
+    $("#uploadPickFolder").addEventListener("click", function () { folderInput.click(); });
+    fileInput.addEventListener("change", function () { handleFiles(Array.from(fileInput.files || []), false); });
+    folderInput.addEventListener("change", function () { handleFiles(Array.from(folderInput.files || []), true); });
+    $("#uploadAgain").addEventListener("click", function () { reset(); showStep(1); });
+
+    // Drag and drop, including a dropped folder (read through the entry API).
+    ["dragenter", "dragover"].forEach(function (type) {
+      drop.addEventListener(type, function (ev) { ev.preventDefault(); drop.classList.add("is-over"); });
+    });
+    ["dragleave", "drop"].forEach(function (type) {
+      drop.addEventListener(type, function () { drop.classList.remove("is-over"); });
+    });
+    function walkEntry(entry, prefix) {
+      return new Promise(function (resolve) {
+        if (entry.isFile) {
+          entry.file(function (file) { file.relPath = prefix + file.name; resolve([file]); }, function () { resolve([]); });
+        } else if (entry.isDirectory) {
+          var reader = entry.createReader(), found = [];
+          (function readAll() {
+            reader.readEntries(function (batch) {
+              if (!batch.length) {
+                Promise.all(found.map(function (e) { return walkEntry(e, prefix + entry.name + "/"); }))
+                  .then(function (lists) { resolve([].concat.apply([], lists)); });
+                return;
+              }
+              found = found.concat(Array.from(batch));
+              readAll();
+            }, function () { resolve([]); });
+          })();
+        } else resolve([]);
+      });
+    }
+    drop.addEventListener("drop", function (ev) {
+      ev.preventDefault();
+      var items = ev.dataTransfer && ev.dataTransfer.items ? Array.from(ev.dataTransfer.items) : [];
+      var entries = items.map(function (it) { return it.webkitGetAsEntry ? it.webkitGetAsEntry() : null; }).filter(Boolean);
+      if (entries.some(function (e) { return e.isDirectory; })) {
+        Promise.all(entries.map(function (e) { return walkEntry(e, ""); }))
+          .then(function (lists) { handleFiles([].concat.apply([], lists), true); });
+      } else {
+        handleFiles(Array.from((ev.dataTransfer && ev.dataTransfer.files) || []), false);
+      }
+    });
+
     next.addEventListener("click", function () {
-      if (step === 1 && !tplSelect.value) { status.textContent = "Choose a template first."; return; }
-      if (step === 2 && !$("#publishName").value.trim()) { status.textContent = "Add a title before continuing."; $("#publishName").focus(); return; }
-      showStep(Math.min(3, step + 1));
+      if (step === 2 && !uploaded) { showStep(1); return; }
+      if (step === 3 && !$("#publishName").value.trim()) { status.textContent = "Add a title before continuing."; $("#publishName").focus(); return; }
+      showStep(Math.min(4, step + 1));
     });
     back.addEventListener("click", function () { showStep(Math.max(1, step - 1)); });
-    modal.querySelectorAll(".sc-publish-steps button").forEach(function (button) { button.addEventListener("click", function () { var wanted = Number(button.dataset.step); if (wanted < step) showStep(wanted); }); });
-    modal.querySelectorAll('input[name="publishVisibility"]').forEach(function (radio) { radio.addEventListener("change", function () { scheduleWrap.hidden = radio.value !== "scheduled" || !radio.checked; showStep(3); }); });
-    [tplSelect, $("#publishAccent"), $("#publishFont"), $("#publishDuration"), $("#publishLine1"), $("#publishLine2"), $("#publishLine3")].forEach(function (input) { input.addEventListener("input", updatePreview); });
-    tplSelect.addEventListener("change", function () {
-      var item = templateMap[tplSelect.value];
-      if (item) { $("#publishName").value = item.name; $("#publishDescription").value = item.desc || ""; $("#publishCategory").value = item.cat || "text"; }
-      updatePreview();
+    modal.querySelectorAll(".sc-publish-steps button").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var wanted = Number(button.dataset.step);
+        if (wanted < step || (uploaded && wanted <= 3)) showStep(wanted);
+      });
+    });
+    modal.querySelectorAll('input[name="publishVisibility"]').forEach(function (radio) {
+      radio.addEventListener("change", function () { scheduleWrap.hidden = radio.value !== "scheduled" || !radio.checked; showStep(4); });
     });
 
     submit.addEventListener("click", function () {
+      if (!uploaded) { showStep(1); return; }
       var payload;
       try { payload = values(); } catch (e) { status.textContent = "Choose a valid schedule date."; return; }
-      if (payload.visibility === "scheduled" && !payload.scheduledAt) { status.textContent = "Choose a publish date and time."; return; }
+      if (!payload.title) { showStep(3); status.textContent = "Add a title before publishing."; $("#publishName").focus(); return; }
+      if (payload.visibility === "scheduled") {
+        if (!payload.scheduledAt) { status.textContent = "Choose a publish date and time."; return; }
+        var when = new Date(payload.scheduledAt).getTime();
+        if (when < Date.now() + 600000 || when > Date.now() + 365 * 86400000) { status.textContent = "Choose a time at least 10 minutes from now and within one year."; return; }
+      }
       submit.disabled = true;
-      status.textContent = "Saving…";
+      status.textContent = "Saving...";
       fetch("/api/community-templates", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
         .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.success) throw new Error(j.error || "Could not save that template."); return j; }); })
-        .then(function (j) {
-          status.textContent = payload.visibility === "public" ? "Published to the Community gallery." : payload.visibility === "scheduled" ? "Template scheduled." : "Private draft saved.";
-          if (window.SC_UI && SC_UI.toast) SC_UI.toast(status.textContent);
-          setTimeout(function () { closeModal(); loadUserCreations(); if (window.SC_SHELL && SC_SHELL.refreshGallery) SC_SHELL.refreshGallery(); }, 700);
+        .then(function () {
+          var done = payload.visibility === "public" ? "Published to the template library." : payload.visibility === "scheduled" ? "Template scheduled." : "Draft saved.";
+          status.textContent = done;
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(done);
+          setTimeout(function () {
+            submit.disabled = false;
+            reset();
+            closeModal();
+            showStep(1);
+            loadUserCreations();
+            if (window.SC_SHELL && SC_SHELL.refreshGallery) SC_SHELL.refreshGallery();
+          }, 700);
         })
-        .catch(function (err) { status.textContent = err.message; })
-        .finally(function () { submit.disabled = false; });
+        .catch(function (err) { status.textContent = err.message; submit.disabled = false; });
     });
   }
 
@@ -2031,6 +2401,28 @@
       }
       menu.insertBefore(link, ref);
     });
+
+    /* One order for the whole menu, set in the DOM so keyboard and screen
+       reader order match what is on screen: the main action first, then the
+       workspace, then help, then the account, with Log out last. The links
+       arrived in three batches (markup, this function, auth-only extras) and
+       read in that accidental order — Create Animation sat halfway down and
+       Log out came before Settings. Anything not named keeps its place. */
+    var ORDER = [
+      ".sh-mfill",
+      'a[href="/#templates"]', 'a[href="/community"]', 'a[href="/drafts"]', 'a[href="/uploads"]', ".sh-m-upload-btn",
+      'a[href="/pricing"]', 'a[href="/tutorials"]', 'a[href="/contact"]', 'a[href="/about"]',
+      'a[href="/account"]', 'a[href="/settings"]', ".sh-m-theme", "#navMobileLogout"
+    ];
+    ORDER.forEach(function (selector) {
+      var el = menu.querySelector(selector);
+      if (el) menu.appendChild(el);
+    });
+    var groupStarts = ['a[href="/#templates"]', 'a[href="/pricing"]', 'a[href="/account"]'];
+    groupStarts.forEach(function (selector) {
+      var el = menu.querySelector(selector);
+      if (el) el.classList.add("sh-m-group");
+    });
   }
 
   function init() {
@@ -2039,6 +2431,7 @@
       b.addEventListener("click", logout);
     });
     setupUserTrigger();
+    setupMenuOutsideClose();
     setupInstagramTabs();
     fetch("/api/auth/me", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })

@@ -103,7 +103,11 @@ const SHELL_ROUTES = [
   });
   ok(homeControls.filtersW >= 250 && homeControls.activeVisible,
     "search and swipeable template categories each get a full mobile row", homeControls.filtersW);
-  ok(homeControls.heights.every((height) => height >= 40),
+  /* Phone target rule (public/mobile.css, owner's compact-phone decision of
+     14 Sep 2026): nothing tappable under 32px here, primary actions and form
+     fields at least 36px, the menu button 40px. WCAG 2.2 AA asks for 24px. */
+  const [imgH, modelH, createH] = homeControls.heights;
+  ok(imgH >= 32 && modelH >= 32 && createH >= 36,
     "home composer actions are touch-sized", homeControls.heights.join("/"));
   await page.click("#navBurger");
   const drawer = await page.evaluate(() => {
@@ -156,7 +160,7 @@ const SHELL_ROUTES = [
       return [selector, Math.round(r.width), Math.round(r.height), getComputedStyle(el).display];
     });
   });
-  ok(detail.every((item) => item[2] >= 40 && item[3] !== "none"),
+  ok(detail[0][2] >= 36 && detail.slice(1).every((item) => item[2] >= 32) && detail.every((item) => item[3] !== "none"),
     "Customize, Replay, Like and Share are touch-sized", detail.map((x) => x[2]).join("/"));
 
   console.log("\n---- mobile editor workspace ----");
@@ -188,7 +192,7 @@ const SHELL_ROUTES = [
       createH: Math.round(button.height)
     };
   });
-  ok(ai.panel === "ai" && ai.prompt !== "none" && ai.createH >= 44,
+  ok(ai.panel === "ai" && ai.prompt !== "none" && ai.createH >= 36,
     "AI prompt, model, image and Create action are reachable");
 
   await page.click("#edMobileEdit");
@@ -205,7 +209,7 @@ const SHELL_ROUTES = [
       aspectH: Math.round(aspect.height)
     };
   });
-  ok(edit.panel === "edit" && edit.lastReachable && edit.aspectH >= 44,
+  ok(edit.panel === "edit" && edit.lastReachable && edit.aspectH >= 36,
     "all Properties controls are reachable and touch-sized");
 
   await page.click("#edMobileCanvas");

@@ -14,6 +14,9 @@
   var tplId = params.get("id") || "docu-red-string";
   var isComm = params.get("comm") === "1";
   var commId = params.get("commId") || "";
+  // Accept older share links generated with just the publication ID.
+  if (!commId && /^comm_[a-f0-9]+$/.test(tplId)) commId = tplId;
+  if (commId) isComm = true;
 
   var currentAspect = "9:16";
   var currentTpl = null;
@@ -87,19 +90,12 @@
     var found = list.find(function (item) { return item.id === tplId; });
 
     function showBuiltInOrFallback() {
-      currentTpl = found ? {
+      if (!found) { showCommunityProblem(true); return; }
+      currentTpl = {
         tpl: found.id,
         name: found.name,
         desc: found.desc,
         cat: found.cat,
-        dur: 4600,
-        isCommunity: false,
-        likes: 0
-      } : {
-        tpl: tplId,
-        name: "Motion Graphics Preset",
-        desc: "Dynamic motion graphic template for YouTube Shorts and Instagram Reels.",
-        cat: "docu",
         dur: 4600,
         isCommunity: false,
         likes: 0
@@ -111,8 +107,9 @@
        being replaced by whatever built-in happens to share its id. */
     function showCommunityProblem(isGone) {
       var stage = $("#detailStage");
-      var host = stage && stage.parentElement ? stage.parentElement : document.querySelector("main");
-      if (!host) { showBuiltInOrFallback(); return; }
+      var host = stage ? stage.closest('.sh-modal-card') : document.querySelector("main");
+      if (!host) return;
+      document.title = isGone ? "Template unavailable — ShortsCraft" : "Template could not load — ShortsCraft";
 
       var box = document.createElement("div");
       box.className = "detail-problem";
@@ -212,6 +209,7 @@
       return;
     }
 
+    if (isComm) { showCommunityProblem(true); return; }
     showBuiltInOrFallback();
   }
 

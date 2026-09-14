@@ -37,6 +37,9 @@ verify_*.js
 # Publishing silently dropped everything a creator had edited. This is the
 # assertion that fails first if any link in that chain loses props again.
 !verify_publish.js
+!verify_polish_offline.js
+# Template uploads: recognition, ownership, sandboxed preview and export.
+!verify_lottie.js
 diag_studio.js
 DEPENDENCY_REPORT.md
 

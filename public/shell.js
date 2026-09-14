@@ -106,7 +106,7 @@
         '      <div class="sh-m-specs">',
         '        <span class="sh-m-spec">Duration: <b id="modalDur">4.6s</b></span>',
         '        <span class="sh-m-spec">Framerate: <b>60 FPS</b></span>',
-        '        <span class="sh-m-spec">Format: <b>9:16 Shorts</b></span>',
+        '        <span class="sh-m-spec">Format: <b id="modalAspect">9:16</b></span>',
         '      </div>',
         '    </div>',
         '    <a href="/creator" class="sh-m-creator" id="modalCreatorLink">',
@@ -184,15 +184,18 @@
     // Mount live preview stage
     var mStage = $("#modalStage");
     mStage.innerHTML = "";
+    var previewAspect = t.isCommunity ? (t.aspect || "9:16") : currentAspect;
+    $("#modalAspect").textContent = previewAspect;
     var e = engine();
     if (e) {
       var html = t.isCommunity
-        ? e.build(t.tpl, { lines: t.lines || [], accent: t.accent || "#ffffff", font: t.font || "inter", dur: Number(t.dur) || 4600, aspect: "9:16" })
-        : e.build(t.tpl, { aspect: "9:16" });
+        ? e.build(t.tpl, { props: t.props || {}, lines: t.lines || [], accent: t.accent || "#ffffff", font: t.font || "inter", dur: Number(t.dur) || 4600, aspect: previewAspect })
+        : e.build(t.tpl, { aspect: previewAspect });
 
       var frame = document.createElement("iframe");
       frame.setAttribute("sandbox", "allow-scripts");
       frame.setAttribute("scrolling", "no");
+      frame.setAttribute("title", t.name + " animation preview");
       frame.srcdoc = html;
       mStage.appendChild(frame);
     }
@@ -532,6 +535,7 @@
         var lines = [];
         try { lines = JSON.parse(tile.dataset.lines || "[]"); } catch (err) {}
         html = e.build(tile.dataset.tpl, {
+          props: tile._creatorProps || {},
           lines: lines,
           accent: tile.dataset.accent || "#ffffff",
           font: tile.dataset.font || "inter",
@@ -645,8 +649,12 @@
       var allItems = [];
       metrics = metrics || {};
 
+      /* A community row is shown when the engine can render it. That includes
+         uploaded Lottie animations, whose renderer is a system template and so
+         is absent from list(); checking list() alone hid every upload from the
+         library while the API was returning it. The blank canvas stays out. */
       var validTpls = {};
-      e.list().forEach(function (t) { validTpls[t.id] = true; });
+      e.list(true).forEach(function (t) { if (t.id !== "blank") validTpls[t.id] = true; });
 
       // 1. Featured Community Templates
       commList.forEach(function (ct) {
@@ -678,6 +686,8 @@
           font: ct.font || "inter",
           dur: ct.dur || 4600,
           lines: ct.lines || [],
+          props: ct.props || {},
+          aspect: ct.aspect || "9:16",
           isCommunity: true,
           likes: likes,
           downloads: downloads,
@@ -730,6 +740,8 @@
           tile.dataset.font = t.font;
           tile.dataset.dur = t.dur;
           tile.dataset.lines = JSON.stringify(t.lines || []);
+          // Keep potentially large image data out of DOM attributes.
+          tile._creatorProps = t.props || {};
         }
 
         var detailUrl = "/template?id=" + encodeURIComponent(t.tpl);

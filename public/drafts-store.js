@@ -18,6 +18,7 @@
   var KEY_PREFIX = "sc_drafts_v2_";
   var MAX = 30;            // newest kept; a browser quota is not a project archive
   var owner = "";
+  var ownerVersion = 0;
 
   function ownerKey(user) {
     if (!user || (!user.id && !user.email)) return "";
@@ -29,7 +30,9 @@
   }
 
   function setOwner(user) {
-    owner = ownerKey(user);
+    var nextOwner = ownerKey(user);
+    if (owner !== nextOwner) ownerVersion++;
+    owner = nextOwner;
     return !!owner;
   }
 
@@ -137,7 +140,8 @@
      Conflicts are settled by updatedAt, newest wins. That is the right rule
      for one person moving between their own devices, which is the case this
      serves; it is not a multi-writer merge and does not pretend to be. */
-  var syncing = false;
+  var syncPending = null;
+  var syncVersion = -1;
 
   function pushOne(rec) {
     if (!owner || !rec) return;
@@ -160,12 +164,16 @@
      holds, then hands up anything the server has never seen. Runs once when
      the account is known. */
   function sync() {
-    if (!owner || syncing) return Promise.resolve(false);
-    syncing = true;
-    return fetch("/api/projects", { headers: { Accept: "application/json" } })
+    if (!owner) return Promise.resolve(false);
+    if (syncPending && syncVersion === ownerVersion) return syncPending;
+    var version = ownerVersion;
+    syncVersion = version;
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 12000);
+    var pending = fetch("/api/projects", { headers: { Accept: "application/json" }, signal: controller.signal })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (j) {
-        if (!j || !j.success || !Array.isArray(j.projects)) return false;
+        if (ownerVersion !== version || !j || !j.success || !Array.isArray(j.projects)) return false;
 
         var local = read();
         var byId = {};
@@ -193,6 +201,7 @@
         if (localOnly.length) {
           return fetch("/api/projects/adopt", {
             method: "POST",
+            signal: controller.signal,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ drafts: localOnly })
           }).then(function () { return true; }).catch(function () { return true; });
@@ -200,7 +209,12 @@
         return true;
       })
       .catch(function () { return false; })
-      .finally(function () { syncing = false; });
+      .finally(function () {
+        clearTimeout(timer);
+        if (syncPending === pending) syncPending = null;
+      });
+    syncPending = pending;
+    return pending;
   }
 
   root.SC_DRAFTS = {

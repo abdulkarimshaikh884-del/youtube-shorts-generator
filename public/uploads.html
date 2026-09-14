@@ -25,13 +25,16 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091211">
-<link rel="stylesheet" href="/page.css?v=2026091211">
-<link rel="stylesheet" href="/redesign.css?v=2026091211">
+<link rel="stylesheet" href="/shell.css?v=2026091324">
+<link rel="stylesheet" href="/page.css?v=2026091324">
+<link rel="stylesheet" href="/redesign.css?v=2026091324">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091211">
+<link rel="stylesheet" href="/polish.css?v=2026091324">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
+
+<!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
+<link rel="stylesheet" href="/mobile.css?v=2026091324">
 </head>
 <body class="sh-body">
 
@@ -223,7 +226,7 @@
           <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
             <div class="sh-user-trigger-av" data-user-avatar>KA</div>
             <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-auth-email>Account</span>
+              <span class="sh-user-trigger-name" data-user-name>Account</span>
               <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
             </div>
             <span class="sh-user-trigger-arrow">▲</span>
@@ -233,7 +236,7 @@
     </div>
   </aside>
 
-  <div class="sh-main" id="main" role="main" tabindex="-1">
+  <div class="sh-main" id="main" tabindex="-1">
 
     <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -305,9 +308,7 @@
 
     <main class="pg">
     <section class="pg-head">
-      <span class="pg-eyebrow">Creator Studio</span>
-      <h1>Your animation templates</h1>
-      <p>Manage published templates, scheduled releases and private drafts from one place.</p>
+      <h1>Creator Studio</h1>
     </section>
 
       <section class="pg-sec" id="accountBox" hidden>
@@ -397,8 +398,8 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091211" defer></script>
-<script src="/theme.js?v=2026091211" defer></script>
-<script src="/page.js?v=2026091211" defer></script>
-<script src="/templates-v2.js?v=13" defer></script></body>
+<script src="/authui.js?v=2026091324" defer></script>
+<script src="/theme.js?v=2026091324" defer></script>
+<script src="/page.js?v=2026091324" defer></script>
+<script src="/templates-v2.js?v=2026091324" defer></script></body>
 </html>

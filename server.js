@@ -9,6 +9,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const db = require("./db");
 const mailer = require("./mailer");
+const paymentDelivery = require("./payment-delivery");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -76,7 +77,23 @@ app.use((req, res, next) => {
 });
 
 // ── Security headers ────────────────────────────────────────
+/* The site's own origin, written out. Template previews run in sandboxed
+   frames with an opaque origin, and whether 'self' still matches the site from
+   inside such a frame differs between browsers — Firefox and some Chromium
+   builds say no, which silently blocked the Lottie player and its document
+   there. A host-source matches the same way everywhere. Only origins this
+   server already trusts are listed (ALLOWED_ORIGINS, plus the local dev host). */
+function ownOrigins(req) {
+  const list = new Set(allowedOrigins);
+  if (NODE_ENV !== "production") {
+    const host = String(req.headers.host || "");
+    if (/^(localhost|127\.0\.0\.1)(:\d{2,5})?$/.test(host)) list.add("http://" + host);
+  }
+  return [...list].join(" ");
+}
+
 app.use((req, res, next) => {
+  const own = ownOrigins(req);
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("X-XSS-Protection", "1; mode=block");
@@ -90,11 +107,11 @@ app.use((req, res, next) => {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com",
+      `script-src 'self' ${own} 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: https: blob:",
-      "connect-src 'self' https://*.supabase.co https://api.groq.com https://integrate.api.nvidia.com https://*.razorpay.com https://www.google-analytics.com https://www.googletagmanager.com",
+      `connect-src 'self' ${own} https://*.supabase.co https://api.groq.com https://integrate.api.nvidia.com https://*.razorpay.com https://www.google-analytics.com https://www.googletagmanager.com`,
       // 'self' is required for the sandboxed srcdoc iframes that render
       // animation template previews on the landing page. Those frames are
       // sandboxed WITHOUT allow-same-origin, so they get a unique origin.
@@ -111,8 +128,12 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "https://shortscraft.onli
   .split(",")
   .map((o) => o.trim());
 
-app.use(
-  cors({
+/* A published Lottie document is fetched by template previews, and previews
+   run in sandboxed frames whose requests carry `Origin: null` — which the
+   policy below rejects with an error. That one read-only, credential-free
+   route answers any origin itself (see its handler) and skips this policy. */
+const LOTTIE_DOC_PATH = /^\/api\/lottie\/[A-Za-z0-9_-]{16,64}$/;
+const corsPolicy = cors({
     origin: (origin, cb) => {
       if (
         !origin ||
@@ -124,8 +145,11 @@ app.use(
       cb(new Error("CORS blocked"));
     },
     credentials: true,
-  })
-);
+  });
+app.use((req, res, next) => {
+  if (req.method === "GET" && LOTTIE_DOC_PATH.test(req.path)) return next();
+  return corsPolicy(req, res, next);
+});
 
 // ── Body parsing ────────────────────────────────────────────
 const jsonSmall = express.json({ limit: "100kb" });
@@ -133,7 +157,7 @@ app.use((req, res, next) => {
   // These two routes accept an attached base64 image. Let their route-level
   // 2 MB parser handle the body; parsing globally at 100 KB first made the
   // larger parser unreachable and every real image upload failed with 413.
-  if (req.path === "/api/animate" || req.path === "/api/export" || req.path === "/api/auth/avatar") return next();
+  if (req.path === "/api/animate" || req.path === "/api/export" || req.path === "/api/auth/avatar" || req.path === "/api/lottie") return next();
   return jsonSmall(req, res, next);
 });
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
@@ -412,6 +436,7 @@ const support = require("./support");
 const projects = require("./projects");
 const admin = require("./admin");
 const skills = require("./skills");
+const lottie = require("./lottie");
 app.use(credits.middleware);
 
 app.get("/api/credits", async (req, res) => {
@@ -552,6 +577,19 @@ app.get("/api/user/creations", async (req, res) => {
   }
 });
 
+app.get("/api/user/creations/:id", async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  if (!req.user || !req.user.id) return res.status(401).json({ success: false, error: "Please log in first." });
+  try {
+    const template = await community.getOwned(String(req.params.id || "").slice(0, 80), req.user);
+    if (!template) return res.status(404).json({ success: false, error: "Template not found in your Creator Studio." });
+    return res.json({ success: true, template });
+  } catch (err) {
+    console.error("[GET /api/user/creations/:id]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load your template. Please retry." });
+  }
+});
+
 app.delete("/api/user/creations/:id", async (req, res) => {
   try {
     const result = await community.remove(req.params.id, req.user);
@@ -560,6 +598,53 @@ app.delete("/api/user/creations/:id", async (req, res) => {
   } catch (err) {
     console.error("[DELETE /api/user/creations/:id]", err.message);
     res.status(500).json({ success: false, error: "Could not delete that creation." });
+  }
+});
+
+// ── Lottie uploads ─────────────────────────────────────────
+// Up to 8 MB of animation, images inlined; base64 and JSON framing need room.
+const jsonLottie = express.json({ limit: "12mb" });
+
+app.post("/api/lottie", rateLimit({ windowMs: 60 * 60_000, max: 40 }), jsonLottie, async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    const out = await lottie.upload(req.user, req.body && req.body.animation);
+    if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+    return res.json(out);
+  } catch (err) {
+    console.error("[POST /api/lottie]", err.message);
+    return res.status(500).json({ success: false, error: "Could not store that animation. Please try again." });
+  }
+});
+
+/* Public and immutable: an id names one stored document forever, so it can be
+   cached for a year, and it carries no credentials, so any origin may read it
+   — including the sandboxed preview frames that need it. */
+app.get("/api/lottie/:id", async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Cross-Origin-Resource-Policy", "cross-origin");
+  try {
+    const row = await lottie.getDoc(req.params.id);
+    if (!row) return res.status(404).json({ success: false, error: "Animation not found." });
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+    res.set("ETag", '"' + row.sha256 + '"');
+    res.type("application/json");
+    return res.send(row.doc);
+  } catch (err) {
+    console.error("[GET /api/lottie/:id]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load that animation." });
+  }
+});
+
+app.get("/api/lottie/:id/meta", async (req, res) => {
+  try {
+    const row = await lottie.getMeta(req.params.id);
+    if (!row) return res.status(404).json({ success: false, error: "Animation not found." });
+    res.set("Cache-Control", "public, max-age=3600");
+    return res.json({ success: true, id: row.id, meta: row.meta });
+  } catch (err) {
+    console.error("[GET /api/lottie/:id/meta]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load that animation." });
   }
 });
 
@@ -1350,56 +1435,14 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
       });
     }
 
-    /* Claim the payment before granting anything.
-
-       Everything above proves the payment is genuine; none of it proved it was
-       new. The grant ran unconditionally, so the same signed order submitted
-       twice granted twice — and since changePlan computes expiry from the
-       moment it runs, a replay a day later added a day. A double-submit or a
-       refreshed success page was enough to do it by accident.
-
-       The insert is the decision. payment_id is the primary key, so of two
-       concurrent verifications of one payment exactly one can win, without a
-       lock or a read-then-write race. */
-    const claim = await db.query(
-      `insert into public.processed_payments
-         (payment_id, order_id, user_id, plan, term, amount_paise)
-       values ($1, $2, $3, $4, $5, $6)
-       on conflict (payment_id) do nothing
-       returning payment_id`,
-      [String(razorpay_payment_id), String(razorpay_order_id), req.user.id,
-       planId, term, Number(order.amount) || null]
-    );
-
-    if (!claim.rows.length) {
-      // Already delivered. Answer exactly as the first call did: a retry is a
-      // retry, not a failure the person has to do something about.
-      return res.json({
-        success: true,
-        alreadyProcessed: true,
-        paymentId: razorpay_payment_id,
-        orderId: razorpay_order_id,
-        plan: planId,
-        term,
-        billingCycle
-      });
-    }
-
-    try {
-      await auth.changePlan(req.user.id, planId, term);
-      await credits.setPlan(req, planId);
-    } catch (err) {
-      /* The claim is recorded but the plan did not land, which would leave the
-         payment marked delivered and the account still on Free — the one
-         outcome worse than granting twice, because a retry could never fix it.
-         Release the claim so the next attempt can. */
-      await db.query(`delete from public.processed_payments where payment_id = $1`,
-        [String(razorpay_payment_id)]).catch(() => {});
-      throw err;
-    }
+    const delivery = await paymentDelivery.deliver(req, {
+      paymentId: String(razorpay_payment_id), orderId: String(razorpay_order_id),
+      planId, term, amount: Number(order.amount)
+    });
 
     res.json({
       success: true,
+      alreadyProcessed: delivery.alreadyProcessed,
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
       plan: planId,
@@ -1908,6 +1951,11 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
     } catch (err) {
       return res.status(400).json({ success: false, error: "Invalid template properties: " + err.message });
     }
+    // An upload is checked before billing: a missing document would otherwise
+    // render a "could not be loaded" frame into an MP4 someone paid for.
+    if (tpl === "lottie" && !(await lottie.getMeta(props.doc))) {
+      return res.status(400).json({ success: false, error: "That uploaded animation no longer exists." });
+    }
     clips.push({
       tpl,
       dur: Math.min(Math.max(Number(c.dur) || 4600, 1000), EXPORT_LIMITS.maxDurMs),
@@ -2033,6 +2081,17 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
 
               await loadRenderDocument(page, docs[ci]);
 
+              /* Uploaded Lottie animations are driven by script, not CSS, so
+                 getAnimations() cannot see them. Such a document loads its
+                 own player and announces a seek hook once the first frame
+                 exists; wait for that (bounded) before positioning frames. */
+              const scripted = await page.evaluate(async () => {
+                if (window.__scReady) {
+                  await Promise.race([window.__scReady, new Promise((r) => setTimeout(r, 10000))]);
+                }
+                return typeof window.__scSeek === "function";
+              });
+
               // Freeze the timeline: from here every frame is positioned explicitly.
               await page.evaluate(() => {
                 document.getAnimations().forEach((a) => a.pause());
@@ -2040,9 +2099,10 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
 
               const step = c.dur / Math.max(1, n);
               for (let i = 0; i < n; i++) {
-                await page.evaluate((t) => {
+                await page.evaluate((t, useSeek) => {
+                  if (useSeek) window.__scSeek(t);
                   document.getAnimations().forEach((a) => { a.currentTime = t; });
-                }, i * step);
+                }, i * step, scripted);
                 await writeFrame(await page.screenshot({ type: "png", optimizeForSpeed: true }));
               }
             } finally {

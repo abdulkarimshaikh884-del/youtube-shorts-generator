@@ -25,13 +25,16 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091211">
-<link rel="stylesheet" href="/page.css?v=2026091211">
-<link rel="stylesheet" href="/redesign.css?v=2026091211">
+<link rel="stylesheet" href="/shell.css?v=2026091324">
+<link rel="stylesheet" href="/page.css?v=2026091324">
+<link rel="stylesheet" href="/redesign.css?v=2026091324">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091211">
+<link rel="stylesheet" href="/polish.css?v=2026091324">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
+
+<!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
+<link rel="stylesheet" href="/mobile.css?v=2026091324">
 </head>
 <body class="sh-body">
 
@@ -223,7 +226,7 @@
           <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
             <div class="sh-user-trigger-av" data-user-avatar>KA</div>
             <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-auth-email>Account</span>
+              <span class="sh-user-trigger-name" data-user-name>Account</span>
               <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
             </div>
             <span class="sh-user-trigger-arrow">▲</span>
@@ -233,7 +236,7 @@
     </div>
   </aside>
 
-  <div class="sh-main" id="main" role="main" tabindex="-1">
+  <div class="sh-main" id="main" tabindex="-1">
 
     <header class="sh-topbar" aria-label="Primary navigation">
       <button id="navBurger" type="button" aria-label="Menu" aria-expanded="false">
@@ -336,6 +339,13 @@
               </div>
 
               <div class="ig-actions-row">
+                <!-- Stars sit with the actions, not in the count row: it is
+                     the one figure here you act on (open it to see what you
+                     have left to give), so it belongs beside Edit profile. -->
+                <button type="button" class="ig-btn ig-btn-secondary ig-stars-btn" data-jump="stars" title="Stars received — open to see Stars you can give">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+                  <strong id="crStarsCount">0</strong><span>Stars</span>
+                </button>
                 <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
                 <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
               </div>
@@ -372,7 +382,6 @@
               <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
               <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
               <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
-              <li class="ig-stat"><button type="button" data-jump="stars"><strong id="crStarsCount">0</strong> <span>Stars received</span></button></li>
             </ul>
           </div>
         </header>
@@ -386,28 +395,17 @@
 
         <!-- Tabs.
 
-             "Saved & Drafts" held three cards that linked to /drafts,
-             /uploads and /editor - all three already rows in the rail, so
-             the tab was navigation wearing a tab's clothes. It is replaced
-             by the two things the plan asks this page to carry and it
-             never did: Stars (non-cash appreciation, monthly allowance)
-             and the user's own support history. -->
+             Followers, Following and Stars used to be tabs here as well as
+             counts in the header, and the counts were already buttons that
+             opened them. Two controls, side by side, doing one thing. The
+             counts won: a number you can open is the more useful of the two,
+             and it is the one that states a fact rather than just offering a
+             destination. Those three panels are still here, still reachable,
+             and they now say what they are and how to get back. -->
         <nav class="ig-tabs" role="tablist">
           <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
             <span>Creations</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabFollowers" data-ig-tab="followers" role="tab" aria-controls="igPaneFollowers" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
-            <span>Followers</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabFollowing" data-ig-tab="following" role="tab" aria-controls="igPaneFollowing" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6"/></svg>
-            <span>Following</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabStars" data-ig-tab="stars" role="tab" aria-controls="igPaneStars" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.4 12 18.1 5.8 21.4 7 14.5 2 9.6 8.9 8.6 12 2"/></svg>
-            <span>Stars</span>
           </button>
           <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -424,7 +422,7 @@
         </nav>
 
         <!-- Tab 1: published creations -->
-        <section class="ig-pane is-active" id="igPaneCreations" role="tabpanel" aria-labelledby="igTabCreations">
+        <section class="ig-pane is-active" id="igPaneCreations" data-ig-pane="creations" role="tabpanel" aria-labelledby="igTabCreations">
           <div class="ig-grid" id="userCreationsGrid">
             <!-- Rendered by authui.js -->
           </div>
@@ -436,13 +434,21 @@
              nothing behind them: no way to see who, and no way to follow
              back. These are the real lists, and each row carries the
              follow control so the list is somewhere you can act. -->
-        <section class="ig-pane" id="igPaneFollowers" role="tabpanel" aria-labelledby="igTabFollowers" hidden>
+        <section class="ig-pane" id="igPaneFollowers" data-ig-pane="followers" role="region" aria-labelledby="igHeadFollowers" hidden>
+          <header class="ig-pane-head">
+            <h2 id="igHeadFollowers">Followers</h2>
+            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+          </header>
           <div class="ig-people" id="followersList" data-kind="followers">
             <p class="ig-acc-sub">Loading…</p>
           </div>
         </section>
 
-        <section class="ig-pane" id="igPaneFollowing" role="tabpanel" aria-labelledby="igTabFollowing" hidden>
+        <section class="ig-pane" id="igPaneFollowing" data-ig-pane="following" role="region" aria-labelledby="igHeadFollowing" hidden>
+          <header class="ig-pane-head">
+            <h2 id="igHeadFollowing">Following</h2>
+            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+          </header>
           <div class="ig-people" id="followingList" data-kind="following">
             <p class="ig-acc-sub">Loading…</p>
           </div>
@@ -453,7 +459,11 @@
              The plan is explicit that Stars must never read as money while
              monetization is off, so the wording says so on the page rather
              than in a tooltip. -->
-        <section class="ig-pane" id="igPaneStars" role="tabpanel" aria-labelledby="igTabStars" hidden>
+        <section class="ig-pane" id="igPaneStars" data-ig-pane="stars" role="region" aria-labelledby="igHeadStars" hidden>
+          <header class="ig-pane-head">
+            <h2 id="igHeadStars">Stars</h2>
+            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+          </header>
           <div class="ig-account-grid">
             <article class="ig-account-card">
               <div class="ig-acc-head"><span class="ig-acc-lbl">Stars to give this month</span></div>
@@ -482,7 +492,7 @@
         </section>
 
         <!-- Tab 3: plan and credits -->
-        <section class="ig-pane" id="igPaneAccount" role="tabpanel" aria-labelledby="igTabAccount" hidden>
+        <section class="ig-pane" id="igPaneAccount" data-ig-pane="account" role="tabpanel" aria-labelledby="igTabAccount" hidden>
           <div class="ig-account-grid">
             <article class="ig-account-card ig-acc-highlight">
               <div class="ig-acc-head">
@@ -528,7 +538,7 @@
              The plan requires a signed-in user to be able to see their own
              tickets. The API existed; the page never asked for it, so the
              contact form was a one-way street. -->
-        <section class="ig-pane" id="igPaneSupport" role="tabpanel" aria-labelledby="igTabSupport" hidden>
+        <section class="ig-pane" id="igPaneSupport" data-ig-pane="support" role="tabpanel" aria-labelledby="igTabSupport" hidden>
           <div class="ig-support-head">
             <div>
               <h3>Your support requests</h3>
@@ -542,7 +552,7 @@
         </section>
 
         <!-- Tab 4: Edit Profile Form -->
-        <section class="ig-pane" id="igPaneEdit" role="tabpanel" aria-labelledby="igTabEdit" hidden>
+        <section class="ig-pane" id="igPaneEdit" data-ig-pane="edit" role="tabpanel" aria-labelledby="igTabEdit" hidden>
           <div class="ig-edit-container">
             <div class="ig-edit-header">
               <div class="ig-edit-av" id="pageAvatarPreview">KA</div>
@@ -679,8 +689,8 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091211" defer></script>
-<script src="/theme.js?v=2026091211" defer></script>
-<script src="/page.js?v=2026091211" defer></script>
-</body>
+<script src="/authui.js?v=2026091324" defer></script>
+<script src="/theme.js?v=2026091324" defer></script>
+<script src="/page.js?v=2026091324" defer></script>
+<script src="/templates-v2.js?v=2026091324"></script></body>
 </html>

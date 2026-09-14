@@ -10,7 +10,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "build": "node generate-favicons.js",
-    "test": "node verify_shell.js && node verify_editor.js && node verify_timeline.js && node verify_templates_v2.js && node verify_ai_definition.js && node verify_pages.js && node verify_mobile.js && node verify_auth.js && node verify_password_reset.js && node verify_export.js && node verify_credits.js && node verify_queue.js && node verify_social.js && node verify_projects.js && node verify_admin.js && node verify_support.js && node verify_skills.js && node verify_publish.js && node audit_overlap.js && node verify_contrast.js --quick",
+    "test": "node verify_shell.js && node verify_editor.js && node verify_timeline.js && node verify_templates_v2.js && node verify_ai_definition.js && node verify_pages.js && node verify_mobile.js && node verify_auth.js && node verify_password_reset.js && node verify_export.js && node verify_credits.js && node verify_queue.js && node verify_social.js && node verify_projects.js && node verify_admin.js && node verify_support.js && node verify_skills.js && node verify_publish.js && node verify_lottie.js && node audit_overlap.js && node verify_contrast.js --quick",
     "test:shell": "node verify_shell.js",
     "test:templates": "node verify_templates_v2.js",
     "test:export": "node verify_export.js",
@@ -34,7 +34,9 @@
     "audit:css": "node audit_css_conflicts.js",
     "audit:site": "node audit_site.js",
     "test:skills": "node verify_skills.js",
-    "test:publish": "node verify_publish.js"
+    "test:publish": "node verify_publish.js",
+    "test:lottie": "node verify_lottie.js",
+    "test:polish:offline": "node verify_polish_offline.js && node tests/polish-backend-offline.test.js && node tests/draft-sync-offline.test.js && node verify_ai_definition.js"
   },
   "license": "MIT",
   "type": "commonjs",
@@ -42,6 +44,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "4.22.2",
+    "fflate": "^0.8.2",
+    "lottie-web": "^5.12.2",
     "pg": "^8.23.0",
     "puppeteer": "^25.3.0",
     "sharp": "0.35.4"
