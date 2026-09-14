@@ -12,6 +12,7 @@ const mailer = require("./mailer");
 const paymentDelivery = require("./payment-delivery");
 
 const app = express();
+app.disable("x-powered-by");
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 
@@ -2282,6 +2283,11 @@ app.use((req, res) => {
 
 // ── Global error handler ────────────────────────────────────
 app.use((err, req, res, next) => {
+  // A request from another site's page, refused by the CORS policy. That is
+  // the policy working, not a server fault: answer 403 and keep the log clean.
+  if (err && err.message === "CORS blocked" && !res.headersSent) {
+    return res.status(403).json({ success: false, error: "Requests from other sites are not allowed." });
+  }
   console.error("[server error]", err);
   if (res.headersSent) return next(err);
   if (err && (err.status === 413 || err.type === "entity.too.large")) {

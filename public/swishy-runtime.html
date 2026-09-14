@@ -253,6 +253,9 @@
     
     let codeReceived = false;
     window.addEventListener("message", (e) => {
+      // The payload is executed as code on this origin, so only this site
+      // may send it. Any other page could open this one and post to it.
+      if (e.origin !== window.location.origin) return;
       const { type, payload } = e.data || {};
       if (type === "UPDATE_CODE") {
         codeReceived = true;

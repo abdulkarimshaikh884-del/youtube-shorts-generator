@@ -181,6 +181,9 @@
   body.sh-body .ig-actions-row .ig-btn { height: 36px; }
   body.sh-body .ig-tab-btn { padding: 10px 10px; font-size: 11.5px; }
   body.sh-body .ig-stat > button { min-height: 32px; padding: 4px 8px; font-size: 13px; }
+  /* The edit-profile avatar took its width from one stylesheet and its height
+     from another, and drew as a tall oval. One size, never squeezed. */
+  body.sh-body .ig-edit-av { width: 56px; height: 56px; flex: 0 0 56px; aspect-ratio: 1 / 1; background-size: cover; }
 
   /* ── Settings ─────────────────────────────────────────── */
   body.sh-body .st-row { min-height: 46px; padding: 9px 12px; }
