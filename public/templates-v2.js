@@ -601,7 +601,7 @@ window.SC_TPL2 = (function () {
         + '<div class="sw-fl-node n1"><div class="sw-fl-tag">' + esc(fromCode) + ' · ' + esc(from) + '</div></div>'
         + '<div class="sw-fl-node n2"><div class="sw-fl-tag">' + esc(toCode) + ' · ' + esc(to) + '</div></div>'
         + '<div class="sw-fl-plane">✈️</div>'
-        + '<div style="position:absolute;left:50%;bottom:9cqh;transform:translateX(-50%);padding:1cqh 4cqw;border-radius:999px;background:rgba(59,130,246,.16);border:1px solid rgba(96,165,250,.45);font:700 2.8cqw ui-monospace;color:#bfdbfe;white-space:nowrap">' + esc(flightNum) + ' · ' + esc(flightStatus) + '</div>'
+        + '<div style="position:absolute;left:50%;bottom:9cqh;transform:translateX(-50%);padding:1cqh 4cqw;border-radius:999px;background:rgba(59,130,246,.16);border:1px solid rgba(96,165,250,.45);font:700 2.8cqw ui-monospace,monospace;color:#bfdbfe;white-space:nowrap">' + esc(flightNum) + ' · ' + esc(flightStatus) + '</div>'
         + '</div>';
     }
   };
@@ -2888,7 +2888,7 @@ window.SC_TPL2 = (function () {
         + '<div class="sw-tog-info">'
         + '<div class="sw-tog-title">' + esc(title) + '</div>'
         + '<div class="sw-tog-sub">' + esc(sub) + '</div>'
-        + '<div style="margin-top:.7cqh;font:800 2.5cqw ui-monospace;color:var(--ac)">' + esc(status) + '</div>'
+        + '<div style="margin-top:.7cqh;font:800 2.5cqw ui-monospace,monospace;color:var(--ac)">' + esc(status) + '</div>'
         + '</div>'
         + '<div class="sw-tog-track"><div class="sw-tog-knob"></div></div>'
         + '</div></div>';

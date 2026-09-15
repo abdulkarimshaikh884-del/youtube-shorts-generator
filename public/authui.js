@@ -1930,7 +1930,7 @@
     if (existing || document.body.dataset.publishModalReady === "1") return;
     document.body.dataset.publishModalReady = "1";
 
-    var ENGINE_SRC = "/templates-v2.js?v=2026091305";
+    var ENGINE_SRC = "/templates-v2.js?v=2026091502";
     var CATEGORIES = [["text", "Kinetic text"], ["social", "Social media"], ["ui", "UI and devices"], ["charts", "Charts"], ["money", "Finance"], ["maps", "Maps and radar"], ["docu", "Documentary"], ["paper", "Paper craft"]];
     var ACCEPT = ".json,.zip,.lottie,application/json,application/zip";
 
