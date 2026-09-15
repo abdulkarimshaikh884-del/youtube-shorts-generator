@@ -3436,3 +3436,102 @@ body.sh-body .pg-formnote[data-bad="1"],
   #draftGrid .cr-cre-card:hover,
   #userCreationsGrid .cr-cre-card:hover { transform: none; }
 }
+
+/* ============================================================
+   Live notifications: the device switch and the arrival toast
+   15 September 2026
+   ============================================================ */
+.sh-push-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--sc-border);
+  background: var(--sc-surface-2);
+  color: var(--sc-muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.sh-push-row[hidden] { display: none; }
+.sh-push-row > span { flex: 1 1 auto; min-width: 0; }
+.sh-push-row > button {
+  flex: none;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--sc-text);
+  border-radius: 8px;
+  background: var(--sc-text);
+  color: var(--sc-canvas);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.sh-push-row > button[data-state="on"] { border-color: var(--sc-border); background: var(--sc-surface); color: var(--sc-text); }
+.sh-push-row > button[hidden] { display: none; }
+.st-push[hidden] { display: none; }
+.st-push .st-sub { white-space: normal; }
+
+.sh-live-toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(360px, calc(100vw - 24px));
+  padding: 10px 8px 10px 12px;
+  border: 1px solid var(--sc-border);
+  border-radius: 14px;
+  background: var(--sc-surface);
+  box-shadow: var(--sc-shadow-md);
+  color: var(--sc-text);
+  text-decoration: none;
+  animation: scToastIn .22s ease-out;
+}
+.sh-live-toast:hover { border-color: var(--sc-border-strong); color: var(--sc-text); }
+.sh-live-toast-av {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--sc-surface-3);
+  background-size: cover;
+  background-position: center;
+  color: var(--sc-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+.sh-live-toast-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.sh-live-toast-copy strong { font-weight: 650; }
+.sh-live-toast-close {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--sc-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sh-live-toast-close:hover { background: var(--sc-surface-2); color: var(--sc-text); }
+@keyframes scToastIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) {
+  .sh-live-toast { top: 60px; right: 8px; bottom: auto; width: calc(100vw - 16px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sh-live-toast { animation: none; }
+}

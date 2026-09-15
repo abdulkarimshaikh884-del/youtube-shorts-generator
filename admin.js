@@ -2,6 +2,7 @@
    permissions.js; the routes in server.js add no checks of their own. */
 const db = require("./db");
 const permissions = require("./permissions");
+const notify = require("./notify");
 
 const { can, isOwner } = permissions;
 function denied() { return { error: "You do not have access to this part of the admin console.", status: 403 }; }
@@ -90,6 +91,8 @@ async function updateContent(user, id, data) {
     [id, status, note]
   );
   await audit(user, "template_moderation", "template", id, before.rows[0], rows[0]);
+  // The creator hears the outcome, with the note, instead of discovering it.
+  await notify.templateModerated(user, before.rows[0], rows[0]);
   return { success: true, template: { id, status, reviewNote: note } };
 }
 

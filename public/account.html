@@ -25,16 +25,16 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091503">
-<link rel="stylesheet" href="/page.css?v=2026091503">
-<link rel="stylesheet" href="/redesign.css?v=2026091503">
+<link rel="stylesheet" href="/shell.css?v=2026091504">
+<link rel="stylesheet" href="/page.css?v=2026091504">
+<link rel="stylesheet" href="/redesign.css?v=2026091504">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091503">
+<link rel="stylesheet" href="/polish.css?v=2026091504">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026091503">
+<link rel="stylesheet" href="/mobile.css?v=2026091504">
 </head>
 <body class="sh-body">
 
@@ -268,6 +268,12 @@
         </button>
         <section class="sh-notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
           <header><strong>Notifications</strong><button type="button" id="notificationsReadBtn">Mark all read</button></header>
+          <!-- Phone and desktop notifications for this device. Filled in by
+               authui.js once it knows what this browser supports. -->
+          <div class="sh-push-row" data-push-row hidden>
+            <span id="pushPanelText">Get notifications on this device.</span>
+            <button type="button" id="pushPanelBtn">Turn on</button>
+          </div>
           <div id="notificationList"><p>Loading…</p></div>
           <!-- Only rendered when the list is actually longer than what is on
                screen, so the panel never offers to show more of nothing. -->
@@ -692,8 +698,8 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091503" defer></script>
-<script src="/theme.js?v=2026091503" defer></script>
-<script src="/page.js?v=2026091503" defer></script>
-<script src="/templates-v2.js?v=2026091503"></script></body>
+<script src="/authui.js?v=2026091504" defer></script>
+<script src="/theme.js?v=2026091504" defer></script>
+<script src="/page.js?v=2026091504" defer></script>
+<script src="/templates-v2.js?v=2026091504"></script></body>
 </html>

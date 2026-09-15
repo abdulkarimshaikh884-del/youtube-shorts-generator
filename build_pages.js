@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091503";
+const V = "2026091504";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -396,6 +396,12 @@ ${nav}
         </button>
         <section class="sh-notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
           <header><strong>Notifications</strong><button type="button" id="notificationsReadBtn">Mark all read</button></header>
+          <!-- Phone and desktop notifications for this device. Filled in by
+               authui.js once it knows what this browser supports. -->
+          <div class="sh-push-row" data-push-row hidden>
+            <span id="pushPanelText">Get notifications on this device.</span>
+            <button type="button" id="pushPanelBtn">Turn on</button>
+          </div>
           <div id="notificationList"><p>Loading…</p></div>
           <!-- Only rendered when the list is actually longer than what is on
                screen, so the panel never offers to show more of nothing. -->
@@ -2597,6 +2603,23 @@ const settings = {
             <span class="st-val"><span id="accCredits">—</span><span class="st-sub">Resets daily at 00:00 UTC</span></span>
           </div>
           <div class="st-row"><span class="st-key">Member since</span><span class="st-val" id="accSince">—</span></div>
+        </div>
+
+        <h2 class="st-label">Notifications</h2>
+        <div class="st-list">
+          <div class="st-row st-push" data-push-row hidden>
+            <span class="st-grow">
+              <strong>This device</strong>
+              <span class="st-sub" id="pushSettingsText">Get notifications on this device, even when ShortsCraft is closed.</span>
+            </span>
+            <button type="button" class="st-btn" id="pushSettingsBtn">Turn on</button>
+          </div>
+          <div class="st-row">
+            <span class="st-grow">
+              <strong>What you hear about</strong>
+              <span class="st-sub">Likes, comments and replies, new followers, Stars, support replies, and decisions on your templates and tutorials.</span>
+            </span>
+          </div>
         </div>
 
         <h2 class="st-label">Your work</h2>

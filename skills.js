@@ -15,6 +15,7 @@ const fs = require("fs");
 const path = require("path");
 const db = require("./db");
 const permissions = require("./permissions");
+const notify = require("./notify");
 
 const MAX_TITLE = 90;
 const MAX_SUMMARY = 220;
@@ -232,6 +233,7 @@ async function review(user, id, status, note) {
   if (!["published", "rejected", "pending"].includes(status)) {
     return { error: "A review sets the state to published, rejected or pending." };
   }
+  const before = await db.query(`select status from public.creator_skills where id = $1`, [String(id)]);
   const { rows } = await db.query(
     `update public.creator_skills
         set status = $2, review_note = $3, reviewed_at = now(), reviewed_by = $4,
@@ -242,7 +244,10 @@ async function review(user, id, status, note) {
   );
   if (!rows.length) return { error: "That tutorial no longer exists.", status: 404 };
   const after = await db.query(`${SELECT} where s.id = $1`, [rows[0].id]);
-  return { success: true, skill: toSkill(after.rows[0], user) };
+  const skill = toSkill(after.rows[0], user);
+  // The author is told when their video comes down, and why.
+  await notify.tutorialReviewed(user, skill, before.rows[0] && before.rows[0].status);
+  return { success: true, skill };
 }
 
 async function remove(user, id) {

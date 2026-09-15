@@ -215,9 +215,165 @@
   }
 
   function logout() {
-    fetch("/api/auth/logout", { method: "POST" })
+    // A phone left signed out must stop receiving this account's
+    // notifications, so the device is forgotten before the session ends.
+    PUSH.forget()
+      .catch(function () {})
+      .then(function () { return fetch("/api/auth/logout", { method: "POST" }); })
       .then(function () { location.href = "/"; })
       .catch(function () { location.reload(); });
+  }
+
+  /* ── Device notifications (Web Push) ─────────────────────────
+     Asks the browser for permission only when the person presses "Turn on".
+     The subscription is stored against the signed-in account; sw.js shows
+     what the server sends. */
+  var PUSH = (function () {
+    var supported = "serviceWorker" in navigator && "PushManager" in window &&
+      "Notification" in window && window.isSecureContext;
+    var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      navigator.standalone === true;
+
+    function keyBytes(base64) {
+      var pad = "=".repeat((4 - base64.length % 4) % 4);
+      var raw = atob((base64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+      var out = new Uint8Array(raw.length);
+      for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+      return out;
+    }
+    function sameKey(sub, bytes) {
+      var have = sub && sub.options && sub.options.applicationServerKey;
+      if (!have) return true;
+      have = new Uint8Array(have);
+      if (have.length !== bytes.length) return false;
+      for (var i = 0; i < have.length; i++) if (have[i] !== bytes[i]) return false;
+      return true;
+    }
+    function json(r) {
+      return r.json().then(function (j) {
+        if (!r.ok || !j.success) throw new Error(j.error || "Request failed.");
+        return j;
+      });
+    }
+    function existing() {
+      if (!supported) return Promise.resolve(null);
+      return navigator.serviceWorker.getRegistration("/").then(function (reg) {
+        return reg ? reg.pushManager.getSubscription() : null;
+      });
+    }
+    function save(sub) {
+      return fetch("/api/push/subscribe", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sub.toJSON())
+      }).then(json);
+    }
+    // Subscribe (or re-subscribe when the server's key changed) and store it.
+    function connect() {
+      return Promise.all([
+        navigator.serviceWorker.register("/sw.js", { scope: "/" }),
+        fetch("/api/push/key", { headers: { Accept: "application/json" } }).then(json)
+      ]).then(function (res) {
+        var bytes = keyBytes(res[1].publicKey);
+        return navigator.serviceWorker.ready.then(function (reg) {
+          return reg.pushManager.getSubscription().then(function (sub) {
+            if (sub && sameKey(sub, bytes)) return sub;
+            return (sub ? sub.unsubscribe() : Promise.resolve()).then(function () {
+              return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytes });
+            });
+          });
+        });
+      }).then(save);
+    }
+
+    return {
+      /* "unsupported" | "ios-install" | "denied" | "on" | "off" */
+      state: function () {
+        if (!supported) return Promise.resolve(ios && !standalone ? "ios-install" : "unsupported");
+        if (Notification.permission === "denied") return Promise.resolve("denied");
+        return existing().then(function (sub) {
+          return sub && Notification.permission === "granted" ? "on" : "off";
+        }).catch(function () { return "off"; });
+      },
+      enable: function () {
+        if (!supported) return Promise.reject(new Error("This browser cannot show notifications."));
+        return Promise.resolve(Notification.requestPermission()).then(function (p) {
+          if (p !== "granted") throw new Error(p === "denied"
+            ? "Notifications are blocked for this site in your browser settings."
+            : "Notifications were not allowed.");
+          return connect();
+        }).then(function () {
+          return fetch("/api/push/test", { method: "POST" }).catch(function () {});
+        });
+      },
+      disable: function () {
+        return existing().then(function (sub) {
+          if (!sub) return;
+          var endpoint = sub.endpoint;
+          return sub.unsubscribe().then(function () {
+            return fetch("/api/push/subscribe", {
+              method: "DELETE", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ endpoint: endpoint })
+            });
+          });
+        });
+      },
+      // Removes this device from the account without touching browser permission.
+      forget: function () {
+        return existing().then(function (sub) {
+          if (!sub) return;
+          return fetch("/api/push/subscribe", {
+            method: "DELETE", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ endpoint: sub.endpoint })
+          }).then(function () { return sub.unsubscribe(); });
+        });
+      },
+      // On every signed-in page: keep an allowed device attached to whoever
+      // is signed in now, with the server's current key.
+      refresh: function () {
+        if (!supported || Notification.permission !== "granted") return Promise.resolve();
+        return existing().then(function (sub) { if (sub) return connect(); }).catch(function () {});
+      }
+    };
+  })();
+
+  /* One control, used in the bell panel and on the Settings page. */
+  function bindPushControl(textEl, button) {
+    if (!textEl || !button || button.dataset.ready === "1") return;
+    button.dataset.ready = "1";
+    var COPY = {
+      "off": ["Get notifications on this device, even when ShortsCraft is closed.", "Turn on"],
+      "on": ["Notifications are on for this device.", "Turn off"],
+      "denied": ["Notifications are blocked for this site. Allow them in your browser's site settings.", ""],
+      "ios-install": ["On iPhone and iPad, add ShortsCraft to your Home Screen first (Share → Add to Home Screen), then turn notifications on from there.", ""],
+      "unsupported": ["This browser cannot show notifications.", ""]
+    };
+    var row = button.closest("[data-push-row]");
+    function show(state) {
+      var copy = COPY[state] || COPY.unsupported;
+      textEl.textContent = copy[0];
+      button.textContent = copy[1];
+      button.hidden = !copy[1];
+      button.dataset.state = state;
+      if (row) row.hidden = false;
+    }
+    function sync() { return PUSH.state().then(show); }
+    button.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      var turningOn = button.dataset.state !== "on";
+      button.disabled = true;
+      textEl.textContent = turningOn ? "Asking your browser…" : "Turning off…";
+      (turningOn ? PUSH.enable() : PUSH.disable())
+        .then(function () {
+          if (turningOn && window.SC_UI && SC_UI.toast) SC_UI.toast("Notifications are on. A test one is on its way.");
+        })
+        .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message); })
+        .then(sync)
+        .finally(function () { button.disabled = false; });
+    });
+    sync();
+    document.addEventListener("sc-push-changed", sync);
   }
 
   var currentUser = null;
@@ -576,6 +732,8 @@
     }
 
     function targetFor(item) {
+      // The server decides the link, the same one a phone notification opens.
+      if (item.url && item.url.charAt(0) === "/") return item.url;
       if (item.entityType === "creator" && item.actor && item.actor.handle) {
         return "/creator?handle=" + encodeURIComponent(item.actor.handle.replace(/^@/, ""));
       }
@@ -680,7 +838,89 @@
         body: JSON.stringify({})
       }).then(function () { updateBadge(0); return loadNotifications(); }).catch(function () {});
     });
-    loadNotifications();
+    /* Live: the bell keeps itself up to date while a page is open. It polls
+       the unread count (cheap), checks again the moment the tab comes back,
+       and hears from sw.js when a push arrives. A new item is announced with
+       a small toast rather than silently changing a number. */
+    var POLL_MS = Number(window.__scNotifyPollMs) || 30000;
+    var lastSeenId = null;
+    var firstTick = true;
+    var baseTitle = document.title.replace(/^\(\d+\+?\)\s+/, "");
+
+    function setTitleCount(n) {
+      document.title = (n > 0 ? "(" + (n > 99 ? "99+" : n) + ") " : "") + baseTitle;
+    }
+
+    function showToast(item) {
+      var old = document.getElementById("scLiveToast");
+      if (old) old.remove();
+      var toast = document.createElement("a");
+      toast.id = "scLiveToast";
+      toast.className = "sh-live-toast";
+      toast.href = item.url || "/account";
+      toast.setAttribute("role", "status");
+      var av = document.createElement("span");
+      av.className = "sh-live-toast-av";
+      var actor = item.actor;
+      av.textContent = actor ? String(actor.displayName || actor.handle || "SC").slice(0, 2).toUpperCase() : "SC";
+      if (actor && actor.avatarUrl) {
+        av.textContent = "";
+        av.style.backgroundImage = 'url("' + actor.avatarUrl + '")';
+      }
+      var copy = document.createElement("span");
+      copy.className = "sh-live-toast-copy";
+      var who = document.createElement("strong");
+      who.textContent = actor ? (actor.displayName || actor.handle || "Creator") : "ShortsCraft";
+      copy.appendChild(who);
+      copy.appendChild(document.createTextNode(" " + (item.message || "")));
+      var close = document.createElement("button");
+      close.type = "button";
+      close.className = "sh-live-toast-close";
+      close.setAttribute("aria-label", "Dismiss");
+      close.textContent = "×";
+      close.addEventListener("click", function (ev) { ev.preventDefault(); ev.stopPropagation(); toast.remove(); });
+      toast.appendChild(av);
+      toast.appendChild(copy);
+      toast.appendChild(close);
+      document.body.appendChild(toast);
+      setTimeout(function () { if (toast.parentNode) toast.remove(); }, 7000);
+    }
+
+    var ticking = false;
+    function tick() {
+      if (document.hidden || ticking) return;
+      ticking = true;
+      fetch("/api/notifications/unread", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || !j.success) return;
+          updateBadge(j.unread);
+          setTitleCount(j.unread);
+          var latest = j.latest;
+          if (!firstTick && latest && latest.id !== lastSeenId) {
+            if (!panel.hidden) loadNotifications();
+            else showToast(latest);
+          }
+          lastSeenId = latest ? latest.id : lastSeenId;
+          firstTick = false;
+        })
+        .catch(function () {})
+        .finally(function () { ticking = false; });
+    }
+
+    if (readButton) readButton.addEventListener("click", function () { setTitleCount(0); });
+    tick();
+    setInterval(tick, POLL_MS);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
+    window.addEventListener("focus", tick);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.addEventListener("message", function (ev) {
+        if (ev.data && ev.data.type === "sc-notification") tick();
+      });
+    }
+
+    bindPushControl($("#pushPanelText"), $("#pushPanelBtn"));
+    PUSH.refresh();
   }
 
   /* Close the menu panel when someone taps outside it. shell.js (home) and
@@ -2455,6 +2695,7 @@
         setupPageProfileForm();
         setupAvatarUpload();
         setupNotifications();
+        if (currentUser) bindPushControl($("#pushSettingsText"), $("#pushSettingsBtn"));
         setupStars();
         setupUploadModal();
       })

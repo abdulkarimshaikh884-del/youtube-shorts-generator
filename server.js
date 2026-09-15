@@ -212,6 +212,9 @@ app.use(
     maxAge: NODE_ENV === "production" ? "7d" : 0,
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".html")) res.setHeader("Cache-Control", "no-cache, must-revalidate");
+      // The service worker decides how notifications are shown; a cached copy
+      // would keep an old one running for a week after a deploy.
+      if (filePath.endsWith(path.sep + "sw.js")) res.setHeader("Cache-Control", "no-cache, must-revalidate");
       if (/favicon|apple-touch-icon|android-chrome|site\.webmanifest/i.test(filePath)) {
         res.setHeader("Cache-Control", "no-cache, must-revalidate");
       }
@@ -228,6 +231,7 @@ app.use(
 // local store. Auth runs BEFORE credits so a signed-in visitor is billed against
 // their account instead of an anonymous cookie.
 const auth = require("./auth");
+const notify = require("./notify");
 // Express 4 does not await an async middleware's own promise — it only
 // reacts to next() being called — so an unhandled rejection inside
 // auth.middleware would surface as a silent hang, not a 500. Wrapping it
@@ -246,6 +250,9 @@ app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), async 
     const out = await auth.signUp(res, email, password, handle);
     if (out.error) return res.status(400).json({ success: false, error: out.error });
     console.log("[auth] new account · total", await auth.count());
+    // A welcome in the new account's bell, and word to the owner. Neither may
+    // stand between a person and the account they just made.
+    notify.welcome(out.user).then(notify.schedule).catch((err) => console.error("[notify] welcome", err.message));
     return res.json({ success: true, user: out.user });
   } catch (err) {
     console.error("[/api/auth/signup]", err.message);
@@ -440,6 +447,16 @@ const skills = require("./skills");
 const lottie = require("./lottie");
 app.use(credits.middleware);
 
+// A request that changed something may have created notifications. Deliver
+// them to phones and browsers straight away rather than on the next sweep.
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
+    res.on("finish", () => { if (res.statusCode < 400) notify.schedule(); });
+  }
+  next();
+});
+notify.start();
+
 app.get("/api/credits", async (req, res) => {
   try {
     res.set("Cache-Control", "no-store");
@@ -502,6 +519,7 @@ app.post("/api/skills", rateLimit({ windowMs: 60_000, max: 10 }), async (req, re
   try {
     const out = await skills.submit(req.user, req.body);
     if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+    await notify.tutorialShared(req.user, out.skill).catch((err) => console.error("[notify] tutorial", err.message));
     return res.json(out);
   } catch (err) {
     console.error("[POST /api/skills]", err.message);
@@ -656,6 +674,7 @@ app.post("/api/community-templates", express.json(), async (req, res) => {
     }
     const result = await community.publish(req.body, req.user);
     if (result.error) return res.status(400).json({ success: false, error: result.error });
+    await notify.templatePublished(req.user, result.template).catch((err) => console.error("[notify] template", err.message));
     res.json(result);
   } catch (err) {
     console.error("[POST /api/community-templates]", err.message);
@@ -781,6 +800,48 @@ app.get("/api/notifications", async (req, res) => {
   return res.json(out);
 });
 
+// The bell polls this while a page is open.
+app.get("/api/notifications/unread", async (req, res) => {
+  const out = await social.unreadSummary(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  res.set("Cache-Control", "no-store");
+  return res.json(out);
+});
+
+/* Device notifications (Web Push). The public key is what a browser needs to
+   subscribe; subscriptions belong to the signed-in account. */
+app.get("/api/push/key", async (req, res) => {
+  try {
+    const keys = await notify.vapidKeys();
+    res.set("Cache-Control", "no-store");
+    return res.json({ success: true, publicKey: keys.publicKey, devices: await notify.deviceCount(req.user) });
+  } catch (err) {
+    console.error("[push] key", err.message);
+    return res.status(503).json({ success: false, error: "Notifications are not available right now." });
+  }
+});
+
+app.post("/api/push/subscribe", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+  const out = await notify.subscribe(req.user, req.body, req.get("user-agent"));
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.delete("/api/push/subscribe", async (req, res) => {
+  const out = await notify.unsubscribe(req.user, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+// "Send a test" after switching notifications on, so the person sees one arrive.
+app.post("/api/push/test", rateLimit({ windowMs: 60_000, max: 3 }), async (req, res) => {
+  if (!req.user || !req.user.id) return res.status(401).json({ success: false, error: "Please log in first." });
+  await notify.toUser(null, req.user.id, {
+    type: "system", entityType: "device", message: "Notifications are on for this device."
+  });
+  return res.json({ success: true });
+});
+
 app.patch("/api/notifications/read", async (req, res) => {
   const out = await social.markNotificationsRead(req.user, req.body?.ids);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
@@ -817,6 +878,7 @@ app.post("/api/comments", express.json(), async (req, res) => {
     if (!text) return res.status(400).json({ success: false, error: "Comment text is required." });
     const newC = await comments.addComment(tplId, req.body, req.user);
     await social.notifyTemplateComment(tplId, req.user, text);
+    await notify.commentReplied(req.user, newC, tplId).catch((err) => console.error("[notify] reply", err.message));
     res.json({ success: true, comment: newC });
   } catch (err) {
     console.error("[POST /api/comments]", err.message);

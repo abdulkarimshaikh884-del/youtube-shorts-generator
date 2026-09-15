@@ -1,6 +1,7 @@
 /* Durable support tickets shared by the creator portal and the admin console. */
 const db = require("./db");
 const permissions = require("./permissions");
+const notify = require("./notify");
 
 const CATEGORIES = new Set(["account", "billing", "export", "template", "report", "other"]);
 const STATUSES = new Set(["open", "waiting_on_user", "in_progress", "resolved", "closed"]);
@@ -65,15 +66,10 @@ async function createTicket(user, data) {
     );
     // Whoever answers support hears about it at once, in the notification
     // bell, instead of finding it only by opening the admin console.
-    await client.query(
-      `insert into public.notifications (user_id, actor_id, type, entity_type, entity_id, message)
-       select u.id, $1, 'system', 'support_ticket', $2, $3
-         from public.users u
-        where (u.role = 'super_admin'
-               or (u.role = 'moderator' and 'support.reply' = any(u.staff_permissions)))
-          and u.id is distinct from $1`,
-      [user?.id || null, ticket.id, `New feedback: ${subject}`.slice(0, 180)]
-    );
+    await notify.toStaff(client, "support.reply", {
+      actorId: user?.id || null, entityType: "support_ticket", entityId: ticket.id,
+      message: `New feedback: ${subject}`
+    });
     return { success: true, ticket: publicTicket(ticket) };
   });
 }

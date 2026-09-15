@@ -7,6 +7,7 @@
    ============================================================ */
 const crypto = require("crypto");
 const db = require("./db");
+const notify = require("./notify");
 const { PLANS } = require("./credits");
 
 const REACTIONS = new Set(["like", "save"]);
@@ -427,9 +428,11 @@ async function listNotifications(user, limit = 30) {
   const safeLimit = Math.min(Math.max(Number(limit) || 30, 1), 50);
   const { rows } = await db.query(
     `select n.*, u.display_name as actor_name, u.handle as actor_handle,
-            u.verified as actor_verified, (u.avatar_bytes is not null) as actor_has_avatar
+            u.verified as actor_verified, (u.avatar_bytes is not null) as actor_has_avatar,
+            ct.tpl as tpl
        from public.notifications n
        left join public.users u on u.id = n.actor_id
+       left join public.community_templates ct on n.entity_type = 'template' and ct.id = n.entity_id
       where n.user_id = $1
       order by n.created_at desc limit $2`,
     [user.id, safeLimit]
@@ -453,6 +456,8 @@ async function listNotifications(user, limit = 30) {
       entityType: row.entity_type,
       entityId: row.entity_id,
       message: row.message,
+      // Where tapping it goes: the same link a phone notification opens.
+      url: notify.urlFor(row),
       read: Boolean(row.read_at),
       createdAt: row.created_at,
       actor: row.actor_id ? {
@@ -463,6 +468,41 @@ async function listNotifications(user, limit = 30) {
         avatarUrl: row.actor_has_avatar ? `/api/users/${encodeURIComponent(row.actor_id)}/avatar` : ""
       } : null
     }))
+  };
+}
+
+/* What the bell polls while a page is open: the unread count and the newest
+   unread item, so a new one can be announced without fetching the list. */
+async function unreadSummary(user) {
+  if (!user || !user.id) return { error: "Please log in first.", status: 401 };
+  const { rows } = await db.query(
+    `select n.*, u.display_name as actor_name, u.handle as actor_handle,
+            (u.avatar_bytes is not null) as actor_has_avatar, ct.tpl as tpl,
+            (select count(*)::int from public.notifications x
+              where x.user_id = $1 and x.read_at is null) as unread
+       from public.notifications n
+       left join public.users u on u.id = n.actor_id
+       left join public.community_templates ct on n.entity_type = 'template' and ct.id = n.entity_id
+      where n.user_id = $1 and n.read_at is null
+      order by n.created_at desc limit 1`,
+    [user.id]
+  );
+  const row = rows[0];
+  return {
+    success: true,
+    unread: row ? row.unread : 0,
+    latest: row ? {
+      id: row.id,
+      type: row.type,
+      message: row.message,
+      url: notify.urlFor(row),
+      createdAt: row.created_at,
+      actor: row.actor_id ? {
+        displayName: row.actor_name || "Creator",
+        handle: row.actor_handle || "",
+        avatarUrl: row.actor_has_avatar ? `/api/users/${encodeURIComponent(row.actor_id)}/avatar` : ""
+      } : null
+    } : null
   };
 }
 
@@ -501,6 +541,6 @@ module.exports = {
   setReaction, reactionState, discoveryMetrics, recordEvent,
   setFollow, followSummary,
   starSummary, donateStars,
-  listNotifications, markNotificationsRead,
+  listNotifications, unreadSummary, markNotificationsRead,
   notifyTemplateComment, resolveUser, listFollows
 };
