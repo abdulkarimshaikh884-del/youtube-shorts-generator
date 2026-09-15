@@ -112,37 +112,46 @@
       var card = document.createElement("article");
       card.className = "cr-cre-card";
 
+      var openUrl = "/editor?draft=" + encodeURIComponent(d.id);
+      var name = d.name || "Untitled animation";
+
+      // The whole preview opens the project, as a template tile does on the
+      // home page; the buttons underneath are for renaming and deleting.
       var prev = document.createElement("div");
       prev.className = "cr-cre-preview";
       var f = preview(d);
       if (f) prev.appendChild(f);
+      var hit = document.createElement("a");
+      hit.className = "cr-cre-hit";
+      hit.href = openUrl;
+      hit.setAttribute("aria-label", "Open " + name);
+      prev.appendChild(hit);
       card.appendChild(prev);
 
       var body = document.createElement("div");
       body.className = "cr-cre-body";
       body.innerHTML =
-        '<h3 class="cr-cre-title">' + esc(d.name || "Untitled animation") + "</h3>" +
-        '<p class="cr-cre-sub">' +
+        '<h3 class="cr-cre-title" title="' + esc(name) + '">' + esc(name) + "</h3>" +
+        '<p class="cr-cre-meta">' +
           clips.length + (clips.length === 1 ? " clip" : " clips") +
           " · " + fmtDur(SC_DRAFTS.totalMs(d)) +
-          " · " + esc(d.aspect || "9:16") +
-        "</p>" +
-        '<p class="cr-cre-sub">Edited ' + esc(fmtWhen(d.updatedAt)) + "</p>";
+          " · edited " + esc(fmtWhen(d.updatedAt)) +
+        "</p>";
 
       var row = document.createElement("div");
       row.className = "cr-cre-actions";
 
       var open = document.createElement("a");
-      open.className = "cr-cre-btn-open";
-      open.href = "/editor?draft=" + encodeURIComponent(d.id);
-      open.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Open</span>';
+      open.className = "cr-cre-open";
+      open.href = openUrl;
+      open.textContent = "Open";
 
       var ren = document.createElement("button");
       ren.type = "button";
-      ren.className = "cr-cre-btn-ren";
-      ren.title = "Rename Project";
-      ren.setAttribute("aria-label", "Rename Project");
-      ren.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> <span>Rename</span>';
+      ren.className = "cr-cre-icon cr-cre-ren";
+      ren.title = "Rename project";
+      ren.setAttribute("aria-label", "Rename " + name);
+      ren.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
       ren.addEventListener("click", function () {
         SC_UI.prompt({
           title: "Rename this project",
@@ -160,14 +169,14 @@
 
       var del = document.createElement("button");
       del.type = "button";
-      del.className = "cr-cre-btn-del";
-      del.title = "Delete Project";
-      del.setAttribute("aria-label", "Delete Project");
-      del.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+      del.className = "cr-cre-icon cr-cre-del";
+      del.title = "Delete project";
+      del.setAttribute("aria-label", "Delete " + name);
+      del.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
       del.addEventListener("click", function () {
         SC_UI.confirm({
           title: "Delete this project?",
-          body: "“" + (d.name || "Untitled animation") + "” is saved in this browser only, so deleting it cannot be undone.",
+          body: "“" + name + "” is removed from your account and from this browser. This cannot be undone.",
           confirmLabel: "Delete",
           danger: true
         }).then(function (yes) {

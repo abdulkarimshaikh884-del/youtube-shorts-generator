@@ -903,6 +903,20 @@ body.pg-auth-page {
 .admin-reply-form { display: grid; gap: 8px; }
 .admin-ticket-state { display: flex; gap: 8px; margin-top: 12px; }
 .admin-flag-row > input { width: 20px; height: 20px; accent-color: var(--sh-accent); }
+/* Staff access: search, the Manage access button and its editor. */
+.admin-search { width: 100%; max-width: 420px; height: 40px; margin: 0 0 12px; padding: 0 12px; border: 1px solid var(--sh-line); border-radius: 10px; background: var(--sh-bg2); color: var(--sh-ink); font: inherit; }
+.admin-manage { flex: none; white-space: nowrap; }
+.admin-access { display: grid; gap: 10px; margin: -2px 0 6px; padding: 16px; border: 1px solid var(--sh-line2); border-radius: 14px; background: var(--sh-bg2); }
+.admin-access > strong { color: var(--sh-ink); }
+.admin-access > p { margin: 0; }
+.admin-access-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; }
+.admin-access-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--sh-line); border-radius: 10px; background: var(--sh-bg); cursor: pointer; }
+.admin-access-item input { flex: none; width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--sh-accent); }
+.admin-access-item span { display: grid; gap: 2px; }
+.admin-access-item b { color: var(--sh-ink); font-size: 14px; font-weight: 650; }
+.admin-access-item small { color: var(--sh-ink3); font-size: 12.5px; line-height: 1.4; }
+.admin-access-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-access-remove { color: var(--sc-danger, #d33); }
 .creator-studio-stats { margin-bottom: 34px; }
 .creator-studio-tools { margin-top: 42px; }
 
@@ -3310,3 +3324,115 @@ body.sh-body .pg-formnote[data-bad="1"],
 }
 .sk-head h1 { margin: 0; font-size: clamp(26px, 2.6vw, 32px); }
 .sh-hero h1 { margin-bottom: 0; }
+
+/* ============================================================
+   Project and creation cards: the gallery tile — 15 September 2026
+   ============================================================ */
+/* My Projects and the profile's Creations had a card of their own: a
+   full-bleed preview on a white slab with a row of large buttons, bigger
+   and heavier than the template tiles on the home page. Both now take the
+   tile's frame, grid and type, with small actions underneath, and the
+   preview itself opens the item. */
+#draftGrid,
+#userCreationsGrid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 18px 14px;
+  justify-content: stretch;
+  align-items: start;
+}
+@media (max-width: 540px) {
+  #draftGrid,
+  #userCreationsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+#draftGrid > :not(.cr-cre-card),
+#userCreationsGrid > :not(.cr-cre-card) { grid-column: 1 / -1; }
+
+#draftGrid .cr-cre-card,
+#userCreationsGrid .cr-cre-card {
+  padding: 8px;
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  background: var(--sc-surface);
+  box-shadow: none;
+}
+#draftGrid .cr-cre-card:hover,
+#userCreationsGrid .cr-cre-card:hover {
+  border-color: var(--sc-border-strong);
+  box-shadow: var(--sc-shadow-md);
+  transform: translateY(-2px);
+}
+#draftGrid .cr-cre-preview,
+#userCreationsGrid .cr-cre-preview {
+  aspect-ratio: 9 / 16;
+  border: 0;
+  border-radius: var(--sc-radius);
+}
+.cr-cre-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+}
+.cr-cre-hit:focus-visible { outline: 2px solid var(--sc-text); outline-offset: -3px; }
+#draftGrid .cr-cre-preview .cr-cre-state,
+#userCreationsGrid .cr-cre-preview .cr-cre-state { z-index: 3; pointer-events: none; }
+#draftGrid .cr-cre-body,
+#userCreationsGrid .cr-cre-body { gap: 2px; padding: 10px 3px 2px; }
+#draftGrid .cr-cre-title,
+#userCreationsGrid .cr-cre-title { font-size: 13.5px; }
+#draftGrid .cr-cre-meta,
+#userCreationsGrid .cr-cre-meta {
+  display: block;
+  margin: 0;
+  overflow: hidden;
+  color: var(--sc-muted);
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#draftGrid .cr-cre-actions,
+#userCreationsGrid .cr-cre-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+#draftGrid .cr-cre-open,
+#userCreationsGrid .cr-cre-open {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--sc-border);
+  border-radius: 8px;
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+  font-size: 12.5px;
+  font-weight: 650;
+  text-decoration: none;
+}
+#draftGrid .cr-cre-open:hover,
+#userCreationsGrid .cr-cre-open:hover { background: var(--sc-surface-3); color: var(--sc-text); opacity: 1; }
+#draftGrid .cr-cre-icon,
+#userCreationsGrid .cr-cre-icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 8px;
+}
+#draftGrid .cr-cre-icon svg,
+#userCreationsGrid .cr-cre-icon svg { width: 14px; height: 14px; }
+@media (prefers-reduced-motion: reduce) {
+  #draftGrid .cr-cre-card:hover,
+  #userCreationsGrid .cr-cre-card:hover { transform: none; }
+}

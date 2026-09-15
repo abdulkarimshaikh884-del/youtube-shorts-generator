@@ -1,13 +1,16 @@
 /* Durable support tickets shared by the creator portal and the admin console. */
 const db = require("./db");
+const permissions = require("./permissions");
 
 const CATEGORIES = new Set(["account", "billing", "export", "template", "report", "other"]);
 const STATUSES = new Set(["open", "waiting_on_user", "in_progress", "resolved", "closed"]);
 const PRIORITIES = new Set(["low", "normal", "high", "urgent"]);
 const validId = (id) => typeof id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
+/* Staff who answer feedback and support: the owner, and anyone the owner
+   granted support.reply. */
 function isAdmin(user) {
-  return Boolean(user && ["moderator", "admin", "super_admin"].includes(user.role));
+  return permissions.can(user, "support.reply");
 }
 
 function publicTicket(row) {
@@ -59,6 +62,17 @@ async function createTicket(user, data) {
       `insert into public.support_messages (ticket_id, author_id, author_role, body)
        values ($1, $2, 'user', $3)`,
       [ticket.id, user?.id || null, name ? `${name}\n\n${message}` : message]
+    );
+    // Whoever answers support hears about it at once, in the notification
+    // bell, instead of finding it only by opening the admin console.
+    await client.query(
+      `insert into public.notifications (user_id, actor_id, type, entity_type, entity_id, message)
+       select u.id, $1, 'system', 'support_ticket', $2, $3
+         from public.users u
+        where (u.role = 'super_admin'
+               or (u.role = 'moderator' and 'support.reply' = any(u.staff_permissions)))
+          and u.id is distinct from $1`,
+      [user?.id || null, ticket.id, `New feedback: ${subject}`.slice(0, 180)]
     );
     return { success: true, ticket: publicTicket(ticket) };
   });
@@ -151,7 +165,7 @@ async function addMessage(user, id, body) {
 }
 
 async function listAdmin(user, filters = {}) {
-  if (!isAdmin(user)) return { error: "Admin access required.", status: 403 };
+  if (!isAdmin(user)) return { error: "You do not have access to support tickets.", status: 403 };
   const status = STATUSES.has(String(filters.status)) ? String(filters.status) : null;
   const { rows } = await db.query(
     `select st.*, count(sm.id)::int as message_count
@@ -168,7 +182,7 @@ async function listAdmin(user, filters = {}) {
 }
 
 async function updateAdmin(user, id, data) {
-  if (!isAdmin(user)) return { error: "Admin access required.", status: 403 };
+  if (!isAdmin(user)) return { error: "You do not have access to support tickets.", status: 403 };
   if (!validId(id)) return { error: "Ticket not found.", status: 404 };
   const status = STATUSES.has(String(data?.status)) ? String(data.status) : null;
   const priority = PRIORITIES.has(String(data?.priority)) ? String(data.priority) : null;

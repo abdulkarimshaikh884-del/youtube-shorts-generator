@@ -35,7 +35,9 @@ function pass(label) { console.log("PASS " + label); }
     const owner = await fixture("owner");
     const other = await fixture("other");
     const staff = await fixture("staff");
-    await db.query("update public.users set role = 'admin' where id = $1", [staff.id]);
+    // Staff are appointed with a permission, not a bare role: this one may
+    // answer support and nothing else.
+    await db.query("update public.users set role = 'moderator', staff_permissions = '{support.reply}' where id = $1", [staff.id]);
     const made = await call(owner, "POST", "/api/support/tickets", {
       name: "Support QA", subject: "Export help", category: "export", message: "My exported video needs review. <script>bad()</script>"
     });

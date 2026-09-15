@@ -168,9 +168,10 @@
   body.sh-body .sh-m-comm-btn { height: 34px; }
 
   /* ── Pricing ──────────────────────────────────────────── */
-  body.sh-body .pg-calc { padding: 14px; gap: 12px; }
-  body.sh-body .pg-calc h2,
-  body.sh-body #calcHead { font-size: 17px; }
+  /* On a phone the plans come first. The posts-per-day calculator filled the
+     whole first screen before a single price was visible; it stays on larger
+     screens, where it sits beside the plans instead of in front of them. */
+  body.sh-body .pg-calc { display: none; }
   body.sh-body .pg-plan { padding: 16px; }
   body.sh-body .pg-billing-switch { height: 38px; }
   body.sh-body .pg-billing-switch button { height: 30px; font-size: 12.5px; }
@@ -190,7 +191,7 @@
   body.sh-body .st-key,
   body.sh-body .st-val { font-size: 13.5px; }
 
-  /* ── Creator Skills ───────────────────────────────────── */
+  /* ── Creator Tutorials ───────────────────────────────────── */
   body.sh-body .sk-head { padding: 16px 14px 8px; gap: 10px; }
   body.sh-body .sk-empty { margin: 6px 14px 20px; padding: 24px 16px; }
   body.sh-body .sk-empty h3 { font-size: 16px; }

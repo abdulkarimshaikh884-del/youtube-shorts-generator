@@ -1510,6 +1510,19 @@ app.get("/api/admin/users", async (req, res) => {
   return res.json(out);
 });
 
+// Staff: the owner appoints people and chooses exactly what they may do.
+app.get("/api/admin/staff", async (req, res) => {
+  const out = await admin.listStaff(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.patch("/api/admin/users/:id/staff", async (req, res) => {
+  const out = await admin.setStaff(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
 app.get("/api/admin/templates", async (req, res) => {
   const out = await admin.listContent(req.user);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });

@@ -10,6 +10,7 @@
    ============================================================ */
 const crypto = require("crypto");
 const db = require("./db");
+const permissions = require("./permissions");
 const inspector = require("./public/lottie-inspect.js");
 
 const ID_RE = /^[A-Za-z0-9_-]{16,64}$/;
@@ -73,7 +74,7 @@ async function getMeta(id) {
 async function assertPublishable(id, user) {
   const row = await getMeta(id);
   if (!row) return { error: "That upload no longer exists. Upload the file again." };
-  const admin = user && (user.role === "admin" || user.role === "super_admin");
+  const admin = permissions.can(user, "templates.moderate");
   if (!admin && row.owner_id !== user.id) return { error: "You can only publish animations you uploaded." };
   return { meta: row.meta };
 }

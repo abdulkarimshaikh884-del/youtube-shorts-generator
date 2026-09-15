@@ -14,6 +14,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const db = require("./db");
+const permissions = require("./permissions");
 
 const MAX_TITLE = 90;
 const MAX_SUMMARY = 220;
@@ -104,7 +105,7 @@ function thumbnailFor(platform, key) {
 
 function toSkill(row, viewer) {
   const mine = !!(viewer && viewer.id && row.author_id && viewer.id === row.author_id);
-  const admin = !!(viewer && (viewer.role === "admin" || viewer.role === "super_admin"));
+  const admin = permissions.can(viewer, "tutorials.moderate");
   return {
     id: row.id,
     title: row.title,
@@ -223,7 +224,7 @@ async function listForReview(user, status = "published") {
 
 /* ── Moderation ───────────────────────────────────────── */
 function isAdmin(user) {
-  return Boolean(user && (user.role === "admin" || user.role === "super_admin"));
+  return permissions.can(user, "tutorials.moderate");
 }
 
 async function review(user, id, status, note) {

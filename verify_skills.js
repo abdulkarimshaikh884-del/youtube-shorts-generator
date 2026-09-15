@@ -79,7 +79,8 @@ function fakeYouTubeKey() {
     const author = await fixture("author");
     const other = await fixture("other");
     const staff = await fixture("staff");
-    await db.query("update public.users set role = 'admin' where id = $1", [staff.id]);
+    // An admin appointed to moderate tutorials, and only that.
+    await db.query("update public.users set role = 'moderator', staff_permissions = '{tutorials.moderate}' where id = $1", [staff.id]);
 
     const guest = await call(null, "POST", "/api/skills",
       { url: `https://youtu.be/${key}`, title: "Guest attempt" });

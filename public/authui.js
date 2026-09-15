@@ -58,8 +58,11 @@
   function paint(user) {
     all('[data-auth="in"]').forEach(function (el) { show(el, !!user); });
     all('[data-auth="out"]').forEach(function (el) { show(el, !user); });
+    // The owner and anyone the owner gave admin permissions. The server
+    // checks every admin request again; this only decides what is shown.
     all('[data-auth="admin"]').forEach(function (el) {
-      show(el, !!user && (user.role === "admin" || user.role === "super_admin"));
+      show(el, !!user && (user.role === "super_admin" ||
+        (Array.isArray(user.permissions) && user.permissions.length > 0)));
     });
 
     var uname = user ? (String(user.email).split("@")[0] || "creator") : "Account";
@@ -578,6 +581,9 @@
       }
       if (item.entityType === "template") return "/community";
       if (item.type === "support_reply") return "/contact?ticket=" + encodeURIComponent(item.entityId) + "#supportHistory";
+      // New feedback for the people who answer it, and admin access changes.
+      if (item.entityType === "support_ticket") return "/admin#support";
+      if (item.entityType === "admin") return "/admin";
       return "/account";
     }
 
@@ -812,6 +818,12 @@
           pill.className = "cr-cre-state is-" + o.status;
           pill.textContent = o.statusText;
           prev.appendChild(pill);
+          // The preview opens the template in the Studio, like a gallery tile.
+          var hit = document.createElement("a");
+          hit.className = "cr-cre-hit";
+          hit.href = o.editUrl;
+          hit.setAttribute("aria-label", "Open " + o.title + " in Studio");
+          prev.appendChild(hit);
 
           var body = document.createElement("div");
           body.className = "cr-cre-body";
@@ -828,7 +840,8 @@
           var open = document.createElement("a");
           open.className = "cr-cre-open";
           open.href = o.editUrl;
-          open.textContent = "Open in Studio";
+          open.textContent = "Open";
+          open.setAttribute("aria-label", "Open " + o.title + " in Studio");
           acts.appendChild(open);
           if (o.shareUrl) {
             var share = document.createElement("button");

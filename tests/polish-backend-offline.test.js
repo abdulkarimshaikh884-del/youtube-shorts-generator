@@ -62,7 +62,7 @@ async function run() {
       return result;
     }
   };
-  const auth = load("auth.js", { "./db": db, sharp: () => { throw Error("No image processing in test"); } });
+  const auth = load("auth.js", { "./db": db, "./permissions": require("../permissions"), sharp: () => { throw Error("No image processing in test"); } });
   const credits = load("credits.js", { "./db": db });
   const delivery = load("payment-delivery.js", { "./db": db, "./auth": auth, "./credits": credits });
   const req = { user: { id: "owner", plan: "free" }, credits: { key: "u:owner" } };

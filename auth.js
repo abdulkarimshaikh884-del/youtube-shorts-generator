@@ -17,6 +17,7 @@
 const crypto = require("crypto");
 const sharp = require("sharp");
 const db = require("./db");
+const permissions = require("./permissions");
 
 const COOKIE = "sc_sid";
 const SESSION_DAYS = 30;
@@ -91,6 +92,11 @@ function publicUser(row) {
     location: row.location || "",
     verified: isVerified(row),
     role: row.role || "user",
+    // What this account may do in the admin console. The owner gets every
+    // key; staff get what the owner granted; everyone else an empty list.
+    // Computed from the row on every request, never taken from the client.
+    staffPermissions: Array.isArray(row.staff_permissions) ? row.staff_permissions : [],
+    permissions: permissions.permissionsOf(row),
     billingCycle: row.billing_cycle || null,
     avatarUrl: row.avatar_bytes ? `/api/users/${encodeURIComponent(row.id)}/avatar` : "",
     stars: Number(row.stars) || 0

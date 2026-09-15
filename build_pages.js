@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091502";
+const V = "2026091503";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -65,11 +65,9 @@ const SOCIAL = [
     icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>'
   },
   {
-    key: "telegram", label: "Telegram", handle: "Tech Vault",
-    // Set this to the channel's public t.me link to switch the icon on.
-    // Left empty on purpose: a guessed URL could point at someone else's
-    // channel, which is worse than the icon simply not being there yet.
-    href: "",
+    key: "telegram", label: "Telegram", handle: "@techvault90",
+    // The Tech Vault channel, as linked from the YouTube channel itself.
+    href: "https://t.me/techvault90",
     icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 4.3 18.7 19c-.24 1.07-.88 1.33-1.78.83l-4.92-3.63-2.37 2.29c-.26.26-.48.48-.99.48l.35-5.02L18.1 6.7c.4-.35-.09-.55-.62-.2L6.2 13.32l-4.95-1.55c-1.08-.34-1.1-1.08.22-1.6L20.5 2.72c.9-.33 1.68.2 1.4 1.58Z"/></svg>'
   }
 ];
@@ -79,7 +77,7 @@ const NAV = [
     icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
   { href: "/drafts", label: "My Projects", key: "projects", group: "Workspace",
     icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' },
-  { href: "/community", label: "Creator Skills", key: "community", group: "Workspace",
+  { href: "/community", label: "Creator Tutorials", key: "community", group: "Workspace",
     icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
   /* These four also sit in the footer, but a footer is only reachable after
      scrolling a whole page. The rail is the one place present on every screen,
@@ -381,7 +379,7 @@ ${nav}
       </a>
       <nav class="sh-primary-nav" aria-label="Main">
         <a href="/#templates"${p.active === "templates" ? ' aria-current="page"' : ""}>Templates</a>
-        <a href="/community"${p.active === "community" ? ' aria-current="page"' : ""}>Creator Skills</a>
+        <a href="/community"${p.active === "community" ? ' aria-current="page"' : ""}>Creator Tutorials</a>
         <a href="/pricing"${p.active === "pricing" ? ' aria-current="page"' : ""}>Pricing</a>
         <a href="/tutorials"${p.active === "tutorials" ? ' aria-current="page"' : ""}>Learn</a>
       </nav>
@@ -416,7 +414,7 @@ ${nav}
 
     <div id="navMobile" hidden>
       <a href="/#templates">Templates</a>
-      <a href="/community">Creator Skills</a>
+      <a href="/community">Creator Tutorials</a>
       <a href="/drafts">My Projects</a>
       <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/pricing">Pricing</a>
@@ -455,7 +453,7 @@ ${p.body}
           <h2>Product</h2>
           <a href="/editor">Studio Editor</a>
           <a href="/#templates">Templates Gallery</a>
-          <a href="/community">Creator Skills</a>
+          <a href="/community">Creator Tutorials</a>
           <a href="/pricing">Pricing</a>
         </nav>
 
@@ -902,7 +900,7 @@ ${pageHead("Tutorials &amp; Help")}
 const community = {
   route: "/community",
   active: "community",
-  title: "Creator Skills — ShortsCraft",
+  title: "Creator Tutorials — ShortsCraft",
   desc: "Tutorials and walkthroughs made by ShortsCraft creators. Learn how a template was built, then open it in the Studio.",
   head: `<style>
 .sk-head{padding:50px 28px 14px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px}
@@ -1118,7 +1116,7 @@ const community = {
   body: `    <main class="sh-home">
       <section class="sk-head">
         <div>
-          <h1>Creator Skills</h1>
+          <h1>Creator Tutorials</h1>
         </div>
         <button type="button" class="sk-share-btn" id="skShareBtn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -1715,7 +1713,7 @@ const notfound = {
           <a href="/" class="pg-bo">Back to templates</a>
         </div>
         <nav class="pg-404links" aria-label="Popular pages">
-          <a href="/community">Creator Skills</a>
+          <a href="/community">Creator Tutorials</a>
           <a href="/pricing">Pricing</a>
           <a href="/about">About</a>
           <a href="/contact">Help &amp; Feedback</a>
@@ -2209,7 +2207,7 @@ const indexPage = {
           <div class="sh-custom-select" id="qualityDropdown">
             <input type="hidden" name="quality" id="qualitySelect" value="mini">
             <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Model tier: Free">
-              <span class="sh-csel-val" id="qualityVal">Standard · ${C.animate} credits</span>
+              <span class="sh-csel-val" id="qualityVal">Standard</span>
               <svg class="sh-csel-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
             <div class="sh-csel-menu" id="qualityMenu" role="listbox" hidden>
@@ -2630,19 +2628,20 @@ const adminPage = {
       <section class="admin-gate" id="adminGate">
         <span class="pg-kicker">Private workspace</span>
         <h1>Checking admin access…</h1>
-        <p>This console is available only to the configured ShortsCraft owner account.</p>
+        <p>This console is available only to the ShortsCraft owner and the people the owner appoints.</p>
       </section>
 
       <div id="adminApp" hidden>
         ${pageHead("Admin Console")}
 
         <nav class="admin-tabs" aria-label="Admin sections">
-          <button type="button" data-admin-tab="overview" aria-pressed="true">Overview</button>
-          <button type="button" data-admin-tab="content" aria-pressed="false">Templates</button>
-          <button type="button" data-admin-tab="skills" aria-pressed="false">Tutorials</button>
-          <button type="button" data-admin-tab="support" aria-pressed="false">Support</button>
-          <button type="button" data-admin-tab="users" aria-pressed="false">Users</button>
-          <button type="button" data-admin-tab="features" aria-pressed="false">Feature flags</button>
+          <button type="button" data-admin-tab="overview" data-perm="overview.view" aria-pressed="true">Overview</button>
+          <button type="button" data-admin-tab="content" data-perm="templates.moderate" aria-pressed="false">Templates</button>
+          <button type="button" data-admin-tab="skills" data-perm="tutorials.moderate" aria-pressed="false">Tutorials</button>
+          <button type="button" data-admin-tab="support" data-perm="support.reply" aria-pressed="false">Support</button>
+          <button type="button" data-admin-tab="users" data-perm="users.view" aria-pressed="false">Users</button>
+          <button type="button" data-admin-tab="team" data-perm="owner" aria-pressed="false" hidden>Team</button>
+          <button type="button" data-admin-tab="features" data-perm="owner" aria-pressed="false">Feature flags</button>
         </nav>
 
         <section class="admin-panel" data-admin-panel="overview">
@@ -2688,8 +2687,17 @@ const adminPage = {
         </section>
 
         <section class="admin-panel" data-admin-panel="users" hidden>
-          <div class="pg-accsec-head"><div><h2>Accounts</h2><p class="pg-fine">Read-only account and plan overview.</p></div><button class="pg-bo" type="button" data-admin-refresh="users">Refresh</button></div>
+          <div class="pg-accsec-head"><div><h2>Accounts</h2><p class="pg-fine" id="adminUsersFine">Accounts and plans.</p></div><button class="pg-bo" type="button" data-admin-refresh="users">Refresh</button></div>
+          <input class="admin-search" id="adminUserSearch" type="search" placeholder="Search by name, handle or email" aria-label="Search accounts" autocomplete="off">
           <div class="admin-list" id="adminUserList"><p>Loading accounts…</p></div>
+        </section>
+
+        <!-- The owner appoints staff here. An admin gets only the permissions
+             ticked for them; appointing staff and feature flags stay with the
+             owner and cannot be given away. -->
+        <section class="admin-panel" data-admin-panel="team" hidden>
+          <div class="pg-accsec-head"><div><h2>Team</h2><p class="pg-fine">People with admin access and what each one can do. To add someone, open Users and choose Manage access on their account.</p></div><button class="pg-bo" type="button" data-admin-refresh="team">Refresh</button></div>
+          <div class="admin-list" id="adminTeamList"><p>Loading team…</p></div>
         </section>
 
         <section class="admin-panel" data-admin-panel="features" hidden>

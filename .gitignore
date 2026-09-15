@@ -23,6 +23,7 @@ verify_*.js
 !verify_social.js
 !verify_projects.js
 !verify_admin.js
+!verify_staff.js
 !verify_contrast.js
 !verify_support.js
 !verify_studio_redesign.js

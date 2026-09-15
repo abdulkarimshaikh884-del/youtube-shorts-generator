@@ -1027,13 +1027,10 @@
           ev.stopPropagation();
           var val = opt.dataset.val;
           tier.value = val;
-          // The credit cost is the same for every tier — the tier picks the
-          // model, not the price. Read it from the option's own label so this
-          // can never drift from what the server actually charges.
-          var costTxt = (opt.querySelector("span") || {}).textContent || "";
-          var costNum = (costTxt.match(/(\d+)\s*credits?/i) || [])[1] || "5";
+          // The closed picker names the model only; each option in the open
+          // list still states what it costs.
           var tierName = val === "mini" ? "Standard" : (val === "pro" ? "Detailed" : "Advanced");
-          if (qVal) qVal.textContent = tierName + " (" + costNum + " credits)";
+          if (qVal) qVal.textContent = tierName;
           if (qBtn) qBtn.setAttribute("aria-label", "Generation model: " + tierName);
 
           Array.prototype.forEach.call(qMenu.querySelectorAll(".sh-csel-opt"), function (o) {

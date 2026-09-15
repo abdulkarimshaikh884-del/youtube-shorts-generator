@@ -2,6 +2,7 @@
    comments.js — template comment threads, backed by Postgres.
    ============================================================ */
 const db = require("./db");
+const permissions = require("./permissions");
 
 function relativeTime(createdAt) {
   const ms = Date.now() - new Date(createdAt).getTime();
@@ -18,7 +19,7 @@ function relativeTime(createdAt) {
    re-checks ownership on the server, so a forged canEdit changes nothing. */
 function toComment(row, viewer) {
   const mine = !!(viewer && viewer.id && row.author_id && viewer.id === row.author_id);
-  const admin = !!(viewer && (viewer.role === "admin" || viewer.role === "super_admin"));
+  const admin = permissions.can(viewer, "comments.moderate");
   return {
     id: row.id,
     parentId: row.parent_id || null,
@@ -109,7 +110,7 @@ async function editComment(id, user, rawText) {
 
 async function deleteComment(id, user) {
   if (!user || !user.id) return { error: "Please log in first.", status: 401 };
-  const admin = user.role === "admin" || user.role === "super_admin";
+  const admin = permissions.can(user, "comments.moderate");
   const { rows } = await db.query(
     `update public.template_comments
         set status = 'removed', updated_at = now()
