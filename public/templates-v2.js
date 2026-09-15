@@ -270,7 +270,7 @@ window.SC_TPL2 = (function () {
         + 'var el=document.getElementById("scLottie"),cfg=JSON.parse(document.getElementById("scLottieCfg").textContent);'
         + 'var done;window.__scReady=new Promise(function(r){done=r;});'
         + 'function load(src){return new Promise(function(res,rej){var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}'
-        + 'Promise.all([window.lottie?0:load("/vendor/lottie_light.min.js?v=5.12.2"),window.SC_LOTTIE?0:load("/lottie-inspect.js?v=2"),'
+        + 'Promise.all([window.lottie?0:load("/vendor/lottie_light.min.js?v=5.12.2"),window.SC_LOTTIE?0:load("/lottie-inspect.js?v=3"),'
         + 'fetch("/api/lottie/"+encodeURIComponent(cfg.doc)).then(function(r){if(!r.ok)throw new Error("missing");return r.json();})])'
         + '.then(function(out){var data=window.SC_LOTTIE.applyEdits(out[2],cfg.props);'
         + 'var anim=window.lottie.loadAnimation({container:el,renderer:"svg",loop:true,autoplay:true,animationData:data,rendererSettings:{preserveAspectRatio:"xMidYMid meet"}});'

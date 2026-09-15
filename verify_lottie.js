@@ -106,6 +106,25 @@ const PNG_2x2 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFkl
     const g = L.inspect(glyphs);
     ok(g.ok && g.meta.texts.length === 0 && g.warnings.some((w) => /glyph/.test(w)), "text exported as glyph shapes is not offered for editing, and the creator is told why");
 
+    // A Lottie with text but no fonts.list draws nothing at all in the browser
+    // (RevenueSpikeCard3D, 15 September): the renderer stops at the first text.
+    const fontless = sample();
+    delete fontless.fonts;
+    const fontName = fontless.layers.find((l) => l.ty === 5).t.d.k[0].s.f;
+    const fx = L.inspect(fontless);
+    const repairedFont = fx.ok && fx.clean.fonts && fx.clean.fonts.list.find((f) => f.fName === fontName);
+    ok(repairedFont && /sans-serif$/.test(repairedFont.fFamily), "a file without a font list gets one, falling back to a standard font", repairedFont && repairedFont.fFamily);
+    ok(fx.warnings.some((w) => /did not list its fonts/.test(w)), "and the creator is told");
+    const storedBefore = sample(); delete storedBefore.fonts;
+    ok(L.applyEdits(storedBefore, {}).fonts.list.some((f) => f.fName === fontName), "documents stored before the repair are repaired when they render");
+    const counting = sample();
+    const countLayer = counting.layers.find((l) => l.ty === 5);
+    countLayer.t.d.k = [{ s: { ...countLayer.t.d.k[0].s, t: "$100" }, t: 0 }, { s: { ...countLayer.t.d.k[0].s, t: "$200" }, t: 30 }];
+    const cr = L.inspect(counting);
+    ok(cr.ok && !cr.meta.texts.some((t) => t.value === "$100"), "text that changes over time is not offered as one caption");
+    const keptCount = L.applyEdits(cr.clean, { t1: "flattened?" });
+    ok(keptCount.layers.find((l) => l.nm === countLayer.nm).t.d.k.length === 2 && keptCount.layers.find((l) => l.nm === countLayer.nm).t.d.k[1].s.t === "$200", "so an edit cannot flatten a count-up");
+
     console.log("\n---- editing (offline) ----");
     const edited = L.applyEdits(r.clean, { t1: "New\nhook", c2: "#ff0000", c1: "not-a-colour", t9: "no such layer" });
     ok(edited.layers[0].t.d.k[0].s.t === "New\rhook", "a text edit lands on its layer, line breaks included");

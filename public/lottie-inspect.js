@@ -120,11 +120,53 @@
     });
   }
 
+  /* A text layer names its font, and the renderer looks the name up in
+     fonts.list. A file that leaves the list out (hand-made and converted
+     Lottie often do) stops the renderer at the first text layer, so nothing
+     at all is drawn. Each name that is used but not listed gets an entry
+     that falls back to a standard sans-serif. Returns how many were added. */
+  function repairFonts(doc) {
+    var used = {};
+    walkLayers(doc, function (layer) {
+      if (layer.ty !== 5 || !layer.t || !layer.t.d || !Array.isArray(layer.t.d.k)) return;
+      layer.t.d.k.forEach(function (kf) {
+        var f = kf && kf.s && kf.s.f;
+        if (typeof f === "string" && f) used[f] = true;
+      });
+    });
+    var names = Object.keys(used);
+    if (!names.length) return 0;
+    if (!isObj(doc.fonts)) doc.fonts = {};
+    if (!Array.isArray(doc.fonts.list)) doc.fonts.list = [];
+    var listed = {};
+    doc.fonts.list.forEach(function (f) { if (isObj(f) && typeof f.fName === "string") listed[f.fName] = true; });
+    var added = 0;
+    names.forEach(function (name) {
+      if (listed[name]) return;
+      // "PlusJakartaSans-ExtraBold" -> family "Plus Jakarta Sans", style "Extra Bold"
+      var dash = name.indexOf("-");
+      var family = (dash > 0 ? name.slice(0, dash) : name).replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+      var style = (dash > 0 ? name.slice(dash + 1) : "Regular").replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+      doc.fonts.list.push({
+        fName: name,
+        fFamily: (family || "Arial") + ", Arial, Helvetica, sans-serif",
+        fStyle: style || "Regular",
+        ascent: 75,
+        origin: 0
+      });
+      added++;
+    });
+    return added;
+  }
+
   function textsOf(doc) {
     var out = [];
     if (Array.isArray(doc.chars) && doc.chars.length) return out; // glyph fonts: see inspect()
     walkLayers(doc, function (layer) {
       if (layer.ty !== 5 || !layer.t || !layer.t.d || !Array.isArray(layer.t.d.k) || !layer.t.d.k.length) return;
+      // Text that changes over time (a number counting up) is animation, not
+      // a caption: one typed value would flatten every keyframe into it.
+      if (layer.t.d.k.length > 1) return;
       var first = layer.t.d.k[0] && layer.t.d.k[0].s;
       if (!first || typeof first.t !== "string") return;
       out.push({ layer: layer, value: first.t.replace(/\r/g, "\n") });
@@ -236,6 +278,7 @@
       }
     });
     if (remoteFonts) warnings.push("Text uses the closest installed font, because fonts linked from the internet are not loaded.");
+    if (repairFonts(clean)) warnings.push("The file did not list its fonts, so its text uses a standard font.");
 
     var hasGlyphs = Array.isArray(clean.chars) && clean.chars.length > 0;
     if (hasGlyphs) warnings.push("Text was exported as glyph shapes, so it cannot be edited. Turn off \"Glyphs\" in the exporter to make text editable.");
@@ -287,6 +330,8 @@
   function applyEdits(doc, props) {
     props = props || {};
     var out = clone(doc);
+    // Documents stored before fonts were repaired on upload still render.
+    repairFonts(out);
     textsOf(out).slice(0, LIMITS.maxTexts).forEach(function (t, i) {
       var v = props["t" + (i + 1)];
       if (typeof v !== "string" || !v.trim()) return;
@@ -374,5 +419,5 @@
     return { ok: true, doc: doc, source: chosen.path, imagesInlined: inlined, notes: notes };
   }
 
-  return { LIMITS: LIMITS, inspect: inspect, applyEdits: applyEdits, packFromEntries: packFromEntries, aspectFor: aspectFor };
+  return { LIMITS: LIMITS, inspect: inspect, applyEdits: applyEdits, repairFonts: repairFonts, packFromEntries: packFromEntries, aspectFor: aspectFor };
 });

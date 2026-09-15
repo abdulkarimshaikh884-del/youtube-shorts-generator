@@ -2183,7 +2183,7 @@
     if (existing || document.body.dataset.publishModalReady === "1") return;
     document.body.dataset.publishModalReady = "1";
 
-    var ENGINE_SRC = "/templates-v2.js?v=2026091502";
+    var ENGINE_SRC = "/templates-v2.js?v=2026091601";
     var CATEGORIES = [["text", "Kinetic text"], ["social", "Social media"], ["ui", "UI and devices"], ["charts", "Charts"], ["money", "Finance"], ["maps", "Maps and radar"], ["docu", "Documentary"], ["paper", "Paper craft"]];
     var ACCEPT = ".json,.zip,.lottie,application/json,application/zip";
 
@@ -2295,9 +2295,11 @@
         return readBytes(file).then(function (bytes) {
           var unpacked = 0;
           var out;
+          var allNames = [];
           try {
             out = fflate.unzipSync(bytes, {
               filter: function (f) {
+                allNames.push(f.name);
                 if (!/\.(json|png|jpe?g|webp|gif)$/i.test(f.name)) return false;
                 unpacked += f.originalSize;
                 // A small ZIP that expands enormously is refused before it is expanded.
@@ -2310,7 +2312,11 @@
               ? "That ZIP expands to more than 30 MB. Upload only the exported animation and its images."
               : "That ZIP could not be opened. It may be damaged, or not a ZIP file.");
           }
-          return Object.keys(out).map(function (name) { return { path: name, bytes: out[name] }; });
+          var list = Object.keys(out).map(function (name) { return { path: name, bytes: out[name] }; });
+          // Every name in the ZIP, including what was not unpacked, so a ZIP
+          // of source code can be recognised as that.
+          list.allNames = allNames;
+          return list;
         });
       });
     }
@@ -2330,7 +2336,7 @@
       clearError();
       setDropState("Reading " + (single ? single.name : files.length + " files") + "...");
 
-      Promise.all([loadScript("/lottie-inspect.js?v=2", "SC_LOTTIE"), loadScript(ENGINE_SRC, "SC_TPL2")])
+      Promise.all([loadScript("/lottie-inspect.js?v=3", "SC_LOTTIE"), loadScript(ENGINE_SRC, "SC_TPL2")])
         .then(function () {
           if (single && /\.json$/i.test(single.name)) {
             if (single.size > window.SC_LOTTIE.LIMITS.maxBytes) throw new Error("The animation is larger than 8 MB.");
@@ -2343,7 +2349,13 @@
           var entries = single && /\.(zip|lottie)$/i.test(single.name) ? entriesFromZip(single) : entriesFromFiles(files);
           return entries.then(function (list) {
             var packed = window.SC_LOTTIE.packFromEntries(list);
-            if (!packed.ok) throw new Error(packed.error);
+            if (!packed.ok) {
+              // No animation inside, but maybe something recognisable: say
+              // what it is (a Remotion project, a video) rather than only
+              // that nothing was found.
+              var hint = foreignMessage(list.allNames || names);
+              throw new Error(hint ? hint.replace(/^This is /, "This upload is ") : packed.error);
+            }
             return { doc: packed.doc, notes: packed.notes || [], name: single ? single.name : String(names[0] || "").split("/")[0] };
           });
         })
