@@ -18,14 +18,24 @@
   function $(sel, root) { return (root || document).querySelector(sel); }
   function engine() { return window.SC_TPL2; }
 
+  /* The official account as it reads now (name and photo), loaded once.
+     Built-in templates are credited to it, so they show its real identity
+     instead of a name written into this file. */
+  var OFFICIAL = null;
+  var officialReady = fetch("/api/creator?handle=shortscraft", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) { if (j && j.success && j.creator) OFFICIAL = j.creator; })
+    .catch(function () {});
+
   function getAuthor(t) {
     if (t && t.isCommunity && t.authorHandle) {
       var name = t.authorName || t.authorHandle;
       var handle = t.authorHandle.replace(/^@/, "");
-      var initials = handle.slice(0, 2).toUpperCase();
+      var initials = String(name).replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || handle.slice(0, 2).toUpperCase();
       return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft.", verified: t.authorVerified === true, avatarUrl: t.authorAvatarUrl || "" };
     }
-    return { name: "ShortsCraft", handle: "@shortscraft", initials: "SC", bio: "Templates published by the ShortsCraft team.", verified: true };
+    var o = OFFICIAL || {};
+    return { name: o.name || "ShortsCraft", handle: "@shortscraft", initials: o.initials || "SC", bio: o.bio || "Templates published by the ShortsCraft team.", verified: true, avatarUrl: o.avatarUrl || "" };
   }
 
   function templateKey(t) { return String((t && (t.commId || t.tpl)) || ""); }
@@ -156,7 +166,10 @@
       editUrl += "&accent=" + encodeURIComponent(t.accent || "#ffffff")
         + "&font=" + encodeURIComponent(t.font || "inter")
         + "&dur=" + encodeURIComponent(t.dur || 4600)
-        + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
+        + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []))
+        // Without the id the Studio cannot load the template's saved props,
+        // and an uploaded animation (which lives only in props) opened empty.
+        + "&commId=" + encodeURIComponent(t.commId || "");
     }
     $("#modalStudioBtn").href = editUrl;
     $("#modalStudioBtn").onclick = function () { recordTemplateEvent(t, "edit"); };
@@ -639,10 +652,12 @@
       var ids = e.list().map(function (t) { return t.id; });
       commList.forEach(function (t) { if (t && t.id) ids.push(t.id); });
       ids = Array.from(new Set(ids)).slice(0, 100);
-      return fetch("/api/template-metrics?ids=" + encodeURIComponent(ids.join(",")))
+      var metrics = fetch("/api/template-metrics?ids=" + encodeURIComponent(ids.join(",")))
         .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-        .then(function (d) { renderAllTemplates(commList, (d && d.metrics) || {}); })
-        .catch(function () { renderAllTemplates(commList, {}); });
+        .then(function (d) { return (d && d.metrics) || {}; })
+        .catch(function () { return {}; });
+      // The second paint also carries the official account's name and photo.
+      return Promise.all([metrics, officialReady]).then(function (out) { renderAllTemplates(commList, out[0]); });
     }
 
     function renderAllTemplates(commList, metrics) {

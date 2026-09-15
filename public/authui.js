@@ -2186,6 +2186,13 @@
     var ENGINE_SRC = "/templates-v2.js?v=2026091601";
     var CATEGORIES = [["text", "Kinetic text"], ["social", "Social media"], ["ui", "UI and devices"], ["charts", "Charts"], ["money", "Finance"], ["maps", "Maps and radar"], ["docu", "Documentary"], ["paper", "Paper craft"]];
     var ACCEPT = ".json,.zip,.lottie,application/json,application/zip";
+    /* Phones and tablets. They have no folder picker and nothing to drag
+       from, and a phone's file browser greys out a file whose type it does
+       not recognise, which is how a downloaded .lottie or a .json saved as
+       .txt became impossible to choose. There the picker accepts any file;
+       what was picked is checked by its content below. */
+    var TOUCH = !!(window.matchMedia && window.matchMedia("(hover: none) and (pointer: coarse)").matches);
+    var FOLDERS = !TOUCH && ("webkitdirectory" in document.createElement("input"));
 
     var modal = document.createElement("div");
     modal.id = "publishTemplateModal";
@@ -2199,10 +2206,10 @@
       '    <section class="sc-publish-panel" data-panel="1">',
       '      <div class="sc-drop" id="uploadDrop">',
       '        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
-      '        <strong>Drop your animation here</strong>',
-      '        <span>.json &middot; .zip &middot; .lottie &middot; folder &mdash; up to 8 MB and 9 seconds</span>',
-      '        <div class="sc-drop-actions"><button type="button" class="pg-bw" id="uploadPickFile">Choose file</button><button type="button" class="pg-bo" id="uploadPickFolder">Choose folder</button></div>',
-      '        <input type="file" id="uploadFile" accept="' + ACCEPT + '" hidden>',
+      '        <strong>' + (TOUCH ? "Choose your animation" : "Drop your animation here") + '</strong>',
+      '        <span>.json &middot; .zip &middot; .lottie' + (FOLDERS ? " &middot; folder" : "") + ' &mdash; up to 8 MB and 9 seconds</span>',
+      '        <div class="sc-drop-actions"><button type="button" class="pg-bw" id="uploadPickFile">Choose file</button>' + (FOLDERS ? '<button type="button" class="pg-bo" id="uploadPickFolder">Choose folder</button>' : '') + '</div>',
+      '        <input type="file" id="uploadFile"' + (TOUCH ? '' : ' accept="' + ACCEPT + '"') + ' hidden>',
       '        <input type="file" id="uploadFolder" webkitdirectory multiple hidden>',
       '      </div>',
       '      <p class="sc-drop-hint">Made in After Effects? Export it with the free LottieFiles or Bodymovin plugin and upload the .json, or the folder or ZIP it created if it has images. Built it in the ShortsCraft Studio? Use <b>Publish</b> there.</p>',
@@ -2321,8 +2328,34 @@
       });
     }
 
+    /* A single file whose name says nothing useful (a phone saved it as
+       "animation.json.txt", or with no extension at all) is identified by
+       its first bytes: "{" is JSON, "PK" is a ZIP. */
+    function sniff(file) {
+      if (!file || /\.(json|zip|lottie)$/i.test(file.name) || file.size > 20 * 1024 * 1024) return Promise.resolve(null);
+      return file.slice(0, 64).arrayBuffer().then(function (buf) {
+        var head = new Uint8Array(buf), i = 0;
+        while (i < head.length && (head[i] === 0xEF || head[i] === 0xBB || head[i] === 0xBF || head[i] <= 0x20)) i++;
+        if (head[i] === 0x7B) return "json";
+        if (head[0] === 0x50 && head[1] === 0x4B) return "zip";
+        return null;
+      }).catch(function () { return null; });
+    }
+
     function handleFiles(files, fromFolder) {
       if (busy || !files.length) return;
+      if (files.length === 1 && !fromFolder && !files[0].__sniffed && !/\.(json|zip|lottie)$/i.test(files[0].name)) {
+        var original = files[0];
+        sniff(original).then(function (kind) {
+          var retry = original;
+          if (kind) {
+            retry = new File([original], original.name.replace(/(\.[a-z0-9]{1,5})?$/i, "") + "." + kind, { type: kind === "json" ? "application/json" : "application/zip" });
+          }
+          retry.__sniffed = true;
+          handleFiles([retry], false);
+        });
+        return;
+      }
       var names = files.map(pathOf);
       var single = files.length === 1 && !fromFolder ? files[0] : null;
 
@@ -2532,7 +2565,7 @@
     });
 
     $("#uploadPickFile").addEventListener("click", function () { fileInput.click(); });
-    $("#uploadPickFolder").addEventListener("click", function () { folderInput.click(); });
+    if ($("#uploadPickFolder")) $("#uploadPickFolder").addEventListener("click", function () { folderInput.click(); });
     fileInput.addEventListener("change", function () { handleFiles(Array.from(fileInput.files || []), false); });
     folderInput.addEventListener("change", function () { handleFiles(Array.from(folderInput.files || []), true); });
     $("#uploadAgain").addEventListener("click", function () { reset(); showStep(1); });

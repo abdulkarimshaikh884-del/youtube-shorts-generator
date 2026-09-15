@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091601";
+const V = "2026091602";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -2397,7 +2397,7 @@ const templatePage = {
         </div>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/template-detail.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/template-detail.js?v=${V}" defer></script>`
 };
 
 const creatorPage = {
@@ -2450,7 +2450,7 @@ const creatorPage = {
         </section>
       </div>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/creator-profile.js?v=4" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/creator-profile.js?v=${V}" defer></script>`
 };
 
 /* ── MY UPLOADS ───────────────────────────────────────────── */

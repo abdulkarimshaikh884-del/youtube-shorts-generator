@@ -185,7 +185,8 @@
 
       var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl);
       if (t.isComm) editUrl += "&accent=" + encodeURIComponent(t.accent) + "&font=" + encodeURIComponent(t.font)
-        + "&dur=" + encodeURIComponent(t.dur) + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []));
+        + "&dur=" + encodeURIComponent(t.dur) + "&lines=" + encodeURIComponent(JSON.stringify(t.lines || []))
+        + "&commId=" + encodeURIComponent(t.commId || "");
 
       tile.innerHTML = [
         '<div class="sh-stage">',

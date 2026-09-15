@@ -919,10 +919,30 @@ app.get("/api/creator", async (req, res) => {
       likes: "",
       cat: "all"
     };
-    // The official page is backed by the shipped template library and should
-    // never wait for Postgres. Community items remain discoverable on the
-    // Community page; returning the official shell immediately keeps this
-    // profile useful during a database outage as well.
+    // Every built-in template is credited to the official account, so it
+    // shows that account's own name and photo. The fixed identity above is
+    // only the fallback when the database cannot answer: the official page
+    // is backed by the shipped library and must still load.
+    try {
+      const { rows } = await db.query(
+        `select id, display_name, bio, youtube, instagram, (avatar_bytes is not null) as has_avatar
+           from public.users where lower(replace(handle, '@', '')) = 'shortscraft' limit 1`
+      );
+      const owner = rows[0];
+      if (owner) {
+        if (owner.display_name) {
+          prof.name = owner.display_name;
+          prof.initials = owner.display_name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "SC";
+        }
+        if (owner.bio) prof.bio = owner.bio;
+        if (owner.youtube) prof.youtube = owner.youtube;
+        if (owner.instagram) prof.instagram = owner.instagram;
+        prof.avatarUrl = owner.has_avatar ? `/api/users/${encodeURIComponent(owner.id)}/avatar` : "";
+      }
+    } catch (err) {
+      console.error("[/api/creator official]", err.message);
+    }
+    res.set("Cache-Control", "no-store");
     return res.json({ success: true, creator: prof, communityTemplates: [] });
   }
 

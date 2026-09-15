@@ -29,8 +29,21 @@
       var initials = handle.slice(0, 2).toUpperCase();
       return { name: name, handle: "@" + handle, initials: initials, bio: "Community template creator on ShortsCraft.", verified: t.authorVerified === true, avatarUrl: t.authorAvatarUrl || "" };
     }
-    return { name: "ShortsCraft", handle: "@shortscraft", initials: "SC", bio: "Animation templates published by the ShortsCraft team.", verified: true, avatarUrl: "" };
+    var o = OFFICIAL || {};
+    return { name: o.name || "ShortsCraft", handle: "@shortscraft", initials: o.initials || "SC", bio: o.bio || "Animation templates published by the ShortsCraft team.", verified: true, avatarUrl: o.avatarUrl || "" };
   }
+
+  /* Built-in templates are credited to the official account; show its real
+     name and photo once they arrive, without re-running the whole page. */
+  var OFFICIAL = null;
+  fetch("/api/creator?handle=shortscraft", { headers: { Accept: "application/json" } })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || !j.success || !j.creator) return;
+      OFFICIAL = j.creator;
+      if (currentTpl && !currentTpl.isCommunity) { currentAuthor = getAuthor(currentTpl); paintCreator(); }
+    })
+    .catch(function () {});
 
   function reactionId() { return currentTpl && currentTpl.isCommunity ? commId : tplId; }
 
@@ -213,6 +226,25 @@
     showBuiltInOrFallback();
   }
 
+  function paintCreator() {
+    var creatorCard = $("#detailCreatorCard");
+    if (!creatorCard || !currentAuthor) return;
+    creatorCard.href = "/creator?handle=" + encodeURIComponent(currentAuthor.handle.replace(/^@/, ""));
+    var av = creatorCard.querySelector(".td-creator-avatar");
+    if (av) {
+      av.textContent = currentAuthor.avatarUrl ? "" : currentAuthor.initials;
+      av.style.backgroundImage = currentAuthor.avatarUrl ? 'url("' + currentAuthor.avatarUrl + '")' : "";
+      av.style.backgroundSize = "cover";
+      av.style.backgroundPosition = "center";
+    }
+    var nm = creatorCard.querySelector(".td-creator-name");
+    if (nm) nm.textContent = currentAuthor.name;
+    var hd = creatorCard.querySelector(".td-creator-handle");
+    if (hd) hd.textContent = currentAuthor.handle;
+    var bi = creatorCard.querySelector(".td-creator-bio");
+    if (bi) bi.textContent = currentAuthor.bio || "Motion graphics designer on ShortsCraft.";
+  }
+
   function renderDetails() {
     if (!currentTpl) return;
     currentAuthor = getAuthor(currentTpl);
@@ -246,29 +278,7 @@
       studioBtn.addEventListener("click", function () { recordEvent("edit"); });
     }
 
-    // Creator Profile Card
-    var creatorCard = $("#detailCreatorCard");
-    var creatorUrl = "/creator?handle=" + encodeURIComponent(currentAuthor.handle.replace(/^@/, ""));
-
-    if (creatorCard) {
-      creatorCard.href = creatorUrl;
-      var av = creatorCard.querySelector(".td-creator-avatar");
-      if (av) {
-        av.textContent = currentAuthor.avatarUrl ? "" : currentAuthor.initials;
-        av.style.backgroundImage = currentAuthor.avatarUrl ? 'url("' + currentAuthor.avatarUrl + '")' : "";
-        av.style.backgroundSize = "cover";
-        av.style.backgroundPosition = "center";
-      }
-
-      var nm = creatorCard.querySelector(".td-creator-name");
-      if (nm) nm.textContent = currentAuthor.name;
-
-      var hd = creatorCard.querySelector(".td-creator-handle");
-      if (hd) hd.textContent = currentAuthor.handle;
-
-      var bi = creatorCard.querySelector(".td-creator-bio");
-      if (bi) bi.textContent = currentAuthor.bio || "Motion graphics designer on ShortsCraft.";
-    }
+    paintCreator();
 
     // Like Button
     var likeBtn = $("#detailLikeBtn");

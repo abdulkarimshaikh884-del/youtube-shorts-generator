@@ -52,11 +52,15 @@ function toTemplate(row) {
     accent: row.accent,
     font: row.font,
     dur: row.dur,
-    authorName: row.author_name,
-    authorHandle: row.author_handle,
+    // The creator as their account reads now, not the name stored when the
+    // template was published: a renamed account (or the house templates,
+    // credited to @shortscraft before that account owned them) otherwise
+    // showed a stale name such as an old email prefix.
+    authorName: row.account_name || row.author_name,
+    authorHandle: row.account_handle || row.author_handle,
     authorId: row.author_id,
-    authorVerified: row.author_verified === true || String(row.author_handle || "").replace(/^@/, "") === "shortscraft",
-    authorAvatarUrl: row.author_has_avatar && row.author_id ? `/api/users/${encodeURIComponent(row.author_id)}/avatar` : "",
+    authorVerified: row.author_verified === true || String(row.account_handle || row.author_handle || "").replace(/^@/, "") === "shortscraft",
+    authorAvatarUrl: row.author_has_avatar && row.account_id ? `/api/users/${encodeURIComponent(row.account_id)}/avatar` : "",
     // Legacy aggregate columns may contain old seed values. Public counters
     // come from the durable reaction/event ledgers selected below.
     likes: Number(row.real_likes) || 0,
@@ -82,14 +86,17 @@ async function list(category) {
   let rows;
   if (category && category !== "all") {
     ({ rows } = await db.query(
-      `select ct.*, u.verified as author_verified,
+      `select ct.*, u.verified as author_verified, u.id as account_id,
+              u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr
                 where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
               (select count(*)::int from public.template_events te
                 where te.template_id = ct.id and te.event_type = 'export') as real_exports
          from public.community_templates ct
-         left join public.users u on u.id = ct.author_id
+         left join public.users u on u.id = coalesce(ct.author_id, (select o.id from public.users o
+                                   where lower(replace(ct.author_handle, '@', '')) = 'shortscraft'
+                                     and lower(replace(o.handle, '@', '')) = 'shortscraft' limit 1))
         where ct.status = 'published' and ct.published_at <= now()
           and (ct.category = $1 or ct.tpl = $1)
         order by ct.published_at desc, ct.created_at desc`,
@@ -97,14 +104,17 @@ async function list(category) {
     ));
   } else {
     ({ rows } = await db.query(
-      `select ct.*, u.verified as author_verified,
+      `select ct.*, u.verified as author_verified, u.id as account_id,
+              u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr
                 where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
               (select count(*)::int from public.template_events te
                 where te.template_id = ct.id and te.event_type = 'export') as real_exports
          from public.community_templates ct
-         left join public.users u on u.id = ct.author_id
+         left join public.users u on u.id = coalesce(ct.author_id, (select o.id from public.users o
+                                   where lower(replace(ct.author_handle, '@', '')) = 'shortscraft'
+                                     and lower(replace(o.handle, '@', '')) = 'shortscraft' limit 1))
         where ct.status = 'published' and ct.published_at <= now()
         order by ct.published_at desc, ct.created_at desc`
     ));
@@ -127,14 +137,17 @@ function livesInEngine(row) {
 async function get(id) {
   await publishDue();
   const { rows } = await db.query(
-    `select ct.*, u.verified as author_verified,
+    `select ct.*, u.verified as author_verified, u.id as account_id,
+              u.display_name as account_name, u.handle as account_handle,
             (u.avatar_bytes is not null) as author_has_avatar,
             (select count(*)::int from public.template_reactions tr
               where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
             (select count(*)::int from public.template_events te
               where te.template_id = ct.id and te.event_type = 'export') as real_exports
        from public.community_templates ct
-       left join public.users u on u.id = ct.author_id
+       left join public.users u on u.id = coalesce(ct.author_id, (select o.id from public.users o
+                                   where lower(replace(ct.author_handle, '@', '')) = 'shortscraft'
+                                     and lower(replace(o.handle, '@', '')) = 'shortscraft' limit 1))
       where ct.id = $1 and ct.status = 'published' and ct.published_at <= now()`, [id]
   );
   return rows[0] && livesInEngine(rows[0]) ? toTemplate(rows[0]) : null;
@@ -290,14 +303,17 @@ async function listByAuthor(userId, userHandle, options = {}) {
        another account owns is never pulled in by a matching handle. */
     const handleNorm = userHandle ? String(userHandle).toLowerCase().replace(/^@/, "") : null;
     const { rows } = await db.query(
-      `select ct.*, u.verified as author_verified,
+      `select ct.*, u.verified as author_verified, u.id as account_id,
+              u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr
                 where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
               (select count(*)::int from public.template_events te
                 where te.template_id = ct.id and te.event_type = 'export') as real_exports
          from public.community_templates ct
-         left join public.users u on u.id = ct.author_id
+         left join public.users u on u.id = coalesce(ct.author_id, (select o.id from public.users o
+                                   where lower(replace(ct.author_handle, '@', '')) = 'shortscraft'
+                                     and lower(replace(o.handle, '@', '')) = 'shortscraft' limit 1))
         where (ct.author_id = $1
                or ($3::text is not null and ct.author_id is null
                    and lower(replace(ct.author_handle, '@', '')) = $3))
@@ -310,14 +326,17 @@ async function listByAuthor(userId, userHandle, options = {}) {
   if (userHandle) {
     const handleNorm = userHandle.toLowerCase().replace(/^@/, "");
     const { rows } = await db.query(
-      `select ct.*, u.verified as author_verified,
+      `select ct.*, u.verified as author_verified, u.id as account_id,
+              u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr
                 where tr.template_id = ct.id and tr.reaction = 'like') as real_likes,
               (select count(*)::int from public.template_events te
                 where te.template_id = ct.id and te.event_type = 'export') as real_exports
          from public.community_templates ct
-         left join public.users u on u.id = ct.author_id
+         left join public.users u on u.id = coalesce(ct.author_id, (select o.id from public.users o
+                                   where lower(replace(ct.author_handle, '@', '')) = 'shortscraft'
+                                     and lower(replace(o.handle, '@', '')) = 'shortscraft' limit 1))
         where (lower(ct.author_handle) = $1 or lower(ct.author_name) = $1)
           and ($2::boolean or (ct.status = 'published' and ct.published_at <= now()))
         order by coalesce(ct.published_at, ct.scheduled_at, ct.created_at) desc`,
