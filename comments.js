@@ -2,6 +2,7 @@
    comments.js — template comment threads, backed by Postgres.
    ============================================================ */
 const db = require("./db");
+const verified = require("./verified");
 const permissions = require("./permissions");
 
 function relativeTime(createdAt) {
@@ -41,7 +42,7 @@ function toComment(row, viewer) {
 
 async function getComments(tplId, viewer) {
   const { rows } = await db.query(
-    `select c.*, u.verified as author_verified,
+    `select c.*, ${verified.sql("u")} as author_verified,
             (u.avatar_bytes is not null) as author_has_avatar
        from public.template_comments c
        left join public.users u on u.id = c.author_id

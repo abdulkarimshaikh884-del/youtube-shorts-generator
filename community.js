@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const db = require("./db");
+const verified = require("./verified");
 const lottie = require("./lottie");
 
 function loadValidTplIds() {
@@ -86,7 +87,7 @@ async function list(category) {
   let rows;
   if (category && category !== "all") {
     ({ rows } = await db.query(
-      `select ct.*, u.verified as author_verified, u.id as account_id,
+      `select ct.*, ${verified.sql("u")} as author_verified, u.id as account_id,
               u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr
@@ -104,7 +105,7 @@ async function list(category) {
     ));
   } else {
     ({ rows } = await db.query(
-      `select ct.*, u.verified as author_verified, u.id as account_id,
+      `select ct.*, ${verified.sql("u")} as author_verified, u.id as account_id,
               u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr
@@ -137,7 +138,7 @@ function livesInEngine(row) {
 async function get(id) {
   await publishDue();
   const { rows } = await db.query(
-    `select ct.*, u.verified as author_verified, u.id as account_id,
+    `select ct.*, ${verified.sql("u")} as author_verified, u.id as account_id,
               u.display_name as account_name, u.handle as account_handle,
             (u.avatar_bytes is not null) as author_has_avatar,
             (select count(*)::int from public.template_reactions tr
@@ -303,7 +304,7 @@ async function listByAuthor(userId, userHandle, options = {}) {
        another account owns is never pulled in by a matching handle. */
     const handleNorm = userHandle ? String(userHandle).toLowerCase().replace(/^@/, "") : null;
     const { rows } = await db.query(
-      `select ct.*, u.verified as author_verified, u.id as account_id,
+      `select ct.*, ${verified.sql("u")} as author_verified, u.id as account_id,
               u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr
@@ -326,7 +327,7 @@ async function listByAuthor(userId, userHandle, options = {}) {
   if (userHandle) {
     const handleNorm = userHandle.toLowerCase().replace(/^@/, "");
     const { rows } = await db.query(
-      `select ct.*, u.verified as author_verified, u.id as account_id,
+      `select ct.*, ${verified.sql("u")} as author_verified, u.id as account_id,
               u.display_name as account_name, u.handle as account_handle,
               (u.avatar_bytes is not null) as author_has_avatar,
               (select count(*)::int from public.template_reactions tr

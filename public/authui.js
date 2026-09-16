@@ -55,6 +55,28 @@
     }
   }
 
+  /* A verified account's name always carries the tick, wherever the name is
+     written. The name sits in its own span so a long one shortens before the
+     tick is cut off. */
+  var TICK_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function verifiedTick() {
+    var tick = document.createElement("span");
+    tick.className = "sh-verified";
+    tick.title = "Verified creator";
+    tick.setAttribute("aria-label", "Verified creator");
+    tick.innerHTML = TICK_SVG;
+    return tick;
+  }
+  function paintName(el, name, verified) {
+    if (!el) return;
+    el.textContent = "";
+    var text = document.createElement("span");
+    text.className = "sc-name-text";
+    text.textContent = name;
+    el.appendChild(text);
+    if (verified) el.appendChild(verifiedTick());
+  }
+
   function paint(user) {
     all('[data-auth="in"]').forEach(function (el) { show(el, !!user); });
     all('[data-auth="out"]').forEach(function (el) { show(el, !user); });
@@ -76,7 +98,7 @@
     });
 
     all("[data-user-name]").forEach(function (el) {
-      el.textContent = dname;
+      paintName(el, dname, !!user && user.verified === true);
     });
 
     all("[data-user-handle]").forEach(function (el) {
@@ -106,7 +128,7 @@
         if ($("#accPlan")) $("#accPlan").textContent = user.plan ? (user.plan.charAt(0).toUpperCase() + user.plan.slice(1)) : "Free";
         if ($("#accCredits") && $("#accCredits").textContent.trim() === "—") $("#accCredits").textContent = "Loading…";
         if ($("#igCreditsCount")) $("#igCreditsCount").textContent = "—";
-        if ($("#crDisplayName")) $("#crDisplayName").textContent = dname;
+        paintName($("#crDisplayName"), dname, user.verified === true);
         if ($("#crHandle")) $("#crHandle").textContent = handle;
         paintAvatar($("#crAvatarChar"), user, initials);
         paintAvatar($("#pageAvatarPreview"), user, initials);
@@ -115,7 +137,9 @@
         if ($("#crStarsCount")) $("#crStarsCount").textContent = user.starsReceived || 0;
         if ($("#crFollowersCount")) $("#crFollowersCount").textContent = user.followers || 0;
         if ($("#crFollowingCount")) $("#crFollowingCount").textContent = user.following || 0;
-        if ($("#crVerifiedBadge")) $("#crVerifiedBadge").hidden = user.verified !== true;
+        // The tick now sits beside the name itself; this older second badge
+        // would say the same thing twice.
+        if ($("#crVerifiedBadge")) $("#crVerifiedBadge").hidden = true;
         if ($("#pageRemoveAvatarBtn")) $("#pageRemoveAvatarBtn").hidden = !user.avatarUrl;
 
         fetch("/api/credits").then(function(r) { return r.json(); }).then(function(j) {
@@ -781,6 +805,8 @@
         var copy = document.createElement("p");
         var strong = document.createElement("strong");
         strong.textContent = actor ? (actor.displayName || actor.handle || "Creator") : "ShortsCraft";
+        // Messages from ShortsCraft itself come from the verified official account.
+        if (!actor || actor.verified) strong.appendChild(verifiedTick());
         copy.appendChild(strong);
         copy.appendChild(document.createTextNode(" " + (item.message || "sent an update")));
         var time = document.createElement("time");
@@ -871,6 +897,7 @@
       copy.className = "sh-live-toast-copy";
       var who = document.createElement("strong");
       who.textContent = actor ? (actor.displayName || actor.handle || "Creator") : "ShortsCraft";
+      if (!actor || actor.verified) who.appendChild(verifiedTick());
       copy.appendChild(who);
       copy.appendChild(document.createTextNode(" " + (item.message || "")));
       var close = document.createElement("button");

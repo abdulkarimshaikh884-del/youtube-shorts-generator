@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091603";
+const V = "2026091605";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -963,8 +963,8 @@ const community = {
    second rectangle around a picture that already had edges. */
 .sk-grid{
   padding:10px 28px 30px;
-  display:grid;gap:26px 16px;
-  grid-template-columns:repeat(auto-fill,minmax(258px,1fr));
+  display:grid;gap:24px 16px;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
 }
 /* Each tutorial is one framed card, the same frame the template tiles use,
    so a thumbnail and its caption read as one thing to pick. */
@@ -1008,26 +1008,29 @@ const community = {
 /* Three columns, and the last one is reserved whether or not the menu button
    is currently visible — a control that appears on hover must not push the
    title sideways when it does. */
-.sk-body{display:grid;grid-template-columns:36px 1fr 30px;gap:10px;min-width:0;padding:0 2px}
+.sk-body{display:grid;grid-template-columns:36px minmax(0,1fr) 30px;gap:12px;min-width:0;padding:2px 2px 0}
 .sk-av{
   width:36px;height:36px;border-radius:50%;flex:none;overflow:hidden;
   background:var(--sh-bg3);display:grid;place-items:center;
   font-size:13px;font-weight:650;color:var(--sh-ink2);text-decoration:none;
 }
 .sk-av img{width:100%;height:100%;object-fit:cover;display:block}
-.sk-text{min-width:0;display:grid;gap:3px;align-content:start}
+.sk-text{min-width:0;display:grid;gap:2px;align-content:start}
 .sk-title{
-  margin:0;font-size:14.5px;font-weight:650;line-height:1.32;color:var(--sh-ink);
+  margin:0 0 4px;font-size:16px;font-weight:650;line-height:1.35;color:var(--sh-ink);
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
 .sk-title a{color:inherit;text-decoration:none}
-.sk-author{display:inline-flex;align-items:center;gap:4px;min-width:0;font-size:12.5px}
-.sk-author a,.sk-author span{
+/* The channel line: the name gives way before the tick does. */
+.sk-author{display:flex;align-items:center;min-width:0;font-size:14px;line-height:1.4}
+.sk-author > a,.sk-author > span{
+  display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:100%;
   color:var(--sh-ink3);text-decoration:none;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.sk-author a:hover{color:var(--sh-ink)}
-.sk-tick{width:12px;height:12px;flex:none}
+.sk-author > a:hover{color:var(--sh-ink)}
+.sk-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sk-tick{width:14px;height:14px;flex:none;margin-left:0;vertical-align:0}
+.sk-meta{font-size:13.5px;line-height:1.4;color:var(--sh-ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* One line: the title says what it is, the summary only hints. */
 .sk-summary{
   margin:0;font-size:12.5px;color:var(--sh-ink3);line-height:1.45;
@@ -1036,8 +1039,7 @@ const community = {
 .sk-title a:hover{text-decoration:underline}
 /* Author and age on one line, the way a video caption carries its channel and
    its date together. We have no view count and will not invent one. */
-.sk-when{color:var(--sh-ink3);white-space:nowrap;flex:none}
-.sk-author > a,.sk-author > span:first-child{min-width:0;flex:0 1 auto}
+
 .sk-dot{color:var(--sh-ink3);opacity:.6}
 .sk-tpl{
   display:inline-flex;align-items:center;gap:5px;margin-top:4px;width:fit-content;
@@ -1124,13 +1126,14 @@ const community = {
   .sk-grid{padding:8px 14px 22px;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px}
   .sk-card{padding:6px 6px 10px;gap:8px;border-radius:13px}
   .sk-thumb{border-radius:8px}
-  /* A phone card is half the screen: the thumbnail already carries the
-     channel, so the avatar and the age give their width to the name. */
+  /* A phone card is half the screen, so the avatar gives its width to the
+     title and the channel name. */
   .sk-body{grid-template-columns:minmax(0,1fr) 26px;gap:6px;padding:0 2px}
-  .sk-av,.sk-dot,.sk-when{display:none}
-  .sk-title{font-size:13px;line-height:1.3}
-  .sk-author{font-size:11.5px}
-  .sk-summary{font-size:11.5px}
+  .sk-av{display:none}
+  .sk-title{font-size:13px;line-height:1.3;margin-bottom:2px}
+  .sk-author{font-size:12px}
+  .sk-tick{width:12px;height:12px}
+  .sk-meta{font-size:11.5px}
   .sk-tpl{max-width:100%;font-size:10.5px;padding:2px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .sk-menu-btn{width:26px;height:26px}
   .sk-menu-pop{min-width:168px}
@@ -1220,7 +1223,9 @@ scripts: `<script>
     msg.className = "sk-msg" + (kind ? " " + kind : "");
   }
 
-  var TICK = '<svg class="sk-tick" viewBox="0 0 24 24" fill="#1d9bf0" aria-label="Verified"><path d="M12 2l2.4 1.8 3-.2.9 2.9 2.4 1.8-1.2 2.7 1.2 2.7-2.4 1.8-.9 2.9-3-.2L12 22l-2.4-1.8-3 .2-.9-2.9L3.3 15.7 4.5 13 3.3 10.3l2.4-1.8.9-2.9 3 .2z"/><path d="M10.6 14.6l-2.2-2.2 1.1-1.1 1.1 1.1 3.9-3.9 1.1 1.1z" fill="#fff"/></svg>';
+  // The same badge the template cards and profiles use, so a verified
+  // creator looks the same wherever their name appears.
+  var TICK = '<span class="sk-tick sh-verified" title="Verified creator" aria-label="Verified creator"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
 
   var PLAY = '<span class="sk-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></span>';
 
@@ -1280,7 +1285,7 @@ scripts: `<script>
     var name = s.author.name || "Creator";
     var platform = PLATFORM_NAME[s.platform] || s.platform;
     var authorHref = s.author.handle ? "/creator?handle=" + encodeURIComponent(s.author.handle) : "";
-    var authorName = esc(name) + (s.author.verified ? TICK : "");
+    var authorName = '<span class="sk-name">' + esc(name) + "</span>" + (s.author.verified ? TICK : "");
     var author = authorHref
       ? '<a href="' + esc(authorHref) + '">' + authorName + "</a>"
       : "<span>" + authorName + "</span>";
@@ -1304,12 +1309,12 @@ scripts: `<script>
       '<div class="sk-body">' +
         avatar +
         '<div class="sk-text">' +
-          '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
-            esc(s.title) + "</a></h3>" +
-          '<span class="sk-author">' + author +
-            (age ? ' <span class="sk-dot">·</span> <span class="sk-when">' + esc(age) + "</span>" : "") +
-          "</span>" +
-          (s.summary ? '<p class="sk-summary">' + esc(s.summary) + "</p>" : "") +
+          // Laid out the way a video grid is read: the title, the channel
+          // with its tick, then where it plays and how long ago it was shared.
+          '<h3 class="sk-title"><a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer"' +
+            (s.summary ? ' title="' + esc(s.summary) + '"' : "") + ">" + esc(s.title) + "</a></h3>" +
+          '<span class="sk-author">' + author + "</span>" +
+          '<span class="sk-meta">' + esc(platform) + (age ? " · " + esc(age) : "") + "</span>" +
           (s.templateId
             ? '<a class="sk-tpl" href="/editor?tpl=' + encodeURIComponent(s.templateId) + '">' +
               ICON.studio + "Open " + esc(s.templateId) + " in the Studio</a>"

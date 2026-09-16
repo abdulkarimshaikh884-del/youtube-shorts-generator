@@ -97,7 +97,7 @@ async function run() {
   } };
   // community.js also checks Lottie uploads before publishing; owner lookups
   // never reach it, so a stub that would refuse is enough here.
-  const community = load("community.js", { "./db": ownerDb, "./lottie": { assertPublishable: async () => ({ error: "not used in this test" }) } });
+  const community = load("community.js", { "./db": ownerDb, "./verified": require("../verified"), "./lottie": { assertPublishable: async () => ({ error: "not used in this test" }) } });
   assert.equal(await community.getOwned("comm_private", null), null);
   assert.equal(reads, 0, "guest lookup never reaches storage");
   assert.equal(await community.getOwned("comm_private", { id: "other" }), null);

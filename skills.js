@@ -16,6 +16,7 @@ const path = require("path");
 const db = require("./db");
 const permissions = require("./permissions");
 const notify = require("./notify");
+const verified = require("./verified");
 
 const MAX_TITLE = 90;
 const MAX_SUMMARY = 220;
@@ -134,7 +135,7 @@ function toSkill(row, viewer) {
 }
 
 const SELECT = `
-  select s.*, u.display_name, u.handle, u.verified,
+  select s.*, u.display_name, u.handle, ${verified.sql("u")} as verified,
          (u.avatar_bytes is not null) as author_has_avatar
     from public.creator_skills s
     join public.users u on u.id = s.author_id`;

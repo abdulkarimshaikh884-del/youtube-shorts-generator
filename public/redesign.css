@@ -3535,3 +3535,16 @@ body.sh-body .pg-formnote[data-bad="1"],
 @media (prefers-reduced-motion: reduce) {
   .sh-live-toast { animation: none; }
 }
+
+/* ============================================================
+   Verified tick beside every account name — 16 September 2026
+   ============================================================ */
+[data-user-name],
+#crDisplayName { display: inline-flex; align-items: center; max-width: 100%; min-width: 0; }
+[data-user-name] .sc-name-text,
+#crDisplayName .sc-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-user-name] .sh-verified,
+#crDisplayName .sh-verified { flex: none; }
+#crDisplayName .sh-verified { width: .8em; height: .8em; margin-left: .3em; }
+.sh-notification-item strong .sh-verified,
+.sh-live-toast-copy strong .sh-verified { width: 13px; height: 13px; margin-left: 3px; vertical-align: -2px; }

@@ -8,6 +8,7 @@
 const crypto = require("crypto");
 const db = require("./db");
 const notify = require("./notify");
+const verified = require("./verified");
 const { PLANS } = require("./credits");
 
 const REACTIONS = new Set(["like", "save"]);
@@ -280,7 +281,7 @@ async function listFollows(targetUserId, kind, viewer, limit = 100) {
   if (!targetUserId) return { people: [] };
   const following = kind === "following";
   const { rows } = await db.query(
-    `select u.id, u.display_name, u.handle, u.verified, u.avatar_bytes,
+    `select u.id, u.display_name, u.handle, ${verified.sql("u")} as verified, u.avatar_bytes,
             (select count(*)::int from public.community_templates ct
               where ct.author_id = u.id and ct.status = 'published') as published,
             exists(
@@ -428,7 +429,7 @@ async function listNotifications(user, limit = 30) {
   const safeLimit = Math.min(Math.max(Number(limit) || 30, 1), 50);
   const { rows } = await db.query(
     `select n.*, u.display_name as actor_name, u.handle as actor_handle,
-            u.verified as actor_verified, (u.avatar_bytes is not null) as actor_has_avatar,
+            ${verified.sql("u")} as actor_verified, (u.avatar_bytes is not null) as actor_has_avatar,
             ct.tpl as tpl
        from public.notifications n
        left join public.users u on u.id = n.actor_id
@@ -478,6 +479,7 @@ async function unreadSummary(user) {
   const { rows } = await db.query(
     `select n.*, u.display_name as actor_name, u.handle as actor_handle,
             (u.avatar_bytes is not null) as actor_has_avatar, ct.tpl as tpl,
+            ${verified.sql("u")} as actor_verified,
             (select count(*)::int from public.notifications x
               where x.user_id = $1 and x.read_at is null) as unread
        from public.notifications n
@@ -500,6 +502,7 @@ async function unreadSummary(user) {
       actor: row.actor_id ? {
         displayName: row.actor_name || "Creator",
         handle: row.actor_handle || "",
+        verified: row.actor_verified === true,
         avatarUrl: row.actor_has_avatar ? `/api/users/${encodeURIComponent(row.actor_id)}/avatar` : ""
       } : null
     } : null
