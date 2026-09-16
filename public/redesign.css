@@ -3748,3 +3748,27 @@ body.sh-body .pg-formnote[data-bad="1"],
 .sh-tile .sh-tcreator-name { display: flex; align-items: center; min-width: 0; }
 .sh-tile .sh-tcreator-name .sc-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sh-tile .sh-tcreator-name .sh-verified { flex: none; }
+
+/* ── Home additions for the exact phone design (wide-screen defaults) ── */
+.sh-credit-ico { display: none; }
+.sh-stats { display: none; }
+.sh-tover { display: none; }
+.sh-composer .sh-ctop { position: relative; }
+.sh-cph {
+  position: absolute; left: 3px; right: 60px; top: 3px;
+  display: flex; flex-direction: column; gap: 3px;
+  color: var(--sc-subtle); font-size: 13.5px; line-height: 1.45;
+  pointer-events: none;
+}
+.sh-cph b { color: var(--sc-muted); font-size: 16px; font-weight: 500; }
+.sh-ctop.has-text .sh-cph { display: none; }
+button.sh-feature { border: 0; font: inherit; text-align: left; cursor: pointer; }
+.sh-fa-face { position: absolute; right: -10px; bottom: -18px; width: 52px; height: 60px; }
+.sh-feature-thumb .sh-feature-go { color: #6d2fd0; }
+.sh-gallery-title .sh-seeall {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--sc-brand); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.sh-seeall svg { width: 16px; height: 16px; }
+.sh-chip { display: inline-flex; align-items: center; gap: 7px; }
+.sh-chip-ico { width: 15px; height: 15px; flex: none; }

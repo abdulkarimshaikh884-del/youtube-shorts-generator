@@ -12,6 +12,9 @@
   "use strict";
 
   var currentAspect = "9:16";
+  /* Tiles render the portrait layout; on a phone the card shows its middle
+     band, the way a video thumbnail does (see mobile.css). */
+  var tileAspect = currentAspect;
   var currentCategory = "all";
   var searchQuery = "";
 
@@ -560,10 +563,10 @@
           accent: tile.dataset.accent || "#ffffff",
           font: tile.dataset.font || "inter",
           dur: Number(tile.dataset.dur) || 4600,
-          aspect: currentAspect
+          aspect: tileAspect
         });
       } else {
-        html = e.build(tile.dataset.tpl, { aspect: currentAspect });
+        html = e.build(tile.dataset.tpl, { aspect: tileAspect });
       }
     } catch (err) {
       console.warn("[mount error]", tile.dataset.tpl, err);
@@ -827,6 +830,12 @@
         });
         stage.appendChild(heart);
 
+        // Phones show the name over the preview, like a video thumbnail.
+        var over = document.createElement("span");
+        over.className = "sh-tover";
+        over.textContent = t.name;
+        stage.appendChild(over);
+
         // How long the template runs, from the duration it is built with.
         var durMs = Number(t.isCommunity ? t.dur : t.defaultDuration) || 0;
         if (durMs > 0) {
@@ -960,6 +969,16 @@
   }
 
   /* ── Category Chips & Search Filter ────────────────────── */
+  var CHIP_ICONS = {
+    docu: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 9h20M7 5v4M12 5v4M17 5v4"/>',
+    paper: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
+    text: '<path d="M4 7V5h16v2M9 19h6M12 5v14"/>',
+    maps: '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+    money: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    ui: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+    social: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/>',
+    charts: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'
+  };
   function buildFilters() {
     var bar = $("#filters");
     var e = engine();
@@ -987,7 +1006,12 @@
       b.type = "button";
       b.className = "sh-chip" + (i === 0 ? " active" : "");
       b.dataset.cat = c.id;
-      b.textContent = c.label;
+      if (CHIP_ICONS[c.id]) {
+        b.innerHTML = '<svg class="sh-chip-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + CHIP_ICONS[c.id] + "</svg>";
+        b.appendChild(document.createTextNode(c.label));
+      } else {
+        b.textContent = c.label;
+      }
       b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
       bar.appendChild(b);
     });
@@ -1110,11 +1134,15 @@
     }
 
     var counter = $("#composerCount");
+    var field = text.closest(".sh-ctop");
     function sync() {
       text.style.height = "auto";
       text.style.height = Math.min(text.scrollHeight, 180) + "px";
-      go.disabled = text.value.trim().length < 2;
-      if (counter) counter.textContent = text.value.length + "/" + (text.maxLength > 0 ? text.maxLength : 600);
+      /* The button stays blue and ready; pressing it with nothing typed puts
+         the cursor in the box instead (see the submit handler). */
+      go.disabled = false;
+      if (counter) counter.textContent = text.value.length + "/" + (text.maxLength > 0 ? text.maxLength : 500);
+      if (field) field.classList.toggle("has-text", text.value.length > 0);
     }
 
     text.addEventListener("input", sync);
@@ -1172,6 +1200,45 @@
     });
   }
 
+  /* ── Home figures, "See all" and the thumbnail card ───── */
+  function compactNumber(n) {
+    n = Number(n) || 0;
+    if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(/\.0$/, "") + "M";
+    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K";
+    return String(n);
+  }
+  function wireHomeExtras() {
+    if (document.querySelector("[data-site-stat]")) {
+      fetch("/api/site-stats", { headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          if (!j || !j.success) return;
+          document.querySelectorAll("[data-site-stat]").forEach(function (el) {
+            var v = j[el.getAttribute("data-site-stat")];
+            if (typeof v === "number") el.textContent = compactNumber(v);
+          });
+        }).catch(function () {});
+    }
+    var seeAll = $("#tplSeeAll");
+    if (seeAll) {
+      seeAll.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        var search = $("#tplSearch");
+        if (search && search.value) { search.value = ""; search.dispatchEvent(new Event("input")); }
+        var all = document.querySelector('#filters .sh-chip[data-cat="all"]');
+        if (all && !all.classList.contains("active")) all.click();
+        var grid = $("#gallery");
+        if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    var soon = $("#thumbSoon");
+    if (soon) {
+      soon.addEventListener("click", function () {
+        if (window.SC_UI && SC_UI.toast) SC_UI.toast("Thumbnail maker is coming soon.", false, 2600);
+      });
+    }
+  }
+
   /* ── App Shell & Live Credit Balance ───────────────────── */
   function wireChrome() {
     var badge = document.querySelector(".sh-plan-badge");
@@ -1189,6 +1256,7 @@
             // a score, and told you nothing about which plan you are on.
             if (chipBalance) chipBalance.textContent = j.left + " Credit" + (j.left === 1 ? "" : "s");
           }
+          document.querySelectorAll("[data-credits-left]").forEach(function (el) { el.textContent = String(j.left); });
           var up = null;
           if (badge) {
             var b = badge.querySelector("b");
@@ -1270,6 +1338,7 @@
     buildGallery();
     wireComposer();
     wireChrome();
+    wireHomeExtras();
   }
 
   if (document.readyState === "loading") {

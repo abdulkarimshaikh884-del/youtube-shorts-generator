@@ -732,6 +732,34 @@ app.get("/api/template-metrics", async (req, res) => {
   }
 });
 
+/* The home page's figures. Test accounts (the .invalid and example.* addresses
+   the verification scripts create) are left out of both, so the numbers are
+   what real people did. Counted at most every ten minutes. */
+let siteStatsCache = null;
+app.get("/api/site-stats", async (req, res) => {
+  try {
+    if (!siteStatsCache || Date.now() - siteStatsCache.at > 10 * 60_000) {
+      const { rows } = await db.query(
+        `with real_users as (
+           select id from public.users
+            where email not ilike '%.invalid' and email not ilike '%@example.%'
+         )
+         select
+           (select count(*)::int from public.credit_transactions t
+             where t.kind = 'export'
+               and (t.user_id is null or t.user_id in (select id from real_users))) as exports,
+           (select count(*)::int from real_users) as community`
+      );
+      siteStatsCache = { at: Date.now(), exports: rows[0].exports, community: rows[0].community };
+    }
+    res.set("Cache-Control", "public, max-age=120");
+    return res.json({ success: true, exports: siteStatsCache.exports, community: siteStatsCache.community });
+  } catch (err) {
+    console.error("[/api/site-stats]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load site figures." });
+  }
+});
+
 app.put("/api/templates/:id/reactions/:reaction", async (req, res) => {
   if (!(await community.isPublicTemplateKey(req.params.id))) {
     return res.status(404).json({ success: false, error: "Template not found." });
