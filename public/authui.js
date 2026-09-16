@@ -2752,7 +2752,7 @@
 
   function init() {
     completeMobileNav();
-    all("#logoutBtn, #accLogout, #accLogoutPane, #popoverLogoutBtn, #navMobileLogout").forEach(function (b) {
+    all("#logoutBtn, #accLogout, #accLogoutPane, #accHubLogout, #popoverLogoutBtn, #navMobileLogout").forEach(function (b) {
       b.addEventListener("click", logout);
     });
     setupUserTrigger();

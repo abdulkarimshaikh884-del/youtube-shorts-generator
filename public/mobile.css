@@ -324,3 +324,116 @@
 @media (max-width: 359px) {
   body.sh-body #navMobile:not([hidden]) { width: 204px; }
 }
+
+/* ── Phone: owner's 2026-09 design ───────────────────────────
+   Bottom tab bar, the hero beside its drawing, two feature cards side by
+   side, and the account hub the Profile tab opens. */
+@media (max-width: 640px) {
+  body.sh-body { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+
+  body.sh-body .sh-bottomnav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 110;
+    display: grid; grid-template-columns: repeat(5, 1fr); align-items: end;
+    height: calc(62px + env(safe-area-inset-bottom, 0px));
+    padding: 0 4px env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid var(--sc-border);
+    background: color-mix(in srgb, var(--sc-surface) 94%, transparent);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  }
+  body.sh-body .sh-bn-tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    height: 62px; min-width: 0;
+    color: var(--sc-muted); font-size: 11px; font-weight: 600; text-decoration: none;
+  }
+  body.sh-body .sh-bn-icon { display: grid; place-items: center; width: 26px; height: 26px; }
+  body.sh-body .sh-bn-icon svg { width: 23px; height: 23px; }
+  body.sh-body .sh-bn-tab[aria-current="page"] { color: var(--sc-brand); }
+  body.sh-body .sh-bn-tab[aria-current="page"] .sh-bn-icon svg { stroke-width: 2.2; }
+  body.sh-body .sh-bn-create .sh-bn-icon {
+    width: 50px; height: 50px; margin-top: -24px;
+    border: 4px solid var(--sc-canvas); border-radius: 50%;
+    background: var(--sc-brand); color: #fff;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--sc-brand) 40%, transparent);
+    box-sizing: content-box;
+  }
+  body.sh-body .sh-bn-create .sh-bn-icon svg { width: 24px; height: 24px; }
+
+  /* Things pinned to the bottom of the screen sit above the tab bar. */
+  body.sh-body .sc-toast-wrap { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  body.sh-body .sh-live-toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  body.sh-body #navMobile:not([hidden]) { max-height: calc(100dvh - 140px); }
+
+  /* Hero */
+  body.sh-body .sh-home .sh-hero-v2 {
+    grid-template-columns: minmax(0, 1fr) 118px;
+    gap: 6px;
+    width: calc(100% - 20px);
+    margin: 10px auto 0;
+    padding: 16px 10px 16px 16px;
+    border-radius: 18px;
+  }
+  body.sh-body .sh-hero-v2 .sh-hero-kicker { margin-bottom: 8px; font-size: 8.5px; letter-spacing: .16em; }
+  body.sh-body .sh-home .sh-hero-v2 h1 { margin-bottom: 8px; font-size: 23px; line-height: 1.1; }
+  body.sh-body .sh-home .sh-hero-v2 .sh-hero-sub { font-size: 13px; line-height: 1.4; }
+  body.sh-body .sh-hero-art { width: 210px; height: 180px; margin: -18px 0 -62px; transform: scale(.56); transform-origin: top left; }
+
+  /* Composer */
+  body.sh-body .sh-home .sh-hero-v2 + .sh-composer { width: calc(100% - 20px); margin: 10px auto 12px; }
+  body.sh-body #composerPrompt { min-height: 74px; padding-bottom: 20px; }
+  body.sh-body .sh-cbar { flex-wrap: nowrap; }
+  body.sh-body .sh-cnote, body.sh-body .sh-cgrow { display: none; }
+  body.sh-body .sh-cbar label[for="composerImg"].sh-imgbtn { width: auto; height: 38px; padding: 0 10px; gap: 6px; font-size: 12.5px; flex: none; }
+  body.sh-body .sh-cbar .sh-csel-btn { height: 38px; min-height: 38px; }
+  body.sh-body .sh-cbar #composerGo { flex: 1 1 auto; width: auto; order: 0; justify-content: center; height: 38px; padding: 0 10px; font-size: 13px; white-space: nowrap; }
+  body.sh-body .sh-cbar #composerGo > span { display: none; }
+  body.sh-body .sh-cbar .sh-csel-btn { padding: 0 9px; font-size: 12.5px; }
+  body.sh-body .sh-composer .sh-cbar { gap: 6px; }
+}
+/* Not enough width for three labelled controls: the image button keeps its
+   icon, and "Create animation" keeps its words. */
+@media (max-width: 420px) {
+  body.sh-body .sh-composer .sh-imgbtn-label { display: none; }
+  body.sh-body .sh-cbar label[for="composerImg"].sh-imgbtn { width: 38px; padding: 0; justify-content: center; }
+}
+@media (max-width: 640px) {
+
+  /* Feature cards, two across */
+  body.sh-body .sh-feature-row { width: calc(100% - 20px); gap: 10px; margin-bottom: 8px; }
+  body.sh-body .sh-feature { min-height: 128px; padding: 13px 12px 12px; border-radius: 14px; }
+  body.sh-body .sh-feature-copy { max-width: 64%; gap: 5px; }
+  body.sh-body .sh-feature-title { font-size: 15px; }
+  body.sh-body .sh-soon { display: block; width: max-content; margin: 4px 0 0; padding: 1px 6px; font-size: 9.5px; }
+  body.sh-body .sh-feature-text { font-size: 10.5px; line-height: 1.35; }
+  body.sh-body .sh-feature-art { right: 6px; top: auto; bottom: 12px; transform: none; }
+  body.sh-body .sh-fa-screen, body.sh-body .sh-fa-thumb { width: 58px; height: 50px; font-size: 8.5px; border-width: 1.5px; }
+  body.sh-body .sh-fa-thumb b { font-size: 10.5px; }
+  body.sh-body .sh-fa-thumb i { width: 20px; height: 15px; right: -5px; top: -6px; }
+  body.sh-body .sh-feature-anim .sh-feature-art { bottom: 42px; }
+  body.sh-body .sh-feature-go { width: 28px; height: 28px; right: 10px; bottom: 10px; }
+
+  body.sh-body .sh-gallery-title .sh-gallery-sub { margin-top: 3px; font-size: 13px; }
+
+  /* Tile corner controls, a little smaller */
+  body.sh-body .sh-stage .sh-theart { width: 30px; height: 30px; top: 6px; right: 6px; }
+  body.sh-body .sh-stage .sh-theart svg { width: 16px; height: 16px; }
+  body.sh-body .sh-tdur { right: 6px; bottom: 6px; font-size: 10.5px; padding: 1px 6px; }
+
+  /* Account hub */
+  body.sh-body .sh-profile-hub {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+    margin: 14px 0 6px;
+  }
+  body.sh-body .sh-profile-hub [hidden] { display: none; }
+  body.sh-body .sh-profile-hub > a:not([hidden]),
+  body.sh-body .sh-profile-hub > button:not([hidden]) {
+    display: flex; align-items: center; gap: 9px;
+    min-height: 46px; padding: 0 12px;
+    border: 1px solid var(--sc-border); border-radius: 12px;
+    background: var(--sc-surface); color: var(--sc-text);
+    font: inherit; font-size: 13px; font-weight: 600; text-align: left; text-decoration: none;
+  }
+  body.sh-body .sh-profile-hub svg { width: 18px; height: 18px; flex: none; color: var(--sc-muted); }
+  body.sh-body .sh-profile-hub span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.sh-body .sh-profile-hub .sh-hub-logout { color: var(--sc-danger); }
+  body.sh-body .sh-profile-hub .sh-hub-logout svg { color: currentColor; }
+}

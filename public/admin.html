@@ -25,16 +25,16 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091605">
-<link rel="stylesheet" href="/page.css?v=2026091605">
-<link rel="stylesheet" href="/redesign.css?v=2026091605">
+<link rel="stylesheet" href="/shell.css?v=2026091701">
+<link rel="stylesheet" href="/page.css?v=2026091701">
+<link rel="stylesheet" href="/redesign.css?v=2026091701">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091605">
+<link rel="stylesheet" href="/polish.css?v=2026091701">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026091605">
+<link rel="stylesheet" href="/mobile.css?v=2026091701">
 </head>
 <body class="sh-body">
 
@@ -296,8 +296,10 @@
       <a href="/drafts">My Projects</a>
       <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/pricing">Pricing</a>
+      <a href="/tutorials">Tutorials &amp; Help</a>
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
+      <a href="/settings" data-auth="in" hidden>Profile &amp; settings</a>
       <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Publish Template</span>
@@ -438,8 +440,31 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091605" defer></script>
-<script src="/theme.js?v=2026091605" defer></script>
-<script src="/page.js?v=2026091605" defer></script>
-<script src="/admin-console.js?v=2026091605" defer></script></body>
+<nav class="sh-bottomnav" aria-label="Main">
+  <a href="/" class="sh-bn-tab sh-bn-home">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+    <span class="sh-bn-label">Home</span>
+  </a>
+  <a href="/#templates" class="sh-bn-tab sh-bn-templates">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span>
+    <span class="sh-bn-label">Templates</span>
+  </a>
+  <a href="/editor" class="sh-bn-tab sh-bn-create">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+    <span class="sh-bn-label">Create</span>
+  </a>
+  <a href="/community" class="sh-bn-tab sh-bn-community">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+    <span class="sh-bn-label">Community</span>
+  </a>
+  <a href="/account" class="sh-bn-tab sh-bn-profile" aria-current="page">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    <span class="sh-bn-label">Profile</span>
+  </a>
+</nav>
+
+<script src="/authui.js?v=2026091701" defer></script>
+<script src="/theme.js?v=2026091701" defer></script>
+<script src="/page.js?v=2026091701" defer></script>
+<script src="/admin-console.js?v=2026091701" defer></script></body>
 </html>

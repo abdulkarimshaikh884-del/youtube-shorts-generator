@@ -3548,3 +3548,203 @@ body.sh-body .pg-formnote[data-bad="1"],
 #crDisplayName .sh-verified { width: .8em; height: .8em; margin-left: .3em; }
 .sh-notification-item strong .sh-verified,
 .sh-live-toast-copy strong .sh-verified { width: 13px; height: 13px; margin-left: 3px; vertical-align: -2px; }
+
+/* ── Home, owner's 2026-09 design: hero, feature cards, tile heart ───── */
+.sh-home .sh-hero-v2 {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  align-items: center;
+  gap: 18px;
+  width: min(780px, calc(100% - 32px));
+  margin: clamp(20px, 3vw, 36px) auto 0;
+  padding: 28px 28px 26px 32px;
+  border: 1px solid var(--sc-border);
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--sc-brand) 14%, transparent), transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb, var(--sc-brand) 6%, var(--sc-surface)), var(--sc-surface));
+  text-align: left;
+  overflow: hidden;
+}
+.sh-hero-v2 .sh-hero-kicker {
+  margin: 0 0 12px;
+  color: var(--sc-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.sh-hero-v2 .sh-hero-kicker span { margin: 0 .35em; letter-spacing: 0; }
+.sh-home .sh-hero-v2 h1 {
+  max-width: none;
+  margin: 0 0 12px;
+  color: var(--sc-text);
+  font-size: clamp(30px, 3.6vw, 44px);
+  line-height: 1.06;
+  letter-spacing: -.035em;
+  text-align: left;
+}
+.sh-hero-v2 h1 em { display: block; color: var(--sc-brand); font-style: normal; }
+.sh-home .sh-hero-v2 .sh-hero-sub {
+  max-width: 440px;
+  margin: 0;
+  color: var(--sc-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.sh-hero-art { position: relative; width: 210px; height: 180px; color: var(--sc-text); }
+.sh-ha-note {
+  position: absolute; left: 0; top: 4px;
+  font-family: "Caveat", "Segoe Print", cursive;
+  font-size: 23px; font-weight: 600; line-height: .95;
+  transform: rotate(-14deg);
+}
+.sh-ha-arrow { position: absolute; left: 22px; top: 58px; width: 26px; height: 32px; }
+.sh-ha-card {
+  position: absolute; left: 70px; top: 40px;
+  width: 112px; height: 112px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #2a3142, #0d111b);
+  box-shadow: 14px 18px 30px rgba(16, 24, 48, .28), inset 0 1px 0 rgba(255,255,255,.12);
+  transform: rotate(-12deg) skewY(4deg);
+}
+.sh-ha-play {
+  position: absolute; left: 32px; top: 22px;
+  display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 14px;
+  background: linear-gradient(145deg, #4c8dff, #1f55e6);
+  box-shadow: 0 0 22px rgba(76, 141, 255, .55);
+  color: #fff;
+}
+.sh-ha-play svg { width: 20px; height: 20px; }
+.sh-ha-card i { position: absolute; left: 18px; height: 4px; border-radius: 3px; background: rgba(255,255,255,.18); }
+.sh-ha-card i:nth-of-type(1) { top: 80px; width: 64px; }
+.sh-ha-card i:nth-of-type(2) { top: 90px; width: 42px; }
+.sh-ha-chip {
+  position: absolute;
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--sc-surface);
+  box-shadow: 0 6px 16px rgba(16, 24, 48, .16);
+  font-family: Georgia, serif; font-size: 19px; font-weight: 600;
+}
+.sh-ha-chip svg { width: 18px; height: 18px; }
+.sh-ha-img { left: 52px; top: 132px; color: #2f6bf2; }
+.sh-ha-text { right: 2px; top: 108px; }
+.sh-ha-spark { right: 18px; top: 146px; background: linear-gradient(145deg, #8b5cf6, #5b35e0); color: #fff; }
+.sh-ha-rays { position: absolute; right: 6px; top: 6px; width: 40px; height: 40px; }
+.sh-ha-rays i { position: absolute; width: 3px; height: 14px; border-radius: 3px; background: #2f6bf2; }
+.sh-ha-rays i:nth-child(1) { left: 6px; top: 12px; transform: rotate(-12deg); }
+.sh-ha-rays i:nth-child(2) { left: 20px; top: 4px; transform: rotate(28deg); }
+.sh-ha-rays i:nth-child(3) { left: 30px; top: 22px; transform: rotate(62deg); }
+
+/* Composer: the prompt says what it is for, counts, and names the image button. */
+.sh-home .sh-hero-v2 + .sh-composer { width: min(780px, calc(100% - 32px)); margin-top: 14px; margin-bottom: 18px; }
+.sh-composer .sh-ctop { position: relative; }
+.sh-composer #composerPrompt { padding-bottom: 20px; }
+.sh-ccount {
+  position: absolute; right: 4px; bottom: 2px;
+  color: var(--sc-subtle); font-size: 12px; font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.sh-composer .sh-imgbtn {
+  display: inline-flex; align-items: center; gap: 8px;
+  width: auto; padding: 0 13px;
+  color: var(--sc-text); font-size: 13.5px; font-weight: 600;
+}
+.sh-composer .sh-imgbtn svg { width: 18px; height: 18px; flex: none; }
+.sh-cgo { display: inline-flex; align-items: center; gap: 8px; }
+.sh-cgo-spark { width: 16px; height: 16px; flex: none; }
+
+/* Feature cards */
+.sh-feature-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  width: min(780px, calc(100% - 32px));
+  margin: 0 auto 34px;
+}
+.sh-feature {
+  position: relative;
+  display: flex;
+  min-height: 150px;
+  padding: 20px 20px 18px;
+  border-radius: 18px;
+  overflow: hidden;
+  color: #fff;
+  text-decoration: none;
+}
+.sh-feature-anim { background: linear-gradient(135deg, #0c1424 0%, #122a4d 100%); }
+.sh-feature-thumb { background: linear-gradient(135deg, #3a1470 0%, #6d2fd0 100%); }
+.sh-feature-copy { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; max-width: 58%; }
+.sh-feature .sh-feature-title { color: #fff; font-family: var(--sh-display); font-size: 21px; font-weight: 650; line-height: 1.1; letter-spacing: -.02em; }
+.sh-feature-text { color: rgba(255,255,255,.8); font-size: 13.5px; line-height: 1.45; }
+.sh-soon {
+  display: inline-block; margin-left: 4px; padding: 2px 8px;
+  border-radius: 999px; background: #22c55e; color: #06220f;
+  font-family: Inter, system-ui, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0;
+  vertical-align: 3px; white-space: nowrap;
+}
+.sh-feature-art { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); }
+.sh-fa-screen {
+  display: grid; place-items: center;
+  width: 118px; height: 88px;
+  border: 2px solid #38d6ff; border-radius: 10px;
+  background: #07101d;
+  box-shadow: 0 0 20px rgba(56, 214, 255, .45), inset 0 0 14px rgba(56, 214, 255, .25);
+  color: #7fe7ff; font-family: var(--sh-display); font-size: 14px; font-weight: 700; font-style: italic;
+  line-height: 1.02; text-align: center; text-transform: uppercase;
+  transform: perspective(300px) rotateY(-16deg) rotate(-4deg);
+}
+.sh-fa-thumb {
+  position: relative; display: grid; place-items: center;
+  width: 118px; height: 88px; border-radius: 10px;
+  background: linear-gradient(145deg, #15102a, #2b1650);
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  transform: rotate(4deg);
+}
+.sh-fa-thumb b { color: #ffd23f; font-family: var(--sh-display); font-size: 19px; font-weight: 800; line-height: .95; text-transform: uppercase; text-shadow: 2px 2px 0 #000; }
+.sh-fa-thumb i { position: absolute; right: -8px; top: -8px; display: grid; place-items: center; width: 30px; height: 22px; border-radius: 6px; background: #ff1f2d; color: #fff; }
+.sh-fa-thumb i svg { width: 12px; height: 12px; }
+.sh-feature-go {
+  position: absolute; right: 16px; bottom: 14px; z-index: 2;
+  display: grid; place-items: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #fff; color: #1f55e6;
+}
+.sh-feature-go svg { width: 16px; height: 16px; }
+.sh-feature-anim:hover .sh-feature-go { transform: translateX(2px); }
+.sh-feature-anim:focus-visible { outline: 3px solid var(--sc-brand); outline-offset: 3px; }
+
+.sh-gallery-title .sh-gallery-sub { margin: 6px 0 0; color: var(--sc-muted); font-size: 14px; }
+
+/* Tile: a heart in the corner and the running time */
+.sh-stage .sh-theart {
+  position: absolute; top: 8px; right: 8px; z-index: 4;
+  display: grid; place-items: center;
+  width: 32px; height: 32px; min-width: 0; padding: 0;
+  border: 1px solid rgba(255,255,255,.35); border-radius: 50%;
+  background: rgba(10, 10, 12, .38);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  color: #fff; cursor: pointer;
+}
+.sh-stage .sh-theart svg { width: 17px; height: 17px; }
+.sh-stage .sh-theart:hover { background: rgba(10, 10, 12, .6); color: #fff; }
+.sh-stage .sh-theart.liked { color: #ff4d5e; border-color: rgba(255, 77, 94, .6); }
+.sh-stage .sh-theart.liked svg { fill: currentColor; }
+.sh-stage .sh-theart:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.sh-tdur {
+  position: absolute; right: 8px; bottom: 8px; z-index: 3;
+  padding: 2px 7px; border-radius: 7px;
+  background: rgba(10, 10, 12, .62); color: #fff;
+  font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* Phone tab bar and the account hub it leads to: hidden on wider screens */
+.sh-bottomnav, .sh-profile-hub { display: none; }
+.sh-tile .sh-tcreator-name { display: flex; align-items: center; min-width: 0; }
+.sh-tile .sh-tcreator-name .sc-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sh-tile .sh-tcreator-name .sh-verified { flex: none; }

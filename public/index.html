@@ -24,16 +24,17 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091605">
-<link rel="stylesheet" href="/page.css?v=2026091605">
-<link rel="stylesheet" href="/redesign.css?v=2026091605">
+<link rel="stylesheet" href="/shell.css?v=2026091701">
+<link rel="stylesheet" href="/page.css?v=2026091701">
+<link rel="stylesheet" href="/redesign.css?v=2026091701">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091605">
+<link rel="stylesheet" href="/polish.css?v=2026091701">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026091605">
+<link rel="stylesheet" href="/mobile.css?v=2026091701">
 </head>
 <body class="sh-body">
 
@@ -295,8 +296,10 @@
       <a href="/drafts">My Projects</a>
       <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/pricing">Pricing</a>
+      <a href="/tutorials">Tutorials &amp; Help</a>
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
+      <a href="/settings" data-auth="in" hidden>Profile &amp; settings</a>
       <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Publish Template</span>
@@ -315,20 +318,41 @@
     </div>
 
     <main class="sh-home">
-      <section class="sh-hero">
-        <h1>What do you want to animate?</h1>
+      <!-- The owner's mobile design: a headline with the product's promise
+           beside a drawn illustration. The drawing is inline SVG and CSS, so
+           the first screen costs no image request. -->
+      <section class="sh-hero sh-hero-v2">
+        <div class="sh-hero-copy">
+          <p class="sh-hero-kicker">Ideas <span aria-hidden="true">→</span> Animations <span aria-hidden="true">→</span> Impact</p>
+          <h1>Turn your ideas into <em>scroll-stopping videos</em></h1>
+          <p class="sh-hero-sub">Create stunning animations and templates with the power of AI.</p>
+        </div>
+        <div class="sh-hero-art" aria-hidden="true">
+          <span class="sh-ha-note">Animate<br>Anything</span>
+          <svg class="sh-ha-arrow" viewBox="0 0 40 46" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3C4 12 3 27 20 40"/><path d="M11 38l9 3 1-9"/></svg>
+          <span class="sh-ha-card">
+            <span class="sh-ha-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+            <i></i><i></i>
+          </span>
+          <span class="sh-ha-chip sh-ha-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg></span>
+          <span class="sh-ha-chip sh-ha-text">T</span>
+          <span class="sh-ha-chip sh-ha-spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></svg></span>
+          <span class="sh-ha-rays"><i></i><i></i><i></i></span>
+        </div>
       </section>
 
       <form class="sh-composer" id="composer" action="/editor" method="GET">
         <div class="sh-ctop">
           <label class="ed-sr" for="composerPrompt">Describe the animation you want</label>
-          <textarea id="composerPrompt" name="topic" rows="2" maxlength="600"
-            placeholder="Example: A clean pricing card that flips to reveal ₹199, with a blue accent"></textarea>
+          <textarea id="composerPrompt" name="topic" rows="3" maxlength="600"
+            placeholder="Describe what you want to animate…&#10;Example: A clean pricing card that flips to reveal ₹199, with a blue accent"></textarea>
+          <span class="sh-ccount" id="composerCount">0/600</span>
         </div>
         <div class="sh-cbar">
           <input type="file" id="composerImg" accept="image/png,image/jpeg,image/webp,image/gif" class="ed-sr">
           <label class="sh-imgbtn" for="composerImg" title="Attach image to animate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+            <span class="sh-imgbtn-label">Add image</span>
           </label>
           <button class="sh-imgchip" type="button" id="composerImgClear" hidden>
             <span id="composerImgName">image</span> <b>×</b>
@@ -359,13 +383,33 @@
                already shows the generation price; this is the export price,
                which is the charge people were meeting only at the end. -->
           <span class="sh-cnote">Export costs 1 credit</span>
-          <button class="sh-cgo" id="composerGo" type="submit">Create animation <span aria-hidden="true">→</span></button>
+          <button class="sh-cgo" id="composerGo" type="submit"><svg class="sh-cgo-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></svg>Create animation <span aria-hidden="true">→</span></button>
         </div>
       </form>
 
+      <!-- Two ways in. Thumbnails are not built yet, so that card says so and
+           goes nowhere, rather than opening a page that does not exist. -->
+      <section class="sh-feature-row" aria-label="What you can create">
+        <a href="/editor" class="sh-feature sh-feature-anim">
+          <span class="sh-feature-copy">
+            <strong class="sh-feature-title">Create Animation</strong>
+            <span class="sh-feature-text">Bring your ideas to life with ready-made or AI-generated templates.</span>
+          </span>
+          <span class="sh-feature-art" aria-hidden="true"><span class="sh-fa-screen">Ideas<br>into<br>motion</span></span>
+          <span class="sh-feature-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <div class="sh-feature sh-feature-thumb" aria-disabled="true">
+          <span class="sh-feature-copy">
+            <strong class="sh-feature-title">Create Thumbnail <span class="sh-soon">Coming soon</span></strong>
+            <span class="sh-feature-text">Design eye-catching YouTube thumbnails with templates and AI tools.</span>
+          </span>
+          <span class="sh-feature-art" aria-hidden="true"><span class="sh-fa-thumb"><b>Bigger<br>views</b><i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></i></span></span>
+        </div>
+      </section>
+
       <section class="sh-gallery-sec" id="templates">
         <div class="sh-gallery-title">
-          <div><span class="sh-home-kicker">Template library</span><h2>Browse free templates</h2></div>
+          <div><h2>Browse templates</h2><p class="sh-gallery-sub">Free, customizable templates for every idea.</p></div>
         </div>
         <div class="sh-ghead">
           <div class="sh-search-bar-row">
@@ -501,8 +545,31 @@
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
 
-<script src="/authui.js?v=2026091605" defer></script>
-<script src="/theme.js?v=2026091605" defer></script>
+<nav class="sh-bottomnav" aria-label="Main">
+  <a href="/" class="sh-bn-tab sh-bn-home" aria-current="page">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+    <span class="sh-bn-label">Home</span>
+  </a>
+  <a href="/#templates" class="sh-bn-tab sh-bn-templates">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></span>
+    <span class="sh-bn-label">Templates</span>
+  </a>
+  <a href="/editor" class="sh-bn-tab sh-bn-create">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+    <span class="sh-bn-label">Create</span>
+  </a>
+  <a href="/community" class="sh-bn-tab sh-bn-community">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+    <span class="sh-bn-label">Community</span>
+  </a>
+  <a href="/account" class="sh-bn-tab sh-bn-profile">
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    <span class="sh-bn-label">Profile</span>
+  </a>
+</nav>
 
-<script src="/templates-v2.js?v=2026091605" defer></script><script src="/shell.js?v=2026091605" defer></script></body>
+<script src="/authui.js?v=2026091701" defer></script>
+<script src="/theme.js?v=2026091701" defer></script>
+
+<script src="/templates-v2.js?v=2026091701" defer></script><script src="/shell.js?v=2026091701" defer></script></body>
 </html>

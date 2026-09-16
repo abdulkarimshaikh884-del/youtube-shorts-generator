@@ -38,6 +38,13 @@
     return { name: o.name || "ShortsCraft", handle: "@shortscraft", initials: o.initials || "SC", bio: o.bio || "Templates published by the ShortsCraft team.", verified: true, avatarUrl: o.avatarUrl || "" };
   }
 
+  // Painted by authui.js from /api/auth/me: signed-in-only controls lose
+  // their hidden attribute once the account is known.
+  function signedIn() {
+    var el = document.querySelector('.sh-top-actions [data-auth="in"]');
+    return !!el && !el.hidden;
+  }
+
   function templateKey(t) { return String((t && (t.commId || t.tpl)) || ""); }
 
   function updateLikeControl(button, t) {
@@ -720,6 +727,7 @@
           desc: t.desc,
           cat: t.cat,
           collection: t.collection,
+          defaultDuration: t.defaultDuration,
           isCommunity: false,
           likes: Number(activity.likes) || 0,
           downloads: Number(activity.exports) || 0,
@@ -799,6 +807,36 @@
            opens the template, so they covered the artwork to offer what was
            already one click away. */
 
+        /* A heart in the corner is the template's Like, the same reaction the
+           detail page counts. Someone signed out is sent to log in and back. */
+        var heart = document.createElement("button");
+        heart.type = "button";
+        heart.className = "sh-tact-btn like sh-theart";
+        heart.setAttribute("aria-pressed", "false");
+        heart.setAttribute("aria-label", "Like " + t.name);
+        heart.title = "Like";
+        heart.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 7.9 3.6 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.4 0 5.6 3.4 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>';
+        heart.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (!signedIn()) {
+            location.href = "/login?next=" + encodeURIComponent(location.pathname + "#templates");
+            return;
+          }
+          setTemplateLike(t, t.liked !== true, heart);
+        });
+        stage.appendChild(heart);
+
+        // How long the template runs, from the duration it is built with.
+        var durMs = Number(t.isCommunity ? t.dur : t.defaultDuration) || 0;
+        if (durMs > 0) {
+          var secs = Math.max(1, Math.round(durMs / 1000));
+          var dur = document.createElement("span");
+          dur.className = "sh-tdur";
+          dur.textContent = (secs < 600 ? "0" : "") + Math.floor(secs / 60) + ":" + (secs % 60 < 10 ? "0" : "") + (secs % 60);
+          stage.appendChild(dur);
+        }
+
 
         // Meta Area (Title, Description, Creator Profile, Like/Comment/Share action bar)
         var meta = document.createElement("div");
@@ -844,7 +882,11 @@
 
         var nameEl = document.createElement("span");
         nameEl.className = "sh-tcreator-name";
-        nameEl.textContent = author.name;
+        // The name shortens on a narrow card; the tick after it does not.
+        var nameText = document.createElement("span");
+        nameText.className = "sc-name-text";
+        nameText.textContent = author.name;
+        nameEl.appendChild(nameText);
         if (author.verified) {
           var verified = document.createElement("span");
           verified.className = "sh-verified";
@@ -1067,10 +1109,12 @@
       });
     }
 
+    var counter = $("#composerCount");
     function sync() {
       text.style.height = "auto";
       text.style.height = Math.min(text.scrollHeight, 180) + "px";
       go.disabled = text.value.trim().length < 2;
+      if (counter) counter.textContent = text.value.length + "/" + (text.maxLength > 0 ? text.maxLength : 600);
     }
 
     text.addEventListener("input", sync);

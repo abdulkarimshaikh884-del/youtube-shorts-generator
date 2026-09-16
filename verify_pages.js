@@ -194,7 +194,7 @@ const LEGACY_CSS = /(?:styles|premium|landing|seo-tools|studio)\.css/;
     ok(response && (response.status() === 200 || response.status() === 304) && info.path === "/" && info.hash === "#templates",
       `${route} permanently redirects to the template gallery`,
       `${response ? response.status() : 0} ${info.path}${info.hash}`);
-    ok(!info.toolUi && /animate/i.test(info.h1), `${route} exposes no retired tool UI`, info.h1);
+    ok(!info.toolUi && /animate|scroll-stopping videos/i.test(info.h1), `${route} exposes no retired tool UI`, info.h1);
   }
 
   console.log("\n---- feedback form ----");

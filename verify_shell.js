@@ -95,7 +95,7 @@ function ok(pass, label, extra) {
     "navigation is not duplicated between rail and topbar",
     `rail ${layout.railNavLinks} / topbar ${layout.topbarNavLinks}`);
   ok(!!layout.topbar, "topbar rendered");
-  ok(layout.h1Align === "center", "hero heading is centred", layout.h1Align);
+  ok(layout.h1Align === "left", "hero heading sits left of its illustration", layout.h1Align);
   ok(layout.composer && layout.composer.w > 600, "composer is full width, not squeezed",
     layout.composer && layout.composer.w);
   ok(!!layout.ctaText && layout.ctaText.length > 3, "sidebar CTA has a visible label",

@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091605";
+const V = "2026091701";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -145,6 +145,36 @@ ${p.body}
 ${p.scripts || ""}</body>
 </html>
 `;
+}
+
+/* The phone's tab bar. On a phone the rail is gone and the menu hides every
+   destination behind a tap, which is how Settings and Help went missing for
+   phone users. Five tabs cover the product; Profile leads to the rest. */
+const BOTTOM_TABS = [
+  { key: "home", href: "/", label: "Home",
+    icon: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>' },
+  { key: "templates", href: "/#templates", label: "Templates",
+    icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
+  { key: "create", href: "/editor", label: "Create",
+    icon: '<path d="M12 5v14M5 12h14"/>' },
+  { key: "community", href: "/community", label: "Community",
+    icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
+  { key: "profile", href: "/account", label: "Profile",
+    icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
+];
+function bottomNav(p) {
+  const current = p.route === "/" ? "home"
+    : ["/template", "/creator"].includes(p.route) ? "templates"
+    : p.active === "community" ? "community"
+    : ["/account", "/settings", "/drafts", "/uploads", "/pricing", "/tutorials", "/contact", "/about", "/admin"].includes(p.route) ? "profile"
+    : "";
+  const tabs = BOTTOM_TABS.map((t) => `  <a href="${t.href}" class="sh-bn-tab sh-bn-${t.key}"${t.key === current ? ' aria-current="page"' : ""}>
+    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${t.key === "create" ? "2.6" : "1.8"}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${t.icon}</svg></span>
+    <span class="sh-bn-label">${t.label}</span>
+  </a>`).join("\n");
+  return `<nav class="sh-bottomnav" aria-label="Main">
+${tabs}
+</nav>`;
 }
 
 function chrome(p) {
@@ -424,8 +454,10 @@ ${nav}
       <a href="/drafts">My Projects</a>
       <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/pricing">Pricing</a>
+      <a href="/tutorials">Tutorials &amp; Help</a>
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
+      <a href="/settings" data-auth="in" hidden>Profile &amp; settings</a>
       <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Publish Template</span>
@@ -480,6 +512,8 @@ ${p.body}
 
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
+
+${bottomNav(p)}
 
 <script src="/authui.js?v=${V}" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
@@ -1958,6 +1992,22 @@ const account = {
           </div>
         </header>
 
+        <!-- Phones only. The rail that lists these on a computer does not
+             exist on a phone, so the Profile tab is where they live. -->
+        <nav class="sh-profile-hub" aria-label="Your account">
+          <a href="/drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>My Projects</span></a>
+          <a href="/uploads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Creator Studio</span></a>
+          <button type="button" class="js-open-upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Upload Animation</span></button>
+          <a href="/settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Profile &amp; settings</span></a>
+          <a href="/pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Subscription &amp; Plans</span></a>
+          <a href="/tutorials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Tutorials &amp; Help</span></a>
+          <a href="/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg><span>Feedback</span></a>
+          <a href="/about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>About Us</span></a>
+          <a href="/admin" data-auth="admin" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin Console</span></a>
+          <button type="button" data-theme-toggle aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span>Theme</span></button>
+          <button type="button" id="accHubLogout" class="sh-hub-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Log out</span></button>
+        </nav>
+
         <!-- The story-highlights tray was six links to /editor,
              /#templates, /pricing, /community and /tutorials — every one
              of them already a row in the rail, two clicks from here and
@@ -2216,22 +2266,45 @@ const indexPage = {
   noPageJs: true,
   title: "ShortsCraft — Create and customize motion templates",
   desc: "Create short-form animations from a prompt or customize motion templates in a focused browser editor. Preview freely and export a real MP4 when it is ready.",
-  head: `<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>`,
+  // Only the two words the hero's handwriting uses, so the font is a few KB.
+  head: `<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>`,
   body: `    <main class="sh-home">
-      <section class="sh-hero">
-        <h1>What do you want to animate?</h1>
+      <!-- The owner's mobile design: a headline with the product's promise
+           beside a drawn illustration. The drawing is inline SVG and CSS, so
+           the first screen costs no image request. -->
+      <section class="sh-hero sh-hero-v2">
+        <div class="sh-hero-copy">
+          <p class="sh-hero-kicker">Ideas <span aria-hidden="true">→</span> Animations <span aria-hidden="true">→</span> Impact</p>
+          <h1>Turn your ideas into <em>scroll-stopping videos</em></h1>
+          <p class="sh-hero-sub">Create stunning animations and templates with the power of AI.</p>
+        </div>
+        <div class="sh-hero-art" aria-hidden="true">
+          <span class="sh-ha-note">Animate<br>Anything</span>
+          <svg class="sh-ha-arrow" viewBox="0 0 40 46" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3C4 12 3 27 20 40"/><path d="M11 38l9 3 1-9"/></svg>
+          <span class="sh-ha-card">
+            <span class="sh-ha-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span>
+            <i></i><i></i>
+          </span>
+          <span class="sh-ha-chip sh-ha-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg></span>
+          <span class="sh-ha-chip sh-ha-text">T</span>
+          <span class="sh-ha-chip sh-ha-spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></svg></span>
+          <span class="sh-ha-rays"><i></i><i></i><i></i></span>
+        </div>
       </section>
 
       <form class="sh-composer" id="composer" action="/editor" method="GET">
         <div class="sh-ctop">
           <label class="ed-sr" for="composerPrompt">Describe the animation you want</label>
-          <textarea id="composerPrompt" name="topic" rows="2" maxlength="600"
-            placeholder="Example: A clean pricing card that flips to reveal ₹199, with a blue accent"></textarea>
+          <textarea id="composerPrompt" name="topic" rows="3" maxlength="600"
+            placeholder="Describe what you want to animate…&#10;Example: A clean pricing card that flips to reveal ₹199, with a blue accent"></textarea>
+          <span class="sh-ccount" id="composerCount">0/600</span>
         </div>
         <div class="sh-cbar">
           <input type="file" id="composerImg" accept="image/png,image/jpeg,image/webp,image/gif" class="ed-sr">
           <label class="sh-imgbtn" for="composerImg" title="Attach image to animate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+            <span class="sh-imgbtn-label">Add image</span>
           </label>
           <button class="sh-imgchip" type="button" id="composerImgClear" hidden>
             <span id="composerImgName">image</span> <b>×</b>
@@ -2262,13 +2335,33 @@ const indexPage = {
                already shows the generation price; this is the export price,
                which is the charge people were meeting only at the end. -->
           <span class="sh-cnote">Export costs ${C.export} credit${C.export === 1 ? "" : "s"}</span>
-          <button class="sh-cgo" id="composerGo" type="submit">Create animation <span aria-hidden="true">→</span></button>
+          <button class="sh-cgo" id="composerGo" type="submit"><svg class="sh-cgo-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></svg>Create animation <span aria-hidden="true">→</span></button>
         </div>
       </form>
 
+      <!-- Two ways in. Thumbnails are not built yet, so that card says so and
+           goes nowhere, rather than opening a page that does not exist. -->
+      <section class="sh-feature-row" aria-label="What you can create">
+        <a href="/editor" class="sh-feature sh-feature-anim">
+          <span class="sh-feature-copy">
+            <strong class="sh-feature-title">Create Animation</strong>
+            <span class="sh-feature-text">Bring your ideas to life with ready-made or AI-generated templates.</span>
+          </span>
+          <span class="sh-feature-art" aria-hidden="true"><span class="sh-fa-screen">Ideas<br>into<br>motion</span></span>
+          <span class="sh-feature-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </a>
+        <div class="sh-feature sh-feature-thumb" aria-disabled="true">
+          <span class="sh-feature-copy">
+            <strong class="sh-feature-title">Create Thumbnail <span class="sh-soon">Coming soon</span></strong>
+            <span class="sh-feature-text">Design eye-catching YouTube thumbnails with templates and AI tools.</span>
+          </span>
+          <span class="sh-feature-art" aria-hidden="true"><span class="sh-fa-thumb"><b>Bigger<br>views</b><i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></i></span></span>
+        </div>
+      </section>
+
       <section class="sh-gallery-sec" id="templates">
         <div class="sh-gallery-title">
-          <div><span class="sh-home-kicker">Template library</span><h2>Browse free templates</h2></div>
+          <div><h2>Browse templates</h2><p class="sh-gallery-sub">Free, customizable templates for every idea.</p></div>
         </div>
         <div class="sh-ghead">
           <div class="sh-search-bar-row">
