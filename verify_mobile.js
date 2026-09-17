@@ -198,14 +198,15 @@ const SHELL_ROUTES = [
   await page.click("#edMobileEdit");
   await wait(100);
   const edit = await page.evaluate(() => {
-    window.scrollTo(0, document.documentElement.scrollHeight);
+    const properties = document.querySelector('.ed-right .ed-scroll');
+    properties.scrollTop = properties.scrollHeight;
     const last = document.querySelector(".ed-props > .ed-grp:last-child").getBoundingClientRect();
     // The aspect select is gone. Measure the font select instead: a range
     // slider is thin by design, so it was never what this check meant.
     const aspect = document.querySelector("#edFont").getBoundingClientRect();
     return {
       panel: document.querySelector(".ed-main").dataset.mobilePanel,
-      lastReachable: last.bottom <= innerHeight + 1,
+      lastReachable: last.bottom <= document.querySelector('.ed-mobile-nav').getBoundingClientRect().top + 1,
       aspectH: Math.round(aspect.height)
     };
   });

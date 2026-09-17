@@ -973,6 +973,24 @@
         groupFields.className = "ed-schema-fields";
         section.appendChild(title);
         section.appendChild(groupFields);
+        // On phones start with the actual content, not a screenful of layout
+        // overrides. The optional group is expandable; desktop stays open.
+        if (field.group === "Style & layout") {
+          section.classList.add("ed-mobile-advanced");
+          var toggle = document.createElement("button");
+          toggle.type = "button";
+          toggle.className = "ed-advanced-toggle";
+          toggle.textContent = "Style & layout";
+          toggle.setAttribute("aria-expanded", "false");
+          groupFields.id = "edAdvancedFields";
+          toggle.setAttribute("aria-controls", groupFields.id);
+          toggle.addEventListener("click", function () {
+            var expanded = toggle.getAttribute("aria-expanded") !== "true";
+            toggle.setAttribute("aria-expanded", String(expanded));
+            section.classList.toggle("is-expanded", expanded);
+          });
+          section.insertBefore(toggle, title);
+        }
         wrap.appendChild(section);
         fieldTargets[field.group] = groupFields;
       });
@@ -1801,7 +1819,7 @@
     var main = document.querySelector(".ed-main");
     var tabs = all(".ed-mobile-tab");
     var publish = $("#edMobilePublish");
-    var media = window.matchMedia("(max-width: 820px)");
+    var media = window.matchMedia("(max-width: 1024px)");
     if (!nav || !main || !tabs.length) return;
 
     var panels = {
@@ -1810,25 +1828,55 @@
       edit: $("#edPropertiesPanel")
     };
 
+    // A compact preview must scale the composition, not reflow its text.
+    // Keep the iframe's design viewport stable as the phone panels resize.
+    var preview = $("#edFrame");
+    function sizePreview() {
+      if (!preview) return;
+      var ratio = state.aspect.split(":").map(Number);
+      var designWidth = (ratio[0] || 9) * 40;
+      preview.style.setProperty("--phone-preview-scale", Math.max(0, preview.clientWidth / designWidth));
+    }
+    if (preview && window.ResizeObserver) new ResizeObserver(sizePreview).observe(preview);
+    window.addEventListener("resize", sizePreview);
+    var app = document.querySelector(".ed-app");
+    function sizePhoneViewport() {
+      if (!app || !window.visualViewport) return;
+      var viewport = window.visualViewport;
+      // Respect pinch zoom: do not resize/reflow the app while magnifying it.
+      if (!media.matches || viewport.scale > 1.05) {
+        app.style.removeProperty("--ed-mobile-height");
+        app.classList.remove("ed-keyboard-open");
+        return;
+      }
+      app.style.setProperty("--ed-mobile-height", Math.round(viewport.height) + "px");
+      app.classList.toggle("ed-keyboard-open", viewport.height < window.innerHeight - 120);
+    }
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", sizePhoneViewport);
+
     function select(panel, moveViewport) {
       if (!panels[panel]) panel = "canvas";
       main.dataset.mobilePanel = panel;
+      requestAnimationFrame(sizePreview);
       tabs.forEach(function (button) {
         var active = button.dataset.mobilePanel === panel;
         button.setAttribute("aria-selected", String(active));
         button.tabIndex = active ? 0 : -1;
       });
       Object.keys(panels).forEach(function (key) {
-        if (media.matches) panels[key].setAttribute("aria-hidden", String(key !== panel));
+        // Edit keeps the real canvas visible above the controls (not a stale
+        // thumbnail), so preview changes and playback stay accessible.
+        if (media.matches) panels[key].setAttribute("aria-hidden", String(key !== panel && !(panel === "edit" && key === "canvas")));
         else panels[key].removeAttribute("aria-hidden");
       });
       if (moveViewport && media.matches) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo(0, 0);
       }
     }
 
     function syncMode() {
       nav.hidden = !media.matches;
+      sizePhoneViewport();
       select(main.dataset.mobilePanel || "canvas", false);
     }
 

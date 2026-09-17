@@ -22,13 +22,13 @@
 <link rel="icon" href="/favicon.ico?v=circle2026" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=circle2026">
 <link rel="manifest" href="/site.webmanifest?v=power2026">
-<link rel="stylesheet" href="/editor.css?v=2026091601">
+<link rel="stylesheet" href="/editor.css?v=2026091801">
 <!-- The editor is hand-maintained rather than generated, so the motion
      layer has to be linked here too or the studio is the one screen on
      the site that still does not move. -->
 <link rel="stylesheet" href="/polish.css?v=2026090914">
 <!-- Phone layer: shared with the rest of the site, loaded after editor.css. -->
-<link rel="stylesheet" href="/mobile.css?v=2026091503">
+<link rel="stylesheet" href="/mobile.css?v=2026091801">
 <!-- The editor was the one page that never read the theme preference, so
      opening it from a light workspace dropped you into a black app. The
      bootstrap runs before paint, exactly as it does on every other page. -->
@@ -118,9 +118,9 @@
   <nav class="ed-mobile-nav" aria-label="Editor workspace" hidden>
     <div class="ed-mobile-tabs" role="tablist" aria-label="Editor panels">
       <button type="button" class="ed-mobile-tab" id="edMobileAi" role="tab"
-        aria-controls="edAiPanel" aria-selected="false" data-mobile-panel="ai">✦ AI</button>
+        aria-controls="edAiPanel" aria-selected="false" data-mobile-panel="ai">AI assistant</button>
       <button type="button" class="ed-mobile-tab" id="edMobileCanvas" role="tab"
-        aria-controls="main" aria-selected="true" data-mobile-panel="canvas">▶ Canvas</button>
+        aria-controls="main" aria-selected="true" data-mobile-panel="canvas">Preview</button>
       <button type="button" class="ed-mobile-tab" id="edMobileEdit" role="tab"
         aria-controls="edPropertiesPanel" aria-selected="false" data-mobile-panel="edit">Edit</button>
     </div>
@@ -335,6 +335,6 @@
 <script src="/lottie-inspect.js?v=3" defer></script>
 <script src="/drafts-store.js?v=2026091301" defer></script>
 <script src="/theme.js?v=2026090914" defer></script>
-<script src="/editor.js?v=2026091304" defer></script>
+<script src="/editor.js?v=2026091801" defer></script>
 </body>
 </html>
