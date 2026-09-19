@@ -145,7 +145,7 @@
       }
       var browse = document.createElement("a");
       browse.className = isGone ? "pg-bw" : "pg-bo";
-      browse.href = "/#templates";
+      browse.href = "/animations";
       browse.textContent = "Browse the library";
       actions.appendChild(browse);
 
@@ -261,7 +261,30 @@
     if (descEl) descEl.textContent = currentTpl.desc;
 
     var durEl = $("#detailDur");
-    if (durEl) durEl.textContent = (currentTpl.dur / 1000).toFixed(1) + "s";
+    if (durEl) durEl.textContent = ((currentTpl.dur || 4600) / 1000).toFixed(1) + "s";
+
+    // The ratios it renders in, and whether it is official or a member's.
+    var aspEl = $("#detailAspect");
+    if (aspEl) {
+      if (currentTpl.isCommunity) {
+        aspEl.textContent = currentTpl.aspect || "9:16";
+      } else {
+        var def = (window.SC_TPL2 ? SC_TPL2.list(true) : []).filter(function (x) { return x.id === currentTpl.tpl; })[0];
+        var ratios = (def && def.supportedRatios) || ["9:16", "16:9", "1:1"];
+        aspEl.textContent = ratios.length > 3 ? ratios.slice(0, 3).join(" · ") + " +" + (ratios.length - 3) : ratios.join(" · ");
+      }
+    }
+    var srcEl = $("#detailSource");
+    if (srcEl) {
+      var handle = String((currentAuthor && currentAuthor.handle) || "").replace(/^@/, "").toLowerCase();
+      srcEl.textContent = !currentTpl.isCommunity || handle === "shortscraft" ? "Official" : "Community";
+    }
+    var reportBtn = $("#detailReportBtn");
+    if (reportBtn) {
+      reportBtn.onclick = function () {
+        if (window.SC_REPORT) SC_REPORT.open({ type: "template", id: reactionId(), name: currentTpl.name });
+      };
+    }
 
     // Edit in Studio CTA
     var studioBtn = $("#detailStudioBtn");

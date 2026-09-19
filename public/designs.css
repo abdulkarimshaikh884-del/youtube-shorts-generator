@@ -1,0 +1,868 @@
+/* ============================================================
+   public/designs.css — ShortsCraft Designs Hub & Convert to Editable
+   ============================================================ */
+
+/* ── Hero / Header ─────────────────────────────────────────── */
+.ds-page-container {
+  max-width: var(--ds-page, 1200px);
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.ds-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.ds-header-main h1 {
+  font-family: var(--sh-display, inherit);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--sc-text);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.ds-header-main p {
+  color: var(--sc-muted);
+  font-size: 15px;
+  margin: 0;
+  max-width: 620px;
+  line-height: 1.5;
+}
+
+.ds-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--sc-radius-sm, 10px);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.ds-btn-outline {
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  border-color: var(--sc-border);
+}
+
+.ds-btn-outline:hover {
+  background: var(--sc-surface-2);
+  border-color: var(--sc-border-strong);
+}
+
+.ds-btn-magic {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+}
+
+.ds-btn-magic:hover {
+  background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38);
+  transform: translateY(-1px);
+}
+
+/* ── Filters Bar ────────────────────────────────────────────── */
+.ds-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ds-filter-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.ds-filter-bar::-webkit-scrollbar-thumb {
+  background: var(--sc-border);
+  border-radius: 4px;
+}
+
+.ds-filter-btn {
+  background: var(--sc-surface);
+  color: var(--sc-muted);
+  border: 1px solid var(--sc-border);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ds-filter-btn:hover {
+  color: var(--sc-text);
+  border-color: var(--sc-border-strong);
+}
+
+.ds-filter-btn[aria-pressed="true"],
+.ds-filter-btn.active {
+  background: var(--sc-brand);
+  color: #ffffff;
+  border-color: var(--sc-brand);
+  box-shadow: 0 2px 8px rgba(31, 107, 240, 0.25);
+}
+
+/* ── Designs Grid ───────────────────────────────────────────── */
+.ds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* ── Template Card ──────────────────────────────────────────── */
+.ds-card {
+  background: var(--sc-surface);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius, 14px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--sc-shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ds-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sc-shadow-md);
+  border-color: var(--sc-border-strong);
+}
+
+.ds-card-thumb {
+  position: relative;
+  background: #0b0f19;
+  overflow: hidden;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.ds-pv-stage {
+  position: relative;
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+}
+
+.ds-pv-img {
+  position: absolute;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.ds-pv-shape {
+  position: absolute;
+  pointer-events: none;
+}
+
+.ds-pv-txt {
+  position: absolute;
+  line-height: 1.1;
+  pointer-events: none;
+  white-space: pre-wrap;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.ds-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.badge-editable {
+  background: rgba(16, 185, 129, 0.9);
+  color: #ffffff;
+}
+
+.badge-ai {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  color: #ffffff;
+}
+
+.badge-image {
+  background: rgba(30, 41, 59, 0.85);
+  color: #e2e8f0;
+}
+
+.ds-card-like {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ds-card-like svg {
+  width: 13px;
+  height: 13px;
+}
+
+.ds-card-like:hover {
+  background: rgba(15, 23, 42, 0.9);
+  transform: scale(1.05);
+}
+
+.ds-card-like.liked {
+  color: #ef4444;
+}
+
+.ds-card-like.liked svg {
+  fill: #ef4444;
+  stroke: #ef4444;
+}
+
+.ds-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.ds-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.ds-card-cat {
+  color: var(--sc-brand);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ds-card-author {
+  color: var(--sc-subtle);
+}
+
+.ds-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+
+.ds-card-desc {
+  font-size: 13px;
+  color: var(--sc-muted);
+  margin: 0 0 16px;
+  line-height: 1.4;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ds-card-actions {
+  display: flex;
+  align-items: center;
+}
+
+.ds-btn-edit {
+  width: 100%;
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+  border: 1px solid var(--sc-border);
+  padding: 9px 14px;
+  border-radius: var(--sc-radius-sm, 10px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ds-btn-edit:hover {
+  background: var(--sc-brand);
+  color: #ffffff;
+  border-color: var(--sc-brand);
+}
+
+/* ── States ─────────────────────────────────────────────────── */
+.ds-loading, .ds-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--sc-surface);
+  border: 1px dashed var(--sc-border);
+  border-radius: var(--sc-radius, 14px);
+}
+
+.ds-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--sc-border);
+  border-top-color: var(--sc-brand);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: dsSpin 0.8s linear infinite;
+}
+
+@keyframes dsSpin {
+  to { transform: rotate(360deg); }
+}
+
+.ds-loading p {
+  color: var(--sc-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.ds-empty h3 {
+  font-size: 18px;
+  color: var(--sc-text);
+  margin: 0 0 8px;
+}
+
+.ds-empty p {
+  color: var(--sc-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ── Modal & Converter Overlay ──────────────────────────────── */
+.ds-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 15, 29, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.ds-modal-backdrop.open,
+.ds-modal-backdrop:not([hidden]) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ds-modal-card {
+  background: var(--sc-surface);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg, 20px);
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  animation: dsModalSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dsModalSlide {
+  from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.ds-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--sc-border);
+}
+
+.ds-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin: 0;
+}
+
+.ds-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--sc-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.ds-modal-close:hover {
+  color: var(--sc-text);
+  background: var(--sc-surface-2);
+}
+
+.ds-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ── Step 1: Dropzone ───────────────────────────────────────── */
+.ds-dropzone {
+  border: 2px dashed var(--sc-border-strong);
+  background: var(--sc-surface-2);
+  border-radius: var(--sc-radius, 14px);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ds-dropzone:hover,
+.ds-dropzone.dragover {
+  border-color: var(--sc-brand);
+  background: var(--sc-brand-soft);
+}
+
+.ds-dropzone-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  background: var(--sc-surface);
+  border: 1px solid var(--sc-border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sc-brand);
+}
+
+.ds-dropzone-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin: 0 0 6px;
+}
+
+.ds-dropzone-subtitle {
+  font-size: 13px;
+  color: var(--sc-muted);
+  margin: 0 0 16px;
+}
+
+.ds-dropzone-tags {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ds-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--sc-surface);
+  color: var(--sc-subtle);
+  border: 1px solid var(--sc-border);
+}
+
+/* ── Step 2: Choose Mode ────────────────────────────────────── */
+.ds-picked-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--sc-surface-2);
+  border-radius: var(--sc-radius-sm, 10px);
+  border: 1px solid var(--sc-border);
+  margin-bottom: 24px;
+}
+
+.ds-picked-thumb {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--sc-border);
+}
+
+.ds-picked-info strong {
+  display: block;
+  font-size: 14px;
+  color: var(--sc-text);
+}
+
+.ds-picked-info span {
+  font-size: 12px;
+  color: var(--sc-muted);
+}
+
+.ds-mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ds-mode-card {
+  border: 2px solid var(--sc-border);
+  background: var(--sc-surface);
+  border-radius: var(--sc-radius, 14px);
+  padding: 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-mode-card:hover {
+  border-color: var(--sc-brand);
+  transform: translateY(-2px);
+  box-shadow: var(--sc-shadow-md);
+}
+
+.ds-mode-card.featured {
+  border-color: #3b82f6;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.04) 0%, var(--sc-surface) 100%);
+}
+
+.ds-mode-badge {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #2563eb;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.ds-mode-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.ds-mode-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin: 0 0 6px;
+}
+
+.ds-mode-card p {
+  font-size: 13px;
+  color: var(--sc-muted);
+  line-height: 1.4;
+  margin: 0 0 16px;
+  flex: 1;
+}
+
+.ds-mode-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+}
+
+.ds-mode-btn-primary {
+  background: var(--sc-brand);
+  color: #ffffff;
+}
+
+.ds-mode-btn-primary:hover {
+  background: var(--sc-brand-hover);
+}
+
+.ds-mode-btn-subtle {
+  background: var(--sc-surface-2);
+  color: var(--sc-text);
+  border: 1px solid var(--sc-border);
+}
+
+.ds-mode-btn-subtle:hover {
+  background: var(--sc-surface-3);
+}
+
+/* ── Step 3: Progress ───────────────────────────────────────── */
+.ds-progress-wrap {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.ds-progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: var(--sc-surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid var(--sc-border);
+}
+
+.ds-progress-bar-fill {
+  width: 15%;
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.ds-progress-status {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sc-text);
+  margin: 0 0 8px;
+}
+
+.ds-progress-hint {
+  font-size: 13px;
+  color: var(--sc-muted);
+  margin: 0;
+}
+
+/* ── Step 4: Review Layers ──────────────────────────────────── */
+.ds-review-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.ds-review-col h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sc-text);
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ds-view-toggle {
+  display: flex;
+  background: var(--sc-surface-2);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--sc-border);
+  margin-bottom: 12px;
+}
+
+.ds-view-toggle button {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sc-muted);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.ds-view-toggle button.active {
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.ds-review-stage-box {
+  background: #0f172a;
+  border-radius: var(--sc-radius-sm, 10px);
+  overflow: hidden;
+  border: 1px solid var(--sc-border);
+  position: relative;
+  min-height: 220px;
+}
+
+.ds-review-stage-box img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ds-review-layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ds-review-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--sc-surface-2);
+  border: 1px solid var(--sc-border);
+  border-radius: 8px;
+  gap: 10px;
+}
+
+.ds-review-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.ds-review-ico {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--sc-surface);
+  border: 1px solid var(--sc-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--sc-brand);
+}
+
+.ds-review-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ds-review-name {
+  font-size: 13px;
+  color: var(--sc-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-review-detail {
+  font-size: 11px;
+  color: var(--sc-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-review-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-conf-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  white-space: nowrap;
+}
+
+.ds-review-del {
+  background: none;
+  border: none;
+  color: var(--sc-subtle);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ds-review-del:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.ds-review-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sc-border);
+}
+
+/* ── Mobile Breakpoint ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .ds-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ds-header-actions {
+    width: 100%;
+  }
+  .ds-header-actions .ds-btn {
+    flex: 1;
+  }
+  .ds-grid {
+    grid-template-columns: 1fr;
+  }
+  .ds-mode-grid {
+    grid-template-columns: 1fr;
+  }
+  .ds-review-layout {
+    grid-template-columns: 1fr;
+  }
+  .ds-modal-card {
+    max-height: 95vh;
+    border-radius: 16px 16px 0 0;
+    position: fixed;
+    bottom: 0;
+    margin: 0;
+  }
+}

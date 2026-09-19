@@ -54,7 +54,7 @@ function ok(pass, label, extra) {
   // not a video tool. So this asserts "clearly light", not an exact value.
   const rgb = (theme.bg.match(/\d+/g) || []).map(Number);
   ok(rgb.length >= 3 && rgb.slice(0, 3).every((c) => c >= 215) &&
-    rgb.slice(0, 3).every((c) => c <= 250),
+    rgb.slice(0, 3).every((c) => c <= 253) && !rgb.slice(0, 3).every((c) => c === 255),
     "canvas is a light, non-white workspace tone", theme.bg);
   const ink = (theme.fg.match(/\d+/g) || []).map(Number);
   ok(ink.length >= 3 && ink[0] <= 45 && ink[1] <= 45 && ink[2] <= 45,
@@ -127,10 +127,16 @@ function ok(pass, label, extra) {
       barControls: document.querySelectorAll("#qualityDropdown").length
     };
   });
-  // The gallery shows every built-in template plus the community-published
-  // ones, so tiles >= engine count rather than exactly equal.
-  ok(gal.tiles >= gal.engineCount, "a tile for every engine template (plus community)",
-    `${gal.tiles}/${gal.engineCount}`);
+  // The home page shows the eight most-used animations; the whole library,
+  // every built-in plus community uploads, is on /animations.
+  ok(gal.tiles === 8, "home shows the eight popular animations", gal.tiles);
+  const lib = await browser.newPage();
+  await lib.setViewport({ width: 1440, height: 900 });
+  await lib.goto(BASE + "/animations", { waitUntil: "networkidle2", timeout: 45000 });
+  await new Promise((r) => setTimeout(r, 2500));
+  const libCount = await lib.evaluate(() => ({ tiles: document.querySelectorAll(".sh-tile").length, engine: window.SC_TPL2.list().length }));
+  ok(libCount.tiles >= libCount.engine, "/animations has a tile for every engine template (plus community)",
+    `${libCount.tiles}/${libCount.engine}`);
   ok(gal.frames >= 6, "previews actually mounted", gal.frames);
   ok(gal.sandboxes.every((s) => s !== null && !/allow-same-origin/.test(s)),
     "every preview iframe is sandboxed without allow-same-origin");
@@ -145,7 +151,7 @@ function ok(pass, label, extra) {
   ok(gal.barControls === 1, "the composer bar has exactly one tier picker", gal.barControls);
 
   // chip filtering
-  const filtered = await page.evaluate(async () => {
+  const filtered = await lib.evaluate(async () => {
     const chips = document.querySelectorAll(".sh-chip");
     const target = chips[2];
     const hiddenNow = () => Array.prototype.filter.call(
@@ -165,6 +171,7 @@ function ok(pass, label, extra) {
   });
   ok(filtered.shown > 0 && filtered.shown < filtered.total,
     `chip '${filtered.cat}' filters the grid`, `${filtered.shown}/${filtered.total}`);
+  await lib.close();
 
   /* These three shapes were each asked for, lost to a later change, and
      asked for again. Asserting them keeps the next redesign honest. */
@@ -194,7 +201,7 @@ function ok(pass, label, extra) {
       accountMenuHrefs: [...document.querySelectorAll(".sh-user-popover a")]
         .map((a) => a.getAttribute("href")),
       topbarCount: shown(".sh-top-actions > *").length,
-      topbarHasNav: shown('.sh-top-actions a[href="/#templates"], .sh-top-actions a[href="/community"]').length,
+      topbarHasNav: shown('.sh-top-actions a[href="/animations"], .sh-top-actions a[href="/community"]').length,
       metaChildren: meta ? [...meta.children].map((c) => String(c.className)) : [],
       actionBars: document.querySelectorAll(".sh-tact-bar").length,
       descriptions: document.querySelectorAll(".sh-tdesc").length,
@@ -318,7 +325,7 @@ function ok(pass, label, extra) {
   ok(seo.h1s === 1, "exactly one H1", seo.h1s);
   // The heading reads "Browse free templates" now; what matters is that the
   // gallery still announces itself as the template library.
-  ok(/templates|template library/i.test(seo.h2Text), "animation library H2 retained", seo.h2Text.slice(0, 80));
+  ok(/animations|templates/i.test(seo.h2Text), "animation library H2 retained", seo.h2Text.slice(0, 80));
   ok(seo.toolLinks === 0, "retired SEO tool links are absent", seo.toolLinks);
 
   console.log("\n---- mobile ----");

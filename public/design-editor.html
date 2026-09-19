@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Design Studio — ShortsCraft</title>
+<meta name="description" content="Create and customize editable YouTube thumbnails, posters, logos, and graphic designs with layers and AI reconstruction."/>
+<link rel="canonical" href="https://shortscraft.online/design-editor"/>
+<meta name="robots" content="noindex, follow"/>
+
+<!-- Font Families -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@500;700;900&family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&family=Oswald:wght@500;600;700&family=Montserrat:wght@600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=circle2026">
+<link rel="stylesheet" href="/design-editor.css?v=2026092001">
+<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="light"?"light":"dark"}catch(e){}})();</script>
+</head>
+<body>
+
+<div class="de-app">
+
+  <!-- Top Bar -->
+  <header class="de-topbar">
+    <div class="de-top-left">
+      <a href="/designs" class="de-back-btn" title="Back to Designs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      <input type="text" class="de-proj-title" id="projTitleInput" value="Untitled Thumbnail" maxlength="80"/>
+      <span class="de-save-status" id="saveStatus">Saved to cloud</span>
+    </div>
+
+    <div class="de-top-center">
+      <button type="button" class="de-btn-icon" id="btnUndo" title="Undo (Ctrl+Z)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+      </button>
+      <button type="button" class="de-btn-icon" id="btnRedo" title="Redo (Ctrl+Y)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+      </button>
+      <select class="de-zoom-select" id="zoomSelect">
+        <option value="fit" selected>Fit to screen</option>
+        <option value="0.5">50%</option>
+        <option value="0.75">75%</option>
+        <option value="1.0">100%</option>
+      </select>
+    </div>
+
+    <div class="de-top-right">
+      <button type="button" class="de-btn-secondary" id="btnPublish">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        <span>Publish Template</span>
+      </button>
+      <button type="button" class="de-btn-primary" id="btnExport">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Export Design</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace -->
+  <div class="de-workspace">
+
+    <!-- Left Toolbar -->
+    <nav class="de-toolbar">
+      <button type="button" class="de-tool-btn active" data-tab="text" title="Text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        <span>Text</span>
+      </button>
+      <button type="button" class="de-tool-btn" data-tab="images" title="Images">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Images</span>
+      </button>
+      <button type="button" class="de-tool-btn" data-tab="shapes" title="Shapes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+        <span>Shapes</span>
+      </button>
+      <button type="button" class="de-tool-btn" data-tab="background" title="Background">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M12 2v20M2 12h20"/></svg>
+        <span>Backdrop</span>
+      </button>
+      <button type="button" class="de-tool-btn" data-tab="layers" title="Layers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        <span>Layers</span>
+      </button>
+    </nav>
+
+    <!-- Left Flyout Drawer -->
+    <aside class="de-flyout" id="deFlyout">
+      <!-- Text Tab -->
+      <div class="de-flyout-content" id="flyoutText">
+        <h3>Add Text</h3>
+        <div class="de-asset-grid" style="grid-template-columns:1fr;gap:10px;">
+          <button type="button" class="de-asset-tile" id="btnAddHeading" style="align-items:flex-start;padding:14px;font-family:'Anton';font-size:20px;">
+            <span>+ Add Bold Heading</span>
+          </button>
+          <button type="button" class="de-asset-tile" id="btnAddSubheading" style="align-items:flex-start;padding:12px;font-family:'Space Grotesk';font-size:16px;">
+            <span>+ Add Subheading</span>
+          </button>
+          <button type="button" class="de-asset-tile" id="btnAddBody" style="align-items:flex-start;padding:10px;font-family:'Inter';font-size:14px;">
+            <span>+ Add Paragraph / Label</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Images Tab -->
+      <div class="de-flyout-content" id="flyoutImages" hidden>
+        <h3>Add Images &amp; Stickers</h3>
+        <input type="file" id="imageLayerFileInput" accept="image/png,image/jpeg,image/webp" style="display:none;"/>
+        <button type="button" class="de-btn-primary" id="btnUploadImageLayer" style="width:100%;margin-bottom:14px;justify-content:center;">
+          + Upload Sticker / Cutout
+        </button>
+        <div class="de-asset-grid">
+          <div class="de-asset-tile" data-add-sticker="star">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Star</span>
+          </div>
+          <div class="de-asset-tile" data-add-sticker="fire">
+            <span style="font-size:24px;">🔥</span>
+            <span>Fire</span>
+          </div>
+          <div class="de-asset-tile" data-add-sticker="verified">
+            <svg viewBox="0 0 24 24" fill="#3b82f6"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <span>Verified</span>
+          </div>
+          <div class="de-asset-tile" data-add-sticker="warning">
+            <span style="font-size:24px;">⚠️</span>
+            <span>Warning</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shapes Tab -->
+      <div class="de-flyout-content" id="flyoutShapes" hidden>
+        <h3>Vector Shapes</h3>
+        <div class="de-asset-grid">
+          <button type="button" class="de-asset-tile" data-add-shape="roundedRectangle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/></svg>
+            <span>Card</span>
+          </button>
+          <button type="button" class="de-asset-tile" data-add-shape="pill">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="6"/></svg>
+            <span>Pill Badge</span>
+          </button>
+          <button type="button" class="de-asset-tile" data-add-shape="curvedArrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20c0-6.627 5.373-12 12-12h4m-4-4l4 4-4 4"/></svg>
+            <span>Curved Arrow</span>
+          </button>
+          <button type="button" class="de-asset-tile" data-add-shape="circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+            <span>Circle</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Backdrop Tab -->
+      <div class="de-flyout-content" id="flyoutBackground" hidden>
+        <h3>Canvas Background</h3>
+        <div class="de-ctrl-row" style="margin-bottom:12px;">
+          <span class="de-ctrl-label">Color</span>
+          <input type="color" class="de-color-input" id="canvasBgColor" value="#090d16"/>
+        </div>
+        <div class="de-asset-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="de-asset-tile" data-bg-preset="#090d16" style="background:#090d16;"></div>
+          <div class="de-asset-tile" data-bg-preset="#0f172a" style="background:#0f172a;"></div>
+          <div class="de-asset-tile" data-bg-preset="#1e1b4b" style="background:#1e1b4b;"></div>
+          <div class="de-asset-tile" data-bg-preset="#14532d" style="background:#14532d;"></div>
+          <div class="de-asset-tile" data-bg-preset="#701a75" style="background:#701a75;"></div>
+          <div class="de-asset-tile" data-bg-preset="#ffffff" style="background:#ffffff;border:1px solid #cbd5e1;"></div>
+        </div>
+      </div>
+
+      <!-- Layers Tab -->
+      <div class="de-flyout-content" id="flyoutLayers" hidden>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h3 style="margin:0;">Layers</h3>
+          <span id="layerCountTag" style="font-size:12px;color:var(--de-ink3);">0 layers</span>
+        </div>
+        <div class="de-layers-list" id="layersList"></div>
+      </div>
+    </aside>
+
+    <!-- Center Canvas Stage -->
+    <main class="de-stage-wrap" id="stageWrap">
+      <div class="de-canvas-container" id="canvasContainer">
+        <canvas id="designCanvas" width="1280" height="720"></canvas>
+      </div>
+    </main>
+
+    <!-- Right Inspector Panel -->
+    <aside class="de-inspector" id="deInspector">
+      <div class="de-panel-sec">
+        <span class="de-panel-title">Layer Properties</span>
+        <span id="selectedLayerType" style="font-size:12px;color:var(--de-primary);font-weight:600;">No layer selected</span>
+      </div>
+
+      <!-- Text Inspector -->
+      <div class="de-panel-sec" id="secTextProps" hidden>
+        <span class="de-panel-title">Typography</span>
+        <textarea class="de-textarea" id="propTextContent" placeholder="Enter text..."></textarea>
+        
+        <div class="de-ctrl-row">
+          <label class="de-ctrl-label" for="propFontFamily">Font</label>
+          <select class="de-select" id="propFontFamily">
+            <option value="Anton">Anton (Bold Hook)</option>
+            <option value="Space Grotesk">Space Grotesk</option>
+            <option value="Inter">Inter (Clean)</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Oswald">Oswald</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="IBM Plex Mono">IBM Plex Mono</option>
+          </select>
+        </div>
+
+        <div class="de-ctrl-row">
+          <span class="de-ctrl-label">Size</span>
+          <div class="de-slider-wrap">
+            <input type="range" class="de-slider" id="propFontSize" min="16" max="220" value="72"/>
+            <span class="de-slider-val" id="valFontSize">72px</span>
+          </div>
+        </div>
+
+        <div class="de-ctrl-row">
+          <span class="de-ctrl-label">Color</span>
+          <input type="color" class="de-color-input" id="propTextColor" value="#ffffff"/>
+        </div>
+
+        <div class="de-ctrl-row">
+          <span class="de-ctrl-label">Stroke</span>
+          <input type="color" class="de-color-input" id="propStrokeColor" value="#000000"/>
+          <input type="range" class="de-slider" id="propStrokeWidth" min="0" max="16" value="0"/>
+        </div>
+
+        <div class="de-ctrl-row">
+          <span class="de-ctrl-label">Shadow</span>
+          <input type="color" class="de-color-input" id="propShadowColor" value="#000000"/>
+          <input type="range" class="de-slider" id="propShadowBlur" min="0" max="30" value="4"/>
+        </div>
+      </div>
+
+      <!-- Shape Inspector -->
+      <div class="de-panel-sec" id="secShapeProps" hidden>
+        <span class="de-panel-title">Shape Style</span>
+        <div class="de-ctrl-row">
+          <span class="de-ctrl-label">Fill Color</span>
+          <input type="color" class="de-color-input" id="propShapeFill" value="#f59e0b"/>
+        </div>
+        <div class="de-ctrl-row">
+          <span class="de-ctrl-label">Corner Radius</span>
+          <div class="de-slider-wrap">
+            <input type="range" class="de-slider" id="propShapeRadius" min="0" max="80" value="12"/>
+            <span class="de-slider-val" id="valShapeRadius">12px</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Inspector -->
+      <div class="de-panel-sec" id="secImageProps" hidden>
+        <span class="de-panel-title">Image / Cutout</span>
+        <div class="de-ctrl-row">
+          <span class="de-ctrl-label">Opacity</span>
+          <div class="de-slider-wrap">
+            <input type="range" class="de-slider" id="propImageOpacity" min="0" max="100" value="100"/>
+            <span class="de-slider-val" id="valImageOpacity">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Common Actions -->
+      <div class="de-panel-sec" id="secCommonProps" hidden>
+        <span class="de-panel-title">Arrange</span>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="de-btn-secondary" id="btnLayerUp" style="flex:1;justify-content:center;">▲ Forward</button>
+          <button type="button" class="de-btn-secondary" id="btnLayerDown" style="flex:1;justify-content:center;">▼ Backward</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button type="button" class="de-btn-secondary" id="btnDuplicateLayer" style="flex:1;justify-content:center;">Duplicate</button>
+          <button type="button" class="de-btn-secondary" id="btnDeleteLayer" style="flex:1;justify-content:center;color:#ef4444;border-color:rgba(239,68,68,0.3);">Delete</button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Mobile Floating Bottom Bar -->
+  <nav class="de-mobile-bar">
+    <button type="button" class="de-mob-btn active" data-tab="text">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+      <span>Text</span>
+    </button>
+    <button type="button" class="de-mob-btn" data-tab="images">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Images</span>
+    </button>
+    <button type="button" class="de-mob-btn" data-tab="shapes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+      <span>Shapes</span>
+    </button>
+    <button type="button" class="de-mob-btn" data-tab="layers">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      <span>Layers</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="/design-editor.js?v=2026092001"></script>
+</body>
+</html>

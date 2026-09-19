@@ -2493,7 +2493,7 @@
             var pubId = res.template && res.template.id;
             var seeIt = pubId
               ? '<a href="/template?id=' + encodeURIComponent(payload.tpl) + '&amp;comm=1&amp;commId=' + encodeURIComponent(pubId) + '" target="_blank" rel="noopener">View your template →</a>'
-              : '<a href="/#templates" target="_blank" rel="noopener">Open the template library →</a>';
+              : '<a href="/animations" target="_blank" rel="noopener">Open the animation library →</a>';
             msg.innerHTML = '🎉 Published! <span class="ed-pub-seeit">' + seeIt + "</span>";
           }
           submitBtn.textContent = "Published!";

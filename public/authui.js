@@ -2735,7 +2735,7 @@
        Log out came before Settings. Anything not named keeps its place. */
     var ORDER = [
       ".sh-mfill",
-      'a[href="/#templates"]', 'a[href="/community"]', 'a[href="/drafts"]', 'a[href="/uploads"]', ".sh-m-upload-btn",
+      'a[href="/animations"]', 'a[href="/designs"]', 'a[href="/community"]', 'a[href="/drafts"]', 'a[href="/uploads"]', ".sh-m-upload-btn",
       'a[href="/pricing"]', 'a[href="/tutorials"]', 'a[href="/contact"]', 'a[href="/about"]',
       'a[href="/account"]', 'a[href="/settings"]', ".sh-m-theme", "#navMobileLogout"
     ];
@@ -2743,7 +2743,7 @@
       var el = menu.querySelector(selector);
       if (el) menu.appendChild(el);
     });
-    var groupStarts = ['a[href="/#templates"]', 'a[href="/pricing"]', 'a[href="/account"]'];
+    var groupStarts = ['a[href="/animations"]', 'a[href="/pricing"]', 'a[href="/account"]'];
     groupStarts.forEach(function (selector) {
       var el = menu.querySelector(selector);
       if (el) el.classList.add("sh-m-group");

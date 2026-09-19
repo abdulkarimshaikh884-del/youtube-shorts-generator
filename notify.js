@@ -50,6 +50,7 @@ function urlFor(row) {
   const id = String(row.entity_id || "");
   if (type === "support_reply") return "/contact?ticket=" + encodeURIComponent(id) + "#supportHistory";
   if (entity === "support_ticket") return "/admin#support";
+  if (entity === "report") return "/admin#reports";
   if (entity === "template_review") return "/admin#content";
   if (entity === "tutorial_review") return "/admin#skills";
   if (entity === "new_user") return "/admin#users";

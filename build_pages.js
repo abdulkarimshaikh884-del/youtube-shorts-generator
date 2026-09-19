@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091801";
+const V = "2026091907";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -73,30 +73,27 @@ const SOCIAL = [
 ];
 
 const NAV = [
-  { href: "/#templates", label: "Templates", key: "templates", group: "Workspace",
-    icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
-  { href: "/drafts", label: "My Projects", key: "projects", group: "Workspace",
-    icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' },
+  { href: "/", label: "Home", key: "home", group: "Workspace",
+    icon: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>' },
+  { href: "/animations", label: "Animations", key: "templates", group: "Workspace",
+    icon: '<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/>' },
+  { href: "/designs", label: "Designs", key: "designs", group: "Workspace",
+    icon: '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>' },
   { href: "/community", label: "Creator Tutorials", key: "community", group: "Workspace",
     icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-  /* These four also sit in the footer, but a footer is only reachable after
-     scrolling a whole page. The rail is the one place present on every screen,
-     so the pages people look for when something has gone wrong belong here. */
-  { href: "/tutorials", label: "Tutorials & Help", key: "tutorials", group: "Support & Legal",
-    icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>' },
+  { href: "/drafts", label: "My Projects", key: "projects", group: "Workspace",
+    icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' },
+  { href: "/uploads", label: "Creator Studio", key: "uploads", auth: "in", group: "Workspace",
+    icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
+  /* The pages people look for when something has gone wrong sit in the rail,
+     which is on every screen, as well as in the footer. */
+  { href: "/tutorials", label: "Help", key: "tutorials", group: "Support & Legal",
+    icon: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>' },
   { href: "/contact", label: "Feedback", key: "contact", group: "Support & Legal",
     icon: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>' },
-  { href: "/about", label: "About Us", key: "about", group: "Support & Legal",
-    icon: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>' },
-    
-  /* Everything below used to live in a popover hanging off the account chip.
-     A destination the product has is a destination the rail should show:
-     hiding half the workspace behind a click made the sidebar look emptier
-     than the product actually is, and duplicated the same links in the top
-     bar. `auth` gates a row the same way data-auth gates anything else. */
-  { href: "/settings", label: "Profile & settings", key: "settings", auth: "in", group: "Account",
+  { href: "/settings", label: "Settings", key: "settings", auth: "in", group: "Account",
     icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
-  { href: "/pricing", label: "Subscription & Plans", key: "pricing", group: "Account",
+  { href: "/pricing", label: "Pricing", key: "pricing", group: "Account",
     icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
   { href: "/admin", label: "Admin Console", key: "admin", auth: "admin", group: "Account",
     icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' }
@@ -135,7 +132,7 @@ ${p.body}
   <nav class="pg-screenfoot" aria-label="Legal">
     <a href="/terms">Terms</a>
     <a href="/privacy">Privacy</a>
-    <a href="/contact">Help</a>
+    <a href="/tutorials">Help</a>
   </nav>
 </div>
 
@@ -153,18 +150,18 @@ ${p.scripts || ""}</body>
 const BOTTOM_TABS = [
   { key: "home", href: "/", label: "Home",
     icon: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>' },
-  { key: "templates", href: "/#templates", label: "Templates",
+  { key: "templates", href: "/animations", label: "Templates",
     icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
   { key: "create", href: "/editor", label: "Create",
     icon: '<path d="M12 5v14M5 12h14"/>' },
-  { key: "community", href: "/community", label: "Community",
+  { key: "community", href: "/community", label: "Learn",
     icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
   { key: "profile", href: "/account", label: "Profile",
     icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
 ];
 function bottomNav(p) {
   const current = p.route === "/" ? "home"
-    : ["/template", "/creator"].includes(p.route) ? "templates"
+    : ["/animations", "/designs", "/template", "/creator"].includes(p.route) ? "templates"
     : p.active === "community" ? "community"
     : ["/account", "/settings", "/drafts", "/uploads", "/pricing", "/tutorials", "/contact", "/about", "/admin"].includes(p.route) ? "profile"
     : "";
@@ -192,7 +189,7 @@ function chrome(p) {
       const gate = n.auth ? ` data-auth="${n.auth}" hidden` : "";
       return `          <a href="${n.href}"${current}${gate}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">${n.icon}</svg>
-            <span>${n.label}</span>
+            <span>${n.label}</span>${n.badge ? `<span class="sh-nav-badge">${n.badge}</span>` : ""}
           </a>`;
     }).join("\n");
     return `        <div class="sh-navgroup"${allGated}>
@@ -238,13 +235,15 @@ ${p.robots ? `<meta name="robots" content="${p.robots}"/>\n` : ""}<meta property
 ${p.head || ""}
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
 <link rel="stylesheet" href="/mobile.css?v=${V}">
+<!-- Design system: one set of colours, buttons and cards. Loads last. -->
+<link rel="stylesheet" href="/ds.css?v=${V}">
 </head>
 `;
 
   // a bare page (log in / sign up) has no sidebar, top bar or footer
   if (p.bare) return head + `<body class="sh-body pg-bare">` + BARE(p, V);
 
-  return head + `<body class="sh-body">
+  return head + `<body class="sh-body${p.bodyClass ? " " + p.bodyClass : ""}">
 
 <a class="sh-skip" href="#main">Skip to content</a>
 
@@ -338,7 +337,7 @@ ${nav}
               <a href="/drafts" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 <div class="sh-upop-item-txt">
-                  <b>Drafts &amp; Projects</b>
+                  <b>My Projects</b>
                   <span>Saved work in progress</span>
                 </div>
               </a>
@@ -362,16 +361,16 @@ ${nav}
               <a href="/pricing" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 <div class="sh-upop-item-txt">
-                  <b>Subscription &amp; Plans</b>
+                  <b>Pricing</b>
                   <span>Credits, up to 1440p rendering</span>
                 </div>
               </a>
 
-              <a href="/contact" class="sh-upop-item">
+              <a href="/tutorials" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 <div class="sh-upop-item-txt">
-                  <b>Help &amp; Tutorials</b>
-                  <span>Guides, FAQs &amp; Support</span>
+                  <b>Help</b>
+                  <span>Guides, answers and support</span>
                 </div>
               </a>
             </div>
@@ -408,10 +407,10 @@ ${nav}
         <span class="sh-brand-name">Shorts<i>Craft</i></span>
       </a>
       <nav class="sh-primary-nav" aria-label="Main">
-        <a href="/#templates"${p.active === "templates" ? ' aria-current="page"' : ""}>Templates</a>
+        <a href="/animations"${p.active === "templates" ? ' aria-current="page"' : ""}>Animations</a>
+        <a href="/designs"${p.active === "designs" ? ' aria-current="page"' : ""}>Designs</a>
         <a href="/community"${p.active === "community" ? ' aria-current="page"' : ""}>Creator Tutorials</a>
         <a href="/pricing"${p.active === "pricing" ? ' aria-current="page"' : ""}>Pricing</a>
-        <a href="/tutorials"${p.active === "tutorials" ? ' aria-current="page"' : ""}>Learn</a>
       </nav>
       <div class="sh-top-actions">
       <a href="/pricing" class="sh-credit-chip" aria-label="View plan and credits">
@@ -450,22 +449,23 @@ ${nav}
     </header>
 
     <div id="navMobile" hidden>
-      <a href="/#templates">Templates</a>
+      <a href="/animations">Animations</a>
+      <a href="/designs">Designs</a>
       <a href="/community">Creator Tutorials</a>
       <a href="/drafts">My Projects</a>
       <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
       <a href="/pricing">Pricing</a>
-      <a href="/tutorials">Tutorials &amp; Help</a>
+      <a href="/tutorials">Help</a>
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
-      <a href="/settings" data-auth="in" hidden>Profile &amp; settings</a>
+      <a href="/settings" data-auth="in" hidden>Settings</a>
       <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Publish Template</span>
       </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
-      <a href="/account" data-auth="in" hidden>Account</a>
+      <a href="/account" data-auth="in" hidden>Profile</a>
       <a href="/admin" data-auth="admin" hidden>Admin Console</a>
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
       <button type="button" class="sh-m-theme" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme">
@@ -485,13 +485,13 @@ ${p.body}
             <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
             <span class="sh-brand-name">Shorts<i>Craft</i></span>
           </a>
-          <p>Create, customise and export animation templates for short-form video.</p>
         </div>
 
         <nav class="sh-fcol" aria-label="Product">
           <h2>Product</h2>
-          <a href="/editor">Studio Editor</a>
-          <a href="/#templates">Templates Gallery</a>
+          <a href="/editor">Create Animation</a>
+          <a href="/animations">Animations</a>
+          <a href="/designs">Designs</a>
           <a href="/community">Creator Tutorials</a>
           <a href="/pricing">Pricing</a>
         </nav>
@@ -500,7 +500,8 @@ ${p.body}
           <h2>Legal &amp; Support</h2>
           <a href="/privacy">Privacy Policy</a>
           <a href="/terms">Terms of Service</a>
-          <a href="/contact">Help &amp; Feedback</a>
+          <a href="/tutorials">Help</a>
+          <a href="/contact">Feedback</a>
           <a href="/about">About Us</a>
         </nav>
       </div>
@@ -518,6 +519,7 @@ ${bottomNav(p)}
 
 <script src="/authui.js?v=${V}" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
+<script src="/report.js?v=${V}" defer></script>
 ${p.noPageJs ? "" : `<script src="/page.js?v=${V}" defer></script>`}
 ${p.scripts || ""}</body>
 </html>
@@ -539,7 +541,6 @@ const guestGate = (next, title, sub, perks) => `      <section class="pg-sec" id
             </svg>
           </span>
           <h2>${title}</h2>
-          <p>${sub}</p>
           <div class="pg-row pg-gate-row">
             <a href="/login?next=${next}" class="pg-bw">Log in</a>
             <a href="/signup?next=${next}" class="pg-bo">Create an account</a>
@@ -565,107 +566,13 @@ ${extra || ""}    </section>`;
 const CREDITS = require("./credits");
 const P = CREDITS.PLANS, C = CREDITS.COST;
 
-const pricingLegacy = {
-  route: "/pricing",
-  active: "pricing",
-  title: "Pricing — ShortsCraft",
-  desc: `ShortsCraft pricing: Free gives ${P.free.perDay} watermarked exports a day, Pro is ₹${P.pro.price}/month for watermark-free 1080p and ${P.pro.perDay} exports a day, and Pro Max is a one-time ₹${P.promax.price} — lifetime for the first ${LIFETIME_SLOTS} members. Editing and preview are unlimited on every plan.`,
-  body: `    <main class="pg">
-${pageHead("Pricing")}
-
-      <div class="pg-offer" id="offerBanner" hidden>
-        <span class="pg-offer-tag">Launch offer</span>
-        <p><b>Pro Max is a one-time ₹${P.promax.price} for lifetime access</b> — for the first ${LIFETIME_SLOTS} members only.
-        <span id="offerLeft"></span></p>
-      </div>
-
-      <div class="pg-plans pg-plans3" id="plans">
-        <article class="pg-plan">
-          <span class="pg-tier">${P.free.label}</span>
-          <div class="pg-amt">₹0</div>
-          <p class="pg-planline"><b>${P.free.perDay} exports every day</b> — enough to try everything and post your first Shorts.</p>
-          <ul>
-            <li>All ${TPL_COUNT} motion templates</li>
-            <li>Unlimited editing and preview</li>
-            <li>Custom AI animations from your prompt</li>
-            <li>Export up to ${P.free.maxHeight}p</li>
-            <li>Small ShortsCraft watermark</li>
-          </ul>
-          <a href="/" class="pg-bo">Start free</a>
-        </article>
-
-        <article class="pg-plan pg-hot">
-          <span class="pg-tier">${P.pro.label} · Most popular</span>
-          <div class="pg-amt">₹${P.pro.price}<small>/month</small></div>
-          <p class="pg-planline"><b>No watermark, and ${P.pro.perDay} exports a day</b> — built for posting daily.</p>
-          <ul>
-            <li>Everything in Free</li>
-            <li><b>No watermark</b> on your videos</li>
-            <li>Full 1080p export</li>
-            <li>${P.pro.perDay} exports per day</li>
-            <li>Cancel any time</li>
-          </ul>
-          <button type="button" class="pg-bw pg-buy" data-plan="pro">Upgrade to Pro · ₹${P.pro.price}</button>
-        </article>
-
-        <article class="pg-plan pg-max">
-          <span class="pg-tier">${P.promax.label}</span>
-          <div class="pg-amt">₹${P.promax.price}<small id="maxTerm">one-time</small></div>
-          <p class="pg-planline" id="maxLine"><b>Pay once, keep it for good</b> — no watermark, ever.</p>
-          <ul>
-            <li>Everything in Pro</li>
-            <li><b>No monthly bill, ever</b></li>
-            <li>1440p export</li>
-            <li>${P.promax.perDay} exports per day</li>
-            <li>The Pro AI model, and new templates first</li>
-          </ul>
-          <button type="button" class="pg-bo pg-buy" data-plan="promax">Get Pro Max · ₹${P.promax.price}</button>
-        </article>
-      </div>
-      <p class="pg-note pg-center" id="buyNote" role="status" aria-live="polite"></p>
-      <p class="pg-fine pg-center">Payments are processed by Razorpay — UPI, cards, netbanking and wallets. Credits reset daily at 00:00 UTC and do not stack up.</p>
-
-      <section class="pg-sec">
-        <h2>What a credit buys</h2>
-        <div class="pg-grid">
-          <article class="pg-card"><h3>${C.export} credit · Export a template</h3><p>Any of the ${TPL_COUNT} motion templates, edited however you like, rendered to a real MP4 at up to 1440p. Editing and previewing are free — you are only charged when you export.</p></article>
-          <article class="pg-card"><h3>${C.animate} credits · A custom AI animation</h3><p>Describe the animation you want, optionally attach an image, and the AI designs a brand-new scene for your timeline. It costs more because it is a model call, not a preset.</p></article>
-          <article class="pg-card"><h3>Free · Everything else</h3><p>Browsing templates, editing text and colours, building a multi-clip sequence, scrubbing the timeline and using all six SEO tools.</p></article>
-          <article class="pg-card"><h3>Failed work is refunded</h3><p>If a render or a generation fails on our side, the credits go straight back. You never pay for our error.</p></article>
-        </div>
-      </section>
-
-      <section class="pg-sec">
-        <h2>Pricing questions</h2>
-        <div class="pg-faq">
-          <details open><summary>Do credits carry over?</summary><p>No. The grant is per day and resets at 00:00 UTC, so a busy day is never limited by a quiet one being unused.</p></details>
-          <details><summary>Is there a trial?</summary><p>Free is the trial — ${P.free.perDay} credits every day, for as long as you like, with no card.</p></details>
-          <details><summary>Why does an AI animation cost ${C.animate}?</summary><p>It runs a language model to design the scene and then renders it. A template export only renders.</p></details>
-          <details><summary>Which payment methods work?</summary><p>UPI, debit and credit cards, netbanking and wallets, secured by Razorpay.</p></details>
-          <details><summary>Can I cancel?</summary><p>Yes. Cancel any time and the plan stays active until the end of the period you already paid for.</p></details>
-          <details><summary>Do you offer refunds?</summary><p>If the service did not work for you, contact us within 7 days of upgrading and we will refund it.</p></details>
-        </div>
-      </section>
-
-      <section class="pg-cta">
-        <h2>Ready to ship more Shorts?</h2>
-        <p>Open the editor — your ${P.free.perDay} credits are already waiting.</p>
-        <div class="pg-row">
-          <a href="/editor" class="pg-bw">Open the Editor</a>
-          <a href="/seo-tools" class="pg-bo">Explore SEO Tools</a>
-        </div>
-      </section>
-    </main>`,
-  scripts: `<script src="/checkout.js?v=${V}2" defer></script>`
-};
-
 const pricing = {
   route: "/pricing",
   active: "pricing",
-  title: "Plans and credits — ShortsCraft",
+  title: "Pricing — ShortsCraft",
   desc: "Compare ShortsCraft Free, Pro and Pro Max plans. Editing and previewing are unlimited; credits are used only for AI generation and video export.",
   body: `    <main class="pg pg-pricing">
-${pageHead("Plans and credits")}
+${pageHead("Pricing")}
 
       <!-- Credit calculator.
 
@@ -677,7 +584,6 @@ ${pageHead("Plans and credits")}
       <section class="pg-calc" aria-labelledby="calcHead">
         <div class="pg-calc-ask">
           <h2 id="calcHead">How many Shorts do you post a day?</h2>
-          <p>One export is ${C.export} credit, an AI scene ${C.aiStandard} to ${C.aiAdvanced}. Move the slider and we will point at the plan that covers it.</p>
           <div class="pg-calc-read">
             <b id="calcPosts">6</b>
             <span><span id="calcPostsLabel">Shorts a day</span> · about <b id="calcNeeded">15 credits</b> a day</span>
@@ -697,7 +603,7 @@ ${pageHead("Plans and credits")}
 
       <div class="pg-billing-switch" role="group" aria-label="Billing period">
         <button type="button" data-cycle="monthly" aria-pressed="true">Monthly</button>
-        <button type="button" data-cycle="yearly" aria-pressed="false">Yearly <span>Save up to 17%</span></button>
+        <button type="button" data-cycle="yearly" aria-pressed="false">Yearly <span>Save ${Math.round((1 - P.pro.yearlyPrice / (P.pro.price * 12)) * 100)}%</span></button>
       </div>
 
       <div class="pg-plans pg-plans3">
@@ -741,7 +647,6 @@ ${pageHead("Plans and credits")}
             <li>Watermark-free export up to 1440p</li>
             <li>${P.promax.starsPerMonth} appreciation Stars per month</li>
             <li>Highest export queue priority</li>
-            <li>Early access to new animation tools</li>
             <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
           </ul>
           <button type="button" class="pg-bo pg-buy" data-plan="promax" data-cycle="monthly">Choose Pro Max</button>
@@ -804,12 +709,11 @@ ${pageHead("About ShortsCraft")}
         <p>Everything it writes is a first draft. Review it, make it yours, then publish. That is also the platform-safe way to work.</p>
 
         <h2>Who builds this</h2>
-        <p>ShortsCraft is an independent product built for Indian creators, from the same workshop as the <a href="${SOCIAL[0].href}" rel="noopener" target="_blank">Tech Vault</a> channel. Feature requests reach a human: use <a href="/contact">Help &amp; Feedback</a>.</p>
+        <p>ShortsCraft is an independent product built for Indian creators, from the same workshop as the <a href="${SOCIAL[0].href}" rel="noopener" target="_blank">Tech Vault</a> channel. Feature requests reach a human: use <a href="/contact">Feedback</a>.</p>
       </section>
 
       <section class="pg-cta">
         <h2>See it for yourself</h2>
-        <p>No signup needed to try the editor.</p>
         <div class="pg-row">
           <a href="/editor" class="pg-bw">Open the Editor</a>
           <a href="/pricing" class="pg-bo">See pricing</a>
@@ -827,17 +731,17 @@ ${pageHead("About ShortsCraft")}
 const tutorials = {
   route: "/tutorials",
   active: "tutorials",
-  title: "Tutorials & Help — ShortsCraft",
+  title: "Help — ShortsCraft",
   desc: "How to make an animated YouTube Short with ShortsCraft: pick a template, edit the text, export an MP4, and what the credits and plans mean.",
   body: `    <main class="pg">
-${pageHead("Tutorials &amp; Help")}
+${pageHead("Help")}
 
       <section class="pg-sec">
         <h2>Make your first animation</h2>
         <ol class="pg-steps">
           <li>
             <b>Pick a template.</b>
-            <span>Browse <a href="/#templates">${TPL_COUNT} templates</a> across ${8} categories. Open a preview, then choose Customise in Studio.</span>
+            <span>Browse <a href="/animations">${TPL_COUNT} templates</a> across ${8} categories. Open a preview, then choose Customise in Studio.</span>
           </li>
           <li>
             <b>Change the words.</b>
@@ -918,9 +822,8 @@ ${pageHead("Tutorials &amp; Help")}
 
       <section class="pg-cta">
         <h2>Still stuck?</h2>
-        <p>Bug reports and template requests both reach a person, usually within two days.</p>
         <div class="pg-row">
-          <a href="/contact" class="pg-bw">Help &amp; Feedback</a>
+          <a href="/contact" class="pg-bw">Send feedback</a>
           <a href="/editor" class="pg-bo">Open the Studio</a>
         </div>
       </section>
@@ -1190,7 +1093,6 @@ const community = {
 
       <form class="sk-form" id="skForm" hidden>
         <h2>Share a tutorial</h2>
-        <p class="sk-form-note">Paste the link to a video you have already published on YouTube or Instagram. We never host the video — people watch it on your channel, so the views stay yours. It appears here as soon as you share it.</p>
 
         <div class="sk-f">
           <label for="skUrl">Video link</label>
@@ -1227,7 +1129,7 @@ const community = {
         <h3>No tutorials yet</h3>
         <p>This is where creators explain how they made something. If you have published a walkthrough on YouTube or Instagram, it can be the first one here.</p>
         <div class="sh-gallery-end-actions">
-          <a href="/#templates" class="sh-ge-btn sh-ge-primary">Browse the template library</a>
+          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse animations</a>
           <a href="/tutorials" class="sh-ge-btn">Read the written guides</a>
         </div>
       </div>
@@ -1590,10 +1492,10 @@ scripts: `<script>
 const contact = {
   route: "/contact",
   active: "contact",
-  title: "Help & Feedback — ShortsCraft",
+  title: "Feedback — ShortsCraft",
   desc: "Report a bug, request a template or ask a question about ShortsCraft. Messages reach the person who builds it.",
   body: `    <main class="pg">
-${pageHead("Help &amp; Feedback")}
+${pageHead("Feedback")}
 
       <div class="pg-two">
         <form class="pg-form" id="fbForm" novalidate>
@@ -1650,7 +1552,7 @@ ${SOCIAL.filter(s => s.href).map(s => `              <a href="${s.href}" rel="no
       </div>
 
       <section class="pg-sec" id="supportHistory" hidden>
-        <div class="pg-accsec-head"><h2>Your support tickets</h2><span class="pg-fine">Signed-in account only</span></div>
+        <div class="pg-accsec-head"><h2>Your support tickets</h2></div>
         <div class="pg-grid" id="supportTicketGrid"></div>
       </section>
     </main>`
@@ -1674,7 +1576,7 @@ ${pageHead("Privacy Policy")}
         <h2>What we collect</h2>
         <ul>
           <li><strong>What you type into a tool</strong> — the topic or script you submit is sent to our AI provider to generate your result. It is not stored in a database by us.</li>
-          <li><strong>What you send us on purpose</strong> — the name, email, subject and message from the Help &amp; Feedback form, so we can reply.</li>
+          <li><strong>What you send us on purpose</strong> — the name, email, subject and message from the Feedback form, so we can reply.</li>
           <li><strong>Usage analytics</strong> — Google Analytics gives us aggregate page views and device types. It sets cookies in your browser.</li>
           <li><strong>Server logs</strong> — standard request logs including IP address, kept short-term for abuse and rate limiting.</li>
           <li><strong>Payment details</strong> — handled entirely by Razorpay. Card numbers never reach our servers.</li>
@@ -1700,13 +1602,13 @@ ${pageHead("Privacy Policy")}
         <p>ShortsCraft is not directed at children under 13, and we do not knowingly collect their data.</p>
 
         <h2>Your choices</h2>
-        <p>Block analytics cookies in your browser and the site still works. To have a feedback message or billing record deleted, write to us from the same email address using <a href="/contact">Help &amp; Feedback</a> and we will remove it, except where we must keep a payment record for tax purposes.</p>
+        <p>Block analytics cookies in your browser and the site still works. To have a feedback message or billing record deleted, write to us from the same email address using <a href="/contact">Feedback</a> and we will remove it, except where we must keep a payment record for tax purposes.</p>
 
         <h2>Changes</h2>
         <p>If this policy changes materially, the date at the top changes with it.</p>
 
         <h2>Contact</h2>
-        <p>Questions about privacy go through <a href="/contact">Help &amp; Feedback</a>.</p>
+        <p>Questions about privacy go through <a href="/contact">Feedback</a>.</p>
         <p class="pg-fine">Last updated ${UPDATED}.</p>
       </section>
     </main>`
@@ -1745,7 +1647,7 @@ ${pageHead("Terms of Service")}
         <p>The free plan includes ${P.free.perDay} credits per day. A video export costs ${C.export} credit and a custom AI scene costs ${C.animate}; editing and previewing do not spend credits. Resolution and queue limits keep rendering usable for everyone, and may be adjusted as capacity changes.</p>
 
         <h2>Pro plan, billing and refunds</h2>
-        <p>Pro starts at ₹${P.pro.price} per month and Pro Max at ₹${P.promax.price} per month, with optional annual billing through Razorpay. Cancel any time; access continues to the end of the paid period. If a payment is charged but the plan is not delivered, contact <a href="/contact">Help &amp; Feedback</a> with the payment reference.</p>
+        <p>Pro starts at ₹${P.pro.price} per month and Pro Max at ₹${P.promax.price} per month, with optional annual billing through Razorpay. Cancel any time; access continues to the end of the paid period. If a payment is charged but the plan is not delivered, contact <a href="/contact">Feedback</a> with the payment reference.</p>
 
         <h2>Availability</h2>
         <p>This is an independently run product. We do not promise uptime, and features can change or be withdrawn. Exports depend on server capacity — a long render may be queued.</p>
@@ -1757,7 +1659,7 @@ ${pageHead("Terms of Service")}
         <p>These terms can change; the date above will say when. Continuing to use the service means accepting the current version.</p>
 
         <h2>Contact</h2>
-        <p>Anything unclear here — ask through <a href="/contact">Help &amp; Feedback</a>.</p>
+        <p>Anything unclear here — ask through <a href="/contact">Feedback</a>.</p>
         <p class="pg-fine">Last updated ${UPDATED}. By using ShortsCraft you accept these terms.</p>
       </section>
     </main>`
@@ -1774,7 +1676,6 @@ const notfound = {
       <section class="pg-404">
         <div class="pg-404code" aria-hidden="true">404</div>
         <h1>This page does not exist</h1>
-        <p>The link may be old, or the page may have moved while we rebuilt the site.</p>
         <div class="pg-row">
           <a href="/editor" class="pg-bw">Open the Editor</a>
           <a href="/" class="pg-bo">Back to templates</a>
@@ -1783,7 +1684,7 @@ const notfound = {
           <a href="/community">Creator Tutorials</a>
           <a href="/pricing">Pricing</a>
           <a href="/about">About</a>
-          <a href="/contact">Help &amp; Feedback</a>
+          <a href="/contact">Feedback</a>
         </nav>
       </section>
     </main>`
@@ -1845,7 +1746,6 @@ ${TOOLS.map((t, i) => `          <button class="pg-tab" type="button" role="tab"
 
       <section class="pg-cta">
         <h2>Now animate it</h2>
-        <p>Take the script into the editor and turn it into a real MP4.</p>
         <div class="pg-row">
           <a href="/editor" class="pg-bw">Open the Editor</a>
           <a href="/pricing" class="pg-bo">See pricing</a>
@@ -1999,9 +1899,9 @@ const account = {
           <a href="/drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>My Projects</span></a>
           <a href="/uploads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Creator Studio</span></a>
           <button type="button" class="js-open-upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Upload Animation</span></button>
-          <a href="/settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Profile &amp; settings</span></a>
-          <a href="/pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Subscription &amp; Plans</span></a>
-          <a href="/tutorials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Tutorials &amp; Help</span></a>
+          <a href="/settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Settings</span></a>
+          <a href="/pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Pricing</span></a>
+          <a href="/tutorials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Help</span></a>
           <a href="/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg><span>Feedback</span></a>
           <a href="/about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>About Us</span></a>
           <a href="/admin" data-auth="admin" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin Console</span></a>
@@ -2263,7 +2163,8 @@ ${guestGate("/account", "Log in to see your account", "Your creator profile, cha
 
 const indexPage = {
   route: "/",
-  active: "templates",
+  active: "home",
+  bodyClass: "page-home",
   noPageJs: true,
   title: "ShortsCraft — Create and customize motion templates",
   desc: "Create short-form animations from a prompt or customize motion templates in a focused browser editor. Preview freely and export a real MP4 when it is ready.",
@@ -2276,9 +2177,7 @@ const indexPage = {
            the first screen costs no image request. -->
       <section class="sh-hero sh-hero-v2">
         <div class="sh-hero-copy">
-          <p class="sh-hero-kicker">Ideas <span aria-hidden="true">→</span> Animations <span aria-hidden="true">→</span> Impact</p>
           <h1>Turn your ideas into <em>scroll-stopping videos</em></h1>
-          <p class="sh-hero-sub">Create stunning animations, thumbnails and more with the power of AI.</p>
         </div>
         <div class="sh-hero-art" aria-hidden="true">
           <span class="sh-ha-note">Animate<br>Anything</span>
@@ -2297,7 +2196,7 @@ const indexPage = {
       <form class="sh-composer" id="composer" action="/editor" method="GET">
         <div class="sh-ctop">
           <label class="ed-sr" for="composerPrompt">Describe the animation you want</label>
-          <textarea id="composerPrompt" name="topic" rows="3" maxlength="500"></textarea>
+          <textarea id="composerPrompt" name="topic" rows="2" maxlength="500"></textarea>
           <span class="sh-cph" aria-hidden="true"><b>Describe what you want to animate…</b><span>Example: A clean pricing card that flips to reveal ₹199, with a blue accent</span></span>
           <span class="sh-ccount" id="composerCount">0/500</span>
         </div>
@@ -2340,41 +2239,157 @@ const indexPage = {
         </div>
       </form>
 
-      <!-- Two ways in. Thumbnails are not built yet, so that card says so
-           when tapped, rather than opening a page that does not exist. -->
-      <section class="sh-feature-row" aria-label="What you can create">
-        <a href="/editor" class="sh-feature sh-feature-anim">
-          <span class="sh-feature-copy">
-            <strong class="sh-feature-title">Create Animation</strong>
-            <span class="sh-feature-text">Bring your ideas to life with ready-made or AI-generated templates.</span>
-          </span>
-          <span class="sh-feature-art" aria-hidden="true"><span class="sh-fa-screen">Ideas<br>into<br>motion</span></span>
-          <span class="sh-feature-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </a>
-        <button type="button" class="sh-feature sh-feature-thumb" id="thumbSoon">
-          <span class="sh-feature-copy">
-            <strong class="sh-feature-title">Create Thumbnail <span class="sh-soon">Coming soon</span></strong>
-            <span class="sh-feature-text">Design eye-catching YouTube thumbnails with templates and AI tools.</span>
-          </span>
-          <span class="sh-feature-art" aria-hidden="true">
-            <span class="sh-fa-thumb"><b>Bigger<br>views</b><i><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></i></span>
-            <svg class="sh-fa-face" viewBox="0 0 60 70"><path d="M8 66c0-14 9-22 22-22s22 8 22 22z" fill="#1f2937"/><path d="M9 34C6 14 17 3 31 3s26 10 22 33c-2 8-6 12-6 12H13s-3-5-4-14z" fill="#6b3a1f"/><ellipse cx="30" cy="33" rx="15" ry="17" fill="#f6c7a1"/><path d="M14 27c4-12 22-16 32-6-9-2-20 0-32 6z" fill="#6b3a1f"/><ellipse cx="24" cy="34" rx="2.6" ry="3.4" fill="#2b1a10"/><ellipse cx="36" cy="34" rx="2.6" ry="3.4" fill="#2b1a10"/><circle cx="24.8" cy="33" r=".9" fill="#fff"/><circle cx="36.8" cy="33" r=".9" fill="#fff"/><path d="M25 42c3 3 7 3 10 0" stroke="#b5533c" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="19" cy="40" r="2.5" fill="#f59e9e" opacity=".5"/><circle cx="41" cy="40" r="2.5" fill="#f59e9e" opacity=".5"/></svg>
-          </span>
-          <span class="sh-feature-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-        </button>
+
+      <!-- The eight most-used animations. Search, every category and the
+           rest of the library are one tap away on /animations. -->
+      <section class="sh-gallery-sec sh-popular" id="templates">
+        <div class="sh-gallery-title">
+          <div><h2>Popular animations</h2></div>
+          <a href="/animations" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="sh-filters-scroll" id="filters" data-links></div>
+        <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="8"></div>
+        <div class="sh-sec-more">
+          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse all ${TPL_COUNT} animations</a>
+        </div>
       </section>
 
-      <section class="sh-gallery-sec" id="templates">
+      <!-- Creator Tutorials: real submissions from /api/skills, drawn by shell.js.
+           ShortsCraft links out; it never hosts the video. -->
+      <section class="sh-home-sec" id="homeTutorials">
         <div class="sh-gallery-title">
-          <div><h2>Browse templates</h2><p class="sh-gallery-sub">Free, customizable templates for every idea.</p></div>
-          <a href="#templates" class="sh-seeall" id="tplSeeAll">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <div><h2>Creator Tutorials</h2></div>
+          <a href="/community" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
+        <div class="sh-tut-row" id="homeTutList" aria-live="polite"></div>
+      </section>
+
+      <section class="sh-workflow-sec">
+        <div class="sh-section-head">
+          <h2>How it works</h2>
+        </div>
+        <div class="sh-workflow-grid">
+          <div class="sh-workflow-card">
+            <span class="sh-workflow-num">01</span>
+            <div class="sh-workflow-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            </div>
+            <h3>Describe or choose</h3>
+          </div>
+          <div class="sh-workflow-card">
+            <span class="sh-workflow-num">02</span>
+            <div class="sh-workflow-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            </div>
+            <h3>Customise in the Studio</h3>
+          </div>
+          <div class="sh-workflow-card">
+            <span class="sh-workflow-num">03</span>
+            <div class="sh-workflow-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+            </div>
+            <h3>Export or publish</h3>
+          </div>
+        </div>
+      </section>
+
+      <section class="sh-home-sec sh-pricing-prev">
+        <div class="sh-gallery-title">
+          <div><h2>Simple pricing</h2></div>
+          <a href="/pricing" class="sh-seeall">Compare plans <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="sh-pp-grid">
+          <a href="/pricing" class="sh-pp-card">
+            <span class="sh-pp-name">Free</span>
+            <span class="sh-pp-price">₹${P.free.price}<small></small></span>
+            <ul>
+              <li>${P.free.perDay} credits every day</li>
+              <li>Export up to ${P.free.maxHeight}p</li>
+              <li>${P.free.watermark ? "ShortsCraft watermark" : "No watermark"}</li>
+            </ul>
+          </a>
+          <a href="/pricing" class="sh-pp-card sh-pp-hi">
+            <span class="sh-pp-name">Pro</span>
+            <span class="sh-pp-price">₹${P.pro.price}<small>/month</small></span>
+            <ul>
+              <li>${P.pro.perDay} credits every day</li>
+              <li>Export up to ${P.pro.maxHeight}p</li>
+              <li>${P.pro.watermark ? "ShortsCraft watermark" : "No watermark"}</li>
+            </ul>
+          </a>
+          <a href="/pricing" class="sh-pp-card">
+            <span class="sh-pp-name">Pro Max</span>
+            <span class="sh-pp-price">₹${P.promax.price}<small>/month</small></span>
+            <ul>
+              <li>${P.promax.perDay} credits every day</li>
+              <li>Export up to ${P.promax.maxHeight}p</li>
+              <li>${P.promax.watermark ? "ShortsCraft watermark" : "No watermark"}</li>
+            </ul>
+          </a>
+        </div>
+      </section>
+
+      <section class="sh-home-sec sh-benefits">
+        <div class="sh-gallery-title">
+          <div><h2>Built for creators</h2></div>
+        </div>
+        <div class="sh-ben-grid">
+          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><b>Publish templates</b></div>
+          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span><b>Share tutorials</b></div>
+          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><b>Build a following</b></div>
+          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Get verified</b></div>
+        </div>
+        <div class="sh-sec-more">
+          <a href="/community" class="sh-ge-btn sh-ge-primary">Share a tutorial</a>
+          <a href="/uploads" class="sh-ge-btn">Open Creator Studio</a>
+        </div>
+      </section>
+
+      <section class="sh-finale">
+        <h2>Ready to Level Up Your YouTube Shorts?</h2>
+        <div class="sh-frow">
+          <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
+          <a href="/animations" class="sh-bo">Browse Templates</a>
+        </div>
+      </section>
+    </main>`,
+  scripts: `<script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
+};
+
+/* ── ANIMATIONS ─────────────────────────────────────────────
+   The whole animation library on its own page. The home page shows the same
+   gallery; this is where the nav, the phone tab and "See all" lead. */
+const animationsPage = {
+  route: "/animations",
+  active: "templates",
+  noPageJs: true,
+  title: "Animations — ShortsCraft",
+  desc: `Browse ${TPL_COUNT} editable animation templates for YouTube Shorts and Reels. Preview free, customise in the Studio and export an MP4.`,
+  body: `    <main class="sh-home sh-library">
+${pageHead("Animations")}
+      <section class="sh-gallery-sec" id="templates">
         <div class="sh-ghead">
           <div class="sh-search-bar-row">
             <div class="sh-search-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input type="text" id="tplSearch" placeholder="Search ${TPL_COUNT} motion templates..." autocomplete="off">
               <button type="button" id="tplSearchClear" hidden>×</button>
+            </div>
+            <div class="sh-lib-controls">
+              <label class="sh-lib-select"><span>Sort</span>
+                <select id="tplSort" aria-label="Sort animations">
+                  <option value="trending" selected>Trending</option>
+                  <option value="popular">Popular</option>
+                  <option value="newest">Newest</option>
+                </select>
+              </label>
+              <label class="sh-lib-select"><span>Source</span>
+                <select id="tplSource" aria-label="Show animations from">
+                  <option value="all" selected>All creators</option>
+                  <option value="official">Official</option>
+                  <option value="community">Community</option>
+                </select>
+              </label>
             </div>
             <div class="sh-filters-scroll" id="filters"></div>
           </div>
@@ -2393,80 +2408,180 @@ const indexPage = {
           </div>
         </div>
       </section>
-
-      <section class="sh-workflow-sec">
-        <div class="sh-section-head">
-          <span class="sh-eyebrow">How it works</span>
-          <h2>From template to finished animation</h2>
-          <p>Choose a starting point, make it yours, then export the format you need.</p>
-        </div>
-        <div class="sh-workflow-grid">
-          <div class="sh-workflow-card">
-            <span class="sh-workflow-num">01</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            </div>
-            <h3>Describe or choose</h3>
-            <p>Write what you need in English or Hinglish, or begin with an existing template from the library.</p>
-          </div>
-          <div class="sh-workflow-card">
-            <span class="sh-workflow-num">02</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-            </div>
-            <h3>Customise in the Studio</h3>
-            <p>Adjust the content, colours, type, timing and layout while the preview updates.</p>
-          </div>
-          <div class="sh-workflow-card">
-            <span class="sh-workflow-num">03</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
-            </div>
-            <h3>Export or publish</h3>
-            <p>Render an MP4 at the resolution included in your plan, or publish the editable template to the community.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="sh-banner-sec">
-        <div class="sh-community-card">
-          <div class="sh-comm-info">
-            <span class="sh-eyebrow">Creator community</span>
-            <h2>Publish an editable template</h2>
-            <p>Share your customised version with its real creator identity, reactions and comments attached.</p>
-            <div class="sh-comm-acts">
-              <a href="/community" class="sh-bw">Watch creator tutorials <span aria-hidden="true">→</span></a>
-              <a href="/editor" class="sh-bo">Open Studio</a>
-            </div>
-          </div>
-          <div class="sh-comm-badge-box">
-            <div class="sh-stat-pill">
-              <b>${TPL_COUNT}</b>
-              <span>Built-in templates</span>
-            </div>
-            <div class="sh-stat-pill">
-              <b>1 credit</b>
-              <span>Per export</span>
-            </div>
-            <div class="sh-stat-pill">
-              <b>Up to 1440p</b>
-              <span>Plan-based export</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="sh-finale">
-        <span class="sh-eyebrow">✦ Get Started</span>
-        <h2>Ready to Level Up Your YouTube Shorts?</h2>
-        <p>No complex video software or steep learning curves required. Generate modern, animated short-form graphics right in your browser.</p>
-        <div class="sh-frow">
-          <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
-          <a href="/pricing" class="sh-bo">View Pricing Plans · From ₹99/mo</a>
-        </div>
-      </section>
     </main>`,
   scripts: `<script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
+};
+
+/* ── DESIGNS ────────────────────────────────────────────────
+   Interactive Designs Hub: editable YouTube thumbnails, logos, posters,
+   and AI Convert to Editable engine. */
+const designsPage = {
+  route: "/designs",
+  active: "designs",
+  title: "Editable Designs & Thumbnails — ShortsCraft",
+  desc: "Browse editable YouTube thumbnails, logos, posters, and graphics. Upload any image to decompose it into fully editable AI layers.",
+  head: `<link rel="stylesheet" href="/designs.css?v=${V}">`,
+  body: `    <main class="sh-home sh-library">
+      <div class="ds-page-container">
+        <!-- Header -->
+        <header class="ds-header">
+          <div class="ds-header-main">
+            <h1>Editable Designs &amp; Thumbnails</h1>
+            <p>Customize pre-made creator templates or upload any thumbnail, poster, or logo to convert it into fully editable AI layers with transparent cutouts and clean typography.</p>
+          </div>
+          <div class="ds-header-actions">
+            <a href="/design-editor" class="ds-btn ds-btn-outline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Blank Canvas</span>
+            </a>
+            <button type="button" class="ds-btn ds-btn-magic js-open-design-upload" id="openDesignUploadBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M20 21H4"/></svg>
+              <span>Upload to Convert ✨</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Category Filter Bar -->
+        <nav class="ds-filter-bar" id="designsFilterBar" aria-label="Design categories">
+          <button type="button" class="ds-filter-btn active" data-cat="all" aria-pressed="true">All Designs</button>
+          <button type="button" class="ds-filter-btn" data-cat="youtube-thumbnail" aria-pressed="false">YouTube Thumbnails</button>
+          <button type="button" class="ds-filter-btn" data-cat="logo" aria-pressed="false">Logos &amp; Badges</button>
+          <button type="button" class="ds-filter-btn" data-cat="poster" aria-pressed="false">Posters &amp; Flyers</button>
+          <button type="button" class="ds-filter-btn" data-cat="social-post" aria-pressed="false">Social Posts</button>
+        </nav>
+
+        <!-- Templates Grid -->
+        <div class="ds-grid" id="designsGrid">
+          <div class="ds-loading">
+            <div class="ds-spinner"></div>
+            <p>Loading design templates...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Upload & AI Convert to Editable Modal -->
+    <div class="ds-modal-backdrop" id="designUploadModal" hidden>
+      <div class="ds-modal-card" role="dialog" aria-modal="true" aria-labelledby="designModalTitle">
+        
+        <!-- Step 1: File Dropzone -->
+        <div class="ds-modal-step" id="modalStep1">
+          <div class="ds-modal-header">
+            <h3 class="ds-modal-title" id="designModalTitle">
+              <span>✨ Convert Image to Editable Template</span>
+            </h3>
+            <button type="button" class="ds-modal-close" id="closeDesignModal" aria-label="Close dialog">&times;</button>
+          </div>
+          <div class="ds-modal-body">
+            <div class="ds-dropzone" id="designDropzone">
+              <input type="file" id="designFileInput" accept="image/png,image/jpeg,image/webp" hidden>
+              <div class="ds-dropzone-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <h4 class="ds-dropzone-title">Click to upload or drag and drop image here</h4>
+              <p class="ds-dropzone-subtitle">Supports YouTube thumbnails, posters, logos, and social graphics</p>
+              <div class="ds-dropzone-tags">
+                <span class="ds-tag">PNG</span>
+                <span class="ds-tag">JPG / JPEG</span>
+                <span class="ds-tag">WebP</span>
+                <span class="ds-tag">Up to 15 MB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Choose Mode -->
+        <div class="ds-modal-step" id="modalStep2" hidden>
+          <div class="ds-modal-header">
+            <h3 class="ds-modal-title">Choose How to Open Design</h3>
+            <button type="button" class="ds-modal-close" onclick="document.getElementById('designUploadModal').setAttribute('hidden','')" aria-label="Close dialog">&times;</button>
+          </div>
+          <div class="ds-modal-body">
+            <div class="ds-picked-preview-row">
+              <img id="pickedImagePreview" class="ds-picked-thumb" src="" alt="Picked image">
+              <div class="ds-picked-info">
+                <strong id="pickedFileName">image.png</strong>
+                <span id="pickedFileSize">0 KB</span>
+              </div>
+            </div>
+
+            <div class="ds-mode-grid">
+              <div class="ds-mode-card featured" id="cardConvertEditable">
+                <span class="ds-mode-badge">AI Powered</span>
+                <div class="ds-mode-icon">✨</div>
+                <h3>Convert to Editable</h3>
+                <p>Decomposes your image into editable text layers, inpainted background with text erased, transparent foreground cutouts, and vector shapes.</p>
+                <button type="button" class="ds-mode-btn ds-mode-btn-primary" id="btnConvertEditable">✦ Convert to Editable ✨</button>
+              </div>
+
+              <div class="ds-mode-card" id="cardUseAsImage">
+                <span class="ds-mode-badge" style="background:#475569;">Simple Layer</span>
+                <div class="ds-mode-icon">🖼</div>
+                <h3>Use as Image</h3>
+                <p>Opens your image directly on a flat canvas layer without altering pixels. Add text badges, shapes, or stickers right on top.</p>
+                <button type="button" class="ds-mode-btn ds-mode-btn-subtle" id="btnUseAsImage">Use as Image</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Progress -->
+        <div class="ds-modal-step" id="modalStep3" hidden>
+          <div class="ds-modal-header">
+            <h3 class="ds-modal-title">Analyzing &amp; Reconstructing Design</h3>
+          </div>
+          <div class="ds-modal-body">
+            <div class="ds-progress-wrap">
+              <div class="ds-progress-bar-bg">
+                <div class="ds-progress-bar-fill" id="conversionProgressBar"></div>
+              </div>
+              <p class="ds-progress-status" id="conversionProgressText">1. Uploading image...</p>
+              <p class="ds-progress-hint">Our AI engine is separating typography, erasing baked text, and reconstructing layers...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Review Layers -->
+        <div class="ds-modal-step" id="modalStep4" hidden>
+          <div class="ds-modal-header">
+            <h3 class="ds-modal-title">Review Editable Layers</h3>
+            <button type="button" class="ds-modal-close" onclick="document.getElementById('designUploadModal').setAttribute('hidden','')" aria-label="Close dialog">&times;</button>
+          </div>
+          <div class="ds-modal-body">
+            <div class="ds-review-layout">
+              <div class="ds-review-col">
+                <div class="ds-view-toggle">
+                  <button type="button" id="toggleViewOrig">Original</button>
+                  <button type="button" class="active" id="toggleViewEdit">Editable Preview</button>
+                </div>
+                <div class="ds-review-stage-box" id="reviewOrigWrap" style="display:none;">
+                  <img id="reviewOrigImg" src="" alt="Original Upload">
+                </div>
+                <div class="ds-review-stage-box" id="reviewEditWrap">
+                  <div id="reviewReconstructedStage"></div>
+                </div>
+              </div>
+
+              <div class="ds-review-col">
+                <h4>
+                  <span>Detected Layers</span>
+                  <span class="ds-tag" id="reviewLayersCount">0 layers</span>
+                </h4>
+                <div class="ds-review-layers-list" id="reviewLayersList"></div>
+              </div>
+            </div>
+
+            <div class="ds-review-actions">
+              <button type="button" class="ds-btn ds-btn-outline" id="btnCancelReview">Cancel</button>
+              <button type="button" class="ds-btn ds-btn-outline" id="btnConvertAgain">Re-analyze</button>
+              <button type="button" class="ds-btn ds-btn-magic" id="btnOpenEditor">✦ Open in Design Studio →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>`,
+  scripts: `<script src="/designs.js?v=${V}" defer></script>`
 };
 
 const templatePage = {
@@ -2476,14 +2591,15 @@ const templatePage = {
   desc: "Preview, customize and discuss creator motion graphics templates for YouTube Shorts and Instagram Reels.",
   body: `    <main class="sh-home" style="display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 60px);padding:24px 16px;">
       <div class="sh-modal-card" style="transform:none;opacity:1;position:relative;">
-        <a href="/#templates" class="sh-modal-close" aria-label="Back to templates">×</a>
+        <a href="/animations" class="sh-modal-close" aria-label="Back to animations">×</a>
         <div class="sh-modal-left">
           <div class="sh-modal-stage" id="detailStage"></div>
-          <a href="/editor" class="sh-modal-cta" id="detailStudioBtn">✦ Customize in Studio →</a>
+          <a href="/editor" class="sh-modal-cta" id="detailStudioBtn">✦ Use Template →</a>
           <div class="sh-modal-ctrls">
             <button type="button" class="sh-modal-act-btn" id="detailReplayBtn">▶ Replay</button>
             <button type="button" class="sh-modal-act-btn" id="detailLikeBtn">♥ <span class="td-like-count">0</span></button>
             <button type="button" class="sh-modal-act-btn" id="detailShareBtn">🔗 Share</button>
+            <button type="button" class="sh-modal-act-btn" id="detailReportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span>Report</span></button>
           </div>
         </div>
 
@@ -2494,8 +2610,10 @@ const templatePage = {
             <p class="sh-m-desc" id="detailDesc">Loading template details...</p>
             <div class="sh-m-specs">
               <span class="sh-m-spec">Duration: <b id="detailDur">4.6s</b></span>
-              <span class="sh-m-spec">Framerate: <b>60 FPS</b></span>
-              <span class="sh-m-spec">Format: <b>9:16 Shorts</b></span>
+              <span class="sh-m-spec">Aspect: <b id="detailAspect">9:16</b></span>
+              <span class="sh-m-spec">Frame rate: <b>24–60 fps</b></span>
+              <span class="sh-m-spec">Export: <b>${C.export} credit${C.export === 1 ? "" : "s"}</b></span>
+              <span class="sh-m-spec">Source: <b id="detailSource">Official</b></span>
             </div>
           </div>
 
@@ -2787,6 +2905,7 @@ const adminPage = {
           <button type="button" data-admin-tab="content" data-perm="templates.moderate" aria-pressed="false">Templates</button>
           <button type="button" data-admin-tab="skills" data-perm="tutorials.moderate" aria-pressed="false">Tutorials</button>
           <button type="button" data-admin-tab="support" data-perm="support.reply" aria-pressed="false">Support</button>
+          <button type="button" data-admin-tab="reports" data-perm="reports.review" aria-pressed="false">Reports</button>
           <button type="button" data-admin-tab="users" data-perm="users.view" aria-pressed="false">Users</button>
           <button type="button" data-admin-tab="team" data-perm="owner" aria-pressed="false" hidden>Team</button>
           <button type="button" data-admin-tab="features" data-perm="owner" aria-pressed="false">Feature flags</button>
@@ -2807,7 +2926,7 @@ const adminPage = {
         </section>
 
         <section class="admin-panel" data-admin-panel="content" hidden>
-          <div class="pg-accsec-head"><div><h2>Template moderation</h2><p class="pg-fine">Review creator publications and genuine engagement.</p></div><button class="pg-bo" type="button" data-admin-refresh="content">Refresh</button></div>
+          <div class="pg-accsec-head"><div><h2>Template moderation</h2></div><button class="pg-bo" type="button" data-admin-refresh="content">Refresh</button></div>
           <div class="admin-list" id="adminTemplateList"><p>Loading templates…</p></div>
         </section>
 
@@ -2816,7 +2935,7 @@ const adminPage = {
              list that matters here is what is already live. -->
         <section class="admin-panel" data-admin-panel="skills" hidden>
           <div class="pg-accsec-head">
-            <div><h2>Creator tutorials</h2><p class="pg-fine">These are already live. Reject or remove anything that is not the creator’s own video.</p></div>
+            <div><h2>Creator tutorials</h2></div>
             <div class="admin-row-controls">
               <select id="adminSkillStatus" aria-label="Which tutorials to show">
                 <option value="published" selected>Published</option>
@@ -2830,12 +2949,31 @@ const adminPage = {
         </section>
 
         <section class="admin-panel" data-admin-panel="support" hidden>
-          <div class="pg-accsec-head"><div><h2>Support queue</h2><p class="pg-fine">Oldest high-priority tickets appear first.</p></div><button class="pg-bo" type="button" data-admin-refresh="support">Refresh</button></div>
+          <div class="pg-accsec-head"><div><h2>Support queue</h2></div><button class="pg-bo" type="button" data-admin-refresh="support">Refresh</button></div>
           <div class="admin-support-layout"><div class="admin-list" id="adminTicketList"><p>Loading tickets…</p></div><div class="admin-ticket-view" id="adminTicketView"><p>Select a ticket to read and reply.</p></div></div>
         </section>
 
+        <!-- Reports from anyone about a template, tutorial, creator or comment.
+             Closing a report records what was done; the content itself is
+             changed from its own tab (Templates, Tutorials). -->
+        <section class="admin-panel" data-admin-panel="reports" hidden>
+          <div class="pg-accsec-head">
+            <div><h2>Reports</h2></div>
+            <div class="admin-row-controls">
+              <select id="adminReportStatus" aria-label="Which reports to show">
+                <option value="open" selected>Open</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="actioned">Actioned</option>
+                <option value="dismissed">Dismissed</option>
+              </select>
+              <button class="pg-bo" type="button" data-admin-refresh="reports">Refresh</button>
+            </div>
+          </div>
+          <div class="admin-list" id="adminReportList"><p>Loading reports…</p></div>
+        </section>
+
         <section class="admin-panel" data-admin-panel="users" hidden>
-          <div class="pg-accsec-head"><div><h2>Accounts</h2><p class="pg-fine" id="adminUsersFine">Accounts and plans.</p></div><button class="pg-bo" type="button" data-admin-refresh="users">Refresh</button></div>
+          <div class="pg-accsec-head"><div><h2>Accounts</h2></div><button class="pg-bo" type="button" data-admin-refresh="users">Refresh</button></div>
           <input class="admin-search" id="adminUserSearch" type="search" placeholder="Search by name, handle or email" aria-label="Search accounts" autocomplete="off">
           <div class="admin-list" id="adminUserList"><p>Loading accounts…</p></div>
         </section>
@@ -2844,12 +2982,12 @@ const adminPage = {
              ticked for them; appointing staff and feature flags stay with the
              owner and cannot be given away. -->
         <section class="admin-panel" data-admin-panel="team" hidden>
-          <div class="pg-accsec-head"><div><h2>Team</h2><p class="pg-fine">People with admin access and what each one can do. To add someone, open Users and choose Manage access on their account.</p></div><button class="pg-bo" type="button" data-admin-refresh="team">Refresh</button></div>
+          <div class="pg-accsec-head"><div><h2>Team</h2></div><button class="pg-bo" type="button" data-admin-refresh="team">Refresh</button></div>
           <div class="admin-list" id="adminTeamList"><p>Loading team…</p></div>
         </section>
 
         <section class="admin-panel" data-admin-panel="features" hidden>
-          <div class="pg-accsec-head"><div><h2>Feature flags</h2><p class="pg-fine">Only Super Admin can change rollout state.</p></div><button class="pg-bo" type="button" data-admin-refresh="features">Refresh</button></div>
+          <div class="pg-accsec-head"><div><h2>Feature flags</h2></div><button class="pg-bo" type="button" data-admin-refresh="features">Refresh</button></div>
           <div class="admin-list" id="adminFlagList"><p>Loading feature flags…</p></div>
         </section>
 
@@ -2930,6 +3068,8 @@ const PAGES = [
   ["template.html", templatePage],
   ["creator.html", creatorPage],
   ["pricing.html", pricing],
+  ["animations.html", animationsPage],
+  ["designs.html", designsPage],
   ["about.html", about],
   ["contact.html", contact],
   ["community.html", community],

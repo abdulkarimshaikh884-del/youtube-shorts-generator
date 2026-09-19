@@ -1,0 +1,213 @@
+{
+  "id": "RevenueSpikeCard3D",
+  "name": "Revenue Spike Card 3D",
+  "title": "Stripe & Shopify 3D Floating Revenue Surge",
+  "version": "1.0.0",
+  "category": "Finance & Economy",
+  "category_id": "money",
+  "tier": "Tier 1: Flagship 3D & Physical Motion Graphics",
+  "aspectRatio": "9:16",
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "durationInFrames": 150,
+  "durationInSeconds": 5.0,
+  "description": "Hyper-realistic 3D floating revenue card inspired by Stripe & Shopify dashboard surges. Features SVG deckle torn-paper edge displacement, dynamic 3D perspective camera lift (36° to 13.5°), organic polyline drawing with glowing drop shadow, animated counter, pulsing +350.08% badge, and soft cinematic macro bokeh blurs.",
+  "tags": [
+    "finance",
+    "stripe",
+    "shopify",
+    "revenue",
+    "growth",
+    "3d",
+    "deckle-paper",
+    "motion-graphics",
+    "vertical-shorts"
+  ],
+  "defaultProps": {
+    "metricLabel": "Gross Volume",
+    "startValue": 1046058,
+    "endValue": 1046658,
+    "currencyPrefix": "$",
+    "startPercentage": 306.57,
+    "endPercentage": 350.08,
+    "startDate": "Jan 25",
+    "endDate": "Jan 26",
+    "cardTheme": "lightPaper",
+    "accentColor": "#E11D48",
+    "badgeBorderColor": "#FB7185",
+    "badgeBgColor": "#FFE4E6",
+    "bgDarkRed": "#120104",
+    "fontFamily": "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+  },
+  "fields": [
+    {
+      "key": "metricLabel",
+      "label": "Metric Label",
+      "type": "string",
+      "default": "Gross Volume",
+      "placeholder": "Gross Volume, Total Sales, ARR",
+      "group": "Content"
+    },
+    {
+      "key": "currencyPrefix",
+      "label": "Currency Prefix",
+      "type": "string",
+      "default": "$",
+      "placeholder": "$, €, ₹, £",
+      "group": "Content"
+    },
+    {
+      "key": "startValue",
+      "label": "Starting Revenue Value",
+      "type": "number",
+      "default": 1046058,
+      "group": "Revenue Counter"
+    },
+    {
+      "key": "endValue",
+      "label": "Ending Revenue Value",
+      "type": "number",
+      "default": 1046658,
+      "group": "Revenue Counter"
+    },
+    {
+      "key": "startPercentage",
+      "label": "Start Percentage (%)",
+      "type": "number",
+      "step": 0.01,
+      "default": 306.57,
+      "group": "Growth Badge"
+    },
+    {
+      "key": "endPercentage",
+      "label": "End Percentage (%)",
+      "type": "number",
+      "step": 0.01,
+      "default": 350.08,
+      "group": "Growth Badge"
+    },
+    {
+      "key": "startDate",
+      "label": "Start Date",
+      "type": "string",
+      "default": "Jan 25",
+      "group": "Timeline"
+    },
+    {
+      "key": "endDate",
+      "label": "End Date",
+      "type": "string",
+      "default": "Jan 26",
+      "group": "Timeline"
+    },
+    {
+      "key": "accentColor",
+      "label": "Chart Line & Accent Color",
+      "type": "color",
+      "default": "#E11D48",
+      "group": "Styling"
+    },
+    {
+      "key": "badgeBorderColor",
+      "label": "Badge Border Color",
+      "type": "color",
+      "default": "#FB7185",
+      "group": "Styling"
+    },
+    {
+      "key": "badgeBgColor",
+      "label": "Badge Background Color",
+      "type": "color",
+      "default": "#FFE4E6",
+      "group": "Styling"
+    },
+    {
+      "key": "bgDarkRed",
+      "label": "Background Dark Vignette Color",
+      "type": "color",
+      "default": "#120104",
+      "group": "Styling"
+    }
+  ],
+  "timeline": {
+    "cameraLift": {
+      "startFrame": 0,
+      "endFrame": 30,
+      "startRotX": 36,
+      "endRotX": 13.5,
+      "startRotY": -10,
+      "endRotY": -5.5,
+      "startTranslateY": 70,
+      "endTranslateY": 0,
+      "springConfig": {
+        "damping": 17,
+        "stiffness": 80
+      }
+    },
+    "badgeReveal": {
+      "startFrame": 6,
+      "endFrame": 16,
+      "springConfig": {
+        "damping": 13,
+        "stiffness": 150
+      }
+    },
+    "chartDraw": {
+      "startFrame": 12,
+      "endFrame": 105,
+      "easing": "cubic-bezier(0.3, 0.05, 0.2, 1)",
+      "surgePeakFrame": 105
+    },
+    "trackerDot": {
+      "visibleStartFrame": 12,
+      "fadeStartFrame": 98,
+      "fadeEndFrame": 112
+    }
+  },
+  "chartCoordinates": [
+    { "x": 38, "y": 150 },
+    { "x": 74, "y": 150 },
+    { "x": 92, "y": 134 },
+    { "x": 120, "y": 147 },
+    { "x": 144, "y": 126 },
+    { "x": 168, "y": 140 },
+    { "x": 194, "y": 134 },
+    { "x": 218, "y": 125 },
+    { "x": 246, "y": 126 },
+    { "x": 272, "y": 102 },
+    { "x": 294, "y": 122 },
+    { "x": 318, "y": 118 },
+    { "x": 344, "y": 106 },
+    { "x": 374, "y": 118 },
+    { "x": 404, "y": 88 },
+    { "x": 434, "y": 100 },
+    { "x": 448, "y": 104 },
+    { "x": 472, "y": 44 },
+    { "x": 502, "y": 92 }
+  ],
+  "svgFilters": {
+    "deckleEdge": {
+      "id": "deckleEdgeV3",
+      "baseFrequency": "0.04 0.035",
+      "numOctaves": 4,
+      "scale": 7.5
+    }
+  },
+  "previewAssets": {
+    "video": "preview.mp4",
+    "coverImage": "thumbnail.png",
+    "keyframeAngle": "thumbnail_f18.png",
+    "keyframeRising": "thumbnail_f55.png",
+    "keyframePeak": "thumbnail_f115.png"
+  },
+  "fileManifest": {
+    "component": "RevenueSpikeCard3D.tsx",
+    "iframeScene": "SceneIFrame.tsx",
+    "types": "types.ts",
+    "templateJson": "RevenueSpikeCard3D.json",
+    "lottieJson": "RevenueSpikeCard3D.lottie.json"
+  }
+}

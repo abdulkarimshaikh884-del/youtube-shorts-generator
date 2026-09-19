@@ -191,10 +191,10 @@ const LEGACY_CSS = /(?:styles|premium|landing|seo-tools|studio)\.css/;
       h1: (document.querySelector("h1") || {}).textContent || "",
       toolUi: !!document.querySelector("#seoForm")
     }));
-    ok(response && (response.status() === 200 || response.status() === 304) && info.path === "/" && info.hash === "#templates",
-      `${route} permanently redirects to the template gallery`,
+    ok(response && (response.status() === 200 || response.status() === 304) && info.path === "/animations",
+      `${route} permanently redirects to the animation library`,
       `${response ? response.status() : 0} ${info.path}${info.hash}`);
-    ok(!info.toolUi && /animate|scroll-stopping videos/i.test(info.h1), `${route} exposes no retired tool UI`, info.h1);
+    ok(!info.toolUi && /^Animations$/.test(info.h1.trim()), `${route} exposes no retired tool UI`, info.h1);
   }
 
   console.log("\n---- feedback form ----");

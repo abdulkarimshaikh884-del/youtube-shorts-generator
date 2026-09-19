@@ -4,8 +4,19 @@
     {
       "name": "shortscraft",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["server.js"],
-      "port": 3000
+      "runtimeArgs": [
+        "server.js"
+      ],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "fitdeal",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "C:/Users/karim/kiroai/Fit Deal/dev-server.js"
+      ],
+      "port": 5173
     }
   ]
 }

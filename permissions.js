@@ -19,6 +19,7 @@ const PERMISSIONS = [
   { key: "tutorials.moderate", label: "Moderate tutorials", hint: "Take down or restore shared tutorial videos." },
   { key: "comments.moderate", label: "Remove comments", hint: "Remove other people's comments on templates." },
   { key: "support.reply", label: "Answer feedback and support", hint: "Read feedback and support messages, reply and close them." },
+  { key: "reports.review", label: "Review reports", hint: "Read reports about templates, tutorials, creators and comments, and close them." },
   { key: "users.view", label: "See the account list", hint: "Names, handles and plans. Email addresses stay hidden." }
 ];
 const KEYS = new Set(PERMISSIONS.map((p) => p.key));

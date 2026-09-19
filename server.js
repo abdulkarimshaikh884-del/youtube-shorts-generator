@@ -10,6 +10,8 @@ const crypto = require("crypto");
 const db = require("./db");
 const mailer = require("./mailer");
 const paymentDelivery = require("./payment-delivery");
+const designs = require("./designs");
+const designConverter = require("./design-converter");
 
 const app = express();
 app.disable("x-powered-by");
@@ -158,7 +160,7 @@ app.use((req, res, next) => {
   // These two routes accept an attached base64 image. Let their route-level
   // 2 MB parser handle the body; parsing globally at 100 KB first made the
   // larger parser unreachable and every real image upload failed with 413.
-  if (req.path === "/api/animate" || req.path === "/api/export" || req.path === "/api/auth/avatar" || req.path === "/api/lottie") return next();
+  if (req.path === "/api/animate" || req.path === "/api/export" || req.path === "/api/auth/avatar" || req.path === "/api/lottie" || req.path === "/api/designs/convert") return next();
   return jsonSmall(req, res, next);
 });
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
@@ -206,7 +208,7 @@ const RETIRED_TOOL_ROUTES = [
   "/youtube-shorts-hashtag-generator", "/youtube-shorts-description-generator",
   "/youtube-shorts-ideas-generator", "/ai-thumbnail-prompt-generator"
 ];
-app.get(RETIRED_TOOL_ROUTES, (req, res) => res.redirect(301, "/#templates"));
+app.get(RETIRED_TOOL_ROUTES, (req, res) => res.redirect(301, "/animations"));
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: NODE_ENV === "production" ? "7d" : 0,
@@ -445,6 +447,7 @@ const projects = require("./projects");
 const admin = require("./admin");
 const skills = require("./skills");
 const lottie = require("./lottie");
+const reports = require("./reports");
 app.use(credits.middleware);
 
 // A request that changed something may have created notifications. Deliver
@@ -576,6 +579,126 @@ app.delete("/api/projects/:id", async (req, res) => {
    account once, so work started before logging in is not stranded there. */
 app.post("/api/projects/adopt", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
   const out = await projects.adopt(req.user, req.body?.drafts);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+// ── Design Studio & Convert to Editable APIs ────────────────
+const jsonDesignUpload = express.json({ limit: "20mb" });
+
+app.post("/api/designs/convert", rateLimit({ windowMs: 60_000, max: 20 }), jsonDesignUpload, async (req, res) => {
+  const rawData = req.body?.image;
+  if (!rawData) {
+    return res.status(400).json({ success: false, error: "Please provide an image to convert." });
+  }
+
+  const match = String(rawData).match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,([A-Za-z0-9+/=\r\n]+)$/);
+  if (!match) {
+    return res.status(400).json({ success: false, error: "Upload a valid PNG, JPG, or WebP image." });
+  }
+
+  let imageBuffer;
+  try {
+    imageBuffer = Buffer.from(match[2], "base64");
+  } catch (e) {
+    return res.status(400).json({ success: false, error: "That image could not be decoded." });
+  }
+
+  const useAsImage = req.body?.useAsImage === true;
+  const designType = String(req.body?.designType || "youtube-thumbnail");
+
+  // Charge 1 credit for AI conversion if signed in and credits are configured
+  let charged = false;
+  if (!useAsImage) {
+    try {
+      const chargeRes = await credits.charge(req, "ai");
+      if (!chargeRes.ok) {
+        return res.status(402).json({
+          success: false,
+          error: `You need ${chargeRes.need} credit to convert a design. You have ${chargeRes.left} left today.`
+        });
+      }
+      charged = true;
+    } catch (e) {
+      // Allow conversion in development if credit tables not initialized
+    }
+  }
+
+  try {
+    const result = await designConverter.convertToEditable(imageBuffer, match[1], {
+      callAI,
+      useAsImage,
+      designType
+    });
+
+    if (!result.success) {
+      if (charged) await credits.refund(req, "ai").catch(() => {});
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    return res.json(result);
+  } catch (err) {
+    if (charged) await credits.refund(req, "ai").catch(() => {});
+    console.error("[/api/designs/convert]", err.message);
+    return res.status(500).json({
+      success: false,
+      error: "We couldn't separate this design completely. Your original image is safe. Try again or continue using it as a flat image."
+    });
+  }
+});
+
+app.get("/api/designs/projects", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const out = await designs.listProjects(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/designs/projects/:id", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const out = await designs.getProject(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.put("/api/designs/projects/:id", rateLimit({ windowMs: 60_000, max: 120 }), express.json({ limit: "2mb" }), async (req, res) => {
+  const out = await designs.saveProject(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/designs/projects/:id", rateLimit({ windowMs: 60_000, max: 120 }), express.json({ limit: "2mb" }), async (req, res) => {
+  const out = await designs.saveProject(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.delete("/api/designs/projects/:id", async (req, res) => {
+  const out = await designs.removeProject(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/designs/templates", async (req, res) => {
+  const out = await designs.listTemplates(req.query.category);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/designs/templates/:id", async (req, res) => {
+  const out = await designs.getTemplate(req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/designs/templates/:id/clone", rateLimit({ windowMs: 60_000, max: 30 }), async (req, res) => {
+  const out = await designs.cloneTemplate(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/designs/publish", rateLimit({ windowMs: 60_000, max: 10 }), express.json({ limit: "2mb" }), async (req, res) => {
+  const out = await designs.publishTemplate(req.user, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
@@ -732,34 +855,6 @@ app.get("/api/template-metrics", async (req, res) => {
   }
 });
 
-/* The home page's figures. Test accounts (the .invalid and example.* addresses
-   the verification scripts create) are left out of both, so the numbers are
-   what real people did. Counted at most every ten minutes. */
-let siteStatsCache = null;
-app.get("/api/site-stats", async (req, res) => {
-  try {
-    if (!siteStatsCache || Date.now() - siteStatsCache.at > 10 * 60_000) {
-      const { rows } = await db.query(
-        `with real_users as (
-           select id from public.users
-            where email not ilike '%.invalid' and email not ilike '%@example.%'
-         )
-         select
-           (select count(*)::int from public.credit_transactions t
-             where t.kind = 'export'
-               and (t.user_id is null or t.user_id in (select id from real_users))) as exports,
-           (select count(*)::int from real_users) as community`
-      );
-      siteStatsCache = { at: Date.now(), exports: rows[0].exports, community: rows[0].community };
-    }
-    res.set("Cache-Control", "public, max-age=120");
-    return res.json({ success: true, exports: siteStatsCache.exports, community: siteStatsCache.community });
-  } catch (err) {
-    console.error("[/api/site-stats]", err.message);
-    return res.status(500).json({ success: false, error: "Could not load site figures." });
-  }
-});
-
 app.put("/api/templates/:id/reactions/:reaction", async (req, res) => {
   if (!(await community.isPublicTemplateKey(req.params.id))) {
     return res.status(404).json({ success: false, error: "Template not found." });
@@ -767,6 +862,44 @@ app.put("/api/templates/:id/reactions/:reaction", async (req, res) => {
   const out = await social.setReaction(req.params.id, req.user, req.params.reaction, req.body?.active !== false);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
+});
+
+/* Reports from anyone, signed in or not. The session hash is what lets the
+   database keep one open report per person per item. */
+app.post("/api/reports", rateLimit({ windowMs: 60 * 60_000, max: 12 }), async (req, res) => {
+  try {
+    const reporterHash = crypto.createHash("sha256")
+      .update(String(req.user?.id || req.credits?.token || req.ip || "anonymous"))
+      .digest("hex").slice(0, 32);
+    const out = await reports.create(req.user, reporterHash, req.body || {});
+    if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+    return res.json(out);
+  } catch (err) {
+    console.error("[POST /api/reports]", err.message);
+    return res.status(500).json({ success: false, error: "Could not send the report. Please try again." });
+  }
+});
+
+app.get("/api/admin/reports", async (req, res) => {
+  try {
+    const out = await reports.list(req.user, req.query.status);
+    if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+    return res.json({ success: true, ...out });
+  } catch (err) {
+    console.error("[GET /api/admin/reports]", err.message);
+    return res.status(500).json({ success: false, error: "Could not load reports." });
+  }
+});
+
+app.post("/api/admin/reports/:id", async (req, res) => {
+  try {
+    const out = await reports.resolve(req.user, req.params.id, req.body?.status, req.body?.resolution);
+    if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+    return res.json(out);
+  } catch (err) {
+    console.error("[POST /api/admin/reports]", err.message);
+    return res.status(500).json({ success: false, error: "Could not update the report." });
+  }
 });
 
 app.post("/api/template-events", rateLimit({ windowMs: 60_000, max: 80 }), async (req, res) => {
@@ -2369,6 +2502,9 @@ const PAGES = {
   "/editor": "editor.html",
   "/community": "community.html",
   "/pricing": "pricing.html",
+  "/animations": "animations.html",
+  "/designs": "designs.html",
+  "/help": "tutorials.html",
   "/about": "about.html",
   "/contact": "contact.html",
   "/privacy": "privacy.html",
@@ -2385,6 +2521,7 @@ const PAGES = {
   "/template": "template.html",
   "/creator": "creator.html",
   "/admin": "admin.html",
+  "/design-editor": "design-editor.html",
 };
 
 for (const [route, file] of Object.entries(PAGES)) {

@@ -268,10 +268,6 @@
     var root = $("#adminUserList"); root.innerHTML = "<p>Loading accounts…</p>";
     return api("/api/admin/users").then(function (j) {
       usersCache = j.users || [];
-      var fine = $("#adminUsersFine");
-      if (fine) fine.textContent = j.canManageStaff
-        ? "Accounts and plans. Choose Manage access to make someone an admin with limited permissions."
-        : "Accounts and plans. Email addresses are visible to the owner only.";
       var search = $("#adminUserSearch");
       renderUsers(search ? search.value : "");
     });
@@ -401,6 +397,62 @@
     });
   }
 
+  function loadReports() {
+    var root = $("#adminReportList");
+    if (!root) return Promise.resolve();
+    var status = ($("#adminReportStatus") || {}).value || "open";
+    return api("/api/admin/reports?status=" + encodeURIComponent(status)).then(function (j) {
+      root.innerHTML = "";
+      if (!j.reports.length) { root.appendChild(text("p", status === "open" ? "No open reports." : "Nothing here.")); return; }
+      j.reports.forEach(function (item) {
+        var row = document.createElement("article");
+        row.className = "admin-row";
+        var main = document.createElement("div");
+        var head = document.createElement("strong");
+        var link = document.createElement("a");
+        link.href = item.link; link.target = "_blank"; link.rel = "noopener";
+        link.textContent = item.title;
+        head.appendChild(document.createTextNode(item.targetType.charAt(0).toUpperCase() + item.targetType.slice(1) + ": "));
+        head.appendChild(link);
+        main.appendChild(head);
+        main.appendChild(text("p", item.reasonLabel + " · by " + item.reporter + " · " + new Date(item.createdAt).toLocaleString(), "pg-fine"));
+        if (item.details) main.appendChild(text("p", "“" + item.details + "”"));
+        if (item.resolution) main.appendChild(text("p", "Outcome: " + item.resolution, "pg-fine"));
+        var controls = document.createElement("div");
+        controls.className = "admin-row-controls";
+        var select = document.createElement("select");
+        select.setAttribute("aria-label", "Report status");
+        [["reviewing", "Reviewing"], ["actioned", "Actioned"], ["dismissed", "Dismissed"]].forEach(function (v) {
+          var o = document.createElement("option");
+          o.value = v[0]; o.textContent = v[1]; o.selected = item.status === v[0];
+          select.appendChild(o);
+        });
+        var input = document.createElement("input");
+        input.type = "text"; input.maxLength = 500;
+        input.placeholder = "What was done (for the record)";
+        input.value = item.resolution || "";
+        var save = text("button", "Save", "pg-bo"); save.type = "button";
+        save.addEventListener("click", function () {
+          save.disabled = true;
+          api("/api/admin/reports/" + encodeURIComponent(item.id), {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: select.value, resolution: input.value })
+          }).then(function () { note("Report updated."); return Promise.all([loadReports(), refreshOverview()]); })
+            .catch(function (err) { note(err.message, true); })
+            .finally(function () { save.disabled = false; });
+        });
+        controls.appendChild(select); controls.appendChild(input); controls.appendChild(save);
+        row.appendChild(main); row.appendChild(controls); root.appendChild(row);
+      });
+    });
+  }
+  var reportStatus = $("#adminReportStatus");
+  if (reportStatus) {
+    reportStatus.addEventListener("change", function () {
+      loadReports().catch(function (err) { note(err.message, true); });
+    });
+  }
+
   var skillStatus = $("#adminSkillStatus");
   if (skillStatus) {
     skillStatus.addEventListener("change", function () {
@@ -410,7 +462,7 @@
   var userSearch = $("#adminUserSearch");
   if (userSearch) userSearch.addEventListener("input", function () { renderUsers(userSearch.value); });
 
-  var loaders = { overview: loadOverview, content: loadTemplates, skills: loadSkills, support: loadSupport, users: loadUsers, team: loadTeam, features: loadFlags };
+  var loaders = { overview: loadOverview, content: loadTemplates, skills: loadSkills, support: loadSupport, reports: loadReports, users: loadUsers, team: loadTeam, features: loadFlags };
   var loaded = {};
 
   function selectTab(key) {

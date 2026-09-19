@@ -146,6 +146,9 @@ const routes = ['/', '/pricing', '/community', '/drafts', '/uploads', '/settings
     await page.evaluate(() => { localStorage.setItem('sc_theme', 'dark'); });
     await page.reload({waitUntil:'networkidle0'});
     await page.screenshot({path:path.join(out,'after-home-dark-390.png')});
+    // Category chips select in the library; on the home page they are links into it.
+    await page.goto(base + '/animations', {waitUntil:'networkidle0'});
+    await page.screenshot({path:path.join(out,'after-animations-dark-390.png')});
     assert(await page.$eval('.sh-chip[aria-pressed=true]', el => getComputedStyle(el).color !== getComputedStyle(el).backgroundColor), 'Selected category has distinct foreground/background in dark theme');
     await page.goto(base + '/editor?tpl=original-chat-story', {waitUntil:'networkidle0'});
     await page.click('#edMobileEdit');

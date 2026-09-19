@@ -1,0 +1,151 @@
+{
+  "id": "RevenueSpikeCard3D",
+  "name": "Revenue Spike Card 3D",
+  "subtitle": "Stripe & Shopify 3D Floating Revenue Surge",
+  "category": "Finance & Economy",
+  "category_id": "money",
+  "tier": "Tier 1: Flagship 3D & Physical Motion Graphics",
+  "description": "Hyper-realistic 3D floating revenue card inspired by Stripe and Shopify dashboard surges. Features an authentic SVG deckle torn-paper edge displacement, dynamic 3D perspective camera lift (36° to 13.5°), organic polyline drawing with glowing drop shadow, animated counter, pulsing +350.08% badge, and soft cinematic macro bokeh blurs.",
+  "version": "1.0.0",
+  "aspectRatio": "9:16",
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "durationInFrames": 150,
+  "durationInSeconds": 5.0,
+  "previewVideo": "preview.mp4",
+  "thumbnail": "thumbnail.png",
+  "keyframeThumbnails": {
+    "entryAngle": "thumbnail_f18.png",
+    "chartRising": "thumbnail_f55.png",
+    "peakSurge": "thumbnail_f115.png"
+  },
+  "tags": [
+    "finance",
+    "stripe",
+    "shopify",
+    "revenue",
+    "growth",
+    "3d",
+    "deckle-paper",
+    "motion-graphics",
+    "reels",
+    "shorts",
+    "tiktok"
+  ],
+  "defaultProps": {
+    "metricLabel": "Gross Volume",
+    "startValue": 1046058,
+    "endValue": 1046658,
+    "currencyPrefix": "$",
+    "startPercentage": 306.57,
+    "endPercentage": 350.08,
+    "startDate": "Jan 25",
+    "endDate": "Jan 26",
+    "cardTheme": "lightPaper",
+    "accentColor": "#E11D48",
+    "badgeBorderColor": "#FB7185",
+    "badgeBgColor": "#FFE4E6",
+    "bgDarkRed": "#120104",
+    "fontFamily": "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+  },
+  "fields": [
+    {
+      "name": "metricLabel",
+      "label": "Metric Label",
+      "type": "text",
+      "default": "Gross Volume",
+      "placeholder": "Gross Volume, Total Sales, ARR, etc.",
+      "group": "Content"
+    },
+    {
+      "name": "currencyPrefix",
+      "label": "Currency Prefix",
+      "type": "text",
+      "default": "$",
+      "placeholder": "$, €, ₹, £",
+      "group": "Content"
+    },
+    {
+      "name": "startValue",
+      "label": "Starting Revenue Value",
+      "type": "number",
+      "default": 1046058,
+      "group": "Revenue Counter"
+    },
+    {
+      "name": "endValue",
+      "label": "Ending Revenue Value",
+      "type": "number",
+      "default": 1046658,
+      "group": "Revenue Counter"
+    },
+    {
+      "name": "startPercentage",
+      "label": "Start Percentage (%)",
+      "type": "number",
+      "step": 0.01,
+      "default": 306.57,
+      "group": "Growth Badge"
+    },
+    {
+      "name": "endPercentage",
+      "label": "End Percentage (%)",
+      "type": "number",
+      "step": 0.01,
+      "default": 350.08,
+      "group": "Growth Badge"
+    },
+    {
+      "name": "startDate",
+      "label": "Start Date",
+      "type": "text",
+      "default": "Jan 25",
+      "group": "Timeline"
+    },
+    {
+      "name": "endDate",
+      "label": "End Date",
+      "type": "text",
+      "default": "Jan 26",
+      "group": "Timeline"
+    },
+    {
+      "name": "accentColor",
+      "label": "Chart Line & Accent Color",
+      "type": "color",
+      "default": "#E11D48",
+      "group": "Styling"
+    },
+    {
+      "name": "badgeBorderColor",
+      "label": "Badge Border Color",
+      "type": "color",
+      "default": "#FB7185",
+      "group": "Styling"
+    },
+    {
+      "name": "badgeBgColor",
+      "label": "Badge Background Color",
+      "type": "color",
+      "default": "#FFE4E6",
+      "group": "Styling"
+    },
+    {
+      "name": "bgDarkRed",
+      "label": "Background Dark Vignette Color",
+      "type": "color",
+      "default": "#120104",
+      "group": "Styling"
+    }
+  ],
+  "entryFiles": {
+    "remotionComponent": "RevenueSpikeCard3D.tsx",
+    "iframeScene": "SceneIFrame.tsx",
+    "typeDefinitions": "types.ts",
+    "metadata": "template.json",
+    "previewVideo": "preview.mp4"
+  }
+}

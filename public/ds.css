@@ -1,0 +1,317 @@
+/* ============================================================
+   ds.css — ShortsCraft design system (18 Sep 2026)
+
+   One look for the whole product, on a computer and on a phone: white
+   surfaces, one blue for every primary action, one set of radii, shadows,
+   buttons, cards and type. The owner chose white + blue (his phone mockup)
+   after the phone and computer layouts had drifted into two products.
+
+   This file loads last on every page. Colours come only from the tokens
+   below; everything else in the older stylesheets already reads them, so
+   changing a token here changes the whole site. Page rules below are the
+   agreed designs for the pages that have been redone so far (chrome, home,
+   pricing); the rest of each older stylesheet is removed page by page as
+   each page is redone and approved.
+   ============================================================ */
+
+/* ── Tokens ──────────────────────────────────────────────── */
+:root,
+:root[data-theme="light"],
+:root:not([data-theme="dark"]) body.sh-body {
+  color-scheme: light;
+  --sc-canvas: #f6f8fc;
+  --sc-surface: #ffffff;
+  --sc-surface-2: #f1f4f9;
+  --sc-surface-3: #e7ecf4;
+  --sc-text: #0e1525;
+  --sc-muted: #566074;
+  --sc-subtle: #8791a4;
+  --sc-border: #e3e8f0;
+  --sc-border-strong: #cdd5e2;
+  --sc-brand: #1f6bf0;
+  --sc-brand-hover: #1759cf;
+  --sc-brand-soft: #eaf1ff;
+  --sc-danger: #d92d20;
+  --sc-success: #16a34a;
+  --sc-shadow-sm: 0 1px 2px rgba(15, 23, 42, .05), 0 1px 3px rgba(15, 23, 42, .04);
+  --sc-shadow-md: 0 10px 28px rgba(15, 23, 42, .08);
+  --sc-radius-sm: 10px;
+  --sc-radius: 14px;
+  --sc-radius-lg: 20px;
+  --sc-rail: #ffffff;
+  --sh-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ds-page: 1120px;
+  --ds-gap: 24px;
+}
+:root[data-theme="dark"],
+:root[data-theme="dark"] body.sh-body {
+  color-scheme: dark;
+  --sc-canvas: #0b1020;
+  --sc-surface: #121a2b;
+  --sc-surface-2: #182236;
+  --sc-surface-3: #1f2b42;
+  --sc-text: #e9eef7;
+  --sc-muted: #a3aec2;
+  --sc-subtle: #7d889d;
+  --sc-border: #243049;
+  --sc-border-strong: #33415f;
+  --sc-brand: #4c8dff;
+  --sc-brand-hover: #6aa1ff;
+  --sc-brand-soft: #172746;
+  --sc-danger: #ff7a70;
+  --sc-success: #4ade80;
+  --sc-shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+  --sc-shadow-md: 0 14px 34px rgba(0, 0, 0, .4);
+  --sc-rail: #0f1627;
+  --sh-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html body.sh-body,
+html body.pg-body { background: var(--sc-canvas) !important; color: var(--sc-text) !important; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+
+/* ── Buttons: one primary, one secondary ─────────────────── */
+body.sh-body :is(.pg-bw, .sh-bw, .sh-cta, .sh-ge-btn.sh-ge-primary, .ig-btn-primary, .sh-hcta-primary, .sh-mfill, .pg-calc-cta, .sk-share-btn, .st-btn-primary) {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  background: var(--sc-brand) !important;
+  color: #fff !important;
+  font-weight: 650;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--sc-brand) 24%, transparent) !important;
+  text-decoration: none;
+}
+body.sh-body :is(.pg-bw, .sh-bw, .sh-cta, .sh-ge-btn.sh-ge-primary, .ig-btn-primary, .sh-hcta-primary, .sh-mfill, .pg-calc-cta, .sk-share-btn, .st-btn-primary):hover {
+  background: var(--sc-brand-hover) !important; opacity: 1; transform: none;
+}
+body.sh-body :is(.pg-bo, .sh-bo, .sh-ge-btn:not(.sh-ge-primary), .ig-btn-secondary, .sh-hcta:not(.sh-hcta-primary)) {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--sc-border-strong) !important;
+  border-radius: 12px !important;
+  background: var(--sc-surface) !important;
+  color: var(--sc-text) !important;
+  font-weight: 650;
+  box-shadow: none !important;
+  text-decoration: none;
+}
+body.sh-body :is(.pg-bo, .sh-bo, .sh-ge-btn:not(.sh-ge-primary), .ig-btn-secondary, .sh-hcta:not(.sh-hcta-primary)):hover {
+  border-color: var(--sc-brand) !important; color: var(--sc-brand) !important; transform: none;
+}
+body.sh-body .sh-cgo { border-radius: 12px !important; background: var(--sc-brand) !important; color: #fff !important; }
+body.sh-body .sh-cgo:disabled { opacity: 1; }
+
+/* ── Cards ───────────────────────────────────────────────── */
+body.sh-body :is(.pg-card, .pg-plan, .sh-pp-card, .sh-ben, .sh-tut-card, .pg-calc, .pg-soon-card, .pg-form, .sh-workflow-card, .sh-composer) {
+  border: 1px solid var(--sc-border) !important;
+  border-radius: 18px !important;
+  background: var(--sc-surface) !important;
+  box-shadow: var(--sc-shadow-sm) !important;
+}
+body.sh-body :is(.pg-plan.pg-hot, .sh-pp-hi) {
+  border-color: var(--sc-brand) !important;
+  box-shadow: 0 0 0 1px var(--sc-brand), var(--sc-shadow-md) !important;
+}
+body.sh-body .pg-plan li::before {
+  border-left-color: var(--sc-success) !important;
+  border-bottom-color: var(--sc-success) !important;
+}
+
+/* ── Page titles ─────────────────────────────────────────── */
+body.sh-body .pg-head { border-bottom: 0 !important; }
+body.sh-body .pg-head h1 { font-weight: 800; letter-spacing: -.03em; }
+
+/* ── Desktop chrome: rail and top bar ────────────────────── */
+body.sh-body .sh-rail { background: var(--sc-rail) !important; border-right: 1px solid var(--sc-border) !important; }
+body.sh-body .sh-rail .sh-nav a { border-radius: 10px; color: var(--sc-muted); font-weight: 550; }
+body.sh-body .sh-rail .sh-nav a svg { color: var(--sc-subtle); }
+body.sh-body .sh-rail .sh-nav a:hover { background: var(--sc-surface-2); color: var(--sc-text); }
+body.sh-body .sh-rail .sh-nav a[aria-current="page"] { background: var(--sc-brand-soft) !important; color: var(--sc-brand) !important; font-weight: 700; }
+body.sh-body .sh-rail .sh-nav a[aria-current="page"] svg { color: var(--sc-brand) !important; }
+body.sh-body .sh-navgroup-title { color: var(--sc-subtle) !important; font-weight: 700; letter-spacing: .08em; }
+body.sh-body .sh-rail .sh-plan-badge {
+  border: 1px solid var(--sc-border) !important; border-radius: 16px !important;
+  background: var(--sc-surface) !important;
+}
+body.sh-body .sh-brand-name i { color: var(--sc-brand) !important; font-style: normal; }
+body.sh-body .sh-topbar { background: var(--sc-surface) !important; border-bottom: 1px solid var(--sc-border) !important; }
+body.sh-body .sh-credit-chip {
+  border: 1px solid color-mix(in srgb, var(--sc-brand) 20%, transparent) !important;
+  border-radius: 10px !important;
+  background: var(--sc-brand-soft) !important;
+  color: var(--sc-brand) !important;
+  box-shadow: none !important;
+}
+body.sh-body .sh-credit-chip .sh-credit-plan { color: var(--sc-muted) !important; }
+body.sh-body .sh-credit-chip .sh-credit-balance { color: var(--sc-brand) !important; }
+body.sh-body .sh-top-actions .sh-tline { border-radius: 10px; }
+body.sh-body .sh-tupload-btn { border-radius: 10px !important; background: var(--sc-brand) !important; color: #fff !important; border: 0 !important; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+body.sh-body .sh-footer { background: var(--sc-surface) !important; border-top: 1px solid var(--sc-border) !important; }
+
+/* ── Home: one width for every block ─────────────────────── */
+body.page-home .sh-home { padding: 24px 32px 56px !important; }
+body.page-home .sh-home > .sh-hero-v2 { margin-top: 0 !important; }
+body.page-home .sh-home > section,
+body.page-home .sh-home > form {
+  width: min(var(--ds-page), 100%) !important;
+  max-width: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+body.page-home .sh-home > * + * { margin-top: 20px !important; }
+body.page-home .sh-home > .sh-gallery-sec,
+body.page-home .sh-home > .sh-home-sec,
+body.page-home .sh-home > .sh-workflow-sec,
+body.page-home .sh-home > .sh-finale { margin-top: 56px !important; padding: 0 !important; }
+
+/* Hero: the promise on the left, the drawing on the right, straight on the
+   page. The owner asked for no card around it (19 Sep). */
+body.page-home .sh-hero-v2 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: center; gap: 24px;
+  padding: 12px 8px 4px !important;
+  border: 0 !important; border-radius: 0 !important;
+  background: none !important; box-shadow: none !important;
+  text-align: left !important;
+  overflow: visible !important;
+}
+body.page-home .sh-hero-v2 .sh-hero-kicker { margin: 0 0 14px !important; color: var(--sc-muted) !important; font-size: 12px !important; font-weight: 700; letter-spacing: .22em; }
+body.page-home .sh-hero-v2 h1 {
+  margin: 0 0 14px !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-size: clamp(36px, 3.7vw, 54px) !important; font-weight: 800 !important;
+  line-height: 1.05 !important; letter-spacing: -.04em !important;
+  color: var(--sc-text) !important; text-align: left !important;
+}
+body.page-home .sh-hero-v2 h1 em { display: block; color: var(--sc-brand) !important; font-style: normal; }
+body.page-home .sh-hero-v2 .sh-hero-sub { max-width: 560px !important; margin: 0 !important; color: var(--sc-muted) !important; font-size: 17px !important; line-height: 1.55 !important; }
+body.page-home .sh-hero-art {
+  display: block !important; position: relative !important;
+  width: 210px !important; height: 180px !important;
+  margin: 0 auto !important; transform: scale(1.25) !important; transform-origin: center !important;
+}
+body.page-home .sh-home > form.sh-composer { margin-top: 28px !important; }
+
+/* Composer: the same width as everything else. */
+body.page-home .sh-composer { padding: 16px !important; }
+body.page-home .sh-composer .sh-ctop { border-radius: 12px; }
+
+/* Section headings: one style. */
+body.page-home .sh-gallery-title {
+  display: flex !important; flex-direction: row !important; align-items: flex-end !important; justify-content: space-between !important;
+  gap: 16px; margin: 0 0 18px !important; padding: 0 !important; border: 0 !important;
+}
+body.page-home .sh-gallery-title > div { padding: 0 !important; }
+body.page-home .sh-gallery-title h2,
+body.page-home .sh-section-head h2,
+body.page-home .sh-finale h2 {
+  margin: 0 !important;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-size: clamp(24px, 2.2vw, 30px) !important; font-weight: 800 !important; letter-spacing: -.03em !important;
+  color: var(--sc-text) !important;
+}
+body.page-home .sh-gallery-sub,
+body.page-home .sh-section-head p { margin: 6px 0 0 !important; color: var(--sc-muted) !important; font-size: 15px !important; }
+body.page-home .sh-seeall { color: var(--sc-brand) !important; font-size: 14.5px !important; font-weight: 650; white-space: nowrap; }
+body.page-home .sh-section-head { text-align: left !important; margin: 0 0 18px !important; max-width: none !important; }
+body.page-home .sh-section-head .sh-eyebrow { display: none !important; }
+body.page-home .sh-workflow-grid { gap: 16px !important; }
+body.page-home .sh-finale {
+  padding: 40px !important; border: 1px solid var(--sc-border) !important; border-radius: 24px !important;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--sc-brand) 8%, var(--sc-surface)), var(--sc-surface)) !important;
+  text-align: center;
+}
+body.page-home .sh-finale .sh-eyebrow { display: none !important; }
+body.page-home .sh-finale p { margin: 10px auto 0 !important; max-width: 560px; color: var(--sc-muted) !important; }
+body.page-home .sh-frow { justify-content: center; margin-top: 22px !important; gap: 12px !important; }
+
+/* ── Phone ───────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  body.page-home .sh-home { padding: 10px 12px 28px !important; }
+  body.page-home .sh-home > * + * { margin-top: 12px !important; }
+  body.page-home .sh-home > .sh-gallery-sec,
+  body.page-home .sh-home > .sh-home-sec,
+  body.page-home .sh-home > .sh-workflow-sec,
+  body.page-home .sh-home > .sh-finale { margin-top: 32px !important; }
+
+  body.page-home .sh-hero-v2 {
+    grid-template-columns: minmax(0, 1fr) 110px; gap: 6px;
+    padding: 8px 2px 0 4px !important;
+  }
+  body.page-home .sh-hero-v2 .sh-hero-kicker { display: block !important; margin-bottom: 10px !important; font-size: 8.5px !important; letter-spacing: .14em; white-space: nowrap; }
+  body.page-home .sh-hero-v2 h1 { margin-bottom: 10px !important; font-size: clamp(23px, 6.2vw, 28px) !important; line-height: 1.08 !important; }
+  body.page-home .sh-hero-v2 .sh-hero-sub { font-size: 13.5px !important; line-height: 1.45 !important; }
+  body.page-home .sh-hero-copy { display: contents; }
+  body.page-home .sh-hero-copy > * { grid-column: 1; }
+  body.page-home .sh-hero-art { grid-column: 2; grid-row: 1 / span 3; align-self: center; width: 210px !important; height: 180px !important; margin: 0 0 -80px 0 !important; transform: scale(.52) !important; transform-origin: top left !important; }
+  body.page-home .sh-home > form.sh-composer { margin-top: 18px !important; }
+
+  body.page-home .sh-composer { padding: 10px !important; border-radius: 18px !important; }
+
+
+  body.page-home .sh-gallery-title { margin-bottom: 12px !important; }
+  body.page-home .sh-gallery-title h2,
+  body.page-home .sh-section-head h2,
+  body.page-home .sh-finale h2 { font-size: 21px !important; }
+  body.page-home .sh-gallery-sub,
+  body.page-home .sh-section-head p { font-size: 13px !important; }
+  body.page-home .sh-seeall { font-size: 13px !important; }
+  body.page-home .sh-finale { padding: 26px 18px !important; border-radius: 20px !important; }
+  body.page-home .sh-frow { flex-direction: column; }
+  body.page-home .sh-frow a { width: 100%; }
+
+  /* Pricing lists keep their ticks on a phone too. */
+  body.sh-body .pg-plan li { padding-left: 24px !important; }
+
+  /* Template cards: the name sits right above the creator. */
+  body.sh-body .sh-tile .sh-tmeta { padding-top: 8px !important; }
+  body.sh-body .sh-tile .sh-ttitle-row { min-height: 0 !important; height: auto !important; margin: 0 0 4px !important; }
+  body.sh-body .sh-tile .sh-ttitle { font-size: 13.5px !important; font-weight: 700 !important; line-height: 1.3 !important; }
+  body.sh-body .sh-tile .sh-tcreator-row { min-height: 28px !important; margin: 0 !important; }
+}
+
+/* ── Home, 19 Sep (owner): headline only, a smaller chatbox, less space ── */
+body.page-home .sh-home { padding-top: 16px !important; }
+body.page-home .sh-hero-v2 { padding: 0 8px !important; grid-template-columns: minmax(0, 1fr) 240px !important; }
+body.page-home .sh-hero-v2 h1 { margin: 0 !important; }
+body.page-home .sh-hero-art { transform: scale(1) !important; }
+body.page-home .sh-home > form.sh-composer { margin-top: 12px !important; padding: 12px 14px !important; }
+body.page-home .sh-composer .sh-ctop { padding: 0 !important; }
+body.page-home .sh-composer #composerPrompt { min-height: 50px !important; height: 50px; padding: 2px 0 0 !important; }
+body.page-home .sh-composer .sh-cph { top: 2px !important; }
+body.page-home .sh-composer .sh-ccount { bottom: 0 !important; }
+body.page-home .sh-composer .sh-cbar { margin-top: 8px !important; padding-top: 10px !important; }
+body.page-home .sh-home > .sh-gallery-sec { margin-top: 28px !important; }
+@media (max-width: 640px) {
+  body.page-home .sh-home { padding-top: 8px !important; }
+  body.page-home .sh-hero-v2 { grid-template-columns: minmax(0, 1fr) 104px !important; padding: 4px 2px 0 4px !important; align-items: center !important; }
+  body.page-home .sh-hero-art { grid-row: 1 !important; align-self: center !important; margin: 0 0 -86px 0 !important; transform: scale(.5) !important; }
+  body.page-home .sh-home > form.sh-composer { margin-top: 12px !important; padding: 10px !important; }
+  body.page-home .sh-composer #composerPrompt { min-height: 56px !important; height: 56px; }
+  body.page-home .sh-home > .sh-gallery-sec { margin-top: 22px !important; }
+}
+
+/* ── Template cards on a phone: the same card as on a computer (owner, 19 Sep) ── */
+@media (max-width: 640px) {
+  body.sh-body .sh-gallery { gap: 12px 10px !important; }
+  body.sh-body .sh-tile {
+    padding: 6px !important;
+    border: 1px solid var(--sc-border) !important;
+    border-radius: 18px !important;
+    background: var(--sc-surface) !important;
+    box-shadow: none !important;
+  }
+  body.sh-body .sh-tile .sh-stage { border-radius: 13px !important; }
+  body.sh-body .sh-tile .sh-tmeta { display: block !important; padding: 9px 3px 3px !important; }
+  body.sh-body .sh-tile .sh-ttitle { font-size: 13px !important; font-weight: 620 !important; }
+  body.sh-body .sh-tile .sh-tcreator-row { display: flex !important; align-items: center; gap: 6px; min-height: 0 !important; margin-top: 4px !important; }
+  body.sh-body .sh-tile .sh-tcreator-info { display: flex !important; flex-direction: column; min-width: 0; line-height: 1.2; }
+  body.sh-body .sh-tile .sh-tcreator-name { font-size: 12px !important; }
+  body.sh-body .sh-tile .sh-tcreator-handle { display: block !important; font-size: 11px !important; color: var(--sc-subtle) !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.sh-body .sh-tile .sh-tover { display: none !important; }
+  body.sh-body .sh-tile .sh-ttitle { min-height: 0 !important; height: auto !important; }
+  body.sh-body .sh-tile .sh-ttitle-row { margin-bottom: 2px !important; }
+  body.sh-body .sh-stage .sh-theart { width: 30px !important; height: 30px !important; min-height: 0 !important; top: 8px !important; right: 8px !important; }
+  body.sh-body .sh-stage .sh-theart svg { width: 15px !important; height: 15px !important; }
+}

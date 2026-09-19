@@ -130,7 +130,7 @@ const SHELL_ROUTES = [
       label: document.querySelector("#navBurger").getAttribute("aria-label")
     };
   });
-  ok(drawer.visible.includes("My Projects") && drawer.visible.includes("Tutorials & Help"),
+  ok(drawer.visible.includes("My Projects") && drawer.visible.includes("Help"),
     "drawer keeps desktop workspace destinations");
   ok(drawer.allHrefs.includes("/uploads") && drawer.allHrefs.includes("/settings"),
     "signed-in mobile destinations exist in the drawer",

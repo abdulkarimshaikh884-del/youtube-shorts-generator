@@ -774,3 +774,33 @@
   .ed-top { height: 44px; min-height: 44px; }
   .ed-mobile-nav:not([hidden]) { min-height: 44px; padding-top: 2px; padding-bottom: calc(2px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ── Phone: home sections (launch checklist, P0-2) ──────── */
+@media (max-width: 640px) {
+  body.sh-body .sh-hero-ctas { gap: 8px; margin-top: 12px; }
+  body.sh-body .sh-hcta { height: 36px; padding: 0 13px; border-radius: 10px; font-size: 12.5px; }
+  body.sh-body .sh-library .pg-head { padding: 16px 10px 4px; margin-bottom: 8px; border: 0; }
+  body.sh-body .sh-popular #filters { margin-bottom: 10px; }
+  body.sh-body .sh-sec-more { margin-top: 14px; }
+  body.sh-body .sh-home-sec { padding: 4px 2px 24px; }
+  body.sh-body .sh-tut-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  body.sh-body .sh-tut-card { padding: 8px; gap: 5px; border-radius: 12px; }
+  body.sh-body .sh-tut-title { font-size: 13px; }
+  body.sh-body .sh-tut-author { font-size: 11.5px; }
+  body.sh-body .sh-tut-watch { font-size: 11.5px; }
+  body.sh-body .sh-pp-grid { grid-template-columns: 1fr; gap: 10px; }
+  body.sh-body .sh-pp-card { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; row-gap: 2px; padding: 14px 16px; }
+  body.sh-body .sh-pp-name { grid-column: 1; }
+  body.sh-body .sh-pp-price { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 24px; }
+  body.sh-body .sh-pp-note { grid-column: 1; font-size: 12.5px; }
+  body.sh-body .sh-pp-card ul { grid-column: 1 / -1; margin-top: 8px; grid-template-columns: repeat(3, auto); justify-content: start; gap: 4px 12px; }
+  body.sh-body .sh-pp-card li { font-size: 12px; padding-left: 16px; }
+  body.sh-body .sh-ben-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  body.sh-body .sh-ben { padding: 13px; border-radius: 14px; }
+  body.sh-body .sh-ben-ico { width: 32px; height: 32px; margin-bottom: 8px; }
+  body.sh-body .sh-ben b { font-size: 13.5px; }
+  body.sh-body .sh-ben p { font-size: 12px; }
+}
+@media (max-width: 400px) {
+  body.sh-body .sh-pp-card ul { grid-template-columns: 1fr; }
+}

@@ -17,6 +17,7 @@
   var tileAspect = currentAspect;
   var currentCategory = "all";
   var searchQuery = "";
+  var currentSource = "all";
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function engine() { return window.SC_TPL2; }
@@ -46,6 +47,26 @@
   function signedIn() {
     var el = document.querySelector('.sh-top-actions [data-auth="in"]');
     return !!el && !el.hidden;
+  }
+
+  /* What an export costs, from /api/credits once it answers (wireChrome). */
+  var EXPORT_COST = 1;
+
+  /* A community row published by the official account is an official
+     template; everything else a member published is community. */
+  function sourceOf(t) {
+    if (!t.isCommunity) return "official";
+    return String(t.authorHandle || "").replace(/^@/, "").toLowerCase() === "shortscraft" ? "official" : "community";
+  }
+
+  /* Built-in templates render in every supported ratio; an upload in the one
+     it was made for. */
+  function aspectsOf(t) {
+    if (t.isCommunity) return t.aspect || "9:16";
+    var e = engine();
+    var def = e && e.list(true).filter(function (x) { return x.id === t.tpl; })[0];
+    var list = (def && def.supportedRatios) || ["9:16", "16:9", "1:1"];
+    return list.length > 3 ? list.slice(0, 3).join(" · ") + " +" + (list.length - 3) : list.join(" · ");
   }
 
   function templateKey(t) { return String((t && (t.commId || t.tpl)) || ""); }
@@ -102,7 +123,7 @@
         '  <button type="button" class="sh-modal-close" id="modalClose" aria-label="Close modal">×</button>',
         '  <div class="sh-modal-left">',
         '    <div class="sh-modal-stage" id="modalStage"></div>',
-        '    <a href="/editor" class="sh-modal-cta" id="modalStudioBtn">✦ Customize in Studio →</a>',
+        '    <a href="/editor" class="sh-modal-cta" id="modalStudioBtn">✦ Use Template →</a>',
         '    <div class="sh-modal-ctrls">',
         '      <button type="button" class="sh-modal-act-btn" id="modalReplayBtn">',
         '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 9 9 9"/></svg>',
@@ -116,6 +137,7 @@
         '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>',
         '        <span>Share</span>',
         '      </button>',
+        '      <button type="button" class="sh-modal-act-btn" id="modalReportBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span>Report</span></button>',
         '    </div>',
         '  </div>',
         '  <div class="sh-modal-right">',
@@ -125,8 +147,10 @@
         '      <p class="sh-m-desc" id="modalDesc">Description</p>',
         '      <div class="sh-m-specs">',
         '        <span class="sh-m-spec">Duration: <b id="modalDur">4.6s</b></span>',
-        '        <span class="sh-m-spec">Framerate: <b>60 FPS</b></span>',
-        '        <span class="sh-m-spec">Format: <b id="modalAspect">9:16</b></span>',
+        '        <span class="sh-m-spec">Aspect: <b id="modalAspect">9:16</b></span>',
+        '        <span class="sh-m-spec">Frame rate: <b>24–60 fps</b></span>',
+        '        <span class="sh-m-spec">Export: <b id="modalCost">1 credit</b></span>',
+        '        <span class="sh-m-spec">Source: <b id="modalSource">Official</b></span>',
         '      </div>',
         '    </div>',
         '    <a href="/creator" class="sh-m-creator" id="modalCreatorLink">',
@@ -169,7 +193,12 @@
     $("#modalTitle").textContent = t.name;
     $("#modalCat").textContent = "✦ " + (t.cat ? t.cat.toUpperCase() : "MOTION");
     $("#modalDesc").textContent = t.desc;
-    $("#modalDur").textContent = ((t.dur || 4600) / 1000).toFixed(1) + "s";
+    $("#modalDur").textContent = ((t.dur || t.defaultDuration || 4600) / 1000).toFixed(1) + "s";
+    $("#modalCost").textContent = EXPORT_COST + (EXPORT_COST === 1 ? " credit" : " credits");
+    $("#modalSource").textContent = sourceOf(t) === "official" ? "Official" : "Community";
+    $("#modalReportBtn").onclick = function () {
+      if (window.SC_REPORT) SC_REPORT.open({ type: "template", id: templateKey(t), name: t.name });
+    };
 
     var editUrl = "/editor?tpl=" + encodeURIComponent(t.tpl);
     if (t.isCommunity) {
@@ -208,7 +237,7 @@
     var mStage = $("#modalStage");
     mStage.innerHTML = "";
     var previewAspect = t.isCommunity ? (t.aspect || "9:16") : currentAspect;
-    $("#modalAspect").textContent = previewAspect;
+    $("#modalAspect").textContent = aspectsOf(t);
     var e = engine();
     if (e) {
       var html = t.isCommunity
@@ -611,7 +640,8 @@
       var collection = tile.dataset.collection || "";
       var tpl = (tile.dataset.tpl || "").toLowerCase();
 
-      var matchCat = (cat === "all" || tCat === cat);
+      var matchCat = (cat === "all" || tCat === cat) &&
+        (currentSource === "all" || tile.dataset.source === currentSource);
       var matchSearch = !q || name.indexOf(q) !== -1 || desc.indexOf(q) !== -1 || tpl.indexOf(q) !== -1;
 
       var show = matchCat && matchSearch;
@@ -713,6 +743,7 @@
           lines: ct.lines || [],
           props: ct.props || {},
           aspect: ct.aspect || "9:16",
+          createdAt: ct.createdAt || null,
           isCommunity: true,
           likes: likes,
           downloads: downloads,
@@ -744,6 +775,9 @@
       allItems.sort(function (a, b) {
         return b.score - a.score;
       });
+      // The home page shows only the most-used few; /animations shows all.
+      var limit = Number(grid.getAttribute("data-limit")) || 0;
+      if (limit > 0) allItems = allItems.slice(0, limit);
 
       var frag = document.createDocumentFragment();
 
@@ -758,6 +792,10 @@
         tile.dataset.cat = t.cat;
         tile.dataset.collection = t.collection || (t.isCommunity ? "community" : "classic");
         tile.dataset.reactionId = templateKey(t);
+        tile.dataset.source = sourceOf(t);
+        tile.dataset.trend = String(t.score || 0);
+        tile.dataset.popular = String((Number(t.likes) || 0) * 3 + (Number(t.downloads) || 0));
+        tile.dataset.created = String(t.createdAt ? new Date(t.createdAt).getTime() || 0 : 0);
 
         if (t.isCommunity) {
           tile.dataset.comm = "1";
@@ -929,6 +967,8 @@
 
       grid.innerHTML = "";
       grid.appendChild(frag);
+      // Opened on a category (/animations?cat=...): show only that one.
+      if (currentCategory !== "all" || searchQuery) filterTiles();
 
       var reactionIds = allItems.map(templateKey).filter(Boolean);
       if (reactionIds.length) {
@@ -1001,10 +1041,30 @@
     }));
 
     bar.innerHTML = "";
+
+    // On the home page the chips are shortcuts into the full library.
+    if (bar.hasAttribute("data-links")) {
+      cats.forEach(function (c) {
+        var a = document.createElement("a");
+        a.className = "sh-chip";
+        a.href = c.id === "all" ? "/animations" : "/animations?cat=" + encodeURIComponent(c.id);
+        if (CHIP_ICONS[c.id]) {
+          a.innerHTML = '<svg class="sh-chip-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + CHIP_ICONS[c.id] + "</svg>";
+        }
+        a.appendChild(document.createTextNode(c.label));
+        bar.appendChild(a);
+      });
+      return;
+    }
+
+    // /animations?cat=paper opens on that category.
+    var wanted = new URLSearchParams(location.search).get("cat");
+    if (wanted && cats.some(function (c) { return c.id === wanted; })) currentCategory = wanted;
+
     cats.forEach(function (c, i) {
       var b = document.createElement("button");
       b.type = "button";
-      b.className = "sh-chip" + (i === 0 ? " active" : "");
+      b.className = "sh-chip" + (c.id === currentCategory ? " active" : "");
       b.dataset.cat = c.id;
       if (CHIP_ICONS[c.id]) {
         b.innerHTML = '<svg class="sh-chip-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + CHIP_ICONS[c.id] + "</svg>";
@@ -1012,7 +1072,7 @@
       } else {
         b.textContent = c.label;
       }
-      b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+      b.setAttribute("aria-pressed", c.id === currentCategory ? "true" : "false");
       bar.appendChild(b);
     });
 
@@ -1200,43 +1260,88 @@
     });
   }
 
-  /* ── Home figures, "See all" and the thumbnail card ───── */
-  function compactNumber(n) {
-    n = Number(n) || 0;
-    if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(/\.0$/, "") + "M";
-    if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K";
-    return String(n);
+  /* ── Library sort and source (/animations) ─────────────── */
+  function sortTiles(mode) {
+    var grid = $("#gallery");
+    if (!grid) return;
+    var tiles = Array.prototype.filter.call(grid.children, function (c) { return c.classList.contains("sh-tile"); });
+    var key = mode === "popular" ? "popular" : (mode === "newest" ? "created" : "trend");
+    tiles.forEach(function (t, i) { if (t.dataset.order === undefined) t.dataset.order = String(i); });
+    tiles.sort(function (a, b) {
+      return (Number(b.dataset[key]) - Number(a.dataset[key])) || (Number(a.dataset.order) - Number(b.dataset.order));
+    });
+    var empty = $("#galleryEmpty");
+    tiles.forEach(function (t) { grid.appendChild(t); });
+    if (empty) grid.appendChild(empty);
   }
+  function wireLibraryControls() {
+    var sort = $("#tplSort"), source = $("#tplSource");
+    if (sort) sort.addEventListener("change", function () { sortTiles(sort.value); });
+    if (source) source.addEventListener("change", function () { currentSource = source.value; filterTiles(); });
+  }
+
+  /* ── Home: "See all" and the thumbnail card ───────────── */
   function wireHomeExtras() {
-    if (document.querySelector("[data-site-stat]")) {
-      fetch("/api/site-stats", { headers: { Accept: "application/json" } })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          if (!j || !j.success) return;
-          document.querySelectorAll("[data-site-stat]").forEach(function (el) {
-            var v = j[el.getAttribute("data-site-stat")];
-            if (typeof v === "number") el.textContent = compactNumber(v);
-          });
-        }).catch(function () {});
-    }
-    var seeAll = $("#tplSeeAll");
-    if (seeAll) {
-      seeAll.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        var search = $("#tplSearch");
-        if (search && search.value) { search.value = ""; search.dispatchEvent(new Event("input")); }
-        var all = document.querySelector('#filters .sh-chip[data-cat="all"]');
-        if (all && !all.classList.contains("active")) all.click();
-        var grid = $("#gallery");
-        if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
+    loadHomeTutorials();
+  }
+
+  /* Four newest Creator Tutorials on the home page. Each card links out to
+     the video on its own platform. */
+  function loadHomeTutorials() {
+    var box = $("#homeTutList");
+    if (!box) return;
+    fetch("/api/skills?limit=4", { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var list = (j && j.success && j.skills) || [];
+        box.innerHTML = "";
+        if (!list.length) {
+          var empty = document.createElement("p");
+          empty.className = "sh-tut-empty";
+          empty.innerHTML = 'No tutorials yet. <a href="/community">Share the first one</a>.';
+          box.appendChild(empty);
+          return;
+        }
+        list.forEach(function (t) {
+          var platform = t.platform === "instagram" ? "Instagram" : "YouTube";
+          var card = document.createElement("a");
+          card.className = "sh-tut-card";
+          card.href = t.url;
+          card.target = "_blank";
+          card.rel = "noopener noreferrer";
+          var thumb = document.createElement("span");
+          thumb.className = "sh-tut-thumb sh-tut-" + (t.platform || "youtube");
+          if (t.thumbnail) {
+            var img = document.createElement("img");
+            img.src = t.thumbnail; img.alt = ""; img.loading = "lazy";
+            thumb.appendChild(img);
+          }
+          var title = document.createElement("span");
+          title.className = "sh-tut-title";
+          title.textContent = t.title;
+          var who = document.createElement("span");
+          who.className = "sh-tut-author";
+          var name = document.createElement("span");
+          name.className = "sc-name-text";
+          name.textContent = (t.author && t.author.name) || "Creator";
+          who.appendChild(name);
+          if (t.author && t.author.verified) {
+            var tick = document.createElement("span");
+            tick.className = "sh-verified";
+            tick.title = "Verified creator";
+            tick.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            who.appendChild(tick);
+          }
+          var watch = document.createElement("span");
+          watch.className = "sh-tut-watch";
+          watch.textContent = "Watch on " + platform + " \u2197";
+          card.appendChild(thumb); card.appendChild(title); card.appendChild(who); card.appendChild(watch);
+          box.appendChild(card);
+        });
+      })
+      .catch(function () {
+        box.innerHTML = '<p class="sh-tut-empty">Tutorials could not load. <a href="/community">Open Creator Tutorials</a>.</p>';
       });
-    }
-    var soon = $("#thumbSoon");
-    if (soon) {
-      soon.addEventListener("click", function () {
-        if (window.SC_UI && SC_UI.toast) SC_UI.toast("Thumbnail maker is coming soon.", false, 2600);
-      });
-    }
   }
 
   /* ── App Shell & Live Credit Balance ───────────────────── */
@@ -1248,6 +1353,7 @@
         .then(function (r) { return r.json(); })
         .then(function (j) {
           if (!j || !j.success) return;
+          if (j.cost && Number(j.cost.export) > 0) EXPORT_COST = Number(j.cost.export);
           if (creditChip) {
             var chipPlan = creditChip.querySelector(".sh-credit-plan");
             var chipBalance = creditChip.querySelector(".sh-credit-balance");
@@ -1256,7 +1362,6 @@
             // a score, and told you nothing about which plan you are on.
             if (chipBalance) chipBalance.textContent = j.left + " Credit" + (j.left === 1 ? "" : "s");
           }
-          document.querySelectorAll("[data-credits-left]").forEach(function (el) { el.textContent = String(j.left); });
           var up = null;
           if (badge) {
             var b = badge.querySelector("b");
@@ -1339,6 +1444,7 @@
     wireComposer();
     wireChrome();
     wireHomeExtras();
+    wireLibraryControls();
   }
 
   if (document.readyState === "loading") {
