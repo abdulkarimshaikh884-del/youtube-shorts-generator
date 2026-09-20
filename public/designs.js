@@ -123,6 +123,11 @@
     var cHeight = tpl.canvas ? tpl.canvas.height : 720;
     var aspectPct = ((cHeight / cWidth) * 100).toFixed(2);
 
+    var previewSrc = tpl.previewUrl || tpl.preview_url;
+    if (previewSrc) {
+      return '<div class="ds-pv-stage" style="padding-top:' + aspectPct + '%;"><img class="ds-pv-img ds-pv-hero" src="' + escapeHtml(previewSrc) + '" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;" alt="' + escapeHtml(tpl.title) + '" loading="lazy"/></div>';
+    }
+
     var elementsHtml = "";
     (tpl.elements || []).slice(0, 8).forEach(function (el) {
       var leftPct = ((el.x / cWidth) * 100).toFixed(1);
@@ -151,8 +156,15 @@
     btn.textContent = "Opening...";
 
     fetch("/api/designs/templates/" + encodeURIComponent(templateId) + "/clone", { method: "POST" })
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (r.status === 401) {
+          window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+          return null;
+        }
+        return r.json();
+      })
       .then(function (res) {
+        if (!res) return;
         if (res && res.success && res.project) {
           window.location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
         } else if (res && res.error) {
@@ -166,8 +178,8 @@
         }
       })
       .catch(function () {
-        // Fallback: open template directly in editor
-        window.location.href = "/design-editor?tpl=" + encodeURIComponent(templateId);
+        btn.disabled = false;
+        btn.textContent = "✦ Edit Template →";
       });
   }
 

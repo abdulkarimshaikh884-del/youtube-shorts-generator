@@ -2212,7 +2212,7 @@
 
     var ENGINE_SRC = "/templates-v2.js?v=2026091601";
     var CATEGORIES = [["text", "Kinetic text"], ["social", "Social media"], ["ui", "UI and devices"], ["charts", "Charts"], ["money", "Finance"], ["maps", "Maps and radar"], ["docu", "Documentary"], ["paper", "Paper craft"]];
-    var ACCEPT = ".json,.zip,.lottie,application/json,application/zip";
+    var ACCEPT = ".json,.zip,.lottie,.png,.jpg,.jpeg,.webp,application/json,application/zip,image/png,image/jpeg,image/webp";
     /* Phones and tablets. They have no folder picker and nothing to drag
        from, and a phone's file browser greys out a file whose type it does
        not recognise, which is how a downloaded .lottie or a .json saved as
@@ -2227,19 +2227,19 @@
     modal.hidden = true;
     modal.innerHTML = [
       '<section class="sc-publish-card" role="dialog" aria-modal="true" aria-labelledby="publishTitle">',
-      '  <header class="sc-publish-head"><div><h2 id="publishTitle">Upload a template</h2></div><button type="button" id="publishClose" aria-label="Close upload dialog">&times;</button></header>',
+      '  <header class="sc-publish-head"><div><h2 id="publishTitle">Upload</h2></div><button type="button" id="publishClose" aria-label="Close upload dialog">&times;</button></header>',
       '  <nav class="sc-publish-steps" aria-label="Upload steps"><button type="button" data-step="1" aria-current="step">1. Upload</button><button type="button" data-step="2">2. Detect</button><button type="button" data-step="3">3. Details</button><button type="button" data-step="4">4. Visibility</button></nav>',
       '  <div class="sc-publish-body">',
       '    <section class="sc-publish-panel" data-panel="1">',
       '      <div class="sc-drop" id="uploadDrop">',
       '        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
-      '        <strong>' + (TOUCH ? "Choose your animation" : "Drop your animation here") + '</strong>',
-      '        <span>.json &middot; .zip &middot; .lottie' + (FOLDERS ? " &middot; folder" : "") + ' &mdash; up to 8 MB and 9 seconds</span>',
+      '        <strong>' + (TOUCH ? "Choose animation or design" : "Drop animation or design here") + '</strong>',
+      '        <span>Supports Animations (.json, .zip, .lottie) &amp; Designs (.png, .jpg, .webp) &mdash; auto-detected</span>',
       '        <div class="sc-drop-actions"><button type="button" class="pg-bw" id="uploadPickFile">Choose file</button>' + (FOLDERS ? '<button type="button" class="pg-bo" id="uploadPickFolder">Choose folder</button>' : '') + '</div>',
       '        <input type="file" id="uploadFile"' + (TOUCH ? '' : ' accept="' + ACCEPT + '"') + ' hidden>',
       '        <input type="file" id="uploadFolder" webkitdirectory multiple hidden>',
       '      </div>',
-      '      <p class="sc-drop-hint">Made in After Effects? Export it with the free LottieFiles or Bodymovin plugin and upload the .json, or the folder or ZIP it created if it has images. Built it in the ShortsCraft Studio? Use <b>Publish</b> there.</p>',
+      '      <p class="sc-drop-hint">Upload any Lottie animation file/ZIP or any thumbnail/graphic image. ShortsCraft automatically detects the format and gives you live editable controls.</p>',
       '    </section>',
       '    <section class="sc-publish-panel" data-panel="2" hidden>',
       '      <div class="sc-detect" id="uploadDetect"></div>',
@@ -2255,6 +2255,10 @@
       '      <fieldset class="sc-publish-visibility"><legend>Who should see it?</legend><label><input type="radio" name="publishVisibility" value="public" checked><span><strong>Publish now</strong><small>Appears in the template library straight away.</small></span></label><label><input type="radio" name="publishVisibility" value="private"><span><strong>Draft</strong><small>Only you can see it, in your Creator Studio.</small></span></label><label><input type="radio" name="publishVisibility" value="scheduled"><span><strong>Schedule</strong><small>Publishes at the time you choose &mdash; at least 10 minutes ahead, within one year.</small></span></label></fieldset>',
       '      <label class="sc-publish-field" id="publishScheduleWrap" hidden><span>Publish date and time (your device time zone)</span><input id="publishSchedule" type="datetime-local"></label>',
       '      <div class="sc-publish-summary" id="publishSummary"></div>',
+      '    </section>',
+      '    <!-- Design Conversion Panel (Auto-switched when an image is uploaded) -->',
+      '    <section class="sc-publish-panel" data-panel="design" hidden id="authDesignPanel">',
+      '      <div id="authDesignContent"></div>',
       '    </section>',
       '    <p class="sc-publish-status" id="publishStatus" role="status" aria-live="polite"></p>',
       '  </div>',
@@ -2357,23 +2361,38 @@
 
     /* A single file whose name says nothing useful (a phone saved it as
        "animation.json.txt", or with no extension at all) is identified by
-       its first bytes: "{" is JSON, "PK" is a ZIP. */
+       its first bytes: "{" is JSON, "PK" is a ZIP, PNG/JPG/WebP magic bytes. */
     function sniff(file) {
-      if (!file || /\.(json|zip|lottie)$/i.test(file.name) || file.size > 20 * 1024 * 1024) return Promise.resolve(null);
+      if (!file || /\.(json|zip|lottie|png|jpe?g|webp)$/i.test(file.name) || file.size > 20 * 1024 * 1024) return Promise.resolve(null);
       return file.slice(0, 64).arrayBuffer().then(function (buf) {
         var head = new Uint8Array(buf), i = 0;
         while (i < head.length && (head[i] === 0xEF || head[i] === 0xBB || head[i] === 0xBF || head[i] <= 0x20)) i++;
         if (head[i] === 0x7B) return "json";
         if (head[0] === 0x50 && head[1] === 0x4B) return "zip";
+        if (head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4E && head[3] === 0x47) return "png";
+        if (head[0] === 0xFF && head[1] === 0xD8 && head[2] === 0xFF) return "jpg";
+        if (head[0] === 0x52 && head[1] === 0x49 && head[2] === 0x46 && head[3] === 0x46) return "webp";
         return null;
       }).catch(function () { return null; });
     }
 
     function handleFiles(files, fromFolder) {
       if (busy || !files.length) return;
+      var single = files.length === 1 && !fromFolder ? files[0] : null;
+
+      // Auto-detect image design templates (PNG, JPG, WebP)
+      if (single && (/\.(png|jpe?g|webp)$/i.test(single.name) || (single.type && single.type.startsWith("image/")))) {
+        handleDesignImage(single);
+        return;
+      }
+
       if (files.length === 1 && !fromFolder && !files[0].__sniffed && !/\.(json|zip|lottie)$/i.test(files[0].name)) {
         var original = files[0];
         sniff(original).then(function (kind) {
+          if (kind === "png" || kind === "jpg" || kind === "webp") {
+            handleDesignImage(original);
+            return;
+          }
           var retry = original;
           if (kind) {
             retry = new File([original], original.name.replace(/(\.[a-z0-9]{1,5})?$/i, "") + "." + kind, { type: kind === "json" ? "application/json" : "application/zip" });
@@ -2533,15 +2552,299 @@
       };
     }
 
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    var currentDesignDataUri = null;
+    var currentDesignProject = null;
+    var designInterval = null;
+
+    function handleDesignImage(file) {
+      if (file.size > 15 * 1024 * 1024) {
+        showError("Image must be smaller than 15 MB.");
+        return;
+      }
+      clearError();
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        currentDesignDataUri = e.target.result;
+        renderDesignModeChoice(file, currentDesignDataUri);
+        showStep("design");
+      };
+      reader.onerror = function () {
+        showError("Could not read this image file.");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderDesignModeChoice(file, dataUri) {
+      var container = $("#authDesignContent");
+      if (!container) return;
+      var sizeMb = file.size > 0 ? (file.size / (1024 * 1024)).toFixed(2) + " MB" : "";
+      container.innerHTML = [
+        '<div class="ds-picked-preview-row">',
+        '  <img class="ds-picked-thumb" src="' + escapeHtml(dataUri) + '" alt="Preview">',
+        '  <div class="ds-picked-info">',
+        '    <strong>' + escapeHtml(file.name || "Uploaded Image") + '</strong>',
+        '    <span>' + (sizeMb ? sizeMb + " &middot; " : "") + 'Image detected</span>',
+        '  </div>',
+        '</div>',
+        '<div class="ds-mode-grid">',
+        '  <div class="ds-mode-card featured" id="authBtnConvertEditable">',
+        '    <span class="ds-mode-badge">AI Powered</span>',
+        '    <div class="ds-mode-icon">✨</div>',
+        '    <h3>Convert to Editable</h3>',
+        '    <p>Decomposes your image into editable text layers, clean inpainted background with text erased, transparent foreground cutouts, and vector shapes.</p>',
+        '    <button type="button" class="ds-mode-btn ds-mode-btn-primary">✦ Convert to Editable ✨</button>',
+        '  </div>',
+        '  <div class="ds-mode-card" id="authBtnUseAsImage">',
+        '    <span class="ds-mode-badge" style="background:#475569;">Simple Layer</span>',
+        '    <div class="ds-mode-icon">🖼</div>',
+        '    <h3>Use as Image</h3>',
+        '    <p>Opens your image directly on a flat canvas layer without altering pixels. Add text badges, shapes, or stickers right on top.</p>',
+        '    <button type="button" class="ds-mode-btn ds-mode-btn-subtle">Use as Image</button>',
+        '  </div>',
+        '</div>',
+        '<div style="margin-top:18px;text-align:center;">',
+        '  <button type="button" class="pg-bo sc-detect-again" id="authDesignBackBtn">Choose a different file</button>',
+        '</div>'
+      ].join("");
+
+      var btnConvert = $("#authBtnConvertEditable");
+      if (btnConvert) {
+        btnConvert.addEventListener("click", function () {
+          startDesignConversion(dataUri, false);
+        });
+      }
+      var btnImage = $("#authBtnUseAsImage");
+      if (btnImage) {
+        btnImage.addEventListener("click", function () {
+          startDesignConversion(dataUri, true);
+        });
+      }
+      var btnBackFile = $("#authDesignBackBtn");
+      if (btnBackFile) {
+        btnBackFile.addEventListener("click", function () {
+          reset();
+          showStep(1);
+        });
+      }
+    }
+
+    function startDesignConversion(dataUri, useAsImage) {
+      if (designInterval) clearInterval(designInterval);
+      var container = $("#authDesignContent");
+      if (!container) return;
+
+      var stages = [
+        { pct: 15, msg: "1. Uploading image..." },
+        { pct: 35, msg: "2. Analyzing visual layout with AI..." },
+        { pct: 55, msg: "3. Detecting text & typography..." },
+        { pct: 70, msg: "4. Finding foreground subjects & cutouts..." },
+        { pct: 85, msg: "5. Rebuilding clean background (inpainting)..." },
+        { pct: 95, msg: "6. Creating editable layers..." },
+        { pct: 100, msg: "7. Preparing Design Studio..." }
+      ];
+
+      container.innerHTML = [
+        '<div class="ds-progress-wrap">',
+        '  <div class="ds-spinner" style="margin: 0 auto 16px;"></div>',
+        '  <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 600;">Analyzing &amp; Reconstructing Design</h3>',
+        '  <p id="authDesignProgMsg" style="margin: 0 0 16px; font-size: 13px; color: var(--sc-muted);">1. Uploading image...</p>',
+        '  <div class="ds-progress-bar-bg" style="max-width: 380px; margin: 0 auto;">',
+        '    <div class="ds-progress-bar-fill" id="authDesignProgBar" style="width: 15%;"></div>',
+        '  </div>',
+        '</div>'
+      ].join("");
+
+      var bar = $("#authDesignProgBar");
+      var txt = $("#authDesignProgMsg");
+      var curIdx = 0;
+
+      designInterval = setInterval(function () {
+        if (curIdx < stages.length - 1) {
+          curIdx++;
+          if (bar) bar.style.width = stages[curIdx].pct + "%";
+          if (txt) txt.textContent = stages[curIdx].msg;
+        }
+      }, 1100);
+
+      fetch("/api/designs/convert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: dataUri,
+          useAsImage: useAsImage,
+          designType: "youtube-thumbnail"
+        })
+      })
+        .then(function (r) {
+          if (r.status === 401) {
+            location.href = "/login?next=" + encodeURIComponent(location.pathname);
+            return null;
+          }
+          return r.json();
+        })
+        .then(function (res) {
+          clearInterval(designInterval);
+          if (!res) return;
+          if (!res.success || !res.project) {
+            throw new Error(res.error || "Could not convert this design.");
+          }
+          if (bar) bar.style.width = "100%";
+          if (txt) txt.textContent = "Conversion complete!";
+
+          currentDesignProject = res.project;
+          setTimeout(function () {
+            if (useAsImage) {
+              saveDesignAndOpenEditor(res.project);
+            } else {
+              renderDesignReview(res, dataUri);
+            }
+          }, 450);
+        })
+        .catch(function (err) {
+          clearInterval(designInterval);
+          alert(err.message || "Conversion failed. Please try again.");
+          renderDesignModeChoice({ name: "Uploaded Image", size: 0 }, dataUri);
+        });
+    }
+
+    function renderDesignReview(jobData, dataUri) {
+      var container = $("#authDesignContent");
+      if (!container) return;
+
+      var elements = (jobData.project && jobData.project.elements) || [];
+      var layersHtml = elements.map(function (el) {
+        var icon = "📄";
+        var desc = "";
+        if (el.type === "text") {
+          icon = "T";
+          desc = '"' + escapeHtml(el.text) + '" (' + (el.fontFamily || "Anton") + ', ' + (el.fontSize || 36) + 'px)';
+        } else if (el.type === "image" && el.role === "background") {
+          icon = "🖼";
+          desc = "Reconstructed clean background";
+        } else if (el.type === "image") {
+          icon = "✂";
+          desc = "Foreground cutout (" + (el.width || 0) + "x" + (el.height || 0) + "px)";
+        } else if (el.type === "shape") {
+          icon = "⬡";
+          desc = "Vector " + (el.shape || "shape") + " (" + (el.fill || "#fff") + ")";
+        }
+        var conf = el.confidence ? Math.round(el.confidence * 100) + "%" : "90%";
+        return [
+          '<div class="ds-review-item">',
+          '  <div class="ds-review-item-main">',
+          '    <span class="ds-review-ico">' + icon + '</span>',
+          '    <div class="ds-review-info">',
+          '      <strong class="ds-review-name">' + escapeHtml(el.name || el.id) + '</strong>',
+          '      <span class="ds-review-detail">' + desc + '</span>',
+          '    </div>',
+          '  </div>',
+          '  <div class="ds-review-item-meta">',
+          '    <span class="ds-conf-pill">' + conf + '</span>',
+          '  </div>',
+          '</div>'
+        ].join("");
+      }).join("");
+
+      container.innerHTML = [
+        '<div class="ds-review-layout">',
+        '  <div class="ds-review-col">',
+        '    <div class="ds-review-toggle" style="margin-bottom:8px;display:flex;gap:8px;">',
+        '      <button type="button" class="pg-bo" id="authToggleOrig" style="padding:4px 10px;font-size:12px;">Original</button>',
+        '      <button type="button" class="pg-bw active" id="authToggleEdit" style="padding:4px 10px;font-size:12px;">Reconstructed</button>',
+        '    </div>',
+        '    <div class="ds-review-preview-box" style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--sc-border);background:#000;">',
+        '      <img id="authReviewImg" src="' + escapeHtml(jobData.originalUrl || dataUri) + '" style="width:100%;height:auto;display:block;" alt="Design preview">',
+        '    </div>',
+        '  </div>',
+        '  <div class="ds-review-col">',
+        '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
+        '      <strong style="font-size:13px;color:var(--sc-text);">' + elements.length + ' Editable Layers Detected</strong>',
+        '      <span class="ds-conf-pill" style="background:#10b981;color:#fff;">Ready</span>',
+        '    </div>',
+        '    <div class="ds-review-layers-list" style="max-height:260px;overflow-y:auto;border:1px solid var(--sc-border);border-radius:8px;padding:6px;background:var(--sc-surface-2);">' + layersHtml + '</div>',
+        '  </div>',
+        '</div>',
+        '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px;border-top:1px solid var(--sc-border);padding-top:14px;">',
+        '  <button type="button" class="pg-bo" id="authReviewChangeBtn">Upload different</button>',
+        '  <button type="button" class="pg-bw ds-btn-magic" id="authReviewOpenBtn">✦ Open in Studio Editor &rarr;</button>',
+        '</div>'
+      ].join("");
+
+      var btnOpen = $("#authReviewOpenBtn");
+      if (btnOpen) {
+        btnOpen.addEventListener("click", function () {
+          saveDesignAndOpenEditor(jobData.project);
+        });
+      }
+      var btnChange = $("#authReviewChangeBtn");
+      if (btnChange) {
+        btnChange.addEventListener("click", function () {
+          reset();
+          showStep(1);
+        });
+      }
+    }
+
+    function saveDesignAndOpenEditor(project) {
+      var btn = $("#authReviewOpenBtn");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Opening Studio...";
+      }
+
+      fetch("/api/designs/projects/" + encodeURIComponent(project.id || "new"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(project)
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.success && res.project) {
+            window.location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
+          } else {
+            sessionStorage.setItem("sc_pending_design", JSON.stringify(project));
+            window.location.href = "/design-editor?session=1";
+          }
+        })
+        .catch(function () {
+          sessionStorage.setItem("sc_pending_design", JSON.stringify(project));
+          window.location.href = "/design-editor?session=1";
+        });
+    }
+
     function showStep(nextStep) {
       step = nextStep;
-      modal.querySelectorAll("[data-panel]").forEach(function (panel) { panel.hidden = Number(panel.dataset.panel) !== step; });
-      modal.querySelectorAll(".sc-publish-steps button").forEach(function (button) {
-        if (Number(button.dataset.step) === step) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current");
+      var isDesign = step === "design";
+      var navSteps = modal.querySelector(".sc-publish-steps");
+      if (navSteps) navSteps.hidden = isDesign;
+      var titleEl = $("#publishTitle");
+      if (titleEl) {
+        titleEl.textContent = isDesign ? "Upload Design or Thumbnail" : "Upload";
+      }
+
+      modal.querySelectorAll("[data-panel]").forEach(function (panel) {
+        if (isDesign) {
+          panel.hidden = panel.dataset.panel !== "design";
+        } else {
+          panel.hidden = Number(panel.dataset.panel) !== step;
+        }
       });
-      back.hidden = step === 1;
-      next.hidden = step === 1 || step === 4;
-      submit.hidden = step !== 4;
+      modal.querySelectorAll(".sc-publish-steps button").forEach(function (button) {
+        if (!isDesign && Number(button.dataset.step) === step) button.setAttribute("aria-current", "step");
+        else button.removeAttribute("aria-current");
+      });
+      back.hidden = isDesign || step === 1;
+      next.hidden = isDesign || step === 1 || step === 4;
+      submit.hidden = isDesign || step !== 4;
       if (step === 4) {
         var v = values();
         var label = v.visibility === "public" ? "Publish now" : v.visibility === "private" ? "Save draft" : "Schedule";
@@ -2553,6 +2856,11 @@
 
     function reset() {
       uploaded = null;
+      currentDesignDataUri = null;
+      currentDesignProject = null;
+      if (designInterval) clearInterval(designInterval);
+      var container = $("#authDesignContent");
+      if (container) container.innerHTML = "";
       $("#publishName").value = "";
       $("#publishDescription").value = "";
       $("#uploadPreview").removeAttribute("srcdoc");
@@ -2570,6 +2878,7 @@
     }
     function closeModal() {
       if (submit.disabled || busy) return;
+      if (designInterval) clearInterval(designInterval);
       modal.hidden = true;
       document.body.style.overflow = previousOverflow;
       if (returnFocus && returnFocus.isConnected) returnFocus.focus();

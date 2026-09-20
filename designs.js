@@ -18,25 +18,120 @@ const MAX_BYTES = 512 * 1024; // 512 KB json document limit
 
 const SAMPLE_TEMPLATES = [
   {
-    id: "dt_vox_masterclass",
-    title: "Vox-Style Documentary Thumbnail",
-    description: "High retention dark documentary thumbnail with bold yellow punchline, investigation badge, and spotlight contrast.",
+    id: "dt_heygen_trick",
+    title: "Free & Unlimited HeyGen Trick!",
+    description: "Viral AI tool tutorial thumbnail with high-CTR 3D badges, bold red headline, and creator cutout.",
     category: "youtube-thumbnail",
     design_type: "youtube-thumbnail",
     source_type: "shortscraft_official",
     author_name: "ShortsCraft Official",
     author_handle: "@shortscraft",
     canvas: { width: 1280, height: 720 },
-    likes: 42,
-    uses: 128,
+    preview_url: "/storage/designs/templates/heygen-trick.webp",
+    previewUrl: "/storage/designs/templates/heygen-trick.webp",
+    likes: 89,
+    uses: 342,
     elements: [
-      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#0a0a10", zIndex: 0 },
-      { id: "glow", type: "shape", shape: "circle", x: 400, y: 160, width: 480, height: 480, fill: "#1e1b4b", opacity: 0.6, zIndex: 1 },
-      { id: "badge", type: "shape", shape: "pill", x: 80, y: 80, width: 220, height: 48, fill: "#ef4444", zIndex: 2 },
-      { id: "badge_txt", type: "text", text: "INVESTIGATION", x: 96, y: 92, fontSize: 20, fontWeight: 800, fontFamily: "Space Grotesk", fill: "#ffffff", zIndex: 3 },
-      { id: "h1", type: "text", text: "THE $100M", x: 80, y: 160, fontSize: 88, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", stroke: "#000000", strokeWidth: 4, zIndex: 4 },
-      { id: "h2", type: "text", text: "COVERUP", x: 80, y: 260, fontSize: 110, fontWeight: 900, fontFamily: "Anton", fill: "#facc15", stroke: "#000000", strokeWidth: 5, zIndex: 5 },
-      { id: "sub", type: "text", text: "How one company deceived everyone.", x: 84, y: 400, fontSize: 32, fontWeight: 600, fontFamily: "Inter", fill: "#94a3b8", zIndex: 6 }
+      {
+        id: "bg_heygen",
+        type: "image",
+        role: "background",
+        src: "/storage/designs/templates/heygen-trick.webp",
+        x: 0,
+        y: 0,
+        width: 1280,
+        height: 720,
+        zIndex: 0,
+        locked: true
+      },
+      {
+        id: "badge_pill_free",
+        type: "shape",
+        shape: "pill",
+        name: "Top Badge Box",
+        x: 40,
+        y: 35,
+        width: 620,
+        height: 120,
+        fill: "#ffffff",
+        stroke: "#10b981",
+        strokeWidth: 4,
+        radius: 28,
+        zIndex: 1
+      },
+      {
+        id: "txt_free_unlimited",
+        type: "text",
+        name: "Headline: FREE & UNLIMITED",
+        text: "FREE & UNLIMITED",
+        x: 65,
+        y: 60,
+        width: 570,
+        height: 75,
+        fontSize: 66,
+        fontWeight: 900,
+        fontFamily: "Anton",
+        fill: "#09090b",
+        zIndex: 2
+      },
+      {
+        id: "txt_heygen_trick",
+        type: "text",
+        name: "Headline: HeyGen Trick!",
+        text: "HeyGen Trick!",
+        x: 45,
+        y: 175,
+        width: 640,
+        height: 120,
+        fontSize: 98,
+        fontWeight: 900,
+        fontFamily: "Anton",
+        fill: "#dc2626",
+        stroke: "#ffffff",
+        strokeWidth: 4,
+        zIndex: 3
+      },
+      {
+        id: "badge_pill_credits",
+        type: "shape",
+        shape: "pill",
+        name: "Pill: No Credits",
+        x: 80,
+        y: 320,
+        width: 520,
+        height: 60,
+        fill: "#09090b",
+        radius: 30,
+        zIndex: 4
+      },
+      {
+        id: "txt_no_credits",
+        type: "text",
+        name: "Tag: NO CREDITS, NO SUBSCRIPTION",
+        text: "🤯 NO CREDITS, NO SUBSCRIPTION",
+        x: 105,
+        y: 336,
+        width: 470,
+        height: 36,
+        fontSize: 24,
+        fontWeight: 800,
+        fontFamily: "Space Grotesk",
+        fill: "#ffffff",
+        zIndex: 5
+      },
+      {
+        id: "arrow_pointer",
+        type: "shape",
+        shape: "curvedArrow",
+        name: "Yellow Callout Arrow",
+        x: 480,
+        y: 380,
+        width: 140,
+        height: 110,
+        fill: "#f59e0b",
+        rotation: 15,
+        zIndex: 6
+      }
     ]
   },
   {
@@ -49,16 +144,41 @@ const SAMPLE_TEMPLATES = [
     author_name: "ShortsCraft Official",
     author_handle: "@shortscraft",
     canvas: { width: 1280, height: 720 },
-    likes: 38,
-    uses: 95,
+    preview_url: "/storage/designs/templates/growth-metrics.webp",
+    previewUrl: "/storage/designs/templates/growth-metrics.webp",
+    likes: 54,
+    uses: 195,
     elements: [
-      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#090d16", zIndex: 0 },
-      { id: "card", type: "shape", shape: "roundedRectangle", x: 740, y: 100, width: 460, height: 520, fill: "#131b2e", radius: 24, stroke: "#2563eb", strokeWidth: 2, zIndex: 1 },
-      { id: "tag", type: "shape", shape: "pill", x: 80, y: 120, width: 200, height: 44, fill: "#10b981", zIndex: 2 },
-      { id: "tag_txt", type: "text", text: "CASE STUDY", x: 100, y: 130, fontSize: 18, fontWeight: 700, fontFamily: "Inter", fill: "#ffffff", zIndex: 3 },
-      { id: "title1", type: "text", text: "FROM 0 TO", x: 80, y: 200, fontSize: 84, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", zIndex: 4 },
-      { id: "title2", type: "text", text: "1,000,000", x: 80, y: 300, fontSize: 108, fontWeight: 900, fontFamily: "Anton", fill: "#38bdf8", stroke: "#0f172a", strokeWidth: 4, zIndex: 5 },
-      { id: "arrow", type: "shape", shape: "curvedArrow", x: 640, y: 280, width: 140, height: 100, fill: "#f59e0b", rotation: 12, zIndex: 6 }
+      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#070b14", zIndex: 0 },
+      { id: "card", type: "shape", shape: "roundedRectangle", x: 720, y: 100, width: 480, height: 520, fill: "#131b2e", radius: 24, stroke: "#2563eb", strokeWidth: 2, zIndex: 1 },
+      { id: "tag", type: "shape", shape: "pill", x: 80, y: 90, width: 180, height: 40, fill: "#10b981", zIndex: 2 },
+      { id: "tag_txt", type: "text", text: "CASE STUDY", x: 100, y: 100, fontSize: 18, fontWeight: 700, fontFamily: "Inter", fill: "#ffffff", zIndex: 3 },
+      { id: "title1", type: "text", text: "FROM 0 TO", x: 80, y: 170, fontSize: 88, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", zIndex: 4 },
+      { id: "title2", type: "text", text: "1,000,000", x: 80, y: 270, fontSize: 116, fontWeight: 900, fontFamily: "Anton", fill: "#38bdf8", stroke: "#0f172a", strokeWidth: 4, zIndex: 5 },
+      { id: "sub", type: "text", text: "IN JUST 90 DAYS 🚀", x: 80, y: 400, fontSize: 32, fontWeight: 700, fontFamily: "Space Grotesk", fill: "#f59e0b", zIndex: 6 }
+    ]
+  },
+  {
+    id: "dt_vox_masterclass",
+    title: "Vox-Style Documentary Thumbnail",
+    description: "High retention dark documentary thumbnail with bold yellow punchline, investigation badge, and spotlight contrast.",
+    category: "youtube-thumbnail",
+    design_type: "youtube-thumbnail",
+    source_type: "shortscraft_official",
+    author_name: "ShortsCraft Official",
+    author_handle: "@shortscraft",
+    canvas: { width: 1280, height: 720 },
+    preview_url: "/storage/designs/templates/vox-coverup.webp",
+    previewUrl: "/storage/designs/templates/vox-coverup.webp",
+    likes: 42,
+    uses: 128,
+    elements: [
+      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#0a0a10", zIndex: 0 },
+      { id: "badge", type: "shape", shape: "pill", x: 80, y: 80, width: 220, height: 48, fill: "#ef4444", zIndex: 1 },
+      { id: "badge_txt", type: "text", text: "INVESTIGATION", x: 96, y: 92, fontSize: 20, fontWeight: 800, fontFamily: "Space Grotesk", fill: "#ffffff", zIndex: 2 },
+      { id: "h1", type: "text", text: "THE $100M", x: 80, y: 160, fontSize: 88, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", stroke: "#000000", strokeWidth: 4, zIndex: 3 },
+      { id: "h2", type: "text", text: "COVERUP", x: 80, y: 260, fontSize: 110, fontWeight: 900, fontFamily: "Anton", fill: "#facc15", stroke: "#000000", strokeWidth: 5, zIndex: 4 },
+      { id: "sub", type: "text", text: "How one company deceived everyone.", x: 84, y: 400, fontSize: 32, fontWeight: 600, fontFamily: "Inter", fill: "#94a3b8", zIndex: 5 }
     ]
   },
   {
@@ -71,14 +191,35 @@ const SAMPLE_TEMPLATES = [
     author_name: "ShortsCraft Official",
     author_handle: "@shortscraft",
     canvas: { width: 1080, height: 1080 },
-    likes: 56,
-    uses: 110,
+    preview_url: "/storage/designs/templates/neon-logo.webp",
+    previewUrl: "/storage/designs/templates/neon-logo.webp",
+    likes: 68,
+    uses: 154,
     elements: [
-      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#030712", zIndex: 0 },
+      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#050811", zIndex: 0 },
       { id: "ring", type: "shape", shape: "circle", x: 340, y: 240, width: 400, height: 400, fill: "transparent", stroke: "#06b6d4", strokeWidth: 16, zIndex: 1 },
-      { id: "inner_circle", type: "shape", shape: "circle", x: 420, y: 320, width: 240, height: 240, fill: "#06b6d4", opacity: 0.15, zIndex: 2 },
-      { id: "brand_name", type: "text", text: "NEONIX", x: 290, y: 720, fontSize: 92, fontWeight: 900, fontFamily: "Space Grotesk", fill: "#ffffff", letterSpacing: 8, zIndex: 3 },
-      { id: "brand_tag", type: "text", text: "STUDIOS // 2026", x: 380, y: 840, fontSize: 24, fontWeight: 600, fontFamily: "IBM Plex Mono", fill: "#06b6d4", zIndex: 4 }
+      { id: "brand_name", type: "text", text: "NEONIX", x: 290, y: 720, fontSize: 92, fontWeight: 900, fontFamily: "Space Grotesk", fill: "#ffffff", letterSpacing: 8, zIndex: 2 },
+      { id: "brand_tag", type: "text", text: "STUDIOS // 2026", x: 380, y: 840, fontSize: 24, fontWeight: 600, fontFamily: "IBM Plex Mono", fill: "#06b6d4", zIndex: 3 }
+    ]
+  },
+  {
+    id: "dt_minimal_brand_logo",
+    title: "Apex Venture Geometric Logo",
+    description: "Clean modern geometric triangle vector emblem with balanced modern typography.",
+    category: "logo",
+    design_type: "logo",
+    source_type: "shortscraft_official",
+    author_name: "ShortsCraft Official",
+    author_handle: "@shortscraft",
+    canvas: { width: 1080, height: 1080 },
+    preview_url: "/storage/designs/templates/minimal-logo.webp",
+    previewUrl: "/storage/designs/templates/minimal-logo.webp",
+    likes: 47,
+    uses: 98,
+    elements: [
+      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#0f172a", zIndex: 0 },
+      { id: "brand_name", type: "text", text: "APEX", x: 340, y: 740, fontSize: 88, fontWeight: 900, fontFamily: "Space Grotesk", fill: "#ffffff", zIndex: 1 },
+      { id: "brand_sub", type: "text", text: "VENTURE LABS", x: 380, y: 820, fontSize: 24, fontWeight: 700, fontFamily: "Inter", fill: "#f59e0b", zIndex: 2 }
     ]
   },
   {
@@ -91,15 +232,33 @@ const SAMPLE_TEMPLATES = [
     author_name: "ShortsCraft Official",
     author_handle: "@shortscraft",
     canvas: { width: 1080, height: 1920 },
-    likes: 29,
-    uses: 74,
+    preview_url: "/storage/designs/templates/event-poster.webp",
+    previewUrl: "/storage/designs/templates/event-poster.webp",
+    likes: 39,
+    uses: 112,
     elements: [
-      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1920, fill: "#0f172a", zIndex: 0 },
-      { id: "banner", type: "shape", shape: "pill", x: 120, y: 160, width: 320, height: 60, fill: "#6366f1", zIndex: 1 },
-      { id: "banner_t", type: "text", text: "GLOBAL SUMMIT 2026", x: 140, y: 178, fontSize: 22, fontWeight: 700, fontFamily: "Space Grotesk", fill: "#ffffff", zIndex: 2 },
-      { id: "title", type: "text", text: "AI DESIGN\nFUTURE", x: 120, y: 300, fontSize: 130, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", zIndex: 3 },
-      { id: "card", type: "shape", shape: "roundedRectangle", x: 120, y: 1300, width: 840, height: 380, fill: "#1e293b", radius: 32, stroke: "#334155", strokeWidth: 2, zIndex: 4 },
-      { id: "details", type: "text", text: "OCTOBER 24-26 · SAN FRANCISCO\nKeynotes · Workshops · Networking", x: 180, y: 1420, fontSize: 36, fontWeight: 600, fontFamily: "Inter", fill: "#cbd5e1", zIndex: 5 }
+      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1920, fill: "#090d16", zIndex: 0 },
+      { id: "banner_t", type: "text", text: "GLOBAL SUMMIT 2026", x: 140, y: 178, fontSize: 22, fontWeight: 700, fontFamily: "Space Grotesk", fill: "#ffffff", zIndex: 1 },
+      { id: "title", type: "text", text: "AI DESIGN\nFUTURE", x: 120, y: 340, fontSize: 140, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", zIndex: 2 }
+    ]
+  },
+  {
+    id: "dt_social_carousel",
+    title: "Shorts Creator Hook Playbook Post",
+    description: "Square social post for Instagram and Twitter with bold headline hook and viral save call-to-action.",
+    category: "social-post",
+    design_type: "social-post",
+    source_type: "shortscraft_official",
+    author_name: "ShortsCraft Official",
+    author_handle: "@shortscraft",
+    canvas: { width: 1080, height: 1080 },
+    preview_url: "/storage/designs/templates/social-post.webp",
+    previewUrl: "/storage/designs/templates/social-post.webp",
+    likes: 72,
+    uses: 230,
+    elements: [
+      { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#111827", zIndex: 0 },
+      { id: "h1", type: "text", text: "3 SECONDS TO HOOK\nYOUR AUDIENCE.", x: 160, y: 440, fontSize: 72, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", zIndex: 1 }
     ]
   }
 ];
