@@ -1210,7 +1210,7 @@ app.get("/api/config", (req, res) => {
 
    A provider that times out or answers with a 4xx is parked for a few minutes,
    so the next visitor does not pay the same dead-provider tax again. */
-const DEFAULT_PROVIDER_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 45_000);
+const DEFAULT_PROVIDER_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 60_000);
 const PROVIDER_COOLDOWN_MS = 5 * 60_000;
 const providerDown = new Map(); // name -> timestamp it may be retried
 
@@ -1282,8 +1282,9 @@ async function callAI(prompt, {
   thinkingLevel = "MEDIUM",
   image = null,
   json = false,
-  timeoutMs = DEFAULT_PROVIDER_TIMEOUT_MS,
+  timeoutMs,
 } = {}) {
+  const effectiveTimeout = timeoutMs || (image ? 75_000 : DEFAULT_PROVIDER_TIMEOUT_MS);
   const sys = system || DEFAULT_SYSTEM;
   const nvidiaKey = realKey(process.env.NVIDIA_API_KEY);
   const groqKey = realKey(process.env.GROQ_API_KEY);
@@ -1306,7 +1307,7 @@ async function callAI(prompt, {
         top_p: 0.95,
         max_tokens: Math.min(maxTokens, 2500),
       }, json ? { response_format: { type: "json_object" } } : {})),
-    }, timeoutMs);
+    }, effectiveTimeout);
     if (!r.ok) {
       const body = await r.text().catch(() => "");
       const err = new Error(`${name} ${r.status}: ${body.slice(0, 180)}`);
@@ -1354,7 +1355,7 @@ async function callAI(prompt, {
           generationConfig,
         }),
       },
-      timeoutMs
+      effectiveTimeout
     );
     if (!r.ok) {
       const body = await r.text().catch(() => "");
@@ -1393,21 +1394,10 @@ async function callAI(prompt, {
        demand" on the preferred model is not an outage. Rolling to an alias or
        sibling costs less than falling through to another provider, and also
        protects saved configuration when a pinned model is retired. */
-    /* The default leads with the alias rather than a pinned version.
-
-       Not for speed: measured against this key, gemini-flash-latest and
-       gemini-3.7-flash both return 503 "high demand" intermittently and
-       neither is reliably better — the order barely matters, and what keeps
-       generation working is having more than one candidate. The reason for
-       the alias is staleness: a pinned version breaks silently the day it is
-       retired, and this chain already exists to survive exactly that.
-
-       Worth knowing while reading the logs: "gemini model X unavailable" is
-       this capacity limit, not a wrong model name. Both names resolve. */
     const geminiModels = String(
       models.gemini || (process.env.GEMINI_MODEL
-        ? process.env.GEMINI_MODEL + ",gemini-flash-latest,gemini-3.7-flash"
-        : "gemini-flash-latest,gemini-3.7-flash,gemini-3.6-flash")
+        ? process.env.GEMINI_MODEL + ",gemini-3.6-flash,gemini-3.7-flash,gemini-flash-latest"
+        : "gemini-3.6-flash,gemini-3.7-flash,gemini-flash-latest")
     ).split(",").map((s) => s.trim()).filter(Boolean);
     const uniqueModels = [...new Set(geminiModels)];
 
@@ -2569,6 +2559,6 @@ try {
   process.exit(1);
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`⚡ ShortsCraft v2.0 running on :${PORT} (${NODE_ENV})`);
 });

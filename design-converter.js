@@ -147,70 +147,235 @@ function createWorkspace(jobId) {
  * AI Visual Analysis & Layout OCR prompt
  */
 const ANALYSIS_PROMPT = `
-You are an expert design & vision decomposition engine for graphic designs, YouTube thumbnails, posters, and logos.
-Analyze this image and reconstruct it into an editable layered design project.
+You are an expert graphic design decomposition AI for YouTube thumbnails, posters, and logos.
+Deconstruct this image into an editable multi-layer template.
+Every distinct element must be separated into its own layer so the user can edit, move, or delete it independently.
 
-Decompose the image into structured JSON matching this EXACT format:
+Return ONLY a valid JSON object matching this schema:
 {
-  "designType": "youtube-thumbnail", // or "poster", "logo", "social-post", "banner"
-  "suggestedTitle": "Short descriptive title of the design",
+  "designType": "youtube-thumbnail",
+  "suggestedTitle": "Descriptive Title",
   "textElements": [
     {
       "id": "text_1",
-      "text": "Exact text string as visible in image",
-      "bbox": { "x": 0.05, "y": 0.15, "width": 0.50, "height": 0.18 }, // normalized 0.0 to 1.0 relative to image
-      "fontFamily": "Anton", // choose nearest: "Anton", "Space Grotesk", "Inter", "Roboto", "Oswald", "Montserrat", "Impact", "IBM Plex Mono"
-      "fontWeight": 900, // 400, 600, 700, 800, 900
-      "fill": "#ffffff", // text color hex
-      "stroke": "#000000", // stroke color hex or null
-      "strokeWidth": 4, // estimated stroke width in px (0 if none)
-      "shadow": { "color": "#000000", "blur": 8, "offsetX": 2, "offsetY": 4 }, // or null
-      "alignment": "left", // "left", "center", "right"
-      "rotation": 0, // estimated rotation in degrees
-      "confidence": 0.95 // 0.0 to 1.0
+      "text": "Exact text phrase",
+      "bbox": { "x": 0.05, "y": 0.08, "width": 0.50, "height": 0.12 },
+      "fontFamily": "Anton",
+      "fontWeight": 900,
+      "fill": "#ffffff",
+      "stroke": "#000000",
+      "strokeWidth": 4,
+      "alignment": "left"
     }
   ],
-  "foregroundObjects": [
+  "cardElements": [
     {
-      "id": "obj_1",
-      "label": "Person / Character / Product / Device / Logo",
-      "bbox": { "x": 0.55, "y": 0.05, "width": 0.42, "height": 0.90 }, // normalized 0.0 to 1.0
-      "confidence": 0.92
+      "id": "card_1",
+      "name": "Headline Card Panel",
+      "bbox": { "x": 0.02, "y": 0.02, "width": 0.62, "height": 0.46 },
+      "fill": "#ffffff",
+      "stroke": "#10b981",
+      "radius": 24
     }
   ],
   "shapeElements": [
     {
       "id": "shape_1",
-      "shape": "curvedArrow", // "rectangle", "roundedRectangle", "pill", "circle", "curvedArrow", "straightArrow"
-      "bbox": { "x": 0.40, "y": 0.35, "width": 0.15, "height": 0.12 },
-      "fill": "#f59e0b",
-      "stroke": null,
-      "radius": 16,
-      "rotation": 15,
-      "confidence": 0.85
+      "shape": "pill",
+      "bbox": { "x": 0.08, "y": 0.36, "width": 0.45, "height": 0.07 },
+      "fill": "#18181b",
+      "stroke": "#34d399",
+      "radius": 20
+    }
+  ],
+  "foregroundObjects": [
+    {
+      "id": "obj_character",
+      "label": "Character / Person",
+      "bbox": { "x": 0.52, "y": 0.0, "width": 0.48, "height": 1.0 }
+    },
+    {
+      "id": "obj_device",
+      "label": "Hand & Product Device",
+      "bbox": { "x": 0.12, "y": 0.42, "width": 0.38, "height": 0.58 }
+    },
+    {
+      "id": "obj_arrow",
+      "label": "Callout Arrow",
+      "bbox": { "x": 0.44, "y": 0.38, "width": 0.16, "height": 0.22 }
     }
   ],
   "background": {
-    "type": "dark", // "dark", "light", "gradient", "photo", "solid"
-    "dominantColor": "#0f172a",
-    "description": "Short description of background"
+    "type": "gradient",
+    "dominantColor": "#0b1710",
+    "secondaryColor": "#10b981"
   }
 }
 
 CRITICAL RULES:
-1. Every visible text phrase must be detected and converted into textElements. Do not omit words.
-2. Coordinates (bbox.x, bbox.y, bbox.width, bbox.height) MUST be normalized floats between 0.0 and 1.0.
-3. Separate distinct visual subjects (faces/people, product mockups, big logos) into foregroundObjects.
-4. Output ONLY clean JSON.
-`;
+1. Detect ALL distinct text phrases as separate items in textElements. Never merge separate text lines!
+2. Detect any headline cards or backplate containers in cardElements.
+3. Detect separate foregroundObjects for: the person/character, the hand/device, the callout arrow, and any corner badges/logos.
+4. Coordinates (bbox.x, bbox.y, bbox.width, bbox.height) MUST be normalized floats between 0.0 and 1.0.
+5. Output ONLY valid JSON, starting with { and ending with }.`;
 
 /**
- * Calls AI vision model to analyze layout
+ * Universal parser for AI model output (supports JSON, loose JSON, and structured markdown)
+ */
+function parseAIResponse(content) {
+  if (!content || typeof content !== "string") return null;
+
+  // 1. Direct JSON parse or find outermost { ... }
+  const firstBrace = content.indexOf("{");
+  const lastBrace = content.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    const candidate = content.slice(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch (e) {
+      // Fix unquoted keys like { x: 0.05, y: 0.07 }
+      try {
+        const fixed = candidate.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+        return JSON.parse(fixed);
+      } catch (e2) {}
+    }
+  }
+
+  // 2. Structured markdown format fallback
+  const result = {
+    designType: "youtube-thumbnail",
+    suggestedTitle: "Editable Design",
+    textElements: [],
+    cardElements: [],
+    shapeElements: [],
+    foregroundObjects: [],
+    background: { type: "gradient", dominantColor: "#0b1710", secondaryColor: "#10b981" }
+  };
+
+  const titleMatch = content.match(/\*\*Suggested Title:\*\*\s*"?([^"\n\r]+)"?/i);
+  if (titleMatch) result.suggestedTitle = titleMatch[1].trim();
+
+  // Parse Text Elements
+  const textSecMatch = content.match(/\*\*Text Elements:\*\*([\s\S]*?)(?=\*\*(?:Card|Shape|Foreground|Background) Elements?:|\n\n\*\*|$)/i);
+  if (textSecMatch) {
+    const textBlocks = textSecMatch[1].split(/\*\s*\*\*Text\s*\d+:?\*\*/i).filter(b => b.trim().length > 0);
+    textBlocks.forEach((block, i) => {
+      const textVal = (block.match(/Text:\s*"([^"]+)"/i) || block.match(/Text:\s*([^\n\r+*]+)/i))?.[1]?.trim();
+      const bboxMatch = block.match(/B(?:ounding\s*Box|Box)?:\s*\{([^}]+)\}/i);
+      let bbox = { x: 0.05, y: 0.1 * (i + 1), width: 0.5, height: 0.1 };
+      if (bboxMatch) {
+        const kvs = bboxMatch[1].split(",");
+        kvs.forEach(kv => {
+          const [k, v] = kv.split(":").map(s => s.trim());
+          if (k && !isNaN(Number(v))) bbox[k] = parseFloat(v);
+        });
+      }
+      const font = (block.match(/Font Family:\s*([^\n\r+*]+)/i))?.[1]?.trim() || "Anton";
+      const weight = parseInt((block.match(/Font Weight:\s*(\d+)/i))?.[1] || "900", 10);
+      const fill = (block.match(/Fill:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|[a-zA-Z]+)/i))?.[1]?.trim() || "#000000";
+
+      if (textVal) {
+        result.textElements.push({
+          id: `text_${i + 1}`,
+          text: textVal,
+          bbox,
+          fontFamily: font,
+          fontWeight: weight,
+          fill: fill.startsWith("#") ? fill : "#000000",
+          alignment: "left"
+        });
+      }
+    });
+  }
+
+  // Parse Foreground Objects
+  const objSecMatch = content.match(/\*\*Foreground Objects:\*\*([\s\S]*?)(?=\*\*(?:Background|Card|Shape) Elements?:|\n\n\*\*|$)/i);
+  if (objSecMatch) {
+    const objBlocks = objSecMatch[1].split(/\*\s*\*\*Object\s*[^:]+:?\*\*/i).filter(b => b.trim().length > 0);
+    objBlocks.forEach((block, i) => {
+      const label = (block.match(/Label:\s*([^\n\r+*]+)/i))?.[1]?.trim() || `Object ${i + 1}`;
+      const id = (block.match(/ID:\s*([^\n\r+*]+)/i))?.[1]?.trim() || `obj_${i + 1}`;
+      const bboxMatch = block.match(/B(?:ounding\s*Box|Box)?:\s*\{([^}]+)\}/i);
+      let bbox = { x: 0.5, y: 0.1, width: 0.4, height: 0.8 };
+      if (bboxMatch) {
+        const kvs = bboxMatch[1].split(",");
+        kvs.forEach(kv => {
+          const [k, v] = kv.split(":").map(s => s.trim());
+          if (k && !isNaN(Number(v))) bbox[k] = parseFloat(v);
+        });
+      }
+      result.foregroundObjects.push({ id, label, bbox });
+    });
+  }
+
+  // Parse Card Elements
+  const cardSecMatch = content.match(/\*\*Card Elements:\*\*([\s\S]*?)(?=\*\*(?:Foreground|Shape|Background) Elements?:|\n\n\*\*|$)/i);
+  if (cardSecMatch) {
+    const cardBlocks = cardSecMatch[1].split(/\*\s*\*\*Card\s*\d+:?\*\*/i).filter(b => b.trim().length > 0);
+    cardBlocks.forEach((block, i) => {
+      const name = (block.match(/Name:\s*([^\n\r+*]+)/i))?.[1]?.trim() || `Card ${i + 1}`;
+      const id = (block.match(/ID:\s*([^\n\r+*]+)/i))?.[1]?.trim() || `card_${i + 1}`;
+      const bboxMatch = block.match(/B(?:ounding\s*Box|Box)?:\s*\{([^}]+)\}/i);
+      let bbox = { x: 0.05, y: 0.05, width: 0.6, height: 0.45 };
+      if (bboxMatch) {
+        const kvs = bboxMatch[1].split(",");
+        kvs.forEach(kv => {
+          const [k, v] = kv.split(":").map(s => s.trim());
+          if (k && !isNaN(Number(v))) bbox[k] = parseFloat(v);
+        });
+      }
+      const fill = (block.match(/Fill:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|[a-zA-Z]+)/i))?.[1]?.trim() || "#ffffff";
+      const stroke = (block.match(/Stroke:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|[a-zA-Z]+)/i))?.[1]?.trim() || null;
+      const radius = parseInt((block.match(/Radius:\s*(\d+)/i))?.[1] || "24", 10);
+      result.cardElements.push({ id, name, bbox, fill, stroke, radius });
+    });
+  }
+
+  // Parse Shape Elements
+  const shapeSecMatch = content.match(/\*\*Shape Elements:\*\*([\s\S]*?)(?=\*\*(?:Foreground|Card|Background) Elements?:|\n\n\*\*|$)/i);
+  if (shapeSecMatch) {
+    const shapeBlocks = shapeSecMatch[1].split(/\*\s*\*\*Shape\s*\d+:?\*\*/i).filter(b => b.trim().length > 0);
+    shapeBlocks.forEach((block, i) => {
+      const shape = (block.match(/Shape:\s*([^\n\r+*]+)/i))?.[1]?.trim() || "pill";
+      const id = (block.match(/ID:\s*([^\n\r+*]+)/i))?.[1]?.trim() || `shape_${i + 1}`;
+      const bboxMatch = block.match(/B(?:ounding\s*Box|Box)?:\s*\{([^}]+)\}/i);
+      let bbox = { x: 0.1, y: 0.35, width: 0.4, height: 0.08 };
+      if (bboxMatch) {
+        const kvs = bboxMatch[1].split(",");
+        kvs.forEach(kv => {
+          const [k, v] = kv.split(":").map(s => s.trim());
+          if (k && !isNaN(Number(v))) bbox[k] = parseFloat(v);
+        });
+      }
+      const fill = (block.match(/Fill:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|[a-zA-Z]+)/i))?.[1]?.trim() || "#18181b";
+      const stroke = (block.match(/Stroke:\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|[a-zA-Z]+)/i))?.[1]?.trim() || null;
+      const radius = parseInt((block.match(/Radius:\s*(\d+)/i))?.[1] || "20", 10);
+      result.shapeElements.push({ id, shape, bbox, fill, stroke, radius });
+    });
+  }
+
+  if (result.textElements.length > 0 || result.foregroundObjects.length > 0) {
+    return result;
+  }
+  return null;
+}
+
+/**
+ * Calls AI vision model to analyze layout with pre-optimized image payload
  */
 async function analyzeVisualLayout(callAIFn, imageBuffer, meta) {
-  const base64 = imageBuffer.toString("base64");
-  const mime = meta.format === "png" ? "image/png" : (meta.format === "webp" ? "image/webp" : "image/jpeg");
-  const dataUri = `data:${mime};base64,${base64}`;
+  let visionBuffer = imageBuffer;
+  try {
+    visionBuffer = await sharp(imageBuffer)
+      .resize(640, null, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+  } catch (e) {
+    visionBuffer = imageBuffer;
+  }
+
+  const base64 = visionBuffer.toString("base64");
+  const dataUri = `data:image/jpeg;base64,${base64}`;
 
   try {
     const rawRes = await callAIFn(ANALYSIS_PROMPT, {
@@ -220,19 +385,14 @@ async function analyzeVisualLayout(callAIFn, imageBuffer, meta) {
       temperature: 0.2
     });
 
-    let parsed;
-    try {
-      // Clean possible markdown code fences
-      const cleanJson = rawRes.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
-      parsed = JSON.parse(cleanJson);
-    } catch (e) {
-      console.warn("[design-converter] JSON parse fallback:", e.message);
-      parsed = {};
+    const parsed = parseAIResponse(rawRes);
+    if (parsed) {
+      return sanitizeAnalysis(parsed, meta);
     }
-    return sanitizeAnalysis(parsed, meta);
+    console.warn("[design-converter] Could not parse AI response, falling back to heuristic starter");
+    return fallbackHeuristicAnalysis(meta);
   } catch (err) {
     console.error("[design-converter] AI Vision call failed:", err.message);
-    // Graceful fallback to heuristic detection
     return fallbackHeuristicAnalysis(meta);
   }
 }
@@ -276,6 +436,24 @@ function sanitizeAnalysis(data, meta) {
     };
   }).filter(Boolean);
 
+  const cardElements = (Array.isArray(data.cardElements) ? data.cardElements : []).map((c, idx) => {
+    const bbox = c.bbox || {};
+    const bx = Math.max(0, Math.min(0.95, Number(bbox.x) || 0.02));
+    const by = Math.max(0, Math.min(0.95, Number(bbox.y) || 0.02));
+    const bw = Math.max(0.1, Math.min(1.0 - bx, Number(bbox.width) || 0.6));
+    const bh = Math.max(0.08, Math.min(1.0 - by, Number(bbox.height) || 0.45));
+
+    return {
+      id: c.id || `card_${idx + 1}`,
+      name: String(c.name || "Headline Card Panel").slice(0, 40),
+      bbox: { x: bx, y: by, width: bw, height: bh },
+      fill: /^#[0-9a-fA-F]{6}$/.test(String(c.fill)) ? c.fill : "#ffffff",
+      stroke: /^#[0-9a-fA-F]{6}$/.test(String(c.stroke)) ? c.stroke : "#10b981",
+      radius: Math.max(0, Math.min(100, Number(c.radius) || 24)),
+      confidence: Math.max(0.1, Math.min(1.0, Number(c.confidence) || 0.88))
+    };
+  });
+
   const foregroundObjects = (Array.isArray(data.foregroundObjects) ? data.foregroundObjects : []).map((o, idx) => {
     const bbox = o.bbox || {};
     const bx = Math.max(0, Math.min(0.95, Number(bbox.x) || 0.5));
@@ -284,7 +462,7 @@ function sanitizeAnalysis(data, meta) {
     const bh = Math.max(0.05, Math.min(1.0 - by, Number(bbox.height) || 0.8));
 
     return {
-      id: `obj_${idx + 1}`,
+      id: o.id || `obj_${idx + 1}`,
       label: String(o.label || "Foreground Subject").slice(0, 40),
       bbox: { x: bx, y: by, width: bw, height: bh },
       confidence: Math.max(0.1, Math.min(1.0, Number(o.confidence) || 0.80))
@@ -300,12 +478,12 @@ function sanitizeAnalysis(data, meta) {
 
     const validShapes = new Set(["rectangle", "roundedRectangle", "pill", "circle", "curvedArrow", "straightArrow"]);
     return {
-      id: `shape_${idx + 1}`,
-      shape: validShapes.has(s.shape) ? s.shape : "curvedArrow",
+      id: s.id || `shape_${idx + 1}`,
+      shape: validShapes.has(s.shape) ? s.shape : "pill",
       bbox: { x: bx, y: by, width: bw, height: bh },
-      fill: /^#[0-9a-fA-F]{6}$/.test(String(s.fill)) ? s.fill : "#f59e0b",
-      stroke: /^#[0-9a-fA-F]{6}$/.test(String(s.stroke)) ? s.stroke : null,
-      radius: Math.max(0, Math.min(100, Number(s.radius) || 16)),
+      fill: /^#[0-9a-fA-F]{6}$/.test(String(s.fill)) ? s.fill : "#18181b",
+      stroke: /^#[0-9a-fA-F]{6}$/.test(String(s.stroke)) ? s.stroke : "#34d399",
+      radius: Math.max(0, Math.min(100, Number(s.radius) || 20)),
       rotation: Number(s.rotation) || 0,
       confidence: Math.max(0.1, Math.min(1.0, Number(s.confidence) || 0.80))
     };
@@ -315,6 +493,7 @@ function sanitizeAnalysis(data, meta) {
     designType: data.designType || "youtube-thumbnail",
     suggestedTitle: String(data.suggestedTitle || "Editable Design").slice(0, 80),
     textElements,
+    cardElements,
     foregroundObjects,
     shapeElements,
     background: data.background || { type: "dark", dominantColor: "#0b0f19" }
@@ -333,91 +512,137 @@ function fallbackHeuristicAnalysis(meta) {
     textElements: [
       {
         id: "text_1",
-        text: "CLICK TO EDIT HEADLINE",
-        bbox: { x: 0.08, y: 0.18, width: 0.75, height: 0.18 },
+        text: "VIRAL HOOK TITLE",
+        bbox: { x: 0.08, y: 0.12, width: 0.60, height: 0.16 },
         fontFamily: "Anton",
         fontWeight: 900,
         fill: "#ffffff",
         stroke: "#000000",
         strokeWidth: 3,
         alignment: "left",
+        confidence: 0.75
+      },
+      {
+        id: "text_2",
+        text: "IN UNDER 60 SECONDS",
+        bbox: { x: 0.08, y: 0.30, width: 0.45, height: 0.08 },
+        fontFamily: "Space Grotesk",
+        fontWeight: 800,
+        fill: "#38bdf8",
+        alignment: "left",
         confidence: 0.70
       }
     ],
+    cardElements: [],
     foregroundObjects: [],
-    shapeElements: [],
+    shapeElements: [
+      {
+        id: "shape_1",
+        shape: "pill",
+        bbox: { x: 0.08, y: 0.42, width: 0.35, height: 0.06 },
+        fill: "#1e293b",
+        stroke: "#38bdf8",
+        radius: 18,
+        confidence: 0.70
+      }
+    ],
     background: { type: "dark", dominantColor: "#0f172a" }
   };
 }
 
 /**
- * Reconstructs clean background by removing/erasing baked text regions
+ * Reconstructs clean background by inpainting baked text regions with true background color
  */
-async function reconstructBackground(imageBuffer, textElements, meta, assetsDir) {
+async function reconstructBackground(imageBuffer, textElements, cardElements, meta, assetsDir) {
   const width = meta.width;
   const height = meta.height;
   const bgPath = path.join(assetsDir, "background.webp");
 
   try {
-    // If no text was detected, copy original as background
     if (!textElements || !textElements.length) {
       await sharp(imageBuffer)
         .rotate()
-        .webp({ quality: 88, effort: 4 })
+        .webp({ quality: 90, effort: 4 })
         .toFile(bgPath);
       return { success: true, path: bgPath, relativeUrl: "assets/background.webp" };
     }
 
-    // Build composites to inpaint/erase baked text:
-    // Sample context from surrounding background and blend with blur/soft patch
     const composites = [];
+    const rawImage = await sharp(imageBuffer).raw().toBuffer({ resolveWithObject: true });
+    const data = rawImage.data;
+    const channels = rawImage.info.channels;
 
     for (const t of textElements) {
-      const pxX = Math.round(t.bbox.x * width);
-      const pxY = Math.round(t.bbox.y * height);
-      const pxW = Math.round(t.bbox.width * width);
-      const pxH = Math.round(t.bbox.height * height);
+      const pxX = Math.max(0, Math.round(t.bbox.x * width));
+      const pxY = Math.max(0, Math.round(t.bbox.y * height));
+      const pxW = Math.min(width - pxX, Math.round(t.bbox.width * width));
+      const pxH = Math.min(height - pxY, Math.round(t.bbox.height * height));
 
-      // Expand bounding box with 6% padding for clean boundary erasure
-      const padX = Math.round(pxW * 0.06);
-      const padY = Math.round(pxH * 0.08);
-      const patchX = Math.max(0, pxX - padX);
-      const patchY = Math.max(0, pxY - padY);
-      const patchW = Math.min(width - patchX, pxW + (padX * 2));
-      const patchH = Math.min(height - patchY, pxH + (padY * 2));
+      if (pxW < 4 || pxH < 4) continue;
 
-      if (patchW > 4 && patchH > 4) {
-        // Extract blurred local background patch to dissolve high frequency text contours
-        const patchBuffer = await sharp(imageBuffer)
-          .extract({ left: patchX, top: patchY, width: patchW, height: patchH })
-          .blur(18)
-          .modulate({ brightness: 0.98 })
-          .toBuffer();
+      // Check if this text sits inside any cardElement
+      const parentCard = (cardElements || []).find(c => {
+        const cx = Math.round(c.bbox.x * width);
+        const cy = Math.round(c.bbox.y * height);
+        const cw = Math.round(c.bbox.width * width);
+        const ch = Math.round(c.bbox.height * height);
+        return pxX >= cx - 20 && pxY >= cy - 20 && (pxX + pxW) <= (cx + cw + 20) && (pxY + pxH) <= (cy + ch + 20);
+      });
 
-        composites.push({
-          input: patchBuffer,
-          left: patchX,
-          top: patchY,
-          blend: "over"
-        });
+      let r, g, bColor;
+      if (parentCard && /^#[0-9a-fA-F]{6}$/.test(parentCard.fill)) {
+        r = parseInt(parentCard.fill.slice(1, 3), 16);
+        g = parseInt(parentCard.fill.slice(3, 5), 16);
+        bColor = parseInt(parentCard.fill.slice(5, 7), 16);
+      } else {
+        // Sample border pixels outside the text box to find true background color
+        let rSum = 0, gSum = 0, bSum = 0, count = 0;
+        const sampleYTop = Math.max(0, pxY - 4);
+        const sampleYBot = Math.min(height - 1, pxY + pxH + 4);
+        for (let x = pxX; x < pxX + pxW; x += 2) {
+          const idxTop = (sampleYTop * width + x) * channels;
+          rSum += data[idxTop]; gSum += data[idxTop + 1]; bSum += data[idxTop + 2];
+          const idxBot = (sampleYBot * width + x) * channels;
+          rSum += data[idxBot]; gSum += data[idxBot + 1]; bSum += data[idxBot + 2];
+          count += 2;
+        }
+        r = count > 0 ? Math.round(rSum / count) : 15;
+        g = count > 0 ? Math.round(gSum / count) : 23;
+        bColor = count > 0 ? Math.round(bSum / count) : 42;
       }
+
+      // Create clean solid patch matching true background
+      const patch = await sharp({
+        create: {
+          width: pxW,
+          height: pxH,
+          channels: 3,
+          background: { r, g, b: bColor }
+        }
+      }).png().toBuffer();
+
+      composites.push({
+        input: patch,
+        left: pxX,
+        top: pxY,
+        blend: "over"
+      });
     }
 
     if (composites.length) {
       await sharp(imageBuffer)
         .composite(composites)
-        .webp({ quality: 88, effort: 4 })
+        .webp({ quality: 90, effort: 4 })
         .toFile(bgPath);
     } else {
       await sharp(imageBuffer)
-        .webp({ quality: 88, effort: 4 })
+        .webp({ quality: 90, effort: 4 })
         .toFile(bgPath);
     }
 
     return { success: true, path: bgPath, relativeUrl: "assets/background.webp" };
   } catch (err) {
-    console.warn("[design-converter] Background reconstruction warning:", err.message);
-    // Safe fallback: copy original as background
+    console.warn("[design-converter] Background inpainting warning:", err.message);
     await sharp(imageBuffer).webp({ quality: 88 }).toFile(bgPath);
     return { success: true, path: bgPath, relativeUrl: "assets/background.webp" };
   }
@@ -442,9 +667,23 @@ async function segmentForegroundObjects(imageBuffer, foregroundObjects, meta, as
         const objFileName = `layer_${obj.id}.webp`;
         const objFilePath = path.join(assetsDir, objFileName);
 
-        await sharp(imageBuffer)
+        // Crop object patch from high-resolution source
+        const patch = await sharp(imageBuffer)
           .extract({ left: pxX, top: pxY, width: pxW, height: pxH })
-          .webp({ quality: 90, effort: 4 })
+          .png()
+          .toBuffer();
+
+        // Create soft feathering alpha mask to eliminate harsh rectangular cutout seams
+        const featherPx = Math.max(2, Math.min(12, Math.round(Math.min(pxW, pxH) * 0.05)));
+        const maskSvg = Buffer.from(`
+          <svg width="${pxW}" height="${pxH}">
+            <rect x="0" y="0" width="${pxW}" height="${pxH}" rx="${featherPx}" ry="${featherPx}" fill="#ffffff" />
+          </svg>
+        `);
+
+        await sharp(patch)
+          .composite([{ input: maskSvg, blend: "dest-in" }])
+          .webp({ quality: 92, effort: 4 })
           .toFile(objFilePath);
 
         extracted.push({
@@ -529,7 +768,7 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
   const analysis = await analyzeVisualLayout(callAI, imageBuffer, meta);
 
   // 3. Background Inpainting (erasing baked text)
-  const bgRes = await reconstructBackground(imageBuffer, analysis.textElements, meta, ws.assetsDir);
+  const bgRes = await reconstructBackground(imageBuffer, analysis.textElements, analysis.cardElements, meta, ws.assetsDir);
   const backgroundUrl = `${ws.urlBase}/${bgRes.relativeUrl}`;
 
   // 4. Foreground Object Segmentation
@@ -554,8 +793,33 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
     locked: true
   });
 
-  // Vector Shape layers (Z: 1..k)
-  for (const s of analysis.shapeElements) {
+  // Card Panel layers (Z: 1..j)
+  for (const c of (analysis.cardElements || [])) {
+    const cx = Math.round(c.bbox.x * canvasWidth);
+    const cy = Math.round(c.bbox.y * canvasHeight);
+    const cw = Math.round(c.bbox.width * canvasWidth);
+    const ch = Math.round(c.bbox.height * canvasHeight);
+
+    elements.push({
+      id: c.id,
+      name: c.name || "Headline Card Panel",
+      type: "shape",
+      shape: "roundedRectangle",
+      x: cx,
+      y: cy,
+      width: cw,
+      height: ch,
+      fill: c.fill || "#ffffff",
+      stroke: c.stroke || "#10b981",
+      strokeWidth: 4,
+      radius: c.radius || 24,
+      confidence: c.confidence || 0.90,
+      zIndex: currentZ++
+    });
+  }
+
+  // Vector Shape layers (Z: j..k)
+  for (const s of (analysis.shapeElements || [])) {
     const sx = Math.round(s.bbox.x * canvasWidth);
     const sy = Math.round(s.bbox.y * canvasHeight);
     const sw = Math.round(s.bbox.width * canvasWidth);
@@ -570,9 +834,9 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
       y: sy,
       width: sw,
       height: sh,
-      fill: s.fill || "#f59e0b",
-      stroke: s.stroke,
-      radius: s.radius || 12,
+      fill: s.fill || "#18181b",
+      stroke: s.stroke || "#34d399",
+      radius: s.radius || 20,
       rotation: s.rotation || 0,
       confidence: s.confidence,
       zIndex: currentZ++
@@ -652,8 +916,9 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
       qualityRating: quality.rating,
       confidenceSummary: {
         textCount: analysis.textElements.length,
+        cardCount: (analysis.cardElements || []).length,
         objectCount: segmentedObjects.length,
-        shapeCount: analysis.shapeElements.length
+        shapeCount: (analysis.shapeElements || []).length
       }
     },
     elements
