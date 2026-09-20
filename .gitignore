@@ -61,3 +61,4 @@ audit_*.js
 _*.js
 _shots/
 supabase/.temp/
+public/storage/designs/job_*/

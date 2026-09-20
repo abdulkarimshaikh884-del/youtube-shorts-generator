@@ -84,6 +84,7 @@ body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', 
 .de-inspector { width: 280px; background: var(--de-panel); border-left: 1px solid var(--de-panel-border); display: flex; flex-direction: column; padding: 16px; overflow-y: auto; z-index: 20; flex: none; gap: 16px; }
 .de-inspector[hidden] { display: none !important; }
 .de-panel-sec { display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--de-panel-border); padding-bottom: 16px; }
+.de-panel-sec[hidden] { display: none !important; }
 .de-panel-sec:last-child { border-bottom: none; }
 .de-panel-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--de-ink3); }
 

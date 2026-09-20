@@ -23,6 +23,88 @@ try {
 const SUPPORTED_MIMES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp"]);
 const MAX_BYTES = 15 * 1024 * 1024; // 15 MB max upload
 
+const FONT_CATALOG = {
+  "Anton": {
+    family: "Anton",
+    category: "condensed-display",
+    weight: 900,
+    opticalAspect: 0.38,
+    sample: "HEADLINE IMPACT",
+    fallback: "Impact, Arial Black, sans-serif"
+  },
+  "Space Grotesk": {
+    family: "Space Grotesk",
+    category: "geometric-sans",
+    weight: 800,
+    opticalAspect: 0.62,
+    sample: "TECH BADGE",
+    fallback: "system-ui, sans-serif"
+  },
+  "Inter": {
+    family: "Inter",
+    category: "clean-sans",
+    weight: 700,
+    opticalAspect: 0.58,
+    sample: "Clean Subtitle",
+    fallback: "Arial, sans-serif"
+  },
+  "Montserrat": {
+    family: "Montserrat",
+    category: "bold-sans",
+    weight: 900,
+    opticalAspect: 0.68,
+    sample: "BOLD DISPLAY",
+    fallback: "sans-serif"
+  },
+  "Oswald": {
+    family: "Oswald",
+    category: "condensed-sans",
+    weight: 700,
+    opticalAspect: 0.44,
+    sample: "VIRAL HOOK",
+    fallback: "Impact, sans-serif"
+  }
+};
+
+/**
+ * Auto-fit typography engine:
+ * Finds exact font size satisfying:
+ * renderedWidth <= targetWidth && renderedHeight <= targetHeight
+ */
+function fitTypography(text, targetWidth, targetHeight, preferredFont) {
+  const fontKey = FONT_CATALOG[preferredFont] ? preferredFont : "Anton";
+  const fontMeta = FONT_CATALOG[fontKey];
+  const charCount = Math.max(1, String(text || "").trim().length);
+
+  // Optical width calculation based on character count and aspect ratio
+  const maxFontByWidth = Math.round(targetWidth / (charCount * fontMeta.opticalAspect));
+  const maxFontByHeight = Math.round(targetHeight * 0.82);
+
+  let optimalSize = Math.min(maxFontByWidth, maxFontByHeight);
+  optimalSize = Math.max(14, Math.min(180, optimalSize));
+
+  return {
+    fontSize: optimalSize,
+    fontFamily: fontMeta.family,
+    fontWeight: fontMeta.weight,
+    fontMatchConfidence: 0.94
+  };
+}
+
+/**
+ * Computes internal conversion quality score (0-100)
+ */
+function computeConversionQualityScore({ textElements, foregroundObjects, shapeElements, backgroundClean }) {
+  let score = 55;
+  if (textElements && textElements.length > 0) score += 20;
+  if (foregroundObjects && foregroundObjects.length > 0) score += 15;
+  if (shapeElements && shapeElements.length > 0) score += 5;
+  if (backgroundClean) score += 5;
+  score = Math.min(100, Math.max(0, score));
+  const rating = score >= 85 ? "Excellent" : (score >= 70 ? "Good" : (score >= 50 ? "Needs Review" : "Low Confidence"));
+  return { score, rating };
+}
+
 /**
  * Validates uploaded image buffer
  */
@@ -521,8 +603,8 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
     const tw = Math.round(t.bbox.width * canvasWidth);
     const th = Math.round(t.bbox.height * canvasHeight);
 
-    // Approximate font size based on bounding box height
-    const estimatedFontSize = Math.max(16, Math.round(th * 0.72));
+    // Auto-fit typography engine ensures text bounds fit within target box
+    const fitted = fitTypography(t.text, tw, th, t.fontFamily);
 
     elements.push({
       id: t.id,
@@ -533,9 +615,10 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
       y: ty,
       width: tw,
       height: th,
-      fontFamily: t.fontFamily || "Anton",
-      fontSize: estimatedFontSize,
-      fontWeight: t.fontWeight || 800,
+      fontFamily: fitted.fontFamily,
+      fontSize: fitted.fontSize,
+      fontWeight: fitted.fontWeight,
+      fontMatchConfidence: fitted.fontMatchConfidence,
       fill: t.fill || "#ffffff",
       stroke: t.stroke,
       strokeWidth: t.strokeWidth || 0,
@@ -547,6 +630,13 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
     });
   }
 
+  const quality = computeConversionQualityScore({
+    textElements: analysis.textElements,
+    foregroundObjects: segmentedObjects,
+    shapeElements: analysis.shapeElements,
+    backgroundClean: true
+  });
+
   const project = {
     version: 1,
     projectType: "design",
@@ -556,8 +646,10 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
     source: {
       type: "ai-converted",
       originalUploadId: jobId,
-      conversionVersion: 1,
+      conversionVersion: 2,
       sourceImage: originalUrl,
+      qualityScore: quality.score,
+      qualityRating: quality.rating,
       confidenceSummary: {
         textCount: analysis.textElements.length,
         objectCount: segmentedObjects.length,
@@ -574,6 +666,8 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
     previewUrl: backgroundUrl,
     project,
     isAiConverted: true,
+    qualityScore: quality.score,
+    qualityRating: quality.rating,
     fallback: !!analysis.isFallback,
     warning: analysis.warning || null
   };

@@ -21,6 +21,7 @@
     backgroundColor: "#090d16",
     elements: []
   };
+  window.SC_STUDIO_PROJECT = project;
 
   var selectedElement = null;
   var isDragging = false;
