@@ -118,9 +118,9 @@
     });
 
     var box = $("#accountBox"), guest = $("#accountGuest");
-    if (box && guest) {
+    if (box) {
       show(box, !!user);
-      show(guest, !user);
+      if (guest) show(guest, !user);
       if (user) {
         var bio = user.bio || "";
 
@@ -1200,7 +1200,7 @@
             var ask = window.SC_UI && SC_UI.confirm
               ? SC_UI.confirm({
                   title: "Delete this template?",
-                  body: "This permanently removes it from Creator Studio and, if published, from the Community gallery.",
+                  body: "This permanently removes it from My Projects and, if published, from the Community gallery.",
                   confirmLabel: "Delete",
                   danger: true
                 })
@@ -2252,7 +2252,7 @@
       '      <label class="sc-publish-field"><span>Category</span><select id="publishCategory">' + CATEGORIES.map(function (c) { return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join("") + '</select></label>',
       '    </section>',
       '    <section class="sc-publish-panel" data-panel="4" hidden>',
-      '      <fieldset class="sc-publish-visibility"><legend>Who should see it?</legend><label><input type="radio" name="publishVisibility" value="public" checked><span><strong>Publish now</strong><small>Appears in the template library straight away.</small></span></label><label><input type="radio" name="publishVisibility" value="private"><span><strong>Draft</strong><small>Only you can see it, in your Creator Studio.</small></span></label><label><input type="radio" name="publishVisibility" value="scheduled"><span><strong>Schedule</strong><small>Publishes at the time you choose &mdash; at least 10 minutes ahead, within one year.</small></span></label></fieldset>',
+      '      <fieldset class="sc-publish-visibility"><legend>Who should see it?</legend><label><input type="radio" name="publishVisibility" value="public" checked><span><strong>Publish now</strong><small>Appears in the template library straight away.</small></span></label><label><input type="radio" name="publishVisibility" value="private"><span><strong>Draft</strong><small>Only you can see it, in My Projects.</small></span></label><label><input type="radio" name="publishVisibility" value="scheduled"><span><strong>Schedule</strong><small>Publishes at the time you choose &mdash; at least 10 minutes ahead, within one year.</small></span></label></fieldset>',
       '      <label class="sc-publish-field" id="publishScheduleWrap" hidden><span>Publish date and time (your device time zone)</span><input id="publishSchedule" type="datetime-local"></label>',
       '      <div class="sc-publish-summary" id="publishSummary"></div>',
       '    </section>',
@@ -3020,8 +3020,7 @@
     var ref = editorLink ? editorLink.nextSibling : menu.firstChild;
     [
       { href: "/drafts", label: "My Projects" },
-      { href: "/uploads", label: "Creator Studio", auth: true },
-      { href: "/settings", label: "Settings", auth: true },
+      { href: "/settings", label: "Settings" },
       { href: "/tutorials", label: "Tutorials & Help" }
     ].forEach(function (item) {
       if (menu.querySelector('a[href="' + item.href + '"]')) return;

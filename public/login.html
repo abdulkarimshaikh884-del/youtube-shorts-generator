@@ -25,25 +25,23 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091907">
-<link rel="stylesheet" href="/page.css?v=2026091907">
-<link rel="stylesheet" href="/redesign.css?v=2026091907">
+<link rel="stylesheet" href="/shell.css?v=2026092302">
+<link rel="stylesheet" href="/page.css?v=2026092302">
+<link rel="stylesheet" href="/redesign.css?v=2026092302">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091907">
+<link rel="stylesheet" href="/polish.css?v=2026092302">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026091907">
+<link rel="stylesheet" href="/mobile.css?v=2026092302">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026091907">
+<link rel="stylesheet" href="/ds.css?v=2026092302">
+<link rel="stylesheet" href="/monochrome.css?v=2026092302">
 </head>
 <body class="sh-body pg-bare">
 <div class="pg-screen">
-  <button type="button" class="sh-theme-toggle pg-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
-    <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
-    <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-  </button>
+
   <a href="/" class="pg-wordmark" aria-label="ShortsCraft home">
     <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
     <span class="sh-brand-name">Shorts<i>Craft</i></span>
@@ -55,6 +53,9 @@
       </section>
 
       <form class="pg-form pg-auth" id="authForm" data-kind="login" novalidate>
+        <button type="button" class="pg-google" data-google-signin disabled><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.61 24.46c0-1.36-.12-2.66-.35-3.92H24v7.42h11a9.4 9.4 0 0 1-4.08 6.18v5.13h6.61c3.86-3.56 6.08-8.8 6.08-14.81z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.82 13.47-4.93l-6.61-5.13c-1.83 1.22-4.16 1.96-6.86 1.96-5.31 0-9.82-3.59-11.44-8.43H5.74v5.29A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.56 27.47a12 12 0 0 1 0-6.94v-5.29H5.74a20 20 0 0 0 0 17.52z"/><path fill="#EA4335" d="M24 12.1c3 0 5.67 1.03 7.8 3.05l5.85-5.85C34.1 6 29.5 4 24 4A20 20 0 0 0 5.74 15.24l6.82 5.29C14.18 15.69 18.69 12.1 24 12.1z"/></svg> Continue with Google</button>
+        <p class="pg-google-note" data-google-status role="status">Checking Google sign-in availability…</p>
+        <div class="pg-auth-divider"><span>or continue with email</span></div>
         
         <div class="pg-f">
           <label for="authEmail">Email</label>
@@ -86,8 +87,8 @@
   </nav>
 </div>
 
-<script src="/authui.js?v=2026091907" defer></script>
-<script src="/theme.js?v=2026091907" defer></script>
-<script src="/page.js?v=2026091907" defer></script>
+<script src="/authui.js?v=2026092302" defer></script>
+<script src="/theme.js?v=2026092302" defer></script>
+<script src="/page.js?v=2026092302" defer></script>
 </body>
 </html>

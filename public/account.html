@@ -25,18 +25,19 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026091907">
-<link rel="stylesheet" href="/page.css?v=2026091907">
-<link rel="stylesheet" href="/redesign.css?v=2026091907">
+<link rel="stylesheet" href="/shell.css?v=2026092302">
+<link rel="stylesheet" href="/page.css?v=2026092302">
+<link rel="stylesheet" href="/redesign.css?v=2026092302">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026091907">
+<link rel="stylesheet" href="/polish.css?v=2026092302">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026091907">
+<link rel="stylesheet" href="/mobile.css?v=2026092302">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026091907">
+<link rel="stylesheet" href="/ds.css?v=2026092302">
+<link rel="stylesheet" href="/monochrome.css?v=2026092302">
 </head>
 <body class="sh-body">
 
@@ -90,24 +91,16 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
             <span>My Projects</span>
           </a>
-          <a href="/uploads" data-auth="in" hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
-            <span>Creator Studio</span>
-          </a>
         </div>
         <div class="sh-navgroup">
           <h2 class="sh-navgroup-title">Account</h2>
-          <a href="/settings" data-auth="in" hidden>
+          <a href="/settings">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             <span>Settings</span>
           </a>
           <a href="/pricing">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             <span>Pricing</span>
-          </a>
-          <a href="/admin" data-auth="admin" hidden>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span>Admin Console</span>
           </a>
         </div>
         <div class="sh-navgroup">
@@ -126,11 +119,7 @@
            account it belongs to, and it was the one rail row that opened a
            panel rather than going somewhere. The theme switch stays: it is a
            setting, and settings live with the rest of the destinations. -->
-      <button type="button" class="sh-theme-toggle" id="themeToggle" data-theme-toggle aria-label="Switch to dark theme" aria-pressed="false">
-        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
-        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <span class="sh-nav-label">Theme</span>
-      </button>
+
     </nav>
 
     <div class="sh-rail-foot">
@@ -179,13 +168,7 @@
                 <span class="sh-upop-hot-tag">NEW</span>
               </button>
 
-              <a href="/uploads" class="sh-upop-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Creator Studio</b>
-                  <span>Published, scheduled and private templates</span>
-                </div>
-              </a>
+
 
               <a href="/drafts" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -203,13 +186,7 @@
                 </div>
               </a>
 
-              <a href="/admin" class="sh-upop-item" data-auth="admin" hidden>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Admin Console</b>
-                  <span>Users, content and support</span>
-                </div>
-              </a>
+
 
               <a href="/pricing" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -306,12 +283,12 @@
       <a href="/designs">Designs</a>
       <a href="/community">Creator Tutorials</a>
       <a href="/drafts">My Projects</a>
-      <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
+
       <a href="/pricing">Pricing</a>
       <a href="/tutorials">Help</a>
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
-      <a href="/settings" data-auth="in" hidden>Settings</a>
+      <a href="/settings">Settings</a>
       <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Publish Template</span>
@@ -319,13 +296,9 @@
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
       <a href="/account" data-auth="in" hidden>Profile</a>
-      <a href="/admin" data-auth="admin" hidden>Admin Console</a>
+
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
-      <button type="button" class="sh-m-theme" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme">
-        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
-        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <span data-theme-label>Dark theme</span>
-      </button>
+
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
@@ -413,15 +386,15 @@
              exist on a phone, so the Profile tab is where they live. -->
         <nav class="sh-profile-hub" aria-label="Your account">
           <a href="/drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>My Projects</span></a>
-          <a href="/uploads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Creator Studio</span></a>
+
           <button type="button" class="js-open-upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Upload Animation</span></button>
           <a href="/settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Settings</span></a>
           <a href="/pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Pricing</span></a>
           <a href="/tutorials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Help</span></a>
           <a href="/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg><span>Feedback</span></a>
           <a href="/about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>About Us</span></a>
-          <a href="/admin" data-auth="admin" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin Console</span></a>
-          <button type="button" data-theme-toggle aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span>Theme</span></button>
+
+
           <button type="button" id="accHubLogout" class="sh-hub-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Log out</span></button>
         </nav>
 
@@ -751,9 +724,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026091907" defer></script>
-<script src="/theme.js?v=2026091907" defer></script>
-<script src="/report.js?v=2026091907" defer></script>
-<script src="/page.js?v=2026091907" defer></script>
-<script src="/templates-v2.js?v=2026091907"></script></body>
+<script src="/authui.js?v=2026092302" defer></script>
+<script src="/theme.js?v=2026092302" defer></script>
+<script src="/report.js?v=2026092302" defer></script>
+<script src="/page.js?v=2026092302" defer></script>
+<script src="/templates-v2.js?v=2026092302"></script></body>
 </html>

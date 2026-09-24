@@ -66,11 +66,10 @@ async function runTests() {
     designType: "youtube-thumbnail",
     callAI: failingCallAI
   });
-  assert(fallbackResult.success, "Should succeed via fallback mode");
-  assert(fallbackResult.fallback, "Fallback flag should be true");
-  assert(fallbackResult.warning, "Should contain user warning");
-  assert(fallbackResult.project.elements.length >= 1, "Should retain image layer");
-  console.log("   ✓ Gracefully recovered with fallback layer:", fallbackResult.warning);
+  assert.strictEqual(fallbackResult.success, false, "Failed AI must not manufacture placeholder layers");
+  assert(fallbackResult.error, "Should explain failure");
+  assert.strictEqual(fallbackResult.project, undefined);
+  console.log("   ✓ Failed honestly; user can explicitly select flat-image mode");
 
   // Test 5: Designs Store - listTemplates
   console.log("5. Testing designs.listTemplates()...");

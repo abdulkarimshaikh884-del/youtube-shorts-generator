@@ -255,6 +255,47 @@ async function logIn(res, email, password) {
   return { user: publicUser(u) };
 }
 
+// Only called with userinfo fetched directly from Google using a server-issued
+// authorization-code token. Never accept browser-supplied identity claims.
+async function googleAccount(res, info, linkingUserId = null) {
+  if (typeof info.sub !== "string" || !/^[A-Za-z0-9_-]{1,255}$/.test(info.sub) || info.email_verified !== true || !validEmail(normEmail(info.email))) {
+    return { error: "unverified" };
+  }
+  const email = normEmail(info.email);
+  let result;
+  try {
+    result = await db.tx(async (client) => {
+      // Serializes requests for one Google identity; unique indexes close races
+      // with password signup and other identities using the same email.
+      await client.query("select pg_advisory_xact_lock(hashtext($1))", ["google:" + info.sub]);
+      const linked = await client.query("select * from public.users where google_sub = $1", [info.sub]);
+      if (linked.rows[0]) {
+        if (linkingUserId && linked.rows[0].id !== linkingUserId) return { error: "conflict" };
+        return { row: linked.rows[0] };
+      }
+      if (linkingUserId) {
+        const own = await client.query("select * from public.users where id = $1 for update", [linkingUserId]);
+        if (!own.rows[0] || normEmail(own.rows[0].email) !== email || own.rows[0].google_sub) return { error: "conflict" };
+        const updated = await client.query("update public.users set google_sub = $2, updated_at = now() where id = $1 returning *", [linkingUserId, info.sub]);
+        return { row: updated.rows[0] };
+      }
+      const existing = await client.query("select id from public.users where lower(email) = $1", [email]);
+      // Existing password accounts have not necessarily verified their email.
+      // Require their session before linking; never silently merge by email.
+      if (existing.rows.length) return { error: "link_required" };
+      const handle = "@creator_" + crypto.randomBytes(10).toString("hex");
+      const created = await client.query("insert into public.users (email, password_hash, plan, handle, display_name, google_sub) values ($1, $2, 'free', $3, $4, $5) returning *", [email, "google-only", handle, String(info.name || email.split("@")[0]).slice(0, 50), info.sub]);
+      return { row: created.rows[0] };
+    });
+  } catch (err) {
+    if (err.code === "23505") return { error: "conflict" };
+    throw err;
+  }
+  if (result.error) return result;
+  await startSession(res, result.row.id);
+  return { user: publicUser(result.row) };
+}
+
 /* Always returns the same public shape, whether the address exists or not.
    The caller decides whether to send an email; only a SHA-256 token hash is
    persisted, so a database read cannot be turned into a password reset. */
@@ -549,6 +590,7 @@ async function count() {
 }
 
 module.exports = {
+  googleAccount,
   middleware, signUp, logIn, logOut, requestPasswordReset, cancelPasswordReset, resetPassword,
   changePlan, countLifetime, effectivePlan, updateProfile, saveAvatar, removeAvatar, getAvatar, giveStar, count,
   COOKIE, MIN_PASSWORD, RESET_MINUTES, publicUser, isVerified

@@ -64,6 +64,36 @@
   });
 
   /* ── log in / sign up ─────────────────────────────────── */
+  var googleButtons = document.querySelectorAll("[data-google-signin]");
+  if (googleButtons.length) {
+    var googleErrors = {
+      unavailable: "Google sign-in is not available yet. Please use email and password.",
+      expired: "Your Google sign-in expired or your session changed. Please try again.",
+      cancelled: "Google sign-in was cancelled. You can try again or use email.",
+      failed: "Google sign-in could not finish. Please retry or use email and password.",
+      unverified: "Please use a Google account with a verified email address.",
+      link_required: "This email already has an account. Log in with your password (or reset it), then connect Google in Settings.",
+      conflict: "This Google account could not be connected. In Settings, choose the same email as your existing account."
+    };
+    var googleError = googleErrors[new URLSearchParams(location.search).get("google_error")];
+    function googleStatus(text) { document.querySelectorAll("[data-google-status]").forEach(function (el) { el.textContent = text; }); }
+    if (googleError) googleStatus(googleError);
+    fetch("/api/auth/google/config", { credentials: "same-origin", signal: AbortSignal.timeout(10000) }).then(function (r) {
+      if (!r.ok) throw new Error("unavailable");
+      return r.json();
+    }).then(function (data) {
+      googleButtons.forEach(function (button) { button.disabled = !data.enabled; });
+      if (!googleError) googleStatus(data.enabled ? (document.querySelector("[data-google-link]") ? "Connect the Google account with the same email. Reconnecting an already linked account is safe." : "No separate password needed with Google.") : googleErrors.unavailable);
+    }).catch(function () { if (!googleError) googleStatus(googleErrors.unavailable); });
+    googleButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var destination = button.hasAttribute("data-google-link") ? "/settings" : safeNext(new URLSearchParams(location.search).get("next")) || "/";
+        button.disabled = true;
+        googleStatus("Opening Google…");
+        location.assign("/api/auth/google?next=" + encodeURIComponent(destination));
+      });
+    });
+  }
   var af = $("#authForm");
   if (af) {
     var kind = af.dataset.kind === "signup" ? "signup" : "login";
@@ -500,8 +530,10 @@
     var section = $("#supportHistory");
     var grid = $("#supportTicketGrid");
     if (!section || !grid) return;
+    var signedIn = false;
     supportRequest("/api/auth/me").then(function (auth) {
       if (!auth.user) { section.hidden = true; return null; }
+      signedIn = true;
       section.hidden = false;
       grid.textContent = "Loading your tickets…";
       return supportRequest("/api/support/tickets");
@@ -539,6 +571,7 @@
         if (requested && listOnly !== true) openSupportTicket(requested, false);
       })
       .catch(function (err) {
+        if (!signedIn) { section.hidden = true; return; }
         section.hidden = false;
         grid.textContent = err.message + " ";
         var retry = document.createElement("button");

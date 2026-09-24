@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026091907";
+const V = "2026092402";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -83,20 +83,16 @@ const NAV = [
     icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
   { href: "/drafts", label: "My Projects", key: "projects", group: "Workspace",
     icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' },
-  { href: "/uploads", label: "Creator Studio", key: "uploads", auth: "in", group: "Workspace",
-    icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
   /* The pages people look for when something has gone wrong sit in the rail,
      which is on every screen, as well as in the footer. */
   { href: "/tutorials", label: "Help", key: "tutorials", group: "Support & Legal",
     icon: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>' },
   { href: "/contact", label: "Feedback", key: "contact", group: "Support & Legal",
     icon: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>' },
-  { href: "/settings", label: "Settings", key: "settings", auth: "in", group: "Account",
+  { href: "/settings", label: "Settings", key: "settings", group: "Account",
     icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
   { href: "/pricing", label: "Pricing", key: "pricing", group: "Account",
     icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
-  { href: "/admin", label: "Admin Console", key: "admin", auth: "admin", group: "Account",
-    icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' }
 ];
 
 const TOOLS = [
@@ -118,10 +114,7 @@ function BARE(p, V) {
      two competing "main content" landmarks on the page. */
   return `
 <div class="pg-screen">
-  <button type="button" class="sh-theme-toggle pg-theme-toggle" id="themeToggle" aria-label="Switch to dark theme" aria-pressed="false">
-    <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
-    <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-  </button>
+
   <a href="/" class="pg-wordmark" aria-label="ShortsCraft home">
     <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
     <span class="sh-brand-name">Shorts<i>Craft</i></span>
@@ -237,6 +230,7 @@ ${p.head || ""}
 <link rel="stylesheet" href="/mobile.css?v=${V}">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=${V}">
+<link rel="stylesheet" href="/monochrome.css?v=${V}">
 </head>
 `;
 
@@ -273,11 +267,7 @@ ${nav}
            account it belongs to, and it was the one rail row that opened a
            panel rather than going somewhere. The theme switch stays: it is a
            setting, and settings live with the rest of the destinations. -->
-      <button type="button" class="sh-theme-toggle" id="themeToggle" data-theme-toggle aria-label="Switch to dark theme" aria-pressed="false">
-        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
-        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <span class="sh-nav-label">Theme</span>
-      </button>
+
     </nav>
 
     <div class="sh-rail-foot">
@@ -326,13 +316,7 @@ ${nav}
                 <span class="sh-upop-hot-tag">NEW</span>
               </button>
 
-              <a href="/uploads" class="sh-upop-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Creator Studio</b>
-                  <span>Published, scheduled and private templates</span>
-                </div>
-              </a>
+
 
               <a href="/drafts" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -350,13 +334,7 @@ ${nav}
                 </div>
               </a>
 
-              <a href="/admin" class="sh-upop-item" data-auth="admin" hidden>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Admin Console</b>
-                  <span>Users, content and support</span>
-                </div>
-              </a>
+
 
               <a href="/pricing" class="sh-upop-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -453,12 +431,12 @@ ${nav}
       <a href="/designs">Designs</a>
       <a href="/community">Creator Tutorials</a>
       <a href="/drafts">My Projects</a>
-      <a href="/uploads" data-auth="in" hidden>Creator Studio</a>
+
       <a href="/pricing">Pricing</a>
       <a href="/tutorials">Help</a>
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
-      <a href="/settings" data-auth="in" hidden>Settings</a>
+      <a href="/settings">Settings</a>
       <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <span>Publish Template</span>
@@ -466,13 +444,9 @@ ${nav}
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
       <a href="/account" data-auth="in" hidden>Profile</a>
-      <a href="/admin" data-auth="admin" hidden>Admin Console</a>
+
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
-      <button type="button" class="sh-m-theme" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme">
-        <svg class="sh-theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></svg>
-        <svg class="sh-theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="16" height="16" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <span data-theme-label>Dark theme</span>
-      </button>
+
       <a href="/editor" class="sh-mfill">Create Animation</a>
     </div>
 
@@ -1494,21 +1468,32 @@ const contact = {
   active: "contact",
   title: "Feedback — ShortsCraft",
   desc: "Report a bug, request a template or ask a question about ShortsCraft. Messages reach the person who builds it.",
-  body: `    <main class="pg">
-${pageHead("Feedback")}
+  head: `<link rel="stylesheet" href="/contact.css?v=2026092401">`,
+  body: `    <main class="pg sc-contact">
+      <header class="sc-contact-head">
+        <span class="sc-contact-kicker">SHORTSCRAFT SUPPORT</span>
+        <h1>Feedback</h1>
+        <p>Tell us what is working, what is not, or which animation template you would like to see. We read every request.</p>
+      </header>
 
-      <div class="pg-two">
-        <form class="pg-form" id="fbForm" novalidate>
-          <div class="pg-f">
-            <label for="fbName">Your name</label>
-            <input id="fbName" name="name" type="text" maxlength="80" autocomplete="name" required>
+      <div class="sc-contact-layout">
+        <form class="pg-form sc-contact-form" id="fbForm" novalidate>
+          <div class="sc-contact-form-head">
+            <h2>Send a message</h2>
+            <p>Share a few details so we can understand and reply.</p>
+          </div>
+          <div class="sc-contact-fields">
+            <div class="pg-f">
+              <label for="fbName">Your name</label>
+              <input id="fbName" name="name" type="text" maxlength="80" autocomplete="name" required>
+            </div>
+            <div class="pg-f">
+              <label for="fbEmail">Email <span>— so we can reply</span></label>
+              <input id="fbEmail" name="email" type="email" maxlength="120" autocomplete="email" required>
+            </div>
           </div>
           <div class="pg-f">
-            <label for="fbEmail">Email <span>— so we can reply</span></label>
-            <input id="fbEmail" name="email" type="email" maxlength="120" autocomplete="email" required>
-          </div>
-          <div class="pg-f">
-            <label for="fbSubject">Subject</label>
+            <label for="fbSubject">What is this about?</label>
             <select id="fbSubject" name="subject">
               <option value="Bug report" data-category="other">Bug report</option>
               <option value="Template request" data-category="template">Template request</option>
@@ -1521,33 +1506,28 @@ ${pageHead("Feedback")}
             </select>
           </div>
           <div class="pg-f">
-            <label for="fbMessage">Message</label>
-            <textarea id="fbMessage" name="message" rows="7" maxlength="2000" required
+            <label for="fbMessage">Your message</label>
+            <textarea id="fbMessage" name="message" rows="5" maxlength="2000" required
               placeholder="What were you doing, what did you expect, and what happened instead?"></textarea>
           </div>
-          <button class="pg-bw" type="submit" id="fbSend">Send message</button>
+          <div class="sc-contact-actions">
+            <button class="pg-bw" type="submit" id="fbSend">Send message <span aria-hidden="true">→</span></button>
+            <span>We’ll reply to the email above.</span>
+          </div>
           <p class="pg-formnote" id="fbNote" role="status" aria-live="polite"></p>
         </form>
 
-        <aside class="pg-aside">
-          <section class="pg-card">
-            <h2>Reporting a bug?</h2>
-            <p>Please include the page URL, your device and browser, and the template or clip you were working on. That usually turns a two-day guess into a same-day fix.</p>
-          </section>
-          <section class="pg-card">
-            <h2>Requesting a template?</h2>
-            <p>Describe the <em>object</em> you want animated — a switch, a chart, a phone screen, a card — plus where you would use it. Object ideas get built; "make it look premium" cannot.</p>
-          </section>
-          <section class="pg-card">
-            <h2>Elsewhere</h2>
-            <p>
-${SOCIAL.filter(s => s.href).map(s => `              <a href="${s.href}" rel="noopener" target="_blank">${s.label} · ${s.handle}</a>`).join("<br>\n")}
-            </p>
-          </section>
-          <section class="pg-card">
-            <h2>Response time</h2>
-            <p>The target is a reply within two working days. Billing and blocked exports are reviewed first.</p>
-          </section>
+        <aside class="sc-contact-aside" aria-label="Before you send">
+          <div class="sc-contact-aside-head"><span aria-hidden="true">?</span><h2>Help us help you</h2></div>
+          <div class="sc-contact-tip">
+            <h3>Found a bug?</h3>
+            <p>Add the page link, your device, and what you expected to happen. An error message or template name helps too.</p>
+          </div>
+          <div class="sc-contact-tip">
+            <h3>Have a template idea?</h3>
+            <p>Tell us what should move, what you would edit, and where you plan to use it.</p>
+          </div>
+          <p class="sc-contact-response">We aim to reply within two working days. Account, billing and blocked export issues are reviewed first.</p>
         </aside>
       </div>
 
@@ -1773,6 +1753,9 @@ const authPage = (kind) => {
       </section>
 
       <form class="pg-form pg-auth" id="authForm" data-kind="${kind}" novalidate>
+        <button type="button" class="pg-google" data-google-signin disabled><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.61 24.46c0-1.36-.12-2.66-.35-3.92H24v7.42h11a9.4 9.4 0 0 1-4.08 6.18v5.13h6.61c3.86-3.56 6.08-8.8 6.08-14.81z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.82 13.47-4.93l-6.61-5.13c-1.83 1.22-4.16 1.96-6.86 1.96-5.31 0-9.82-3.59-11.44-8.43H5.74v5.29A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.56 27.47a12 12 0 0 1 0-6.94v-5.29H5.74a20 20 0 0 0 0 17.52z"/><path fill="#EA4335" d="M24 12.1c3 0 5.67 1.03 7.8 3.05l5.85-5.85C34.1 6 29.5 4 24 4A20 20 0 0 0 5.74 15.24l6.82 5.29C14.18 15.69 18.69 12.1 24 12.1z"/></svg> Continue with Google</button>
+        <p class="pg-google-note" data-google-status role="status">Checking Google sign-in availability…</p>
+        <div class="pg-auth-divider"><span>or continue with email</span></div>
         ${isUp ? `<div class="pg-f">
           <label for="authHandle">Creator username <span>— unique, 3–30 characters</span></label>
           <div class="pg-handle-input"><span>@</span><input id="authHandle" name="handle" type="text"
@@ -1897,15 +1880,15 @@ const account = {
              exist on a phone, so the Profile tab is where they live. -->
         <nav class="sh-profile-hub" aria-label="Your account">
           <a href="/drafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>My Projects</span></a>
-          <a href="/uploads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Creator Studio</span></a>
+
           <button type="button" class="js-open-upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Upload Animation</span></button>
           <a href="/settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Settings</span></a>
           <a href="/pricing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Pricing</span></a>
           <a href="/tutorials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>Help</span></a>
           <a href="/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg><span>Feedback</span></a>
           <a href="/about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>About Us</span></a>
-          <a href="/admin" data-auth="admin" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin Console</span></a>
-          <button type="button" data-theme-toggle aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><span>Theme</span></button>
+
+
           <button type="button" id="accHubLogout" class="sh-hub-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Log out</span></button>
         </nav>
 
@@ -2195,9 +2178,8 @@ const indexPage = {
 
       <form class="sh-composer" id="composer" action="/editor" method="GET">
         <div class="sh-ctop">
-          <label class="ed-sr" for="composerPrompt">Describe the animation you want</label>
-          <textarea id="composerPrompt" name="topic" rows="2" maxlength="500"></textarea>
-          <span class="sh-cph" aria-hidden="true"><b>Describe what you want to animate…</b><span>Example: A clean pricing card that flips to reveal ₹199, with a blue accent</span></span>
+          <label class="sh-prompt-label" for="composerPrompt">What would you like to animate?</label>
+          <textarea id="composerPrompt" name="topic" rows="3" maxlength="500" placeholder="Try a pricing card that flips to reveal ₹199, with a blue accent…"></textarea>
           <span class="sh-ccount" id="composerCount">0/500</span>
         </div>
         <div class="sh-cbar">
@@ -2240,7 +2222,7 @@ const indexPage = {
       </form>
 
 
-      <!-- The eight most-used animations. Search, every category and the
+      <!-- Ten animations fill two desktop rows. Search, every category and the
            rest of the library are one tap away on /animations. -->
       <section class="sh-gallery-sec sh-popular" id="templates">
         <div class="sh-gallery-title">
@@ -2248,9 +2230,9 @@ const indexPage = {
           <a href="/animations" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <div class="sh-filters-scroll" id="filters" data-links></div>
-        <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="8"></div>
+        <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="10"></div>
         <div class="sh-sec-more">
-          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse all ${TPL_COUNT} animations</a>
+          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse All Animation</a>
         </div>
       </section>
 
@@ -2341,7 +2323,7 @@ const indexPage = {
         </div>
         <div class="sh-sec-more">
           <a href="/community" class="sh-ge-btn sh-ge-primary">Share a tutorial</a>
-          <a href="/uploads" class="sh-ge-btn">Open Creator Studio</a>
+
         </div>
       </section>
 
@@ -2419,16 +2401,15 @@ const designsPage = {
   route: "/designs",
   active: "designs",
   title: "Editable Designs & Thumbnails — ShortsCraft",
-  desc: "Browse editable YouTube thumbnails, logos, posters, and graphics. Upload any image to decompose it into fully editable AI layers.",
+  desc: "Browse design templates or turn an image into an editable draft. Review detected text and image layers before editing.",
   head: `<link rel="stylesheet" href="/designs.css?v=${V}">`,
   body: `    <main class="sh-home sh-library">
       <div class="ds-page-container">
-        <!-- Header -->
         <header class="ds-header">
-          <div class="ds-header-main">
-            <h1>Editable Designs &amp; Thumbnails</h1>
-          </div>
+          <h1>Designs</h1>
+          <button type="button" class="ds-btn ds-btn-magic js-open-design-upload">Upload image</button>
         </header>
+        <div class="ds-library-heading"><label class="ds-search-label"><span class="sr-only">Search designs</span><input type="search" id="designSearch" placeholder="Search designs…" aria-label="Search designs"></label></div>
 
         <!-- Category Filter Bar -->
         <nav class="ds-filter-bar" id="designsFilterBar" aria-label="Design categories">
@@ -2452,7 +2433,7 @@ const designsPage = {
     <!-- Upload & AI Convert to Editable Modal -->
     <div class="ds-modal-backdrop" id="designUploadModal" hidden>
       <div class="ds-modal-card" role="dialog" aria-modal="true" aria-labelledby="designModalTitle">
-        
+
         <!-- Step 1: File Dropzone -->
         <div class="ds-modal-step" id="modalStep1">
           <div class="ds-modal-header">
@@ -2462,7 +2443,7 @@ const designsPage = {
             <button type="button" class="ds-modal-close" id="closeDesignModal" aria-label="Close dialog">&times;</button>
           </div>
           <div class="ds-modal-body">
-            <div class="ds-dropzone" id="designDropzone">
+            <div class="ds-dropzone" id="designDropzone" role="button" tabindex="0" aria-label="Choose an image">
               <input type="file" id="designFileInput" accept="image/png,image/jpeg,image/webp" hidden>
               <div class="ds-dropzone-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -2499,8 +2480,8 @@ const designsPage = {
                 <span class="ds-mode-badge">AI Powered</span>
                 <div class="ds-mode-icon">✨</div>
                 <h3>Convert to Editable</h3>
-                <p>Decomposes your image into editable text layers, inpainted background with text erased, transparent foreground cutouts, and vector shapes.</p>
-                <button type="button" class="ds-mode-btn ds-mode-btn-primary" id="btnConvertEditable">✦ Convert to Editable ✨</button>
+                <p>Detects text and layout, then builds an editable draft. Background repair is approximate; photos remain cropped image layers, not guaranteed transparent cutouts. Review before saving.</p>
+                <button type="button" class="ds-mode-btn ds-mode-btn-primary" id="btnConvertEditable">Create editable draft · 2 credits</button>
               </div>
 
               <div class="ds-mode-card" id="cardUseAsImage">
@@ -2525,7 +2506,7 @@ const designsPage = {
                 <div class="ds-progress-bar-fill" id="conversionProgressBar"></div>
               </div>
               <p class="ds-progress-status" id="conversionProgressText">1. Uploading image...</p>
-              <p class="ds-progress-hint">Our AI engine is separating typography, erasing baked text, and reconstructing layers...</p>
+              <p class="ds-progress-hint">Please keep this window open. We will show the result only after the server responds.</p>
             </div>
           </div>
         </div>
@@ -2537,6 +2518,7 @@ const designsPage = {
             <button type="button" class="ds-modal-close" onclick="document.getElementById('designUploadModal').setAttribute('hidden','')" aria-label="Close dialog">&times;</button>
           </div>
           <div class="ds-modal-body">
+            <p id="designReviewWarning" class="ds-conversion-note" role="status"></p>
             <div class="ds-review-layout">
               <div class="ds-review-col">
                 <div class="ds-view-toggle">
@@ -2570,7 +2552,7 @@ const designsPage = {
 
       </div>
     </div>`,
-  scripts: `<script src="/designs.js?v=${V}" defer></script>`
+  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/designs.js?v=${V}" defer></script>`
 };
 
 const templatePage = {
@@ -2690,46 +2672,9 @@ const creatorPage = {
    that fills it looks for #userCreationsGrid, which existed on no page, so a
    creator who had published templates still saw "nothing published yet". */
 const uploads = {
-  route: "/uploads",
-  active: "projects",
-  robots: "noindex, follow",
-  title: "Creator Studio — ShortsCraft",
-  desc: "Manage animation templates you have published, scheduled, or saved privately.",
-  body: `    <main class="pg">
-${pageHead("Creator Studio")}
-
-      <section class="pg-sec" id="accountBox" hidden>
-        <div class="admin-stat-grid creator-studio-stats">
-          <article><span>Published</span><strong id="studioPublished">0</strong></article>
-          <article><span>Scheduled</span><strong id="studioScheduled">0</strong></article>
-          <article><span>Private drafts</span><strong id="studioPrivate">0</strong></article>
-          <article><span>Total real exports</span><strong id="studioExports">0</strong></article>
-        </div>
-
-        <div class="pg-accsec-head">
-          <h2 id="creationsHeading"><span id="creationsCount">0 templates</span></h2>
-          <button type="button" class="pg-bo pg-accsec-btn js-open-upload">+ Publish a template</button>
-        </div>
-
-        <div class="pg-grid" id="userCreationsGrid">
-          <article class="pg-card"><h3>Loading…</h3><p>Fetching your published templates.</p></article>
-        </div>
-
-        <div class="pg-row" style="margin-top:22px">
-          <a href="/editor" class="pg-bw">Open the Studio</a>
-          <a href="/community" class="pg-bo">Watch creator tutorials</a>
-        </div>
-
-        <div class="pg-grid creator-studio-tools">
-          <article class="pg-card"><span class="pg-kicker">Profile</span><h3>Creator identity</h3><p>Manage your unique handle, avatar, bio and links.</p><a href="/account#edit-profile" class="pg-cardlink">Edit profile →</a></article>
-          <article class="pg-card"><span class="pg-kicker">Support</span><h3>Creator help</h3><p>Report an upload, editor or export problem and track the ticket.</p><a href="/contact" class="pg-cardlink">Open support →</a></article>
-          <article class="pg-card"><span class="pg-kicker">Coming soon</span><h3>Creator monetization</h3><p>Earnings and payouts are not active yet. No revenue is being counted or promised.</p><span class="pg-fine">The rollout will stay off until eligibility, fraud checks and payouts are ready.</span></article>
-        </div>
-      </section>
-
-${guestGate("/uploads", "Log in to open Creator Studio", "Manage your published templates, scheduled releases and private drafts under your creator identity.", ["Published, scheduled and private work in one place", "Edit or remove your own templates", "See genuine engagement from other creators"])}
-    </main>`,
-  scripts: `<script src="/templates-v2.js?v=${V}" defer></script>`
+  route: "/uploads", title: "My Projects — ShortsCraft", robots: "noindex, follow",
+  head: '<meta http-equiv="refresh" content="0;url=/drafts#published">',
+  body: '<main class="pg"><p>This workspace has moved to <a href="/drafts#published">My Projects</a>.</p></main>'
 };
 
 /* ── DRAFTS & PROJECTS ────────────────────────────────────── */
@@ -2760,6 +2705,35 @@ ${pageHead("My Projects")}
           sign in on. They are also kept in this browser, which is what you see
           first and what keeps the editor working if you go offline.
         </p>
+      </section>
+      <section class="pg-sec" id="accountBox" hidden>
+        <h2 id="published">Published & scheduled templates</h2>
+        <div class="admin-stat-grid creator-studio-stats">
+          <article><span>Published</span><strong id="studioPublished">0</strong></article>
+          <article><span>Scheduled</span><strong id="studioScheduled">0</strong></article>
+          <article><span>Private drafts</span><strong id="studioPrivate">0</strong></article>
+          <article><span>Total real exports</span><strong id="studioExports">0</strong></article>
+        </div>
+
+        <div class="pg-accsec-head">
+          <h2 id="creationsHeading"><span id="creationsCount">0 templates</span></h2>
+          <button type="button" class="pg-bo pg-accsec-btn js-open-upload">+ Publish a template</button>
+        </div>
+
+        <div class="pg-grid" id="userCreationsGrid">
+          <article class="pg-card"><h3>Loading…</h3><p>Fetching your published templates.</p></article>
+        </div>
+
+        <div class="pg-row" style="margin-top:22px">
+          <a href="/editor" class="pg-bw">Open the Studio</a>
+          <a href="/community" class="pg-bo">Watch creator tutorials</a>
+        </div>
+
+        <div class="pg-grid creator-studio-tools">
+          <article class="pg-card"><span class="pg-kicker">Profile</span><h3>Creator identity</h3><p>Manage your unique handle, avatar, bio and links.</p><a href="/account#edit-profile" class="pg-cardlink">Edit profile →</a></article>
+          <article class="pg-card"><span class="pg-kicker">Support</span><h3>Creator help</h3><p>Report an upload, editor or export problem and track the ticket.</p><a href="/contact" class="pg-cardlink">Open support →</a></article>
+          <article class="pg-card"><span class="pg-kicker">Coming soon</span><h3>Creator monetization</h3><p>Earnings and payouts are not active yet. No revenue is being counted or promised.</p><span class="pg-fine">The rollout will stay off until eligibility, fraud checks and payouts are ready.</span></article>
+        </div>
       </section>
     </main>`,
   scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=${V}" defer></script>`
@@ -2809,6 +2783,17 @@ const settings = {
   body: `    <main class="pg st-page">
       <header class="st-head"><h1>Settings</h1></header>
 
+      <section aria-label="Preferences and support">
+        <h2 class="st-label">Appearance</h2>
+        <div class="st-list"><div class="st-row"><span class="st-key">Theme</span><span class="st-val">Light or dark · saved on this device</span><button type="button" class="st-btn" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark theme</span></button></div></div>
+        <h2 class="st-label">Help & support</h2>
+        <div class="st-list">
+          <a class="st-row st-link" href="/tutorials"><span class="st-key">Help & tutorials</span><span aria-hidden="true">›</span></a>
+          <a class="st-row st-link" href="/contact"><span class="st-key">Feedback & support</span><span aria-hidden="true">›</span></a>
+          <a class="st-row st-link" href="/admin" data-auth="admin" hidden><span class="st-key">Admin Console</span><span aria-hidden="true">›</span></a>
+        </div>
+      </section>
+
       <section id="accountBox" hidden>
         <h2 class="st-label">Profile</h2>
         <div class="st-list">
@@ -2825,6 +2810,7 @@ const settings = {
         <h2 class="st-label">Account</h2>
         <div class="st-list">
           <div class="st-row"><span class="st-key">Email</span><span class="st-val" id="accEmail">—</span></div>
+          <div class="st-row"><span class="st-grow"><strong>Google sign-in</strong><span class="st-sub" data-google-status role="status">Connect the Google account with the same email.</span></span><button type="button" class="st-btn" data-google-signin data-google-link disabled>Connect Google</button></div>
           <div class="st-row">
             <span class="st-key">Plan</span>
             <span class="st-val"><span id="accPlan">—</span><span class="st-sub" id="accPlanTerm"></span></span>
@@ -2856,7 +2842,7 @@ const settings = {
 
         <h2 class="st-label">Your work</h2>
         <div class="st-list">
-          <a class="st-row st-link" href="/uploads"><span class="st-key">Published templates</span><span class="st-chev" aria-hidden="true">›</span></a>
+          <a class="st-row st-link" href="/drafts#published"><span class="st-key">Published templates</span><span class="st-chev" aria-hidden="true">›</span></a>
           <a class="st-row st-link" href="/drafts"><span class="st-key">Drafts &amp; projects</span><span class="st-chev" aria-hidden="true">›</span></a>
         </div>
 
@@ -3078,7 +3064,13 @@ const PAGES = [
 ];
 
 let n = 0;
+// Optional page selection avoids overwriting unrelated pages during a scoped fix.
+const selectedPages = process.argv.slice(2);
+for (const file of selectedPages) {
+  if (!PAGES.some(([name]) => name === file)) throw new Error(`Unknown page: ${file}`);
+}
 for (const [file, p] of PAGES) {
+  if (selectedPages.length && !selectedPages.includes(file)) continue;
   const html = chrome(p);
   fs.writeFileSync(path.join(OUT, file), html, "utf8");
   console.log(`wrote public/${file}  ${(html.length / 1024).toFixed(1)} KB`);

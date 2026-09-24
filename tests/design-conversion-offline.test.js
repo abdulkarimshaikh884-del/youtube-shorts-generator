@@ -1,0 +1,30 @@
+const assert = require('node:assert/strict');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const vm = require('vm');
+const sharp = require('sharp');
+(async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(),'shortscraft-design-test-'));
+  const moduleMock = {exports:{}};
+  vm.runInNewContext(fs.readFileSync(require.resolve('../design-converter'),'utf8'),{module:moduleMock,require,Buffer,console,__dirname:root});
+  const engine = moduleMock.exports;
+  const input = await sharp(Buffer.from('<svg width="600" height="400"><rect width="600" height="400" fill="white"/><text x="0" y="80" font-size="40">HELLO</text></svg>')).png().toBuffer();
+  assert.equal((await engine.validateImage(Buffer.from('bad'),'image/png')).success,undefined);
+  const flat = await engine.convertToEditable(input,'image/png',{useAsImage:true});
+  assert.equal(flat.isAiConverted,false); assert.equal(flat.project.elements.length,1);
+  const unavailable = await engine.convertToEditable(input,'image/png',{callAI:async()=>{throw Error('offline');}});
+  assert.equal(unavailable.success,false); assert.equal(unavailable.project,undefined);
+  const result = await engine.convertToEditable(input,'image/png',{callAI:async(prompt, opts)=>{
+    assert.ok(opts.image.startsWith('data:image/jpeg;base64,'));
+    assert.match(opts.system,/Do not invent/);
+    return JSON.stringify({textElements:[{text:'HELLO',bbox:{x:0,y:0,width:.5,height:.25},fill:'#111111'}],foregroundObjects:[{id:'../../escape',label:'sample crop',bbox:{x:.7,y:.7,width:.2,height:.2}}],shapeElements:[]});
+  }});
+  assert.equal(result.success,true); assert.equal(result.project.elements.find(e=>e.type==='text').text,'HELLO');
+  assert.equal(result.project.elements.find(e=>e.type==='text').x,0);
+  assert.match(result.project.elements.find(e=>e.role==='foreground').src,/layer_obj_1.webp$/);
+  assert.equal(result.qualityScore,undefined); assert.equal(result.requiresReview,true);
+  assert.match(result.warning,/rectangular crops/);
+  assert.equal(result.project.canvas.width,600);
+  console.log('PASS: real image decode, flat mode, unavailable AI fails honestly, detected text layers, zero coordinates, safe asset IDs, review warnings. Test assets:',root);
+})().catch(e=>{console.error(e);process.exitCode=1;});

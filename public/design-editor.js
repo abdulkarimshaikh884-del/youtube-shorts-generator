@@ -123,6 +123,8 @@
     updateLayersList();
     render();
     updateZoom();
+    window.SC_STUDIO = { render: render, project: project, updateLayersList: updateLayersList };
+    window.SC_STUDIO_PROJECT = project;
   }
 
   function preloadImage(src) {

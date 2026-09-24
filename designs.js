@@ -4,6 +4,7 @@
    and AI-converted design templates.
    ============================================================ */
 const crypto = require("crypto");
+const designAssets = require("./design-assets");
 
 let db = null;
 try {
@@ -29,7 +30,7 @@ const SAMPLE_TEMPLATES = [
     canvas: { width: 1280, height: 720 },
     preview_url: "/storage/designs/templates/heygen-trick.webp",
     previewUrl: "/storage/designs/templates/heygen-trick.webp",
-    likes: 89,
+    likes: 0,
     uses: 342,
     elements: [
       {
@@ -183,7 +184,7 @@ const SAMPLE_TEMPLATES = [
     canvas: { width: 1280, height: 720 },
     preview_url: "/storage/designs/templates/growth-metrics.webp",
     previewUrl: "/storage/designs/templates/growth-metrics.webp",
-    likes: 54,
+    likes: 0,
     uses: 195,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#070b14", zIndex: 0 },
@@ -207,7 +208,7 @@ const SAMPLE_TEMPLATES = [
     canvas: { width: 1280, height: 720 },
     preview_url: "/storage/designs/templates/vox-coverup.webp",
     previewUrl: "/storage/designs/templates/vox-coverup.webp",
-    likes: 42,
+    likes: 0,
     uses: 128,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#0a0a10", zIndex: 0 },
@@ -230,7 +231,7 @@ const SAMPLE_TEMPLATES = [
     canvas: { width: 1080, height: 1080 },
     preview_url: "/storage/designs/templates/neon-logo.webp",
     previewUrl: "/storage/designs/templates/neon-logo.webp",
-    likes: 68,
+    likes: 0,
     uses: 154,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#050811", zIndex: 0 },
@@ -251,7 +252,7 @@ const SAMPLE_TEMPLATES = [
     canvas: { width: 1080, height: 1080 },
     preview_url: "/storage/designs/templates/minimal-logo.webp",
     previewUrl: "/storage/designs/templates/minimal-logo.webp",
-    likes: 47,
+    likes: 0,
     uses: 98,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#0f172a", zIndex: 0 },
@@ -271,7 +272,7 @@ const SAMPLE_TEMPLATES = [
     canvas: { width: 1080, height: 1920 },
     preview_url: "/storage/designs/templates/event-poster.webp",
     previewUrl: "/storage/designs/templates/event-poster.webp",
-    likes: 39,
+    likes: 0,
     uses: 112,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1920, fill: "#090d16", zIndex: 0 },
@@ -291,7 +292,7 @@ const SAMPLE_TEMPLATES = [
     canvas: { width: 1080, height: 1080 },
     preview_url: "/storage/designs/templates/social-post.webp",
     previewUrl: "/storage/designs/templates/social-post.webp",
-    likes: 72,
+    likes: 0,
     uses: 230,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#111827", zIndex: 0 },
@@ -446,7 +447,8 @@ async function listProjects(user) {
       );
       return { success: true, projects: rows.map(publicProject) };
     } catch (e) {
-      console.warn("[designs.js] Falling back to memory listProjects:", e.message);
+      console.warn("[designs.js] listProjects storage unavailable:", e.message);
+      return { error: "Projects could not be loaded. Please try again.", status: 503 };
     }
   }
 
@@ -475,7 +477,8 @@ async function getProject(userOrId, optionalId) {
       const { rows } = await db.query(query, params);
       if (rows[0]) return { success: true, project: publicProject(rows[0]) };
     } catch (e) {
-      console.warn("[designs.js] Falling back to memory getProject:", e.message);
+      console.warn("[designs.js] getProject storage unavailable:", e.message);
+      return { error: "Your project could not be loaded. Please try again.", status: 503 };
     }
   }
 
@@ -505,8 +508,10 @@ async function saveProject(userOrBody, idOrBody, optionalBody) {
     user = body.userId || "anonymous";
   }
 
-  const uid = getUserId(user) || "anonymous";
-  const projectId = String(id || body?.id || `dp_${crypto.randomBytes(6).toString("hex")}`).trim();
+  const uid = getUserId(user);
+  if (!uid || uid === "anonymous") return { error: "Please log in first.", status: 401 };
+  const requestedId = String(id || body?.id || "").trim();
+  const projectId = !requestedId || requestedId === "new" ? `dp_${crypto.randomBytes(12).toString("hex")}` : requestedId;
   if (!/^[A-Za-z0-9_-]{3,64}$/.test(projectId)) {
     return { error: "Invalid project ID.", status: 400 };
   }
@@ -516,7 +521,10 @@ async function saveProject(userOrBody, idOrBody, optionalBody) {
   const canvas = body?.canvas && typeof body.canvas === "object" ? body.canvas : { width: 1280, height: 720 };
   const source = body?.source && typeof body.source === "object" ? body.source : { type: "scratch" };
   const elements = cleanElements(body?.elements);
-  const previewUrl = String(body?.previewUrl || "").slice(0, 500);
+  const previewUrl = String(body?.previewUrl || "");
+  if (Buffer.byteLength(previewUrl, "utf8") > 1024 * 1024) {
+    return { error: "Design preview is too large to save.", status: 413 };
+  }
 
   const payload = JSON.stringify(elements);
   if (Buffer.byteLength(payload, "utf8") > MAX_BYTES) {
@@ -542,11 +550,16 @@ async function saveProject(userOrBody, idOrBody, optionalBody) {
         [projectId, uid, name, designType, JSON.stringify(canvas), JSON.stringify(source), payload, previewUrl]
       );
       if (rows[0]) return { success: true, project: publicProject(rows[0]) };
+      return { error: "This project could not be updated by your account.", status: 403 };
     } catch (e) {
-      console.warn("[designs.js] Falling back to memory saveProject:", e.message);
+      console.warn("[designs.js] saveProject storage unavailable:", e.message);
+      return { error: "Your design was not saved. Please try again when storage is available.", status: 503 };
     }
   }
 
+  if (process.env.NODE_ENV === "production") return { error: "Project storage is unavailable.", status: 503 };
+  const existingProject = memoryProjects.get(projectId);
+  if (existingProject && existingProject.userId !== uid) return { error: "This project belongs to another account.", status: 403 };
   const projectRecord = {
     id: projectId,
     userId: uid,
@@ -688,7 +701,10 @@ async function publishTemplate(user, body) {
   const category = String(body.category || designType);
   const description = String(body.description || "").slice(0, 300);
   const canvas = body.canvas && typeof body.canvas === "object" ? body.canvas : { width: 1280, height: 720 };
-  const previewUrl = String(body.previewUrl || "").slice(0, 500);
+  const previewUrl = String(body.previewUrl || "");
+  if (Buffer.byteLength(previewUrl, "utf8") > 1024 * 1024) {
+    return { error: "Template preview is too large. Try a smaller canvas.", status: 413 };
+  }
 
   const tplId = `dt_${crypto.randomBytes(6).toString("hex")}`;
   const authorName = String(user.displayName || user.name || "Creator").slice(0, 60);
@@ -697,7 +713,9 @@ async function publishTemplate(user, body) {
   if (hasDatabase()) {
     try {
       await ensureTables();
-      const { rows } = await db.query(
+      const rows = await db.tx(async (client) => {
+        await designAssets.makePublic(client, uid, elements);
+        const inserted = await client.query(
         `insert into public.design_templates
           (id, author_id, author_name, author_handle, title, description, category, design_type,
            source_type, parent_template_id, canvas, elements, preview_url, status)
@@ -705,13 +723,17 @@ async function publishTemplate(user, body) {
          returning *`,
         [tplId, uid, authorName, authorHandle, title, description, category, designType,
          projectId, JSON.stringify(canvas), JSON.stringify(elements), previewUrl]
-      );
+        );
+        return inserted.rows;
+      });
       if (rows[0]) return { success: true, template: publicTemplate(rows[0]) };
     } catch (e) {
       console.warn("[designs.js] Falling back to memory publishTemplate:", e.message);
+      return { error: "Your template was not published. Please retry when storage is available.", status: 503 };
     }
   }
 
+  if (process.env.NODE_ENV === "production") return { error: "Template storage is unavailable.", status: 503 };
   const tplRecord = {
     id: tplId,
     author_id: uid,

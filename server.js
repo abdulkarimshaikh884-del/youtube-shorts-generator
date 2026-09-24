@@ -12,6 +12,7 @@ const mailer = require("./mailer");
 const paymentDelivery = require("./payment-delivery");
 const designs = require("./designs");
 const designConverter = require("./design-converter");
+const designAssets = require("./design-assets");
 
 const app = express();
 app.disable("x-powered-by");
@@ -289,6 +290,8 @@ function publicSiteUrl() {
     return fallback;
   }
 }
+
+require("./google-auth").register(app, { auth, rateLimit, publicSiteUrl });
 
 app.post("/api/auth/forgot", rateLimit({ windowMs: 15 * 60_000, max: 5 }), async (req, res) => {
   res.set("Cache-Control", "no-store");
@@ -587,6 +590,7 @@ app.post("/api/projects/adopt", rateLimit({ windowMs: 60_000, max: 10 }), async 
 const jsonDesignUpload = express.json({ limit: "20mb" });
 
 app.post("/api/designs/convert", rateLimit({ windowMs: 60_000, max: 20 }), jsonDesignUpload, async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Log in before uploading a design." });
   const rawData = req.body?.image;
   if (!rawData) {
     return res.status(400).json({ success: false, error: "Please provide an image to convert." });
@@ -607,11 +611,13 @@ app.post("/api/designs/convert", rateLimit({ windowMs: 60_000, max: 20 }), jsonD
   const useAsImage = req.body?.useAsImage === true;
   const designType = String(req.body?.designType || "youtube-thumbnail");
 
-  // Charge 1 credit for AI conversion if signed in and credits are configured
+  const validation = await designConverter.validateImage(imageBuffer, match[1]);
+  if (!validation.success) return res.status(400).json(validation);
+  // Fail closed when billing is unavailable; failed analysis is refunded below.
   let charged = false;
   if (!useAsImage) {
     try {
-      const chargeRes = await credits.charge(req, "ai");
+      const chargeRes = await credits.charge(req, "aiStandard");
       if (!chargeRes.ok) {
         return res.status(402).json({
           success: false,
@@ -620,7 +626,7 @@ app.post("/api/designs/convert", rateLimit({ windowMs: 60_000, max: 20 }), jsonD
       }
       charged = true;
     } catch (e) {
-      // Allow conversion in development if credit tables not initialized
+      return res.status(503).json({ success: false, error: "Credits could not be checked. Please try again shortly." });
     }
   }
 
@@ -632,19 +638,48 @@ app.post("/api/designs/convert", rateLimit({ windowMs: 60_000, max: 20 }), jsonD
     });
 
     if (!result.success) {
-      if (charged) await credits.refund(req, "ai").catch(() => {});
+      if (charged) await credits.refund(req, "aiStandard").catch(() => {});
       return res.status(400).json({ success: false, error: result.error });
     }
 
+    // Do not hand out URLs pointing at Render's ephemeral filesystem.
+    // All layers must be durable before the project reaches the browser.
+    await designAssets.persistJob(req.user.id, result.jobId);
+
     return res.json(result);
   } catch (err) {
-    if (charged) await credits.refund(req, "ai").catch(() => {});
+    let refunded = !charged;
+    if (charged) refunded = await credits.refund(req, "aiStandard").then(() => true).catch(() => false);
     console.error("[/api/designs/convert]", err.message);
     return res.status(500).json({
       success: false,
-      error: "We couldn't separate this design completely. Your original image is safe. Try again or continue using it as a flat image."
+      error: refunded
+        ? "We couldn't save this design safely. No draft was created. Try a smaller image or retry later."
+        : "We couldn't save this design safely or confirm your credit refund. Please contact support before retrying."
     });
   }
+});
+
+async function serveDesignAsset(req, res, assetPath) {
+  try {
+    const asset = await designAssets.getAsset(req.user && req.user.id, req.params.jobId, assetPath);
+    if (!asset) return res.status(404).end();
+    res.set("Content-Type", "image/webp");
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set("Cache-Control", asset.is_public ? "public, max-age=86400" : "private, no-store");
+    res.set("Content-Length", String(asset.byte_size));
+    return res.send(asset.content);
+  } catch (error) {
+    console.error("[GET /api/design-assets]", error.message);
+    return res.status(503).end();
+  }
+}
+
+app.get("/api/design-assets/:jobId/:file", (req, res) => {
+  return serveDesignAsset(req, res, req.params.file);
+});
+app.get("/api/design-assets/:jobId/assets/:file", (req, res) => {
+  return serveDesignAsset(req, res, `assets/${req.params.file}`);
 });
 
 app.get("/api/designs/projects", async (req, res) => {
@@ -1385,7 +1420,7 @@ async function callAI(prompt, {
     available.nvidia = openaiStyle("NVIDIA", `${base}/chat/completions`, nvidiaKey,
       models.nvidia || modelOverride || process.env.NVIDIA_MODEL || "meta/llama-3.2-11b-vision-instruct", true);
   }
-  if (groqKey) {
+  if (groqKey && !image) {
     available.groq = openaiStyle("Groq", "https://api.groq.com/openai/v1/chat/completions", groqKey,
       models.groq || process.env.GROQ_MODEL || "qwen/qwen3.8-27b", false);
   }
@@ -2487,6 +2522,8 @@ function renderSeoToolsPage(route) {
 // ============================================================
 // SEO + STATIC ROUTING
 // ============================================================
+// Keep old creator-workspace bookmarks without maintaining a second dashboard.
+app.get("/uploads", (req, res) => res.redirect(302, "/drafts#published"));
 const PAGES = {
   "/": "index.html",
   "/editor": "editor.html",
@@ -2505,7 +2542,6 @@ const PAGES = {
   "/reset-password": "reset-password.html",
   "/account": "account.html",
   "/tutorials": "tutorials.html",
-  "/uploads": "uploads.html",
   "/drafts": "drafts.html",
   "/settings": "settings.html",
   "/template": "template.html",

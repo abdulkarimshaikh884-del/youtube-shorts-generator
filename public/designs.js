@@ -9,6 +9,9 @@
   var currentJob = null;
   var currentProject = null;
   var originalDataUri = null;
+  var loadedTemplates = [];
+  var loadVersion = 0;
+  var converting = false;
 
   function $(sel, el) { return (el || document).querySelector(sel); }
   function $$(sel, el) { return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
@@ -17,17 +20,23 @@
     loadTemplates(currentCategory);
     setupFilters();
     setupUploadModal();
+    var search = $("#designSearch");
+    if (search) search.addEventListener("input", function () { renderTemplates(loadedTemplates); });
   }
 
   // ── 1. Load & Render Templates ──────────────────────────────
   function loadTemplates(category) {
+    var version = ++loadVersion;
     var grid = $("#designsGrid");
     if (!grid) return;
     grid.innerHTML = '<div class="ds-loading"><div class="ds-spinner"></div><p>Loading design templates...</p></div>';
 
     fetch("/api/designs/templates" + (category && category !== "all" ? "?category=" + encodeURIComponent(category) : ""))
-      .then(function (r) { return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error("load"); return r.json(); })
       .then(function (res) {
+        if (version !== loadVersion) return;
+        if (!res || !res.success) throw new Error("load");
+        loadedTemplates = res.templates || [];
         if (!res || !res.success || !res.templates || !res.templates.length) {
           grid.innerHTML = '<div class="ds-empty"><h3>No design templates found</h3><p>Upload a design or thumbnail to create the first editable template!</p></div>';
           return;
@@ -35,6 +44,7 @@
         renderTemplates(res.templates);
       })
       .catch(function (err) {
+        if (version !== loadVersion) return;
         grid.innerHTML = '<div class="ds-empty"><h3>Could not load templates</h3><p>Please refresh the page to try again.</p></div>';
       });
   }
@@ -43,74 +53,32 @@
     var grid = $("#designsGrid");
     if (!grid) return;
     grid.innerHTML = "";
+    var query = ($("#designSearch").value || "").trim().toLowerCase();
+    templates = templates.filter(function (tpl) { return (tpl.title + " " + (tpl.description || "")).toLowerCase().includes(query); });
+    if (!templates.length) { grid.innerHTML = '<div class="ds-empty"><h3>No matching designs</h3><p>Try another search or category.</p></div>'; return; }
 
     templates.forEach(function (tpl) {
       var card = document.createElement("article");
       card.className = "ds-card";
 
-      // Badge label
-      var badgeClass = "badge-editable";
-      var badgeLabel = "✏ Fully Editable";
-      if (tpl.sourceType === "creator_ai_converted") {
-        badgeClass = "badge-ai";
-        badgeLabel = "✨ AI Editable";
-      } else if (tpl.sourceType === "image") {
-        badgeClass = "badge-image";
-        badgeLabel = "🖼 Image";
-      }
-
-      var aspectLabel = "16:9 Thumbnail";
-      if (tpl.designType === "logo") aspectLabel = "1:1 Logo";
-      else if (tpl.designType === "poster") aspectLabel = "9:16 Poster";
-      else if (tpl.designType === "social-post") aspectLabel = "1:1 Post";
-
-      // Build simulated canvas preview
-      var previewHtml = buildCardPreview(tpl);
+      var previewHtml = window.SCDesignPreview(tpl);
 
       card.innerHTML = [
         '<div class="ds-card-thumb">',
         previewHtml,
-        '  <span class="ds-badge ' + badgeClass + '">' + badgeLabel + '</span>',
-        '  <button type="button" class="ds-card-like" data-id="' + tpl.id + '" title="Like design">',
-        '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
-        '    <span>' + (tpl.likes > 0 ? tpl.likes : "") + '</span>',
-        '  </button>',
         '</div>',
         '<div class="ds-card-body">',
-        '  <div class="ds-card-meta">',
-        '    <span class="ds-card-cat">' + aspectLabel + '</span>',
-        '    <span class="ds-card-author">by ' + escapeHtml(tpl.authorName) + '</span>',
-        '  </div>',
         '  <h3 class="ds-card-title">' + escapeHtml(tpl.title) + '</h3>',
-        '  <p class="ds-card-desc">' + escapeHtml(tpl.description || "Custom editable design template") + '</p>',
-        '  <div class="ds-card-actions">',
-        '    <button type="button" class="ds-btn-edit" data-tpl-id="' + tpl.id + '">✦ Edit Template →</button>',
-        '  </div>',
-        '</div>'
+        '  <p class="ds-card-author">' + escapeHtml(tpl.authorName || "Creator") + '</p>',
+        '</div>',
+        '  <button type="button" class="ds-card-open" aria-label="Edit ' + escapeHtml(tpl.title) + ' by ' + escapeHtml(tpl.authorName || "Creator") + '"></button>'
       ].join("");
 
-      // Wire edit button (clones template and launches studio)
-      var editBtn = card.querySelector(".ds-btn-edit");
+      // The entire card opens the existing editor flow.
+      var editBtn = card.querySelector(".ds-card-open");
       if (editBtn) {
         editBtn.addEventListener("click", function () {
           useTemplate(tpl.id, editBtn);
-        });
-      }
-
-      // Wire like toggle
-      var likeBtn = card.querySelector(".ds-card-like");
-      if (likeBtn) {
-        likeBtn.addEventListener("click", function (ev) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          likeBtn.classList.toggle("liked");
-          var sp = likeBtn.querySelector("span");
-          var count = parseInt(sp.textContent || "0", 10);
-          if (likeBtn.classList.contains("liked")) {
-            sp.textContent = String(count + 1);
-          } else {
-            sp.textContent = count > 1 ? String(count - 1) : "";
-          }
         });
       }
 
@@ -129,7 +97,7 @@
     }
 
     var elementsHtml = "";
-    (tpl.elements || []).slice(0, 8).forEach(function (el) {
+    (tpl.elements || []).forEach(function (el) {
       var leftPct = ((el.x / cWidth) * 100).toFixed(1);
       var topPct = ((el.y / cHeight) * 100).toFixed(1);
       var wPct = ((el.width / cWidth) * 100).toFixed(1);
@@ -219,7 +187,17 @@
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
 
     modal.addEventListener("click", function (ev) {
+      if (ev.target.closest(".ds-modal-close")) closeModal();
       if (ev.target === modal) closeModal();
+    });
+    modal.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") closeModal();
+      if (ev.key === "Tab") {
+        var focusable = Array.from(modal.querySelectorAll('button:not([disabled]),[tabindex="0"],input')).filter(function (el) { return el.getClientRects().length; });
+        var first = focusable[0], last = focusable[focusable.length - 1];
+        if (ev.shiftKey && document.activeElement === first) { ev.preventDefault(); last.focus(); }
+        else if (!ev.shiftKey && document.activeElement === last) { ev.preventDefault(); first.focus(); }
+      }
     });
 
     // File Dropzone
@@ -228,6 +206,7 @@
     if (!dropzone || !fileInput) return;
 
     dropzone.addEventListener("click", function () { fileInput.click(); });
+    dropzone.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); fileInput.click(); } });
     fileInput.addEventListener("change", function () {
       if (fileInput.files && fileInput.files[0]) handlePickedFile(fileInput.files[0]);
     });
@@ -275,6 +254,7 @@
     if (btnConvertAgain) {
       btnConvertAgain.addEventListener("click", function () {
         showStep(1);
+        $("#closeDesignModal").focus();
       });
     }
     if (btnCancelReview) {
@@ -296,6 +276,7 @@
         modal.removeAttribute("hidden");
         document.body.style.overflow = "hidden";
         showStep(1);
+        $("#closeDesignModal").focus();
       })
       .catch(function () {
         window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
@@ -303,6 +284,7 @@
   }
 
   function closeModal() {
+    if (converting) return;
     var modal = $("#designUploadModal");
     if (!modal) return;
     modal.classList.remove("open");
@@ -311,6 +293,9 @@
     currentJob = null;
     currentProject = null;
     originalDataUri = null;
+    $("#designFileInput").value = "";
+    var trigger = $(".js-open-design-upload");
+    if (trigger) trigger.focus();
   }
 
   function showStep(stepNum) {
@@ -347,33 +332,20 @@
   }
 
   function startConversion(useAsImage) {
-    if (!originalDataUri) return;
+    if (!originalDataUri || converting) return;
+    converting = true;
     showStep(3); // Step 3: Progress screen
-
-    var stages = [
-      { pct: 15, msg: "1. Uploading image..." },
-      { pct: 35, msg: "2. Analyzing visual layout with AI..." },
-      { pct: 55, msg: "3. Detecting text & typography..." },
-      { pct: 70, msg: "4. Finding foreground subjects & cutouts..." },
-      { pct: 85, msg: "5. Rebuilding clean background (inpainting)..." },
-      { pct: 95, msg: "6. Creating editable layers..." },
-      { pct: 100, msg: "7. Preparing Design Studio..." }
-    ];
 
     var bar = $("#conversionProgressBar");
     var txt = $("#conversionProgressText");
 
-    var curIdx = 0;
-    var interval = setInterval(function () {
-      if (curIdx < stages.length - 1) {
-        curIdx++;
-        if (bar) bar.style.width = stages[curIdx].pct + "%";
-        if (txt) txt.textContent = stages[curIdx].msg;
-      }
-    }, 1200);
+    var interval = null; /* no fabricated server progress */
+    if (bar) bar.style.width = "35%";
+    if (txt) txt.textContent = useAsImage ? "Preparing your image…" : "Analyzing your image and building a draft…";
 
     fetch("/api/designs/convert", {
       method: "POST",
+      signal: AbortSignal.timeout(240000),
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         image: originalDataUri,
@@ -383,13 +355,13 @@
     })
       .then(function (r) { return r.json(); })
       .then(function (res) {
+        converting = false;
         clearInterval(interval);
-        if (bar) bar.style.width = "100%";
-        if (txt) txt.textContent = "Conversion complete!";
-
         if (!res || !res.success || !res.project) {
           throw new Error((res && res.error) || "Could not convert this design.");
         }
+        if (bar) bar.style.width = "100%";
+        if (txt) txt.textContent = "Draft ready for review";
 
         currentJob = res;
         currentProject = res.project;
@@ -404,6 +376,7 @@
         }, 500);
       })
       .catch(function (err) {
+        converting = false;
         clearInterval(interval);
         alert(err.message || "Conversion failed. You can still use this image as a flat canvas layer.");
         showStep(2);
@@ -412,12 +385,14 @@
 
   // ── 4. Render Review Layers Screen ───────────────────────────
   function renderReviewLayers(jobData) {
+    var warning = $("#designReviewWarning");
+    if (warning) warning.textContent = jobData.warning || "Check text, positions and image layers before opening the editor.";
     var origImg = $("#reviewOrigImg");
     if (origImg) origImg.src = jobData.originalUrl || originalDataUri;
 
     var previewStage = $("#reviewReconstructedStage");
     if (previewStage) {
-      previewStage.innerHTML = buildCardPreview(jobData.project);
+      previewStage.innerHTML = window.SCDesignPreview(jobData.project);
     }
 
     var list = $("#reviewLayersList");
@@ -426,7 +401,7 @@
 
     var elements = jobData.project.elements || [];
     var countEl = $("#reviewLayersCount");
-    if (countEl) countEl.textContent = elements.length + " editable layers";
+    if (countEl) countEl.textContent = elements.length + " layers";
 
     elements.forEach(function (el, index) {
       var item = document.createElement("div");
@@ -439,16 +414,16 @@
         detail = '"' + escapeHtml(el.text) + '" (' + el.fontFamily + ', ' + el.fontSize + 'px)';
       } else if (el.type === "image" && el.role === "background") {
         typeIcon = "🖼";
-        detail = "Reconstructed clean background (text removed)";
+        detail = "Background image — inspect text repair";
       } else if (el.type === "image") {
         typeIcon = "✂";
-        detail = "Foreground cutout (" + (el.width + 'x' + el.height) + "px)";
+        detail = "Image crop (" + (el.width + 'x' + el.height) + "px)";
       } else if (el.type === "shape") {
         typeIcon = "⬡";
         detail = "Vector " + el.shape + " (" + el.fill + ")";
       }
 
-      var confPct = el.confidence ? Math.round(el.confidence * 100) + "%" : "90%";
+      var confPct = "Needs review";
 
       item.innerHTML = [
         '<div class="ds-review-item-main">',
@@ -459,7 +434,7 @@
         '  </div>',
         '</div>',
         '<div class="ds-review-item-meta">',
-        '  <span class="ds-conf-pill">' + confPct + ' confidence</span>',
+        '  <span class="ds-conf-pill">' + confPct + '</span>',
         '  <button type="button" class="ds-review-del" title="Remove layer" data-idx="' + index + '">×</button>',
         '</div>'
       ].join("");
@@ -514,15 +489,13 @@
       .then(function (res) {
         if (res && res.success && res.project) {
           window.location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
-        } else {
-          // Store in sessionStorage as fallback
-          sessionStorage.setItem("sc_pending_design", JSON.stringify(currentProject));
-          window.location.href = "/design-editor?session=1";
-        }
+        } else { throw new Error(res && res.error || "Your design could not be saved. Please retry."); }
       })
-      .catch(function () {
-        sessionStorage.setItem("sc_pending_design", JSON.stringify(currentProject));
-        window.location.href = "/design-editor?session=1";
+      .catch(function (err) {
+        alert(err.message || "Your design could not be saved. Please retry.");
+        if (openBtn) { openBtn.disabled = false; openBtn.textContent = "Open in Design Studio →"; }
+        renderReviewLayers(currentJob);
+        showStep(4);
       });
   }
 

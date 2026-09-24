@@ -69,3 +69,13 @@ create index if not exists design_conversion_jobs_user_created_idx
 alter table public.design_projects enable row level security;
 alter table public.design_templates enable row level security;
 alter table public.design_conversion_jobs enable row level security;
+
+-- The server uses the dedicated database role. Without these grants it cannot
+-- save projects or conversion jobs even though the tables exist.
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'shortscraft_app') then
+    grant select, insert, update, delete on public.design_projects,
+      public.design_templates, public.design_conversion_jobs to shortscraft_app;
+  end if;
+end $$;
