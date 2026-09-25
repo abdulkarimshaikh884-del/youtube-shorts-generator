@@ -2988,17 +2988,6 @@ body.sh-body .pg-formnote[data-bad="1"],
 .cr-cre-actions > .pg-bo { flex: 1 1 0; min-width: 0; }
 
 .cr-cre-state.is-archived { color: var(--sh-ink3); }
-.cr-cre-state.is-library { color: var(--sh-ink2); border-color: var(--sc-border); }
-
-/* The library heading spans the whole grid so the two groups read as two. */
-.cr-cre-section {
-  grid-column: 1 / -1;
-  margin: 14px 0 0;
-  padding-top: 16px;
-  border-top: 1px solid var(--sc-border);
-}
-.cr-cre-section h3 { margin: 0 0 4px; font-size: 16px; font-weight: 650; color: var(--sc-text); }
-.cr-cre-section p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--sc-muted); max-width: 640px; }
 
 /* ============================================================
    Template upload

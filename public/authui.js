@@ -1012,7 +1012,7 @@
         var total = items.length + library.length;
         if (countEl) countEl.textContent = total + " template" + (total === 1 ? "" : "s");
         if (igCountEl) igCountEl.textContent = total;
-        if ($("#studioPublished")) $("#studioPublished").textContent = items.filter(function (t) { return t.status === "published"; }).length;
+        if ($("#studioPublished")) $("#studioPublished").textContent = items.filter(function (t) { return t.status === "published"; }).length + library.length;
         if ($("#studioScheduled")) $("#studioScheduled").textContent = items.filter(function (t) { return t.status === "scheduled"; }).length;
         if ($("#studioPrivate")) $("#studioPrivate").textContent = items.filter(function (t) { return t.status === "draft"; }).length;
         if ($("#studioExports")) $("#studioExports").textContent = items.reduce(function (sum, t) { return sum + (Number(t.downloads) || 0); }, 0);
@@ -1154,12 +1154,13 @@
             aspect: t.aspect || "9:16",
             title: t.title || "Custom animation",
             status: status,
-            // Every status it can actually have gets its own word; "archived"
-            // used to fall through to "Published", which it is not.
+            // Only public templates are labelled Published. Keep moderation and
+            // unpublished states accurate on the owner's profile.
             statusText: status === "scheduled"
               ? "Scheduled" + (t.scheduledAt ? " · " + new Date(t.scheduledAt).toLocaleDateString() : "")
               : status === "draft" ? "Draft"
-              : status === "archived" ? "Archived" : "Published",
+              : status === "archived" ? "Archived"
+              : status === "rejected" ? "Rejected" : "Published",
             meta: [CATEGORY[t.category] || "Motion", (Number(t.likes) || 0) + " likes", (Number(t.downloads) || 0) + " exports"].join(" · "),
             editUrl: editUrl,
             shareUrl: status === "published"
@@ -1170,11 +1171,9 @@
         });
 
         if (library.length) {
-          var head = document.createElement("div");
-          head.className = "cr-cre-section";
-          head.innerHTML = '<h3>ShortsCraft library</h3><p>' + library.length +
-            ' built-in templates, shown in the gallery under this account. They are part of the engine, so they can be opened and shared but not deleted.</p>';
-          grid.appendChild(head);
+          // Built-ins are already public in the gallery under @shortscraft.
+          // Show them alongside uploads with the same Published badge, while
+          // retaining their non-deletable engine ownership.
           library.forEach(function (lt) {
             creationCard({
               library: true,
@@ -1182,8 +1181,8 @@
               opts: {},
               aspect: "9:16",
               title: lt.name || lt.id,
-              status: "library",
-              statusText: "Library",
+              status: "published",
+              statusText: "Published",
               meta: CATEGORY[lt.cat] || "Motion",
               editUrl: "/editor?tpl=" + encodeURIComponent(lt.id),
               shareUrl: "/template?id=" + encodeURIComponent(lt.id),
