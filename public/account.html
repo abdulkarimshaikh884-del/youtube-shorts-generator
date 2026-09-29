@@ -25,19 +25,19 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026092302">
-<link rel="stylesheet" href="/page.css?v=2026092302">
+<link rel="stylesheet" href="/shell.css?v=2026092501">
+<link rel="stylesheet" href="/page.css?v=2026092501">
 <link rel="stylesheet" href="/redesign.css?v=2026092501">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026092302">
+<link rel="stylesheet" href="/polish.css?v=2026092501">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092302">
+<link rel="stylesheet" href="/mobile.css?v=2026092501">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092302">
-<link rel="stylesheet" href="/monochrome.css?v=2026092302">
+<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body">
 
@@ -419,6 +419,10 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
             <span>Creations</span>
           </button>
+          <button type="button" class="ig-tab-btn" id="igTabStars" data-ig-tab="stars" role="tab" aria-controls="igPaneStars" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+            <span>Earnings &amp; Stars</span>
+          </button>
           <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             <span>Plan &amp; credits</span>
@@ -441,7 +445,6 @@
         </section>
 
         <!-- Followers and following.
-
              The profile has shown these counts since it was built, with
              nothing behind them: no way to see who, and no way to follow
              back. These are the real lists, and each row carries the
@@ -466,40 +469,70 @@
           </div>
         </section>
 
-        <!-- Tab 2: Stars.
-
-             The plan is explicit that Stars must never read as money while
-             monetization is off, so the wording says so on the page rather
-             than in a tooltip. -->
+        <!-- Tab 2: Stars & Creator Wallet -->
         <section class="ig-pane" id="igPaneStars" data-ig-pane="stars" role="region" aria-labelledby="igHeadStars" hidden>
           <header class="ig-pane-head">
-            <h2 id="igHeadStars">Stars</h2>
+            <h2 id="igHeadStars">Creator Earnings &amp; Stars Wallet</h2>
             <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
           </header>
+
           <div class="ig-account-grid">
-            <article class="ig-account-card">
-              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars to give this month</span></div>
-              <p class="ig-acc-val" id="starsBalance">—</p>
-              <p class="ig-acc-sub" id="starsAllowance">Your monthly allowance refreshes on the 1st.</p>
+            <article class="ig-account-card ig-acc-highlight">
+              <div class="ig-acc-head">
+                <span class="ig-acc-lbl">Available to Withdraw</span>
+                <span class="ig-badge" id="walletMinBadge" style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(217,119,6,0.15);color:#d97706;border:1px solid rgba(217,119,6,0.3);">Min. ₹50.00</span>
+              </div>
+              <p class="ig-acc-val" id="walletAvailableInr" style="color:var(--sh-ink);font-weight:800;">₹0.00</p>
+              <p class="ig-acc-sub" id="walletAvailableStars">0 Stars available (70% revenue split = ₹3.50/star)</p>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars received</span></div>
-              <p class="ig-acc-val" id="starsReceived">—</p>
-              <p class="ig-acc-sub">From other creators, on your published templates.</p>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">All-Time Received</span></div>
+              <p class="ig-acc-val" id="walletTotalEarnedInr">₹0.00</p>
+              <p class="ig-acc-sub" id="walletTotalReceivedStars">From 0 Stars earned across templates and tips</p>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars given</span></div>
-              <p class="ig-acc-val" id="starsSent">—</p>
-              <p class="ig-acc-sub">Appreciation you have sent to other creators.</p>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars Balance to Give</span></div>
+              <p class="ig-acc-val" id="starsBalance">0</p>
+              <p class="ig-acc-sub" id="starsAllowance">Stars you can tip or spend on premium templates.</p>
+              <a href="/pricing#stars" class="ig-btn ig-btn-secondary" id="accountBuyStarsBtn" style="margin-top:10px;font-size:12px;padding:6px 12px;width:100%;justify-content:center;text-decoration:none;display:flex;align-items:center;gap:6px;">★ Buy Star Packs</a>
             </article>
           </div>
 
-          <div class="ig-note-block">
-            <h4>What Stars are</h4>
-            <p>Stars are a way to say a template helped you. They are <strong>not money and cannot be withdrawn, transferred or converted into credits</strong>. Every plan gets a monthly allowance to give away; giving one costs you nothing.</p>
-            <p class="ig-acc-sub">Creator monetization is not live. If it ever is, it will be announced with its own terms — Stars given today do not create a claim on it.</p>
+          <!-- UPI Payout Request Form -->
+          <div class="ig-card" style="margin-top:20px;padding:22px;border:1px solid var(--sh-line);border-radius:16px;background:var(--sh-bg2);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+              <h3 style="font-size:17px;font-weight:700;margin:0;color:var(--sh-ink);">Request UPI Payout</h3>
+              <span style="font-size:12px;color:var(--sh-ink3);">Settled to bank via UPI within 24–48 hours</span>
+            </div>
+            <p style="font-size:13px;color:var(--sh-ink2);margin:0 0 16px;line-height:1.5;">
+              Creators keep <strong>70% of every Star</strong> (₹3.50/star). Withdrawals require a valid UPI ID (e.g. Google Pay, PhonePe, Paytm, BHIM) and a minimum balance of exactly <strong>₹50.00</strong> (15 Stars = ₹52.50).
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;align-items:end;">
+              <div>
+                <label for="payoutUpiInput" style="display:block;font-size:12px;font-weight:600;color:var(--sh-ink2);margin-bottom:6px;">Your UPI ID</label>
+                <input type="text" id="payoutUpiInput" placeholder="yourname@okhdfcbank or 9876543210@paytm" style="width:100%;padding:10px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg1);color:var(--sh-ink);font-size:13px;" />
+              </div>
+              <div>
+                <label for="payoutStarsInput" style="display:block;font-size:12px;font-weight:600;color:var(--sh-ink2);margin-bottom:6px;">Stars to Withdraw (min 15)</label>
+                <input type="number" id="payoutStarsInput" min="15" step="1" placeholder="15" style="width:100%;padding:10px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg1);color:var(--sh-ink);font-size:13px;" />
+              </div>
+              <div>
+                <div id="payoutInrCalc" style="font-size:12px;color:var(--sh-ink3);margin-bottom:8px;font-weight:600;">Estimated INR: ₹0.00</div>
+                <button type="button" class="ig-btn ig-btn-primary" id="requestPayoutBtn" style="width:100%;justify-content:center;" disabled>Request Payout</button>
+              </div>
+            </div>
+            <div id="payoutStatusMsg" style="margin-top:12px;font-size:13px;padding:8px 12px;border-radius:8px;display:none;"></div>
+          </div>
+
+          <!-- Payout History -->
+          <div style="margin-top:24px;">
+            <h3 style="font-size:16px;font-weight:700;margin:0 0 12px;color:var(--sh-ink);">Payout History</h3>
+            <div id="payoutHistoryList" style="border:1px solid var(--sh-line);border-radius:12px;overflow:hidden;background:var(--sh-bg2);">
+              <p style="padding:16px;margin:0;font-size:13px;color:var(--sh-ink3);">No past withdrawal requests yet.</p>
+            </div>
           </div>
         </section>
 
@@ -641,6 +674,8 @@
           </div>
         </section>
 
+        
+
       </section>
 
       <section class="pg-sec" id="accountGuest" hidden>
@@ -725,8 +760,8 @@
 </nav>
 
 <script src="/authui.js?v=2026092501" defer></script>
-<script src="/theme.js?v=2026092302" defer></script>
-<script src="/report.js?v=2026092302" defer></script>
-<script src="/page.js?v=2026092302" defer></script>
-<script src="/templates-v2.js?v=2026092302"></script></body>
+<script src="/theme.js?v=2026092501" defer></script>
+<script src="/report.js?v=2026092501" defer></script>
+<script src="/page.js?v=2026092501" defer></script>
+<script src="/templates-v2.js?v=2026092501"></script></body>
 </html>

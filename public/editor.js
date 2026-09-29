@@ -2437,6 +2437,19 @@
     if (closeBtn) closeBtn.addEventListener("click", close);
     if (cancelBtn) cancelBtn.addEventListener("click", close);
 
+    var catSelect = $("#pubCategory");
+    var premRow = $("#pubPremiumRow");
+    var submitBtn = $("#publishSubmit");
+    if (catSelect && premRow) {
+      catSelect.addEventListener("change", function () {
+        var isPrem = catSelect.value === "premium";
+        premRow.style.display = isPrem ? "block" : "none";
+        if (submitBtn) {
+          submitBtn.textContent = isPrem ? "Submit for Quality Review ★" : "Publish to Community 🚀";
+        }
+      });
+    }
+
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var c = cur();
@@ -2460,14 +2473,21 @@
         if (pr["line" + li] != null) pubLines[li] = pr["line" + li];
       }
 
+      var isPrem = $("#pubCategory").value === "premium";
+      var starPrice = isPrem ? Math.max(2, parseInt(($("#pubStarPrice") && $("#pubStarPrice").value) || "2", 10) || 2) : 0;
+      var remixOfId = new URLSearchParams(location.search).get("remixOf") || (c.props && c.props.remixOf) || null;
+
       var payload = {
         title: $("#pubTitle").value.trim(),
         category: $("#pubCategory").value,
+        isPremium: isPrem,
+        starPrice: starPrice,
+        remixOf: remixOfId,
         description: $("#pubDesc").value.trim(),
         authorHandle: $("#pubAuthor").value.trim() || "creator",
         tpl: c.tpl || "text-cascade",
         lines: pubLines,
-        props: pr,
+        props: Object.assign({}, pr, isPrem ? { isPremium: true, starPrice: starPrice } : {}, remixOfId ? { remixOf: remixOfId } : {}),
         aspect: state.aspect || "9:16",
         accent: c.accent || "#ffffff",
         font: c.font || "inter",
@@ -2494,10 +2514,16 @@
             var seeIt = pubId
               ? '<a href="/template?id=' + encodeURIComponent(payload.tpl) + '&amp;comm=1&amp;commId=' + encodeURIComponent(pubId) + '" target="_blank" rel="noopener">View your template →</a>'
               : '<a href="/animations" target="_blank" rel="noopener">Open the animation library →</a>';
-            msg.innerHTML = '🎉 Published! <span class="ed-pub-seeit">' + seeIt + "</span>";
+            if (isPrem) {
+              msg.innerHTML = '★ Submitted for Quality Review! <span class="ed-pub-seeit">Our team will review your premium template before it appears in the marketplace.</span>';
+              submitBtn.textContent = "Submitted for Review!";
+              status("Template submitted for quality review!");
+            } else {
+              msg.innerHTML = '🎉 Published! <span class="ed-pub-seeit">' + seeIt + "</span>";
+              submitBtn.textContent = "Published!";
+              status("Template published to the library!");
+            }
           }
-          submitBtn.textContent = "Published!";
-          status("Template published to the library!");
           setTimeout(function () {
             close();
             submitBtn.disabled = false;

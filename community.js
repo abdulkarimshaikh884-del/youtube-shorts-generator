@@ -23,7 +23,7 @@ function loadValidTplIds() {
   }
 }
 const VALID_TPL_IDS = loadValidTplIds();
-const VALID_CATEGORIES = new Set(["docu", "paper", "text", "maps", "money", "ui", "social", "charts"]);
+const VALID_CATEGORIES = new Set(["premium", "docu", "paper", "text", "maps", "money", "ui", "social", "charts"]);
 const VALID_FONTS = new Set(["inter", "grotesk", "roboto", "serif", "mono"]);
 
 function parseLines(val) {
@@ -38,6 +38,8 @@ function parseLines(val) {
 }
 
 function toTemplate(row) {
+  const isPremium = row.category === "premium" || (row.props && row.props.isPremium === true);
+  const starPrice = (row.props && Number(row.props.starPrice)) || (isPremium ? 2 : 0);
   return {
     id: row.id,
     title: row.title,
@@ -49,6 +51,9 @@ function toTemplate(row) {
     // rebuilds the template from defaults and the published result silently
     // differs from what was composed.
     props: row.props && typeof row.props === "object" ? row.props : {},
+    isPremium,
+    starPrice,
+    remixOf: (row.props && row.props.remixOf) || null,
     aspect: row.aspect || "9:16",
     accent: row.accent,
     font: row.font,
@@ -189,8 +194,13 @@ async function publish(data, user) {
     : (data.authorName || "Creator"));
   const authorHandle = (user.handle || data.authorHandle || authorName).toLowerCase().replace(/[^a-z0-9_]/g, "");
   const lines = Array.isArray(data.lines) ? data.lines.map((l) => String(l || "").slice(0, 120)) : ["", "", ""];
+  const isPremium = String(data.category) === "premium" || data.isPremium === true;
+  let starPrice = 0;
+  if (isPremium) {
+    starPrice = Math.max(2, parseInt(data.starPrice, 10) || 2);
+  }
   const visibility = String(data.visibility || "public").toLowerCase();
-  let status = visibility === "private" ? "draft" : "published";
+  let status = visibility === "private" ? "draft" : (isPremium ? "review" : "published");
   let scheduledAt = null;
   if (visibility === "scheduled") {
     const parsed = new Date(data.scheduledAt || "");
@@ -212,8 +222,15 @@ async function publish(data, user) {
   let aspect = ASPECTS.has(String(data.aspect)) ? String(data.aspect) : "9:16";
   let sourceFormat = "shortscraft_preset";
   let props = data.props && typeof data.props === "object" && !Array.isArray(data.props)
-    ? data.props
+    ? { ...data.props }
     : {};
+  if (isPremium) {
+    props.isPremium = true;
+    props.starPrice = starPrice;
+  }
+  if (data.remixOf && typeof data.remixOf === "object") {
+    props.remixOf = data.remixOf;
+  }
   /* An uploaded animation is published by reference. Its size and length
      are what the stored document says — not what the request claims — and
      only the document's owner may publish it. Props are reduced to the upload

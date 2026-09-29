@@ -630,6 +630,70 @@ ${pageHead("Pricing")}
       <p class="pg-note pg-center" id="buyNote" role="status" aria-live="polite"></p>
       <p class="pg-fine pg-center">Annual plans are billed once a year. Credits refresh daily and unused daily credits do not stack.</p>
 
+            <!-- ── Creator Stars Packs ──────────────────────────── -->
+      <section class="pg-sec" id="stars" style="scroll-margin-top: 80px;">
+        <div style="text-align:center;max-width:680px;margin:0 auto 28px;">
+          <span class="pg-calc-kicker" style="background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.25);">★ Creator Economy</span>
+          <h2 style="margin:10px 0 8px;font-size:28px;">Creator Stars Packs</h2>
+          <p style="color:var(--sc-muted,#64748b);font-size:15px;line-height:1.5;">Purchase Stars to tip motion designers, or unlock exclusive premium templates and graphic designs. Creators receive 70% in cash payouts via UPI.</p>
+        </div>
+
+        <div class="pg-plans pg-plans4" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;">
+          <article class="pg-plan" style="border:1px solid var(--sc-border);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);">
+            <span class="pg-tier" style="color:#d97706;font-weight:700;">★ Starter Pack</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹49</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>10 Stars</b> to give or unlock</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹4.90 per star</li>
+              <li>Unlock 1–5 premium designs</li>
+              <li>Instant star balance delivery</li>
+            </ul>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_10" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 10 Stars · ₹49</button>
+          </article>
+
+          <article class="pg-plan pg-hot" style="border:2px solid #f59e0b;border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
+            <span class="pg-tier" style="color:#d97706;font-weight:700;">★ Popular Pack</span>
+            <span style="position:absolute;top:-12px;right:20px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:0.04em;">MOST POPULAR</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹199</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>45 Stars</b> (Save 10%)</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹4.42 per star</li>
+              <li>Unlock ~22 premium templates</li>
+              <li>Send appreciation tips to creators</li>
+            </ul>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_45" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 45 Stars · ₹199</button>
+          </article>
+
+          <article class="pg-plan" style="border:1px solid var(--sc-border);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);">
+            <span class="pg-tier" style="color:#d97706;font-weight:700;">★ Superfan Pack</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹499</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>120 Stars</b> (Save 15%)</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹4.16 per star</li>
+              <li>Unlock 60+ premium templates</li>
+              <li>Tip favorite tutorial channels</li>
+            </ul>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_120" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 120 Stars · ₹499</button>
+          </article>
+
+          <article class="pg-plan pg-max" style="border:1px solid rgba(139,92,246,0.4);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
+            <span class="pg-tier" style="color:#a855f7;font-weight:700;">★ Mega Pack</span>
+            <span style="position:absolute;top:-12px;right:20px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:0.04em;">BEST VALUE</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹999</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>260 Stars</b> (Save 22%)</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹3.84 per star</li>
+              <li>Unlimited remix & library unlocks</li>
+              <li>Exclusive supporter recognition</li>
+            </ul>
+            <button type="button" class="pg-bo pg-buy-stars" data-star-pack="stars_260" style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;border:none;font-weight:700;">Buy 260 Stars · ₹999</button>
+          </article>
+        </div>
+
+        <p class="pg-note pg-center" id="starsBuyNote" role="status" aria-live="polite" style="margin-top:16px;"></p>
+        <p class="pg-fine pg-center" style="margin-top:8px;">Stars do not expire. Creators keep 70% (₹3.50/star) upon receiving unlocks or tips, withdrawable directly via UPI.</p>
+      </section>
+
       <section class="pg-sec" id="credits">
         <h2>What uses credits</h2>
         <div class="pg-grid">
@@ -1770,9 +1834,15 @@ const authPage = (kind) => {
         </div>
         <div class="pg-f">
           <label for="authPassword">Password${isUp ? " <span>— at least 8 characters</span>" : ""}</label>
-          <input id="authPassword" name="password" type="password"
-                 autocomplete="${isUp ? "new-password" : "current-password"}"
-                 minlength="8" maxlength="200" required>
+          <div class="pg-pw-wrap">
+            <input id="authPassword" name="password" type="password"
+                   autocomplete="${isUp ? "new-password" : "current-password"}"
+                   minlength="8" maxlength="200" required>
+            <button type="button" class="pg-pw-toggle" id="authPasswordToggle" data-password-toggle="#authPassword" aria-label="Show password" aria-pressed="false" tabindex="-1">
+              <svg class="pg-pw-eye pg-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="pg-pw-eye pg-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+            </button>
+          </div>
         </div>
         <button class="pg-bw" type="submit" id="authSend">${isUp ? "Create account" : "Log in"}</button>
         <p class="pg-formnote" id="authNote" role="status" aria-live="polite"></p>
@@ -1913,6 +1983,10 @@ const account = {
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
             <span>Creations</span>
           </button>
+          <button type="button" class="ig-tab-btn" id="igTabStars" data-ig-tab="stars" role="tab" aria-controls="igPaneStars" aria-selected="false">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+            <span>Earnings &amp; Stars</span>
+          </button>
           <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             <span>Plan &amp; credits</span>
@@ -1935,7 +2009,6 @@ const account = {
         </section>
 
         <!-- Followers and following.
-
              The profile has shown these counts since it was built, with
              nothing behind them: no way to see who, and no way to follow
              back. These are the real lists, and each row carries the
@@ -1960,40 +2033,70 @@ const account = {
           </div>
         </section>
 
-        <!-- Tab 2: Stars.
-
-             The plan is explicit that Stars must never read as money while
-             monetization is off, so the wording says so on the page rather
-             than in a tooltip. -->
+        <!-- Tab 2: Stars & Creator Wallet -->
         <section class="ig-pane" id="igPaneStars" data-ig-pane="stars" role="region" aria-labelledby="igHeadStars" hidden>
           <header class="ig-pane-head">
-            <h2 id="igHeadStars">Stars</h2>
+            <h2 id="igHeadStars">Creator Earnings &amp; Stars Wallet</h2>
             <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
           </header>
+
           <div class="ig-account-grid">
-            <article class="ig-account-card">
-              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars to give this month</span></div>
-              <p class="ig-acc-val" id="starsBalance">—</p>
-              <p class="ig-acc-sub" id="starsAllowance">Your monthly allowance refreshes on the 1st.</p>
+            <article class="ig-account-card ig-acc-highlight">
+              <div class="ig-acc-head">
+                <span class="ig-acc-lbl">Available to Withdraw</span>
+                <span class="ig-badge" id="walletMinBadge" style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(217,119,6,0.15);color:#d97706;border:1px solid rgba(217,119,6,0.3);">Min. ₹50.00</span>
+              </div>
+              <p class="ig-acc-val" id="walletAvailableInr" style="color:var(--sh-ink);font-weight:800;">₹0.00</p>
+              <p class="ig-acc-sub" id="walletAvailableStars">0 Stars available (70% revenue split = ₹3.50/star)</p>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars received</span></div>
-              <p class="ig-acc-val" id="starsReceived">—</p>
-              <p class="ig-acc-sub">From other creators, on your published templates.</p>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">All-Time Received</span></div>
+              <p class="ig-acc-val" id="walletTotalEarnedInr">₹0.00</p>
+              <p class="ig-acc-sub" id="walletTotalReceivedStars">From 0 Stars earned across templates and tips</p>
             </article>
 
             <article class="ig-account-card">
-              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars given</span></div>
-              <p class="ig-acc-val" id="starsSent">—</p>
-              <p class="ig-acc-sub">Appreciation you have sent to other creators.</p>
+              <div class="ig-acc-head"><span class="ig-acc-lbl">Stars Balance to Give</span></div>
+              <p class="ig-acc-val" id="starsBalance">0</p>
+              <p class="ig-acc-sub" id="starsAllowance">Stars you can tip or spend on premium templates.</p>
+              <a href="/pricing#stars" class="ig-btn ig-btn-secondary" id="accountBuyStarsBtn" style="margin-top:10px;font-size:12px;padding:6px 12px;width:100%;justify-content:center;text-decoration:none;display:flex;align-items:center;gap:6px;">★ Buy Star Packs</a>
             </article>
           </div>
 
-          <div class="ig-note-block">
-            <h4>What Stars are</h4>
-            <p>Stars are a way to say a template helped you. They are <strong>not money and cannot be withdrawn, transferred or converted into credits</strong>. Every plan gets a monthly allowance to give away; giving one costs you nothing.</p>
-            <p class="ig-acc-sub">Creator monetization is not live. If it ever is, it will be announced with its own terms — Stars given today do not create a claim on it.</p>
+          <!-- UPI Payout Request Form -->
+          <div class="ig-card" style="margin-top:20px;padding:22px;border:1px solid var(--sh-line);border-radius:16px;background:var(--sh-bg2);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+              <h3 style="font-size:17px;font-weight:700;margin:0;color:var(--sh-ink);">Request UPI Payout</h3>
+              <span style="font-size:12px;color:var(--sh-ink3);">Settled to bank via UPI within 24–48 hours</span>
+            </div>
+            <p style="font-size:13px;color:var(--sh-ink2);margin:0 0 16px;line-height:1.5;">
+              Creators keep <strong>70% of every Star</strong> (₹3.50/star). Withdrawals require a valid UPI ID (e.g. Google Pay, PhonePe, Paytm, BHIM) and a minimum balance of exactly <strong>₹50.00</strong> (15 Stars = ₹52.50).
+            </p>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;align-items:end;">
+              <div>
+                <label for="payoutUpiInput" style="display:block;font-size:12px;font-weight:600;color:var(--sh-ink2);margin-bottom:6px;">Your UPI ID</label>
+                <input type="text" id="payoutUpiInput" placeholder="yourname@okhdfcbank or 9876543210@paytm" style="width:100%;padding:10px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg1);color:var(--sh-ink);font-size:13px;" />
+              </div>
+              <div>
+                <label for="payoutStarsInput" style="display:block;font-size:12px;font-weight:600;color:var(--sh-ink2);margin-bottom:6px;">Stars to Withdraw (min 15)</label>
+                <input type="number" id="payoutStarsInput" min="15" step="1" placeholder="15" style="width:100%;padding:10px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg1);color:var(--sh-ink);font-size:13px;" />
+              </div>
+              <div>
+                <div id="payoutInrCalc" style="font-size:12px;color:var(--sh-ink3);margin-bottom:8px;font-weight:600;">Estimated INR: ₹0.00</div>
+                <button type="button" class="ig-btn ig-btn-primary" id="requestPayoutBtn" style="width:100%;justify-content:center;" disabled>Request Payout</button>
+              </div>
+            </div>
+            <div id="payoutStatusMsg" style="margin-top:12px;font-size:13px;padding:8px 12px;border-radius:8px;display:none;"></div>
+          </div>
+
+          <!-- Payout History -->
+          <div style="margin-top:24px;">
+            <h3 style="font-size:16px;font-weight:700;margin:0 0 12px;color:var(--sh-ink);">Payout History</h3>
+            <div id="payoutHistoryList" style="border:1px solid var(--sh-line);border-radius:12px;overflow:hidden;background:var(--sh-bg2);">
+              <p style="padding:16px;margin:0;font-size:13px;color:var(--sh-ink3);">No past withdrawal requests yet.</p>
+            </div>
           </div>
         </section>
 
@@ -2135,6 +2238,8 @@ const account = {
           </div>
         </section>
 
+        
+
       </section>
 
 ${guestGate("/account", "Log in to see your account", "Your creator profile, channel links, daily credits, and account settings all live behind a login.", ["Your plan and daily credit balance in one place", "Templates you publish stay tied to your creator name", "Drafts and settings follow you to any device"])}
@@ -2152,7 +2257,8 @@ const indexPage = {
   title: "ShortsCraft — Create and customize motion templates",
   desc: "Create short-form animations from a prompt or customize motion templates in a focused browser editor. Preview freely and export a real MP4 when it is ready.",
   // Only the two words the hero's handwriting uses, so the font is a few KB.
-  head: `<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
+  head: `<link rel="stylesheet" href="/designs.css?v=${V}">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>`,
   body: `    <main class="sh-home">
       <!-- The owner's mobile design: a headline with the product's promise
@@ -2232,110 +2338,205 @@ const indexPage = {
         <div class="sh-filters-scroll" id="filters" data-links></div>
         <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="10"></div>
         <div class="sh-sec-more">
-          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse All Animation</a>
+          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse All Animations</a>
         </div>
       </section>
 
-      <!-- Creator Tutorials: real submissions from /api/skills, drawn by shell.js.
-           ShortsCraft links out; it never hosts the video. -->
+      <!-- Popular Thumbnails & Designs (3 lines / 12 items) -->
+      <section class="sh-home-sec" id="homeDesigns">
+        <div class="sh-gallery-title">
+          <div><h2>Popular Thumbnails &amp; Designs</h2></div>
+          <a href="/designs" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="ds-home-grid" id="homeDesignsGrid" aria-live="polite"></div>
+        <div class="sh-sec-more">
+          <a href="/designs" class="sh-ge-btn sh-ge-primary">Browse All Designs</a>
+        </div>
+      </section>
+
+      <!-- Creator Tutorials (3 lines / 12 items) -->
       <section class="sh-home-sec" id="homeTutorials">
         <div class="sh-gallery-title">
           <div><h2>Creator Tutorials</h2></div>
           <a href="/community" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <div class="sh-tut-row" id="homeTutList" aria-live="polite"></div>
+        <div class="sh-sec-more">
+          <a href="/community" class="sh-ge-btn sh-ge-primary">Browse All Tutorials</a>
+        </div>
       </section>
 
-      <section class="sh-workflow-sec">
-        <div class="sh-section-head">
-          <h2>How it works</h2>
+      <!-- 1. Creator Economy: Monetization & Benefits -->
+      <section class="sh-home-sec sh-ce-sec" id="creatorEconomy">
+        <div class="sh-sec-header-center">
+          <span class="sh-ce-badge-pill">★ Creator Economy</span>
+          <h2 class="sh-ce-heading">Create Content, Build Audience &amp; Earn Income</h2>
+          <p class="sh-ce-subhead">Turn your video skills, motion templates, and thumbnails into a recurring revenue stream with fair creator payouts.</p>
+        </div>
+        <div class="sh-ce-grid">
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-gold">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="sh-ce-tag">70% Revenue Share</div>
+            <h3>Earn From Stars</h3>
+            <p>Set a Star price on your motion and design templates. Every time a user unlocks your asset, 70% goes straight to your wallet.</p>
+          </div>
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-blue">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="sh-ce-tag">Official Status</div>
+            <h3>Verified Badge</h3>
+            <p>Earn an official blue verified tick on your profile, templates, and tutorials to build trust, authority, and massive reach.</p>
+          </div>
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
+            <div class="sh-ce-tag">Min ₹50 Threshold</div>
+            <h3>Direct UPI Payouts</h3>
+            <p>No waiting for months. Request payouts anytime your balance reaches ₹50, sent directly to your UPI ID or bank account.</p>
+          </div>
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="sh-ce-tag">Grow Your Reach</div>
+            <h3>Direct Channel Traffic</h3>
+            <p>Link your YouTube tutorials and channel. Viewers watch on your original channel, boosting your subscribers and watch hours.</p>
+          </div>
+        </div>
+        <div class="sh-sec-more">
+          <a href="/community" class="sh-ge-btn sh-ge-primary">Start Earning as a Creator <span aria-hidden="true">→</span></a>
+        </div>
+      </section>
+
+      <!-- 2. How It Works: 3 Steps -->
+      <section class="sh-workflow-sec" id="howItWorks">
+        <div class="sh-sec-header-center">
+          <span class="sh-ce-badge-pill">⚡ Simple Workflow</span>
+          <h2 class="sh-ce-heading">How ShortsCraft Works</h2>
+          <p class="sh-ce-subhead">From idea to high-retention video in 3 frictionless steps.</p>
         </div>
         <div class="sh-workflow-grid">
           <div class="sh-workflow-card">
-            <span class="sh-workflow-num">01</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <div class="sh-wf-top">
+              <span class="sh-workflow-num">01</span>
+              <div class="sh-workflow-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              </div>
             </div>
-            <h3>Describe or choose</h3>
+            <h3>Pick or Prompt</h3>
+            <p>Choose from dozens of trending documentary, papercraft, and finance templates—or simply describe what you want to animate with AI.</p>
           </div>
           <div class="sh-workflow-card">
-            <span class="sh-workflow-num">02</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            <div class="sh-wf-top">
+              <span class="sh-workflow-num">02</span>
+              <div class="sh-workflow-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </div>
             </div>
-            <h3>Customise in the Studio</h3>
+            <h3>Customize in Studio</h3>
+            <p>Change text, accent colors, kinetic speed, and sound in our fast browser studio. Real-time preview with zero rendering lag.</p>
           </div>
           <div class="sh-workflow-card">
-            <span class="sh-workflow-num">03</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+            <div class="sh-wf-top">
+              <span class="sh-workflow-num">03</span>
+              <div class="sh-workflow-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
             </div>
-            <h3>Export or publish</h3>
+            <h3>Export or Monetize</h3>
+            <p>Export a clean MP4 up to 1080p/1440p ready for YouTube Shorts and Reels, or publish your remix to earn Stars from other creators.</p>
           </div>
         </div>
       </section>
 
-      <section class="sh-home-sec sh-pricing-prev">
-        <div class="sh-gallery-title">
-          <div><h2>Simple pricing</h2></div>
-          <a href="/pricing" class="sh-seeall">Compare plans <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <!-- 3. Simple, Transparent Pricing -->
+      <section class="sh-home-sec sh-pricing-prev" id="homePricing">
+        <div class="sh-sec-header-center">
+          <span class="sh-ce-badge-pill">💎 Flexible Plans</span>
+          <h2 class="sh-ce-heading">Simple, Transparent Pricing</h2>
+          <p class="sh-ce-subhead">Start creating for free, or upgrade for higher resolution, unlimited speed, and no watermarks.</p>
         </div>
         <div class="sh-pp-grid">
-          <a href="/pricing" class="sh-pp-card">
+          <div class="sh-pp-card">
             <span class="sh-pp-name">Free</span>
-            <span class="sh-pp-price">₹${P.free.price}<small></small></span>
-            <ul>
-              <li>${P.free.perDay} credits every day</li>
-              <li>Export up to ${P.free.maxHeight}p</li>
-              <li>${P.free.watermark ? "ShortsCraft watermark" : "No watermark"}</li>
+            <span class="sh-pp-price">₹${P.free.price}<small>/forever</small></span>
+            <p class="sh-pp-desc">Great for getting started and trying out AI animations.</p>
+            <ul class="sh-pp-list">
+              <li><strong>${P.free.perDay} credits</strong> every single day</li>
+              <li>Export up to <strong>${P.free.maxHeight}p</strong> resolution</li>
+              <li>Standard generation queue</li>
+              <li>Full access to free motion templates</li>
+              <li class="sh-pp-muted">ShortsCraft subtle watermark</li>
             </ul>
-          </a>
-          <a href="/pricing" class="sh-pp-card sh-pp-hi">
+            <a href="/editor" class="sh-plan-cta sh-plan-cta-ghost">Start Creating Free</a>
+          </div>
+
+          <div class="sh-pp-card sh-pp-featured">
+            <span class="sh-pp-pop-badge">★ Most Popular</span>
             <span class="sh-pp-name">Pro</span>
             <span class="sh-pp-price">₹${P.pro.price}<small>/month</small></span>
-            <ul>
-              <li>${P.pro.perDay} credits every day</li>
-              <li>Export up to ${P.pro.maxHeight}p</li>
-              <li>${P.pro.watermark ? "ShortsCraft watermark" : "No watermark"}</li>
+            <p class="sh-pp-desc">For active creators posting high-quality viral Shorts daily.</p>
+            <ul class="sh-pp-list">
+              <li><strong>${P.pro.perDay} credits</strong> every single day</li>
+              <li><strong>${P.pro.maxHeight}p Full HD</strong> crystal-clear export</li>
+              <li><strong>No watermark</strong> on any video</li>
+              <li>Priority AI generation speed</li>
+              <li>Commercial usage rights</li>
             </ul>
-          </a>
-          <a href="/pricing" class="sh-pp-card">
+            <a href="/pricing" class="sh-plan-cta sh-plan-cta-primary">Upgrade to Pro <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="sh-pp-card">
             <span class="sh-pp-name">Pro Max</span>
             <span class="sh-pp-price">₹${P.promax.price}<small>/month</small></span>
-            <ul>
-              <li>${P.promax.perDay} credits every day</li>
-              <li>Export up to ${P.promax.maxHeight}p</li>
-              <li>${P.promax.watermark ? "ShortsCraft watermark" : "No watermark"}</li>
+            <p class="sh-pp-desc">For power creators and agencies who need maximum output.</p>
+            <ul class="sh-pp-list">
+              <li><strong>${P.promax.perDay} credits</strong> every single day</li>
+              <li><strong>${P.promax.maxHeight}p 2K Ultra HD</strong> maximum quality</li>
+              <li><strong>No watermark</strong> on any video</li>
+              <li>Fastest VIP rendering queue</li>
+              <li>Early access to new motion styles</li>
             </ul>
-          </a>
+            <a href="/pricing" class="sh-plan-cta sh-plan-cta-ghost">Go Pro Max</a>
+          </div>
+        </div>
+
+        <!-- Creator Stars Callout Strip -->
+        <div class="sh-stars-strip">
+          <div class="sh-ss-left">
+            <span class="sh-ss-icon">★</span>
+            <div class="sh-ss-text">
+              <h4>Want to unlock Creator Templates &amp; Thumbnails?</h4>
+              <p>Buy Star Packs starting at just <strong>₹49</strong>. 100% on-demand, no subscription needed.</p>
+            </div>
+          </div>
+          <a href="/pricing#stars" class="sh-ss-btn">Explore Star Packs <span aria-hidden="true">→</span></a>
         </div>
       </section>
 
-      <section class="sh-home-sec sh-benefits">
-        <div class="sh-gallery-title">
-          <div><h2>Built for creators</h2></div>
-        </div>
-        <div class="sh-ben-grid">
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><b>Publish templates</b></div>
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span><b>Share tutorials</b></div>
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><b>Build a following</b></div>
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Get verified</b></div>
-        </div>
-        <div class="sh-sec-more">
-          <a href="/community" class="sh-ge-btn sh-ge-primary">Share a tutorial</a>
-
-        </div>
-      </section>
-
+      <!-- 4. Final CTA Hero Banner -->
       <section class="sh-finale">
-        <h2>Ready to Level Up Your YouTube Shorts?</h2>
-        <div class="sh-frow">
-          <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
-          <a href="/animations" class="sh-bo">Browse Templates</a>
+        <div class="sh-finale-card">
+          <div class="sh-finale-glow" aria-hidden="true"></div>
+          <h2>Ready to Level Up Your YouTube Shorts?</h2>
+          <p>Join thousands of creators producing scroll-stopping motion graphics and viral thumbnails in seconds.</p>
+          <div class="sh-frow">
+            <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
+            <a href="/animations" class="sh-bo">Browse All Templates</a>
+          </div>
+          <div class="sh-finale-trust">
+            <span>✓ No credit card required</span>
+            <span>✓ 5 free daily credits</span>
+            <span>✓ Works on any browser</span>
+          </div>
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
+  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
 };
 
 /* ── ANIMATIONS ─────────────────────────────────────────────
@@ -2407,13 +2608,13 @@ const designsPage = {
       <div class="ds-page-container">
         <header class="ds-header">
           <h1>Designs</h1>
-          <button type="button" class="ds-btn ds-btn-magic js-open-design-upload">Upload image</button>
         </header>
         <div class="ds-library-heading"><label class="ds-search-label"><span class="sr-only">Search designs</span><input type="search" id="designSearch" placeholder="Search designs…" aria-label="Search designs"></label></div>
 
         <!-- Category Filter Bar -->
         <nav class="ds-filter-bar" id="designsFilterBar" aria-label="Design categories">
           <button type="button" class="ds-filter-btn active" data-cat="all" aria-pressed="true">All Designs</button>
+          <button type="button" class="ds-filter-btn ds-filter-btn-premium" data-cat="premium" aria-pressed="false">★ Premium</button>
           <button type="button" class="ds-filter-btn" data-cat="youtube-thumbnail" aria-pressed="false">YouTube Thumbnails</button>
           <button type="button" class="ds-filter-btn" data-cat="logo" aria-pressed="false">Logos &amp; Badges</button>
           <button type="button" class="ds-filter-btn" data-cat="poster" aria-pressed="false">Posters &amp; Flyers</button>
@@ -2631,7 +2832,28 @@ const creatorPage = {
 .cp-stats{display:flex;gap:18px;flex-wrap:wrap}
 .cp-stat{font-size:13px;color:var(--sh-ink3)}
 .cp-stat b{color:var(--sh-ink);font-weight:700}
+.cp-stat-btn{background:none;border:none;font:inherit;color:inherit;cursor:pointer;padding:0;}
+.cp-stat-btn:hover b{text-decoration:underline;}
 .cp-sec-title{font-family:var(--sh-display);font-size:22px;font-weight:750;margin:0 0 20px;color:var(--sh-ink)}
+.sc-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;}
+.sc-modal-backdrop[hidden]{display:none;}
+.sc-modal-card{background:var(--sh-bg1);border:1px solid var(--sh-line);border-radius:20px;width:100%;max-width:440px;padding:24px;box-shadow:0 24px 64px rgba(0,0,0,0.35);position:relative;animation:scModalPop .2s ease;}
+@keyframes scModalPop{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.sc-modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.sc-modal-head h3{font-family:var(--sh-display);font-size:18px;font-weight:750;margin:0;color:var(--sh-ink);}
+.sc-modal-close{background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:var(--sh-ink3);padding:0;}
+.sc-modal-close:hover{color:var(--sh-ink);}
+.sc-modal-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;padding-right:4px;}
+.sc-user-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px;border-radius:12px;text-decoration:none;transition:background .15s;}
+.sc-user-row:hover{background:var(--sh-bg2);}
+.sc-user-info{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+.sc-user-av{width:40px;height:40px;border-radius:50%;background:var(--sh-bg3);display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--sh-ink);flex:none;}
+.sc-user-txt{min-width:0;}
+.sc-user-name{font-weight:650;font-size:13.5px;color:var(--sh-ink);display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sc-user-handle{font-size:12px;color:var(--sh-ink3);}
+.sc-star-presets{display:flex;gap:8px;margin-bottom:14px;}
+.sc-star-pill{flex:1;padding:8px 0;border:1px solid var(--sh-line);background:var(--sh-bg2);border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;color:var(--sh-ink);transition:all .15s;}
+.sc-star-pill:hover,.sc-star-pill.active{border-color:#eab308;background:rgba(234,179,8,0.1);color:#ca8a04;}
 </style>`,
   body: `    <main class="sh-home">
       <div class="cp-wrap">
@@ -2643,20 +2865,68 @@ const creatorPage = {
             <p class="cp-bio" id="creatorBio">Motion graphics creator on ShortsCraft.</p>
             <div class="cp-stats">
               <span class="cp-stat"><b id="creatorTplCount">0</b> Templates</span>
-              <span class="cp-stat"><b id="creatorFollowers">0</b> Followers</span>
-              <span class="cp-stat"><b id="creatorFollowing">0</b> Following</span>
+              <span class="cp-stat"><button type="button" class="cp-stat-btn" id="creatorFollowersBtn"><b id="creatorFollowers">0</b> Followers</button></span>
+              <span class="cp-stat"><button type="button" class="cp-stat-btn" id="creatorFollowingBtn"><b id="creatorFollowing">0</b> Following</button></span>
               <span class="cp-stat"><b id="creatorStars">0</b> Stars</span>
             </div>
           </div>
-          <!-- Starts hidden. Whether these belong on screen depends on who is
-               looking, which is only known once the profile loads - so shipping
-               them visible meant every creator saw "Follow" and "Send Stars" on
-               their own page for a moment before they vanished. -->
+          <!-- Starts hidden. Whether these belong on screen depends on who is looking. -->
+          <div class="cp-actions" id="creatorSelfActions" hidden>
+            <a href="/account" class="pg-bo" id="creatorEditProfileBtn">Edit Profile</a>
+          </div>
           <div class="cp-actions" id="creatorActions" hidden>
             <button type="button" class="pg-bw" id="creatorFollowBtn">Follow</button>
-            <button type="button" class="pg-bo" id="creatorStarBtn">Send Stars</button>
+            <button type="button" class="pg-bo" id="creatorStarBtn">★ Send Stars</button>
           </div>
         </section>
+
+        <!-- Instagram-style Follow / Following List Modal -->
+        <div class="sc-modal-backdrop" id="followsModal" hidden>
+          <div class="sc-modal-card" role="dialog" aria-modal="true" aria-labelledby="followsModalTitle">
+            <div class="sc-modal-head">
+              <h3 id="followsModalTitle">Followers</h3>
+              <button type="button" class="sc-modal-close" id="followsModalClose" aria-label="Close">&times;</button>
+            </div>
+            <div class="sc-modal-list" id="followsModalList">
+              <p style="text-align:center;color:var(--sh-ink3);font-size:13px;padding:16px 0;">Loading…</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instagram-style Send Stars Modal -->
+        <div class="sc-modal-backdrop" id="starsModal" hidden>
+          <div class="sc-modal-card" role="dialog" aria-modal="true" aria-labelledby="starsModalTitle">
+            <div class="sc-modal-head">
+              <h3 id="starsModalTitle">★ Send Stars</h3>
+              <button type="button" class="sc-modal-close" id="starsModalClose" aria-label="Close">&times;</button>
+            </div>
+            <div style="margin-bottom:14px;font-size:13px;color:var(--sh-ink2);">
+              Appreciate <strong id="starsRecipientName">Creator</strong> with Stars.
+            </div>
+            <div style="font-size:12px;color:var(--sh-ink3);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+              <span>Choose amount:</span>
+              <span>Available: <strong id="starsUserBalance" style="color:var(--sh-ink);">0</strong> Stars</span>
+            </div>
+            <div class="sc-star-presets">
+              <button type="button" class="sc-star-pill active" data-amount="1">★ 1</button>
+              <button type="button" class="sc-star-pill" data-amount="5">★ 5</button>
+              <button type="button" class="sc-star-pill" data-amount="10">★ 10</button>
+              <button type="button" class="sc-star-pill" data-amount="20">★ 20</button>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label for="starsAmountInput" style="display:block;font-size:12px;color:var(--sh-ink3);margin-bottom:4px;">Custom Stars (1–20):</label>
+              <input type="number" id="starsAmountInput" class="pg-inp" min="1" max="20" value="1" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg2);color:var(--sh-ink);font-size:14px;" />
+            </div>
+            <div style="margin-bottom:18px;">
+              <label for="starsNoteInput" style="display:block;font-size:12px;color:var(--sh-ink3);margin-bottom:4px;">Add a note (optional):</label>
+              <input type="text" id="starsNoteInput" class="pg-inp" maxlength="120" placeholder="Great animation! Loved the kinetic typography." style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg2);color:var(--sh-ink);font-size:13px;" />
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button type="button" class="pg-bo" id="starsModalCancel" style="padding:8px 16px;">Cancel</button>
+              <button type="button" class="pg-bw" id="starsModalSend" style="padding:8px 20px;">Send Stars</button>
+            </div>
+          </div>
+        </div>
 
         <section>
           <h2 class="cp-sec-title">Published Templates</h2>
@@ -3004,13 +3274,25 @@ const recoveryPage = (kind) => {
       ${isReset ? `<form class="pg-form pg-auth" id="resetForm" novalidate>
         <div class="pg-f">
           <label for="resetPassword">New password <span>— at least 8 characters</span></label>
-          <input id="resetPassword" name="password" type="password"
-                 autocomplete="new-password" minlength="8" maxlength="200" required>
+          <div class="pg-pw-wrap">
+            <input id="resetPassword" name="password" type="password"
+                   autocomplete="new-password" minlength="8" maxlength="200" required>
+            <button type="button" class="pg-pw-toggle" data-password-toggle="#resetPassword" aria-label="Show new password" aria-pressed="false" tabindex="-1">
+              <svg class="pg-pw-eye pg-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="pg-pw-eye pg-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+            </button>
+          </div>
         </div>
         <div class="pg-f">
           <label for="resetConfirm">Confirm new password</label>
-          <input id="resetConfirm" name="confirm" type="password"
-                 autocomplete="new-password" minlength="8" maxlength="200" required>
+          <div class="pg-pw-wrap">
+            <input id="resetConfirm" name="confirm" type="password"
+                   autocomplete="new-password" minlength="8" maxlength="200" required>
+            <button type="button" class="pg-pw-toggle" data-password-toggle="#resetConfirm" aria-label="Show confirmed password" aria-pressed="false" tabindex="-1">
+              <svg class="pg-pw-eye pg-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="pg-pw-eye pg-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+            </button>
+          </div>
         </div>
         <p class="pg-fine">Setting a new password signs you out everywhere else.</p>
         <button class="pg-bw" type="submit" id="resetSend">Set new password</button>

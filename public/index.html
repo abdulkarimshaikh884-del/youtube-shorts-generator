@@ -24,20 +24,21 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026092302">
-<link rel="stylesheet" href="/page.css?v=2026092302">
-<link rel="stylesheet" href="/redesign.css?v=2026092302">
+<link rel="stylesheet" href="/shell.css?v=2026092501">
+<link rel="stylesheet" href="/page.css?v=2026092501">
+<link rel="stylesheet" href="/redesign.css?v=2026092501">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026092302">
+<link rel="stylesheet" href="/polish.css?v=2026092501">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
+<link rel="stylesheet" href="/designs.css?v=2026092501">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092302">
+<link rel="stylesheet" href="/mobile.css?v=2026092501">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092302">
-<link rel="stylesheet" href="/monochrome.css?v=2026092302">
+<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body page-home">
 
@@ -380,106 +381,201 @@
         <div class="sh-filters-scroll" id="filters" data-links></div>
         <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="10"></div>
         <div class="sh-sec-more">
-          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse All Animation</a>
+          <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse All Animations</a>
         </div>
       </section>
 
-      <!-- Creator Tutorials: real submissions from /api/skills, drawn by shell.js.
-           ShortsCraft links out; it never hosts the video. -->
+      <!-- Popular Thumbnails & Designs (3 lines / 12 items) -->
+      <section class="sh-home-sec" id="homeDesigns">
+        <div class="sh-gallery-title">
+          <div><h2>Popular Thumbnails &amp; Designs</h2></div>
+          <a href="/designs" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="ds-home-grid" id="homeDesignsGrid" aria-live="polite"></div>
+        <div class="sh-sec-more">
+          <a href="/designs" class="sh-ge-btn sh-ge-primary">Browse All Designs</a>
+        </div>
+      </section>
+
+      <!-- Creator Tutorials (3 lines / 12 items) -->
       <section class="sh-home-sec" id="homeTutorials">
         <div class="sh-gallery-title">
           <div><h2>Creator Tutorials</h2></div>
           <a href="/community" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <div class="sh-tut-row" id="homeTutList" aria-live="polite"></div>
+        <div class="sh-sec-more">
+          <a href="/community" class="sh-ge-btn sh-ge-primary">Browse All Tutorials</a>
+        </div>
       </section>
 
-      <section class="sh-workflow-sec">
-        <div class="sh-section-head">
-          <h2>How it works</h2>
+      <!-- 1. Creator Economy: Monetization & Benefits -->
+      <section class="sh-home-sec sh-ce-sec" id="creatorEconomy">
+        <div class="sh-sec-header-center">
+          <span class="sh-ce-badge-pill">★ Creator Economy</span>
+          <h2 class="sh-ce-heading">Create Content, Build Audience &amp; Earn Income</h2>
+          <p class="sh-ce-subhead">Turn your video skills, motion templates, and thumbnails into a recurring revenue stream with fair creator payouts.</p>
+        </div>
+        <div class="sh-ce-grid">
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-gold">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="sh-ce-tag">70% Revenue Share</div>
+            <h3>Earn From Stars</h3>
+            <p>Set a Star price on your motion and design templates. Every time a user unlocks your asset, 70% goes straight to your wallet.</p>
+          </div>
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-blue">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="sh-ce-tag">Official Status</div>
+            <h3>Verified Badge</h3>
+            <p>Earn an official blue verified tick on your profile, templates, and tutorials to build trust, authority, and massive reach.</p>
+          </div>
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
+            <div class="sh-ce-tag">Min ₹50 Threshold</div>
+            <h3>Direct UPI Payouts</h3>
+            <p>No waiting for months. Request payouts anytime your balance reaches ₹50, sent directly to your UPI ID or bank account.</p>
+          </div>
+          <div class="sh-ce-card">
+            <div class="sh-ce-icon-wrap sh-ce-icon-purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="sh-ce-tag">Grow Your Reach</div>
+            <h3>Direct Channel Traffic</h3>
+            <p>Link your YouTube tutorials and channel. Viewers watch on your original channel, boosting your subscribers and watch hours.</p>
+          </div>
+        </div>
+        <div class="sh-sec-more">
+          <a href="/community" class="sh-ge-btn sh-ge-primary">Start Earning as a Creator <span aria-hidden="true">→</span></a>
+        </div>
+      </section>
+
+      <!-- 2. How It Works: 3 Steps -->
+      <section class="sh-workflow-sec" id="howItWorks">
+        <div class="sh-sec-header-center">
+          <span class="sh-ce-badge-pill">⚡ Simple Workflow</span>
+          <h2 class="sh-ce-heading">How ShortsCraft Works</h2>
+          <p class="sh-ce-subhead">From idea to high-retention video in 3 frictionless steps.</p>
         </div>
         <div class="sh-workflow-grid">
           <div class="sh-workflow-card">
-            <span class="sh-workflow-num">01</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <div class="sh-wf-top">
+              <span class="sh-workflow-num">01</span>
+              <div class="sh-workflow-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              </div>
             </div>
-            <h3>Describe or choose</h3>
+            <h3>Pick or Prompt</h3>
+            <p>Choose from dozens of trending documentary, papercraft, and finance templates—or simply describe what you want to animate with AI.</p>
           </div>
           <div class="sh-workflow-card">
-            <span class="sh-workflow-num">02</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            <div class="sh-wf-top">
+              <span class="sh-workflow-num">02</span>
+              <div class="sh-workflow-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+              </div>
             </div>
-            <h3>Customise in the Studio</h3>
+            <h3>Customize in Studio</h3>
+            <p>Change text, accent colors, kinetic speed, and sound in our fast browser studio. Real-time preview with zero rendering lag.</p>
           </div>
           <div class="sh-workflow-card">
-            <span class="sh-workflow-num">03</span>
-            <div class="sh-workflow-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+            <div class="sh-wf-top">
+              <span class="sh-workflow-num">03</span>
+              <div class="sh-workflow-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
             </div>
-            <h3>Export or publish</h3>
+            <h3>Export or Monetize</h3>
+            <p>Export a clean MP4 up to 1080p/1440p ready for YouTube Shorts and Reels, or publish your remix to earn Stars from other creators.</p>
           </div>
         </div>
       </section>
 
-      <section class="sh-home-sec sh-pricing-prev">
-        <div class="sh-gallery-title">
-          <div><h2>Simple pricing</h2></div>
-          <a href="/pricing" class="sh-seeall">Compare plans <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <!-- 3. Simple, Transparent Pricing -->
+      <section class="sh-home-sec sh-pricing-prev" id="homePricing">
+        <div class="sh-sec-header-center">
+          <span class="sh-ce-badge-pill">💎 Flexible Plans</span>
+          <h2 class="sh-ce-heading">Simple, Transparent Pricing</h2>
+          <p class="sh-ce-subhead">Start creating for free, or upgrade for higher resolution, unlimited speed, and no watermarks.</p>
         </div>
         <div class="sh-pp-grid">
-          <a href="/pricing" class="sh-pp-card">
+          <div class="sh-pp-card">
             <span class="sh-pp-name">Free</span>
-            <span class="sh-pp-price">₹0<small></small></span>
-            <ul>
-              <li>5 credits every day</li>
-              <li>Export up to 480p</li>
-              <li>ShortsCraft watermark</li>
+            <span class="sh-pp-price">₹0<small>/forever</small></span>
+            <p class="sh-pp-desc">Great for getting started and trying out AI animations.</p>
+            <ul class="sh-pp-list">
+              <li><strong>5 credits</strong> every single day</li>
+              <li>Export up to <strong>480p</strong> resolution</li>
+              <li>Standard generation queue</li>
+              <li>Full access to free motion templates</li>
+              <li class="sh-pp-muted">ShortsCraft subtle watermark</li>
             </ul>
-          </a>
-          <a href="/pricing" class="sh-pp-card sh-pp-hi">
+            <a href="/editor" class="sh-plan-cta sh-plan-cta-ghost">Start Creating Free</a>
+          </div>
+
+          <div class="sh-pp-card sh-pp-featured">
+            <span class="sh-pp-pop-badge">★ Most Popular</span>
             <span class="sh-pp-name">Pro</span>
             <span class="sh-pp-price">₹199<small>/month</small></span>
-            <ul>
-              <li>40 credits every day</li>
-              <li>Export up to 1080p</li>
-              <li>No watermark</li>
+            <p class="sh-pp-desc">For active creators posting high-quality viral Shorts daily.</p>
+            <ul class="sh-pp-list">
+              <li><strong>40 credits</strong> every single day</li>
+              <li><strong>1080p Full HD</strong> crystal-clear export</li>
+              <li><strong>No watermark</strong> on any video</li>
+              <li>Priority AI generation speed</li>
+              <li>Commercial usage rights</li>
             </ul>
-          </a>
-          <a href="/pricing" class="sh-pp-card">
+            <a href="/pricing" class="sh-plan-cta sh-plan-cta-primary">Upgrade to Pro <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="sh-pp-card">
             <span class="sh-pp-name">Pro Max</span>
             <span class="sh-pp-price">₹399<small>/month</small></span>
-            <ul>
-              <li>100 credits every day</li>
-              <li>Export up to 1440p</li>
-              <li>No watermark</li>
+            <p class="sh-pp-desc">For power creators and agencies who need maximum output.</p>
+            <ul class="sh-pp-list">
+              <li><strong>100 credits</strong> every single day</li>
+              <li><strong>1440p 2K Ultra HD</strong> maximum quality</li>
+              <li><strong>No watermark</strong> on any video</li>
+              <li>Fastest VIP rendering queue</li>
+              <li>Early access to new motion styles</li>
             </ul>
-          </a>
+            <a href="/pricing" class="sh-plan-cta sh-plan-cta-ghost">Go Pro Max</a>
+          </div>
+        </div>
+
+        <!-- Creator Stars Callout Strip -->
+        <div class="sh-stars-strip">
+          <div class="sh-ss-left">
+            <span class="sh-ss-icon">★</span>
+            <div class="sh-ss-text">
+              <h4>Want to unlock Creator Templates &amp; Thumbnails?</h4>
+              <p>Buy Star Packs starting at just <strong>₹49</strong>. 100% on-demand, no subscription needed.</p>
+            </div>
+          </div>
+          <a href="/pricing#stars" class="sh-ss-btn">Explore Star Packs <span aria-hidden="true">→</span></a>
         </div>
       </section>
 
-      <section class="sh-home-sec sh-benefits">
-        <div class="sh-gallery-title">
-          <div><h2>Built for creators</h2></div>
-        </div>
-        <div class="sh-ben-grid">
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span><b>Publish templates</b></div>
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg></span><b>Share tutorials</b></div>
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><b>Build a following</b></div>
-          <div class="sh-ben"><span class="sh-ben-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><b>Get verified</b></div>
-        </div>
-        <div class="sh-sec-more">
-          <a href="/community" class="sh-ge-btn sh-ge-primary">Share a tutorial</a>
-
-        </div>
-      </section>
-
+      <!-- 4. Final CTA Hero Banner -->
       <section class="sh-finale">
-        <h2>Ready to Level Up Your YouTube Shorts?</h2>
-        <div class="sh-frow">
-          <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
-          <a href="/animations" class="sh-bo">Browse Templates</a>
+        <div class="sh-finale-card">
+          <div class="sh-finale-glow" aria-hidden="true"></div>
+          <h2>Ready to Level Up Your YouTube Shorts?</h2>
+          <p>Join thousands of creators producing scroll-stopping motion graphics and viral thumbnails in seconds.</p>
+          <div class="sh-frow">
+            <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
+            <a href="/animations" class="sh-bo">Browse All Templates</a>
+          </div>
+          <div class="sh-finale-trust">
+            <span>✓ No credit card required</span>
+            <span>✓ 5 free daily credits</span>
+            <span>✓ Works on any browser</span>
+          </div>
         </div>
       </section>
     </main>
@@ -544,9 +640,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026092302" defer></script>
-<script src="/theme.js?v=2026092302" defer></script>
-<script src="/report.js?v=2026092302" defer></script>
+<script src="/authui.js?v=2026092501" defer></script>
+<script src="/theme.js?v=2026092501" defer></script>
+<script src="/report.js?v=2026092501" defer></script>
 
-<script src="/templates-v2.js?v=2026092302" defer></script><script src="/shell.js?v=2026092302" defer></script></body>
+<script src="/design-preview.js?v=2026092501" defer></script><script src="/templates-v2.js?v=2026092501" defer></script><script src="/shell.js?v=2026092501" defer></script></body>
 </html>

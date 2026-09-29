@@ -196,7 +196,10 @@
             authorName: cFound.authorName || "Creator",
             authorVerified: cFound.authorVerified === true,
             authorAvatarUrl: cFound.authorAvatarUrl || "",
-            likes: Number(cFound.likes || 0)
+            likes: Number(cFound.likes || 0),
+            isPremium: cFound.isPremium === true || cFound.category === "premium",
+            starPrice: Number(cFound.starPrice) || (cFound.isPremium ? 2 : 0),
+            remixOf: cFound.remixOf || null
           };
           /* Open at the ratio it was composed at. The page always started at
              9:16, so a template built for YouTube arrived letterboxed into a
@@ -298,7 +301,68 @@
           + "&commId=" + encodeURIComponent(commId || "");
       }
       studioBtn.href = editUrl;
+      studioBtn.className = "sh-modal-cta";
+      studioBtn.textContent = "✦ Use Template →";
       studioBtn.addEventListener("click", function () { recordEvent("edit"); });
+
+      if (currentTpl.isCommunity && currentTpl.isPremium) {
+        fetch("/api/templates/" + encodeURIComponent(commId) + "/access")
+          .then(function (r) { return r.json(); })
+          .then(function (acc) {
+            var stage = $("#detailStage");
+            if (acc && acc.hasAccess) {
+              studioBtn.className = "sh-modal-cta is-premium-remix";
+              studioBtn.textContent = "⚡ Remix & Customize →";
+            } else {
+              if (stage && !stage.querySelector(".sc-premium-watermark")) {
+                var wm = document.createElement("div");
+                wm.className = "sc-premium-watermark";
+                wm.innerHTML = '<div class="sc-watermark-ribbon"><span>★</span> ShortsCraft Premium Preview</div>';
+                stage.appendChild(wm);
+              }
+              studioBtn.className = "sh-modal-cta is-premium-unlock";
+              studioBtn.textContent = "★ Unlock Template (" + (currentTpl.starPrice || 2) + " Stars)";
+              studioBtn.onclick = function (ev) {
+                ev.preventDefault();
+                var confirmMsg = "Unlock this premium template for " + (currentTpl.starPrice || 2) + " Stars? You will get full access to remix, customize, and export it.";
+                if (!confirm(confirmMsg)) return;
+
+                studioBtn.disabled = true;
+                studioBtn.textContent = "Unlocking...";
+                fetch("/api/templates/" + encodeURIComponent(commId) + "/unlock", { method: "POST" })
+                  .then(function (r) { return r.json(); })
+                  .then(function (res) {
+                    studioBtn.disabled = false;
+                    if (res && res.success) {
+                      var wmEl = stage && stage.querySelector(".sc-premium-watermark");
+                      if (wmEl) wmEl.remove();
+                      studioBtn.className = "sh-modal-cta is-premium-remix";
+                      studioBtn.textContent = "⚡ Remix & Customize →";
+                      studioBtn.onclick = function () { recordEvent("edit"); };
+                      if (window.SC_UI && SC_UI.toast) SC_UI.toast("Template unlocked! You can now remix it.");
+                      else alert("Template unlocked! You can now remix it.");
+                    } else if (res && res.needStars) {
+                      studioBtn.textContent = "★ Unlock Template (" + (currentTpl.starPrice || 2) + " Stars)";
+                      if (window.SC_AUTH && typeof window.SC_AUTH.openStarPacks === "function") {
+                        window.SC_AUTH.openStarPacks();
+                      } else if (confirm("You need " + (currentTpl.starPrice || 2) + " Stars to unlock this template. Go to Star Packs to top up?")) {
+                        location.href = "/account#stars";
+                      }
+                    } else {
+                      alert((res && res.error) || "Could not unlock template.");
+                      studioBtn.textContent = "★ Unlock Template (" + (currentTpl.starPrice || 2) + " Stars)";
+                    }
+                  })
+                  .catch(function (err) {
+                    studioBtn.disabled = false;
+                    alert("Unlock failed: " + err.message);
+                    studioBtn.textContent = "★ Unlock Template (" + (currentTpl.starPrice || 2) + " Stars)";
+                  });
+              };
+            }
+          })
+          .catch(function () {});
+      }
     }
 
     paintCreator();

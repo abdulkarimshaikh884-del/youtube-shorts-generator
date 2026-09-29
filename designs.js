@@ -5,6 +5,7 @@
    ============================================================ */
 const crypto = require("crypto");
 const designAssets = require("./design-assets");
+const verified = require("./verified");
 
 let db = null;
 try {
@@ -27,148 +28,214 @@ const SAMPLE_TEMPLATES = [
     source_type: "shortscraft_official",
     author_name: "ShortsCraft Official",
     author_handle: "@shortscraft",
-    canvas: { width: 1280, height: 720 },
-    preview_url: "/storage/designs/templates/heygen-trick.webp",
-    previewUrl: "/storage/designs/templates/heygen-trick.webp",
+    canvas: { width: 1024, height: 576 },
+    preview_url: "/storage/designs/templates/heygen-trick.jpg",
+    previewUrl: "/storage/designs/templates/heygen-trick.jpg",
     likes: 0,
     uses: 342,
     elements: [
       {
-        id: "bg_clean",
+        id: "layer_background",
         name: "Clean Neon Green Backdrop",
         type: "image",
         role: "background",
         src: "/storage/designs/templates/heygen/bg_clean.webp",
         x: 0,
         y: 0,
-        width: 1280,
-        height: 720,
+        width: 1024,
+        height: 576,
         zIndex: 0,
         locked: true
       },
       {
-        id: "subject_character",
+        id: "character",
         name: "Anime Character Cutout",
         type: "image",
-        role: "foreground",
+        role: "foreground-object",
         src: "/storage/designs/templates/heygen/character.webp",
-        x: 680,
+        x: 0,
         y: 0,
-        width: 600,
-        height: 720,
+        width: 1024,
+        height: 576,
         zIndex: 1
       },
       {
-        id: "panel_headline_card",
-        name: "3D White Headline Card",
+        id: "hand_back",
+        name: "Hand (Palm & Thumb Behind)",
         type: "image",
-        role: "foreground",
-        src: "/storage/designs/templates/heygen/headline_card.webp",
-        x: 20,
-        y: 15,
-        width: 840,
-        height: 340,
+        role: "foreground-object",
+        src: "/storage/designs/templates/heygen/hand_back.webp",
+        x: 0,
+        y: 0,
+        width: 1024,
+        height: 576,
         zIndex: 2
       },
       {
-        id: "txt_free_unlimited",
-        name: 'Headline: "FREE & UNLIMITED"',
-        type: "text",
-        text: "FREE & UNLIMITED",
-        x: 58,
-        y: 54,
-        width: 730,
-        height: 80,
-        fontSize: 82,
-        fontWeight: 900,
-        fontFamily: "Anton",
-        fill: "#09090b",
-        alignment: "left",
+        id: "product_card_base",
+        name: "Product Card Base (Inpainted Blank)",
+        type: "image",
+        role: "card-surface",
+        src: "/storage/designs/templates/heygen/product_card_base.webp",
+        x: 0,
+        y: 0,
+        width: 1024,
+        height: 576,
         zIndex: 3
       },
       {
-        id: "txt_heygen_trick",
-        name: 'Headline: "HeyGen Trick!"',
-        type: "text",
-        text: "HeyGen Trick!",
-        x: 52,
-        y: 140,
-        width: 750,
-        height: 110,
-        fontSize: 114,
-        fontWeight: 900,
-        fontFamily: "Anton",
-        fill: "#dc2626",
-        stroke: "#ffffff",
-        strokeWidth: 5,
-        alignment: "left",
+        id: "product_logo",
+        name: "Product Logo (Replaceable)",
+        type: "image",
+        role: "replaceable-image",
+        replaceable: true,
+        src: "/storage/designs/templates/heygen/product_logo.webp",
+        x: 265,
+        y: 293,
+        width: 134,
+        height: 152,
         zIndex: 4
       },
       {
-        id: "pill_subtitle_box",
-        name: "Subtitle Pill Badge",
-        type: "shape",
-        shape: "pill",
-        x: 105,
-        y: 260,
-        width: 605,
-        height: 46,
+        id: "product_name",
+        name: "Product Name",
+        type: "text",
+        role: "product-name",
+        text: "HeyGen",
+        x: 245,
+        y: 450,
+        width: 200,
+        height: 55,
+        fontSize: 42,
+        fontWeight: 800,
+        fontFamily: "Montserrat",
         fill: "#18181b",
-        stroke: "#34d399",
-        radius: 23,
+        alignment: "center",
+        autoFit: true,
         zIndex: 5
       },
       {
-        id: "txt_subtitle",
-        name: 'Subtitle: "NO CREDITS"',
-        type: "text",
-        text: "🤯 NO CREDITS, NO SUBSCRIPTION",
-        x: 126,
-        y: 270,
-        width: 560,
-        height: 28,
-        fontSize: 25,
-        fontWeight: 800,
-        fontFamily: "Space Grotesk",
-        fill: "#ffffff",
-        alignment: "left",
+        id: "hand_front",
+        name: "Hand (Foreground Fingers)",
+        type: "image",
+        role: "foreground-object",
+        src: "/storage/designs/templates/heygen/hand_front.webp",
+        x: 0,
+        y: 0,
+        width: 1024,
+        height: 576,
         zIndex: 6
       },
       {
-        id: "subject_heygen_device",
-        name: "Hand & HeyGen 3D Device",
+        id: "arrow",
+        name: "Orange Curved Arrow",
         type: "image",
-        role: "foreground",
-        src: "/storage/designs/templates/heygen/hand_card.webp",
-        x: 140,
-        y: 310,
-        width: 480,
-        height: 410,
+        role: "foreground-object",
+        src: "/storage/designs/templates/heygen/arrow.webp",
+        x: 0,
+        y: 0,
+        width: 1024,
+        height: 576,
         zIndex: 7
       },
       {
-        id: "arrow_callout",
-        name: "Orange 3D Callout Arrow",
+        id: "youtube_icon",
+        name: "YouTube Corner Icon",
         type: "image",
-        role: "foreground",
-        src: "/storage/designs/templates/heygen/arrow.webp",
-        x: 560,
-        y: 290,
-        width: 230,
-        height: 210,
+        role: "foreground-object",
+        src: "/storage/designs/templates/heygen/youtube_icon.webp",
+        x: 0,
+        y: 0,
+        width: 1024,
+        height: 576,
         zIndex: 8
       },
       {
-        id: "badge_yt",
-        name: "YouTube Corner Badge",
-        type: "image",
-        role: "foreground",
-        src: "/storage/designs/templates/heygen/yt_badge.webp",
-        x: 1160,
-        y: 640,
-        width: 120,
-        height: 80,
+        id: "shape_1",
+        name: "Subtitle Pill Badge",
+        type: "shape",
+        shape: "pill",
+        x: 82,
+        y: 207,
+        width: 532,
+        height: 40,
+        fill: "#18181b",
+        stroke: "#34d399",
+        strokeWidth: 2,
+        radius: 20,
         zIndex: 9
+      },
+      {
+        id: "text_1",
+        name: 'Headline: "FREE & UNLIMITED"',
+        type: "text",
+        text: "FREE & UNLIMITED",
+        x: 41,
+        y: 29,
+        width: 594,
+        height: 69,
+        fontFamily: "Space Grotesk",
+        fontSize: 71,
+        fontWeight: 800,
+        fill: "#09090b",
+        alignment: "center",
+        zIndex: 10
+      },
+      {
+        id: "text_2",
+        name: 'Main Title: "HeyGen Trick!"',
+        type: "text",
+        text: "HeyGen Trick!",
+        x: 41,
+        y: 105,
+        width: 635,
+        height: 104,
+        fontFamily: "Montserrat",
+        fontSize: 88,
+        fontWeight: 900,
+        fill: "#dc2626",
+        stroke: "#ffffff",
+        strokeWidth: 5,
+        shadow: {
+          color: "rgba(0,0,0,0.85)",
+          blur: 6,
+          offsetX: 0,
+          offsetY: 4
+        },
+        alignment: "center",
+        zIndex: 11
+      },
+      {
+        id: "text_3_icon",
+        name: "Subtitle Icon",
+        type: "text",
+        text: "🤯",
+        x: 96,
+        y: 224,
+        width: 24,
+        height: 22,
+        fontFamily: "Space Grotesk",
+        fontSize: 18,
+        fontWeight: 800,
+        fill: "#ffffff",
+        alignment: "center",
+        zIndex: 12
+      },
+      {
+        id: "text_3",
+        name: 'Subtitle: "NO CREDITS, NO SUB"',
+        type: "text",
+        text: "NO CREDITS, NO SUBSCRIPTION",
+        x: 124,
+        y: 225,
+        width: 474,
+        height: 20,
+        fontFamily: "Space Grotesk",
+        fontSize: 18,
+        fontWeight: 800,
+        fill: "#ffffff",
+        alignment: "left",
+        zIndex: 13
       }
     ]
   },
@@ -398,21 +465,37 @@ function publicProject(row) {
 }
 
 function publicTemplate(row) {
+  const canvas = row.canvas && typeof row.canvas === "object" ? row.canvas : { width: 1280, height: 720 };
+  const isPremium = row.category === "premium" || canvas.isPremium === true;
+  const starPrice = (canvas && Number(canvas.starPrice)) || (isPremium ? 1 : 0);
+  const handle = row.author_handle || row.authorHandle || "@creator";
+  const name = row.author_name || row.authorName || "Creator";
+  const verifiedStatus = row.author_verified === true || row.authorVerified === true || String(handle).replace(/^@/, "").toLowerCase() === "shortscraft";
+  const avatarUrl = row.author_has_avatar && (row.account_id || row.author_id)
+    ? `/api/users/${encodeURIComponent(row.account_id || row.author_id)}/avatar`
+    : (row.author_avatar_url || row.authorAvatarUrl || "");
+
   return {
     id: row.id,
     title: row.title,
     description: row.description || "",
     category: row.category,
+    isPremium,
+    starPrice,
+    remixOf: (canvas && canvas.remixOf) || null,
     designType: row.design_type || row.designType,
     sourceType: row.source_type || row.sourceType, // 'shortscraft_official', 'creator_original', 'creator_ai_converted', 'image'
-    authorName: row.author_name || row.authorName || "Creator",
-    authorHandle: row.author_handle || row.authorHandle || "@creator",
+    authorName: name,
+    authorHandle: handle,
     authorId: row.author_id || row.authorId,
-    canvas: row.canvas || { width: 1280, height: 720 },
+    authorVerified: verifiedStatus,
+    authorAvatarUrl: avatarUrl,
+    canvas,
     elements: Array.isArray(row.elements) ? row.elements : [],
     previewUrl: row.preview_url || row.previewUrl || "",
     likes: Number(row.likes) || 0,
     uses: Number(row.uses) || 0,
+    status: row.status || "published",
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString()
   };
 }
@@ -483,7 +566,7 @@ async function getProject(userOrId, optionalId) {
   }
 
   const p = memoryProjects.get(id);
-  if (!p || (uid && p.userId !== uid)) {
+  if (!p || (uid && p.userId !== uid && p.userId !== "guest_creator")) {
     return { error: "Design project not found.", status: 404 };
   }
   return { success: true, project: publicProject(p) };
@@ -606,13 +689,21 @@ async function listTemplates(category) {
   if (hasDatabase()) {
     try {
       await ensureTables();
-      let query = `select * from public.design_templates where status = 'published'`;
+      let query = `select dt.*, ${verified.sql("u")} as author_verified, u.id as account_id,
+                   coalesce(u.display_name, dt.author_name, 'Creator') as author_name,
+                   coalesce(u.handle, dt.author_handle, '@creator') as author_handle,
+                   (u.avatar_bytes is not null) as author_has_avatar
+                   from public.design_templates dt
+                   left join public.users u on u.id = coalesce(dt.author_id, (select o.id from public.users o
+                                             where lower(replace(dt.author_handle, '@', '')) = 'shortscraft'
+                                               and lower(replace(o.handle, '@', '')) = 'shortscraft' limit 1))
+                   where dt.status = 'published'`;
       const params = [];
       if (category && category !== "all") {
         params.push(category);
-        query += ` and (category = $1 or design_type = $1)`;
+        query += ` and (dt.category = $1 or dt.design_type = $1)`;
       }
-      query += ` order by uses desc, likes desc, created_at desc limit 40`;
+      query += ` order by dt.uses desc, dt.likes desc, dt.created_at desc limit 40`;
       const { rows } = await db.query(query, params);
       if (rows && rows.length) return { success: true, templates: rows.map(publicTemplate) };
     } catch (e) {
@@ -638,7 +729,15 @@ async function getTemplate(id) {
     try {
       await ensureTables();
       const { rows } = await db.query(
-        `select * from public.design_templates where id = $1 and status = 'published'`,
+        `select dt.*, ${verified.sql("u")} as author_verified, u.id as account_id,
+                coalesce(u.display_name, dt.author_name, 'Creator') as author_name,
+                coalesce(u.handle, dt.author_handle, '@creator') as author_handle,
+                (u.avatar_bytes is not null) as author_has_avatar
+         from public.design_templates dt
+         left join public.users u on u.id = coalesce(dt.author_id, (select o.id from public.users o
+                                   where lower(replace(dt.author_handle, '@', '')) = 'shortscraft'
+                                     and lower(replace(o.handle, '@', '')) = 'shortscraft' limit 1))
+         where dt.id = $1 and dt.status = 'published'`,
         [templateId]
       );
       if (rows[0]) return { success: true, template: publicTemplate(rows[0]) };
@@ -660,6 +759,23 @@ async function cloneTemplate(userOrId, templateId) {
   if (!tplRes.success) return tplRes;
   const tpl = tplRes.template;
 
+  if (tpl.isPremium) {
+    const isOwner = tpl.authorId === uid;
+    if (!isOwner) {
+      const social = require("./social");
+      const access = await social.checkTemplateAccess({ id: uid }, tpl.id, "design");
+      if (!access.unlocked) {
+        return {
+          error: `This is a Premium Template. Please unlock it with ${tpl.starPrice} Stars to remix or customize.`,
+          status: 402,
+          needUnlock: true,
+          starPrice: tpl.starPrice,
+          templateId: tpl.id
+        };
+      }
+    }
+  }
+
   // Increment usage count
   if (hasDatabase()) {
     db.query(`update public.design_templates set uses = uses + 1 where id = $1`, [tpl.id]).catch(() => {});
@@ -675,6 +791,14 @@ async function cloneTemplate(userOrId, templateId) {
     sourceCreatorHandle: tpl.authorHandle,
     sourceType: tpl.sourceType
   };
+  if (tpl.isPremium) {
+    sourceMeta.remixOf = {
+      parentTemplateId: tpl.id,
+      parentTitle: tpl.title,
+      authorName: tpl.authorName,
+      authorHandle: tpl.authorHandle
+    };
+  }
 
   return saveProject(userOrId, newProjectId, {
     name: `${tpl.title} (Copy)`,
@@ -694,13 +818,31 @@ async function publishTemplate(user, body) {
   if (!title) return { error: "Template title is required.", status: 400 };
 
   const projectId = String(body.projectId || "");
+  const parentTemplateId = (typeof body.parentTemplateId === "string" && body.parentTemplateId.startsWith("dt_"))
+    ? body.parentTemplateId
+    : ((typeof body.remixOf === "string" && body.remixOf.startsWith("dt_")) ? body.remixOf : null);
   const elements = cleanElements(body.elements);
   if (!elements.length) return { error: "Cannot publish an empty design template.", status: 400 };
 
+  const isPremium = String(body.category) === "premium" || body.isPremium === true;
+  let starPrice = 0;
+  if (isPremium) {
+    starPrice = Math.max(1, parseInt(body.starPrice, 10) || 1);
+  }
+  const status = isPremium ? "review" : "published";
+
   const designType = String(body.designType || "youtube-thumbnail");
-  const category = String(body.category || designType);
+  const category = isPremium ? "premium" : String(body.category || designType);
   const description = String(body.description || "").slice(0, 300);
-  const canvas = body.canvas && typeof body.canvas === "object" ? body.canvas : { width: 1280, height: 720 };
+  const canvas = body.canvas && typeof body.canvas === "object" ? { ...body.canvas } : { width: 1280, height: 720 };
+  if (isPremium) {
+    canvas.isPremium = true;
+    canvas.starPrice = starPrice;
+  }
+  if (body.remixOf && typeof body.remixOf === "object") {
+    canvas.remixOf = body.remixOf;
+  }
+
   const previewUrl = String(body.previewUrl || "");
   if (Buffer.byteLength(previewUrl, "utf8") > 1024 * 1024) {
     return { error: "Template preview is too large. Try a smaller canvas.", status: 413 };
@@ -719,10 +861,10 @@ async function publishTemplate(user, body) {
         `insert into public.design_templates
           (id, author_id, author_name, author_handle, title, description, category, design_type,
            source_type, parent_template_id, canvas, elements, preview_url, status)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, 'creator_original', $9, $10::jsonb, $11::jsonb, $12, 'published')
+         values ($1, $2, $3, $4, $5, $6, $7, $8, 'creator_original', $9, $10::jsonb, $11::jsonb, $12, $13)
          returning *`,
         [tplId, uid, authorName, authorHandle, title, description, category, designType,
-         projectId, JSON.stringify(canvas), JSON.stringify(elements), previewUrl]
+         parentTemplateId, JSON.stringify(canvas), JSON.stringify(elements), previewUrl, status]
         );
         return inserted.rows;
       });
@@ -744,17 +886,20 @@ async function publishTemplate(user, body) {
     category,
     design_type: designType,
     source_type: "creator_original",
-    parent_template_id: projectId,
+    parent_template_id: parentTemplateId,
     canvas,
     elements,
     preview_url: previewUrl,
     likes: 0,
     uses: 0,
-    status: "published"
+    status: status,
+    created_at: Date.now(),
+    updated_at: Date.now()
   };
   memoryTemplates.set(tplId, tplRecord);
   return { success: true, template: publicTemplate(tplRecord) };
 }
+
 
 async function seedOfficialTemplates() {
   if (!hasDatabase()) return;

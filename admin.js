@@ -51,7 +51,7 @@ async function listUsers(user) {
 
 async function listContent(user) {
   if (!can(user, "templates.moderate")) return denied();
-  const { rows } = await db.query(
+  const { rows: commRows } = await db.query(
     `select ct.id, ct.title, ct.tpl, ct.category, ct.status, ct.source_format,
             ct.review_note, ct.scheduled_at, ct.published_at, ct.created_at,
             u.display_name as author_name, u.handle as author_handle,
@@ -60,11 +60,29 @@ async function listContent(user) {
             (select count(*)::int from public.template_events te where te.template_id = ct.id and te.event_type = 'export') as exports
        from public.community_templates ct
        left join public.users u on u.id = ct.author_id
-      order by coalesce(ct.updated_at, ct.created_at) desc limit 300`
+      order by coalesce(ct.updated_at, ct.created_at) desc limit 200`
   );
+
+  let designRows = [];
+  try {
+    const dsRes = await db.query(
+      `select dt.id, dt.title, dt.design_type as tpl, dt.category, dt.status, 'design_template' as source_format,
+              '' as review_note, null as scheduled_at, dt.created_at as published_at, dt.created_at,
+              coalesce(u.display_name, dt.author_name) as author_name,
+              coalesce(u.handle, dt.author_handle) as author_handle,
+              coalesce(dt.likes, 0) as likes, 0 as comments, coalesce(dt.uses, 0) as exports
+         from public.design_templates dt
+         left join public.users u on u.id = dt.author_id
+        order by dt.created_at desc limit 100`
+    );
+    designRows = dsRes.rows || [];
+  } catch (e) {}
+
+  const allRows = [...commRows, ...designRows].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
   return {
     success: true,
-    templates: rows.map((r) => ({
+    templates: allRows.map((r) => ({
       id: r.id, title: r.title, templateId: r.tpl, category: r.category,
       status: r.status, sourceFormat: r.source_format, reviewNote: r.review_note || "",
       scheduledAt: r.scheduled_at, publishedAt: r.published_at, createdAt: r.created_at,
@@ -80,6 +98,18 @@ async function updateContent(user, id, data) {
   const status = String(data?.status || "");
   if (!allowed.has(status)) return { error: "Choose a valid moderation status.", status: 400 };
   const note = String(data?.reviewNote || "").trim().slice(0, 1000);
+
+  if (String(id).startsWith("dt_")) {
+    const before = await db.query(`select * from public.design_templates where id = $1`, [id]);
+    if (!before.rows[0]) return { error: "Design template not found.", status: 404 };
+    const { rows } = await db.query(
+      `update public.design_templates set status = $2, updated_at = now() where id = $1 returning *`,
+      [id, status]
+    );
+    await audit(user, "design_template_moderation", "design_template", id, before.rows[0], rows[0]);
+    return { success: true, template: { id, status, reviewNote: note } };
+  }
+
   const before = await db.query(`select * from public.community_templates where id = $1`, [id]);
   if (!before.rows[0]) return { error: "Template not found.", status: 404 };
   const { rows } = await db.query(

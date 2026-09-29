@@ -24,19 +24,19 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026092302">
-<link rel="stylesheet" href="/page.css?v=2026092302">
-<link rel="stylesheet" href="/redesign.css?v=2026092302">
+<link rel="stylesheet" href="/shell.css?v=2026092501">
+<link rel="stylesheet" href="/page.css?v=2026092501">
+<link rel="stylesheet" href="/redesign.css?v=2026092501">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026092302">
+<link rel="stylesheet" href="/polish.css?v=2026092501">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092302">
+<link rel="stylesheet" href="/mobile.css?v=2026092501">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092302">
-<link rel="stylesheet" href="/monochrome.css?v=2026092302">
+<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body">
 
@@ -349,7 +349,7 @@
             <li>Standard AI generation · 2 credits</li>
             <li>MP4 export up to 480p · 1 credit</li>
             <li>ShortsCraft watermark</li>
-            <li>5 appreciation Stars per month</li>
+            <li>0 appreciation Stars per month</li>
           </ul>
           <a href="/signup" class="pg-bo" data-auth="out">Create free account</a>
           <a href="/account" class="pg-bo" data-auth="in" hidden>Manage your plan</a>
@@ -363,7 +363,7 @@
             <li>Everything in Free</li>
             <li>Standard, Detailed and Advanced AI models</li>
             <li>Watermark-free 1080p export</li>
-            <li>25 appreciation Stars per month</li>
+            <li>15 appreciation Stars per month</li>
             <li>Priority export queue</li>
             <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
           </ul>
@@ -377,7 +377,7 @@
           <ul>
             <li>Everything in Pro</li>
             <li>Watermark-free export up to 1440p</li>
-            <li>60 appreciation Stars per month</li>
+            <li>35 appreciation Stars per month</li>
             <li>Highest export queue priority</li>
             <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
           </ul>
@@ -387,6 +387,70 @@
 
       <p class="pg-note pg-center" id="buyNote" role="status" aria-live="polite"></p>
       <p class="pg-fine pg-center">Annual plans are billed once a year. Credits refresh daily and unused daily credits do not stack.</p>
+
+            <!-- ── Creator Stars Packs ──────────────────────────── -->
+      <section class="pg-sec" id="stars" style="scroll-margin-top: 80px;">
+        <div style="text-align:center;max-width:680px;margin:0 auto 28px;">
+          <span class="pg-calc-kicker" style="background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.25);">★ Creator Economy</span>
+          <h2 style="margin:10px 0 8px;font-size:28px;">Creator Stars Packs</h2>
+          <p style="color:var(--sc-muted,#64748b);font-size:15px;line-height:1.5;">Purchase Stars to tip motion designers, or unlock exclusive premium templates and graphic designs. Creators receive 70% in cash payouts via UPI.</p>
+        </div>
+
+        <div class="pg-plans pg-plans4" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:16px;">
+          <article class="pg-plan" style="border:1px solid var(--sc-border);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);">
+            <span class="pg-tier" style="color:#d97706;font-weight:700;">★ Starter Pack</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹49</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>10 Stars</b> to give or unlock</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹4.90 per star</li>
+              <li>Unlock 1–5 premium designs</li>
+              <li>Instant star balance delivery</li>
+            </ul>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_10" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 10 Stars · ₹49</button>
+          </article>
+
+          <article class="pg-plan pg-hot" style="border:2px solid #f59e0b;border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
+            <span class="pg-tier" style="color:#d97706;font-weight:700;">★ Popular Pack</span>
+            <span style="position:absolute;top:-12px;right:20px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:0.04em;">MOST POPULAR</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹199</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>45 Stars</b> (Save 10%)</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹4.42 per star</li>
+              <li>Unlock ~22 premium templates</li>
+              <li>Send appreciation tips to creators</li>
+            </ul>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_45" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 45 Stars · ₹199</button>
+          </article>
+
+          <article class="pg-plan" style="border:1px solid var(--sc-border);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);">
+            <span class="pg-tier" style="color:#d97706;font-weight:700;">★ Superfan Pack</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹499</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>120 Stars</b> (Save 15%)</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹4.16 per star</li>
+              <li>Unlock 60+ premium templates</li>
+              <li>Tip favorite tutorial channels</li>
+            </ul>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_120" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 120 Stars · ₹499</button>
+          </article>
+
+          <article class="pg-plan pg-max" style="border:1px solid rgba(139,92,246,0.4);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
+            <span class="pg-tier" style="color:#a855f7;font-weight:700;">★ Mega Pack</span>
+            <span style="position:absolute;top:-12px;right:20px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:0.04em;">BEST VALUE</span>
+            <div class="pg-amt" style="font-size:32px;font-weight:800;margin:12px 0 6px;">₹999</div>
+            <p class="pg-planline" style="font-size:13.5px;color:var(--sc-text);"><b>260 Stars</b> (Save 22%)</p>
+            <ul style="margin:16px 0;padding-left:18px;font-size:13px;color:var(--sc-muted);flex:1;">
+              <li>₹3.84 per star</li>
+              <li>Unlimited remix & library unlocks</li>
+              <li>Exclusive supporter recognition</li>
+            </ul>
+            <button type="button" class="pg-bo pg-buy-stars" data-star-pack="stars_260" style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;border:none;font-weight:700;">Buy 260 Stars · ₹999</button>
+          </article>
+        </div>
+
+        <p class="pg-note pg-center" id="starsBuyNote" role="status" aria-live="polite" style="margin-top:16px;"></p>
+        <p class="pg-fine pg-center" style="margin-top:8px;">Stars do not expire. Creators keep 70% (₹3.50/star) upon receiving unlocks or tips, withdrawable directly via UPI.</p>
+      </section>
 
       <section class="pg-sec" id="credits">
         <h2>What uses credits</h2>
@@ -471,9 +535,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026092302" defer></script>
-<script src="/theme.js?v=2026092302" defer></script>
-<script src="/report.js?v=2026092302" defer></script>
-<script src="/page.js?v=2026092302" defer></script>
-<script src="/checkout.js?v=2026092302" defer></script></body>
+<script src="/authui.js?v=2026092501" defer></script>
+<script src="/theme.js?v=2026092501" defer></script>
+<script src="/report.js?v=2026092501" defer></script>
+<script src="/page.js?v=2026092501" defer></script>
+<script src="/checkout.js?v=2026092501" defer></script></body>
 </html>

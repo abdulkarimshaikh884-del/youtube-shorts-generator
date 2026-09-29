@@ -17,7 +17,8 @@ window.SC_TPL2 = (function () {
   "use strict";
 
   var CATS = [
-{ id: "docu",    label: "Documentary & Retro" },
+    { id: "premium", label: "Premium" },
+    { id: "docu",    label: "Documentary & Retro" },
     { id: "paper",   label: "Paper & Cutout" },
     { id: "text",    label: "Kinetic Text & Hooks" },
     { id: "maps",    label: "Maps & Radar" },

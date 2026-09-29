@@ -3,7 +3,7 @@ const fs=require('fs');
 const vm=require('vm');
 function load(env,query){
  const module={exports:{}};
- vm.runInNewContext(fs.readFileSync(require.resolve('../designs'),'utf8'),{module,console,Buffer,process:{env},require(n){if(n==='./db')return {query};if(n==='./design-assets')return {makePublic:async()=>{}};return require(n);}});
+ vm.runInNewContext(fs.readFileSync(require.resolve('../designs'),'utf8'),{module,console,Buffer,process:{env},require(n){if(n==='./db')return {query};if(n==='./design-assets')return {makePublic:async()=>{}};if(n.startsWith('./'))return require(require.resolve('../' + n.slice(2)));return require(n);}});
  return module.exports;
 }
 (async()=>{

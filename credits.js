@@ -60,7 +60,7 @@ const PLANS = {
     perDay: 5,
     monthlyCredits: 150,
     yearlyPrice: 0,
-    starsPerMonth: 5,
+    starsPerMonth: 0,
     watermark: true,
     maxHeight: 480
   },
@@ -69,7 +69,7 @@ const PLANS = {
     yearlyPrice: 1999,
     perDay: 40,
     monthlyCredits: 1200,
-    starsPerMonth: 25,
+    starsPerMonth: 15,
     watermark: false,
     maxHeight: 1080
   },
@@ -79,11 +79,18 @@ const PLANS = {
     term: "month",
     perDay: 100,
     monthlyCredits: 3000,
-    starsPerMonth: 60,
+    starsPerMonth: 35,
     watermark: false,
     maxHeight: 1440
   }
 };
+
+const STAR_PACKS = [
+  { id: "stars_10", label: "Starter Pack", stars: 10, price: 49, inr: "₹49" },
+  { id: "stars_45", label: "Creator Fan Pack", stars: 45, price: 199, inr: "₹199", popular: true },
+  { id: "stars_120", label: "Superfan Pack", stars: 120, price: 499, inr: "₹499" },
+  { id: "stars_260", label: "Mega Pack", stars: 260, price: 999, inr: "₹999" }
+];
 
 /* ── what things cost ─────────────────────────────────────
    Priced by what each one actually costs us to serve.
@@ -368,4 +375,4 @@ async function setPlan(req, planId, executor = db) {
   return true;
 }
 
-module.exports = { middleware, state, entitlements, charge, refund, setPlan, PLANS, COST, COOKIE, LIFETIME_SLOTS };
+module.exports = { middleware, state, entitlements, charge, refund, setPlan, PLANS, STAR_PACKS, COST, COOKIE, LIFETIME_SLOTS };

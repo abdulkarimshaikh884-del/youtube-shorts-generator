@@ -44,6 +44,105 @@
     setupWindowResize();
     updateZoom();
     render();
+    exposeStudioApi();
+  }
+
+  function exposeStudioApi() {
+    window.SC_STUDIO = {
+      project: project,
+      render: render,
+      updateLayersList: updateLayersList,
+      updateInspector: updateInspector,
+      recordState: recordState,
+      undo: undo,
+      redo: redo,
+      triggerAutosave: triggerAutosave,
+      selectElement: function (idOrRole) {
+        var el = project.elements.find(function (e) {
+          return e.id === idOrRole || e.role === idOrRole;
+        });
+        if (el) {
+          selectedElement = el;
+          updateInspector();
+          updateLayersList();
+          render();
+          return true;
+        }
+        return false;
+      },
+      replaceImage: function (idOrRole, newSrc, newName) {
+        var el = project.elements.find(function (e) {
+          return e.id === idOrRole || e.role === idOrRole;
+        });
+        if (el && el.type === "image") {
+          selectedElement = el;
+          replaceSelectedImage(newSrc, newName);
+          return true;
+        }
+        return false;
+      },
+      updateText: function (idOrRole, newText) {
+        var el = project.elements.find(function (e) {
+          return e.id === idOrRole || e.role === idOrRole;
+        });
+        if (el && el.type === "text") {
+          el.text = newText;
+          recordState();
+          updateLayersList();
+          updateInspector();
+          render();
+          triggerAutosave();
+          return true;
+        }
+        return false;
+      },
+      moveElement: function (idOrRole, dx, dy) {
+        var el = project.elements.find(function (e) {
+          return e.id === idOrRole || e.role === idOrRole;
+        });
+        if (el) {
+          el.x += dx;
+          el.y += dy;
+          recordState();
+          render();
+          triggerAutosave();
+          return true;
+        }
+        return false;
+      },
+      recolorElement: function (idOrRole, filterStr) {
+        var el = project.elements.find(function (e) {
+          return e.id === idOrRole || e.role === idOrRole;
+        });
+        if (el) {
+          el.filter = filterStr;
+          recordState();
+          render();
+          triggerAutosave();
+          return true;
+        }
+        return false;
+      },
+      toggleVisibility: function (idOrRole, isHidden) {
+        var el = project.elements.find(function (e) {
+          return e.id === idOrRole || e.role === idOrRole;
+        });
+        if (el) {
+          el.hidden = typeof isHidden === "boolean" ? isHidden : !el.hidden;
+          recordState();
+          updateLayersList();
+          render();
+          triggerAutosave();
+          return true;
+        }
+        return false;
+      },
+      exportPNG: function () {
+        selectedElement = null;
+        render();
+        return canvas.toDataURL("image/png");
+      }
+    };
   }
 
   // ── 1. Load Project ──────────────────────────────────────────
@@ -116,19 +215,20 @@
       project.elements = data.elements;
       // Preload images
       project.elements.forEach(function (el) {
-        if (el.type === "image" && el.src) preloadImage(el.src);
+        var s = el.src || el.dataSrc;
+        if (el.type === "image" && s) preloadImage(s);
       });
     }
     recordState();
     updateLayersList();
     render();
     updateZoom();
-    window.SC_STUDIO = { render: render, project: project, updateLayersList: updateLayersList };
     window.SC_STUDIO_PROJECT = project;
+    exposeStudioApi();
   }
 
   function preloadImage(src) {
-    if (imageCache[src]) return;
+    if (!src || imageCache[src]) return;
     var img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = function () {
@@ -253,11 +353,15 @@
   }
 
   function renderImage(el) {
-    var img = imageCache[el.src];
+    var src = el.src || el.dataSrc;
+    if (!src) return;
+    var img = imageCache[src];
     if (img && img.complete) {
+      if (el.filter) ctx.filter = el.filter;
       ctx.drawImage(img, el.x, el.y, el.width, el.height);
+      if (el.filter) ctx.filter = "none";
     } else {
-      preloadImage(el.src);
+      preloadImage(src);
       ctx.fillStyle = "#1e293b";
       ctx.fillRect(el.x, el.y, el.width, el.height);
     }
@@ -268,34 +372,65 @@
     var fontWeight = el.fontWeight || 800;
     var fontFamily = el.fontFamily || "Anton";
 
+    // Auto-fit text if width constraint is present (e.g. for product-name)
+    var lines = String(el.text || "").split("\n");
+    if ((el.autoFit || el.role === "product-name") && el.width) {
+      ctx.font = fontWeight + " " + fontSize + "px '" + fontFamily + "', -apple-system, sans-serif";
+      var maxLineWidth = 0;
+      lines.forEach(function (line) {
+        var lw = ctx.measureText(line).width;
+        if (lw > maxLineWidth) maxLineWidth = lw;
+      });
+      if (maxLineWidth > el.width) {
+        fontSize = Math.max(12, Math.floor(fontSize * (el.width / maxLineWidth) * 0.95));
+      }
+    }
+
     ctx.font = fontWeight + " " + fontSize + "px '" + fontFamily + "', -apple-system, sans-serif";
     ctx.textBaseline = "top";
+
+    var alignment = el.alignment || el.align || "left";
+    ctx.textAlign = alignment;
 
     if (el.shadow) {
       ctx.shadowColor = el.shadow.color || "rgba(0,0,0,0.8)";
       ctx.shadowBlur = el.shadow.blur || 8;
-      ctx.shadowOffsetX = el.shadow.offsetX || 2;
-      ctx.shadowOffsetY = el.shadow.offsetY || 4;
+      ctx.shadowOffsetX = typeof el.shadow.offsetX === "number" ? el.shadow.offsetX : 2;
+      ctx.shadowOffsetY = typeof el.shadow.offsetY === "number" ? el.shadow.offsetY : 4;
     }
 
-    // Support multiline text
-    var lines = String(el.text || "").split("\n");
-    var lineHeight = fontSize * 1.15;
+    var lhMultiplier = typeof el.lineHeight === "number" ? el.lineHeight : 1.15;
+    var lineHeight = fontSize * lhMultiplier;
+
+    if (el.letterSpacing && typeof ctx.letterSpacing !== "undefined") {
+      try { ctx.letterSpacing = el.letterSpacing + "px"; } catch (e) {}
+    }
 
     lines.forEach(function (line, idx) {
       var lineY = el.y + (idx * lineHeight);
+      var lineX = el.x;
+      if (alignment === "center") {
+        lineX = el.x + el.width / 2;
+      } else if (alignment === "right") {
+        lineX = el.x + el.width;
+      }
+
       if (el.stroke && el.strokeWidth) {
         ctx.strokeStyle = el.stroke;
         ctx.lineWidth = el.strokeWidth;
-        ctx.strokeText(line, el.x, lineY);
+        ctx.strokeText(line, lineX, lineY);
       }
       ctx.fillStyle = el.fill || "#ffffff";
-      ctx.fillText(line, el.x, lineY);
+      ctx.fillText(line, lineX, lineY);
     });
 
-    // Reset shadow
+    // Reset shadow and alignment
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
+    ctx.textAlign = "left";
+    if (typeof ctx.letterSpacing !== "undefined") {
+      try { ctx.letterSpacing = "0px"; } catch (e) {}
+    }
   }
 
   function renderSelection(el) {
@@ -631,6 +766,16 @@
     triggerAutosave();
   }
 
+  function normalizeHex(c, fallback) {
+    if (!c || typeof c !== "string") return fallback || "#ffffff";
+    var s = c.trim();
+    if (s.startsWith("#") && s.length === 7) return s.toLowerCase();
+    if (s.startsWith("#") && s.length === 4) {
+      return ("#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3]).toLowerCase();
+    }
+    return fallback || "#ffffff";
+  }
+
   // ── 5. Inspector & Layer Properties ──────────────────────────
   function setupInspector() {
     var propText = $("#propTextContent");
@@ -639,6 +784,8 @@
     var propColor = $("#propTextColor");
     var propStroke = $("#propStrokeColor");
     var propStrokeW = $("#propStrokeWidth");
+    var propShadow = $("#propShadowColor");
+    var propShadowB = $("#propShadowBlur");
     var propFill = $("#propShapeFill");
     var propRadius = $("#propShapeRadius");
     var propOpacity = $("#propImageOpacity");
@@ -649,9 +796,63 @@
     if (propColor) propColor.addEventListener("input", function () { if (selectedElement) { selectedElement.fill = propColor.value; render(); } });
     if (propStroke) propStroke.addEventListener("input", function () { if (selectedElement) { selectedElement.stroke = propStroke.value; render(); } });
     if (propStrokeW) propStrokeW.addEventListener("input", function () { if (selectedElement) { selectedElement.strokeWidth = parseInt(propStrokeW.value, 10); render(); } });
+    if (propShadow) propShadow.addEventListener("input", function () {
+      if (selectedElement) {
+        if (!selectedElement.shadow) selectedElement.shadow = { color: "#000000", blur: 4, offsetX: 0, offsetY: 2 };
+        selectedElement.shadow.color = propShadow.value;
+        render();
+      }
+    });
+    if (propShadowB) propShadowB.addEventListener("input", function () {
+      if (selectedElement) {
+        if (!selectedElement.shadow) selectedElement.shadow = { color: "#000000", blur: 4, offsetX: 0, offsetY: 2 };
+        selectedElement.shadow.blur = parseInt(propShadowB.value, 10);
+        render();
+      }
+    });
     if (propFill) propFill.addEventListener("input", function () { if (selectedElement) { selectedElement.fill = propFill.value; render(); } });
     if (propRadius) propRadius.addEventListener("input", function () { if (selectedElement) { selectedElement.radius = parseInt(propRadius.value, 10); $("#valShapeRadius").textContent = propRadius.value + "px"; render(); } });
     if (propOpacity) propOpacity.addEventListener("input", function () { if (selectedElement) { selectedElement.opacity = parseInt(propOpacity.value, 10) / 100; $("#valImageOpacity").textContent = propOpacity.value + "%"; render(); } });
+
+    // Image Replace Action
+    var btnRep = $("#btnReplaceImage");
+    var fileRep = $("#replaceImageFileInput");
+    if (btnRep && fileRep) {
+      btnRep.onclick = function () {
+        fileRep.click();
+      };
+      fileRep.onchange = function () {
+        if (fileRep.files && fileRep.files[0]) {
+          var f = fileRep.files[0];
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            replaceSelectedImage(e.target.result, f.name);
+          };
+          reader.readAsDataURL(f);
+        }
+      };
+    }
+
+    // Image Hue Slider
+    var propHue = $("#propImageHue");
+    if (propHue) {
+      propHue.addEventListener("input", function () {
+        if (selectedElement && selectedElement.type === "image") {
+          var hue = parseInt(propHue.value, 10);
+          $("#valImageHue").textContent = hue + "°";
+          if (hue === 0) {
+            delete selectedElement.filter;
+          } else {
+            selectedElement.filter = "hue-rotate(" + hue + "deg) saturate(1.2)";
+          }
+          render();
+        }
+      });
+      propHue.addEventListener("change", function () {
+        recordState();
+        triggerAutosave();
+      });
+    }
 
     // Layer Arrange Actions
     $("#btnLayerUp").onclick = function () { changeLayerOrder(1); };
@@ -675,6 +876,21 @@
     // Undo & Redo buttons
     $("#btnUndo").onclick = undo;
     $("#btnRedo").onclick = redo;
+  }
+
+  function replaceSelectedImage(newSrc, newName) {
+    if (!selectedElement || selectedElement.type !== "image") return;
+    selectedElement.src = newSrc;
+    selectedElement.dataSrc = newSrc;
+    if (newName && !(selectedElement.name && selectedElement.name.includes("Replaceable"))) {
+      selectedElement.name = newName;
+    }
+    preloadImage(newSrc);
+    recordState();
+    updateLayersList();
+    updateInspector();
+    render();
+    triggerAutosave();
   }
 
   function updateInspector() {
@@ -705,12 +921,16 @@
       $("#propFontFamily").value = selectedElement.fontFamily || "Anton";
       $("#propFontSize").value = selectedElement.fontSize || 72;
       $("#valFontSize").textContent = (selectedElement.fontSize || 72) + "px";
-      $("#propTextColor").value = selectedElement.fill || "#ffffff";
+      $("#propTextColor").value = normalizeHex(selectedElement.fill, "#ffffff");
+      if ($("#propStrokeColor")) $("#propStrokeColor").value = normalizeHex(selectedElement.stroke, "#000000");
+      if ($("#propStrokeWidth")) $("#propStrokeWidth").value = selectedElement.strokeWidth || 0;
+      if ($("#propShadowColor")) $("#propShadowColor").value = normalizeHex(selectedElement.shadow && selectedElement.shadow.color, "#000000");
+      if ($("#propShadowBlur")) $("#propShadowBlur").value = (selectedElement.shadow && selectedElement.shadow.blur) || 0;
     } else if (selectedElement.type === "shape") {
       secText.setAttribute("hidden", "");
       secShape.removeAttribute("hidden");
       secImage.setAttribute("hidden", "");
-      $("#propShapeFill").value = selectedElement.fill || "#f59e0b";
+      $("#propShapeFill").value = normalizeHex(selectedElement.fill, "#f59e0b");
       $("#propShapeRadius").value = selectedElement.radius || 12;
       $("#valShapeRadius").textContent = (selectedElement.radius || 12) + "px";
     } else if (selectedElement.type === "image") {
@@ -720,6 +940,26 @@
       var op = typeof selectedElement.opacity === "number" ? Math.round(selectedElement.opacity * 100) : 100;
       $("#propImageOpacity").value = op;
       $("#valImageOpacity").textContent = op + "%";
+
+      var hueVal = 0;
+      if (selectedElement.filter) {
+        var m = selectedElement.filter.match(/hue-rotate\((\d+)deg\)/);
+        if (m) hueVal = parseInt(m[1], 10);
+      }
+      if ($("#propImageHue")) {
+        $("#propImageHue").value = hueVal;
+        $("#valImageHue").textContent = hueVal + "°";
+      }
+
+      var repBtn = $("#btnReplaceImage");
+      if (repBtn) {
+        var label = repBtn.querySelector("span");
+        if (selectedElement.role === "replaceable-image" || selectedElement.replaceable) {
+          if (label) label.textContent = "🔄 Replace Product Logo";
+        } else {
+          if (label) label.textContent = "🔄 Replace Image";
+        }
+      }
     }
   }
 
@@ -785,9 +1025,16 @@
       else if (el.type === "image") typeIcon = "🖼";
       else if (el.type === "shape") typeIcon = "⬡";
 
+      var badge = "";
+      if (el.role === "replaceable-image" || el.replaceable) {
+        badge = ' <span style="font-size:10px;padding:2px 5px;border-radius:4px;background:rgba(59,130,246,0.25);color:#60a5fa;font-weight:700;">[Replaceable]</span>';
+      } else if (el.role === "product-name") {
+        badge = ' <span style="font-size:10px;padding:2px 5px;border-radius:4px;background:rgba(16,185,129,0.25);color:#34d399;font-weight:700;">[Editable]</span>';
+      }
+
       item.innerHTML = [
         '<span style="font-weight:700;font-size:11px;color:var(--de-ink3);">' + typeIcon + '</span>',
-        '<span class="de-layer-name">' + escapeHtml(el.name || el.text || el.id) + '</span>',
+        '<span class="de-layer-name">' + escapeHtml(el.name || el.text || el.id) + badge + '</span>',
         '<div class="de-layer-actions">',
         '  <button type="button" class="de-layer-ico-btn btn-vis" title="Toggle visibility">' + (el.hidden ? '🙈' : '👁') + '</button>',
         '  <button type="button" class="de-layer-ico-btn btn-lock" title="Lock layer">' + (el.locked ? '🔒' : '🔓') + '</button>',
@@ -915,36 +1162,110 @@
     link.click();
   }
 
-  function publishDesignTemplate() {
-    var title = prompt("Publish template name:", project.name);
-    if (!title) return;
+  function setupPublishModal() {
+    var modal = $("#publishDesignModal");
+    var form = $("#publishDesignForm");
+    var closeBtn = $("#closePublishDesignModal");
+    var cancelBtn = $("#cancelPublishDesign");
+    var catSelect = $("#pubDesignCategory");
+    var premBox = $("#pubDesignPremiumBox");
+    var submitBtn = $("#submitPublishDesign");
+    var msg = $("#pubDesignMsg");
 
-    var previewData = canvas.toDataURL("image/webp", 0.85);
+    if (!modal || !form) return;
 
-    fetch("/api/designs/publish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    function closeModal() {
+      modal.style.display = "none";
+      if (msg) { msg.textContent = ""; msg.style.color = ""; }
+    }
+
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (cancelBtn) cancelBtn.onclick = closeModal;
+
+    if (catSelect && premBox) {
+      catSelect.onchange = function () {
+        var isPrem = catSelect.value === "premium";
+        premBox.style.display = isPrem ? "block" : "none";
+        if (submitBtn) {
+          submitBtn.textContent = isPrem ? "Submit for Quality Review ★" : "Publish Template 🚀";
+        }
+      };
+    }
+
+    form.onsubmit = function (ev) {
+      ev.preventDefault();
+      var title = ($("#pubDesignTitle").value || "").trim();
+      if (!title) return;
+
+      var isPrem = catSelect.value === "premium";
+      var starPrice = isPrem ? Math.max(1, parseInt(($("#pubDesignStarPrice") && $("#pubDesignStarPrice").value) || "1", 10) || 1) : 0;
+      var previewData = canvas.toDataURL("image/webp", 0.85);
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Publishing..."; }
+      if (msg) { msg.textContent = ""; }
+
+      var payload = {
         title: title,
         description: "Community design template on ShortsCraft",
-        designType: project.designType || "youtube-thumbnail",
+        category: catSelect.value,
+        isPremium: isPrem,
+        starPrice: starPrice,
+        remixOf: (project.source && project.source.remixOf) || null,
+        designType: isPrem ? (project.designType || "youtube-thumbnail") : catSelect.value,
         canvas: project.canvas,
         elements: project.elements,
         previewUrl: previewData,
         isAiConverted: (project.source && project.source.type === "ai-converted")
+      };
+
+      fetch("/api/designs/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       })
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (res) {
-        if (res && res.success) {
-          alert("🎉 Design template published successfully to the community gallery!");
-        } else {
-          alert((res && res.error) || "Could not publish template.");
-        }
-      })
-      .catch(function (err) {
-        alert("Failed to publish: " + err.message);
-      });
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (submitBtn) submitBtn.disabled = false;
+          if (res && res.success) {
+            if (msg) {
+              msg.style.color = "#10b981";
+              msg.textContent = isPrem
+                ? "★ Submitted for Quality Review! Once approved by admin, it will go live in the marketplace."
+                : "🎉 Design template published successfully to the community gallery!";
+            }
+            setTimeout(closeModal, 2500);
+          } else {
+            if (msg) {
+              msg.style.color = "#ef4444";
+              msg.textContent = (res && res.error) || "Could not publish template.";
+            }
+            if (submitBtn) submitBtn.textContent = isPrem ? "Submit for Quality Review ★" : "Publish Template 🚀";
+          }
+        })
+        .catch(function (err) {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isPrem ? "Submit for Quality Review ★" : "Publish Template 🚀"; }
+          if (msg) { msg.style.color = "#ef4444"; msg.textContent = "Failed to publish: " + err.message; }
+        });
+    };
+  }
+
+  function publishDesignTemplate() {
+    var modal = $("#publishDesignModal");
+    if (!modal) {
+      alert("Publish modal unavailable.");
+      return;
+    }
+    var titleInp = $("#pubDesignTitle");
+    if (titleInp) titleInp.value = project.name || "My Design Template";
+    var catSelect = $("#pubDesignCategory");
+    var premBox = $("#pubDesignPremiumBox");
+    var submitBtn = $("#submitPublishDesign");
+    if (catSelect) {
+      catSelect.value = "premium";
+      if (premBox) premBox.style.display = "block";
+      if (submitBtn) submitBtn.textContent = "Submit for Quality Review ★";
+    }
+    modal.style.display = "flex";
   }
 
   function escapeHtml(str) {
@@ -960,5 +1281,6 @@
     document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
+  setupPublishModal();
   }
 })();

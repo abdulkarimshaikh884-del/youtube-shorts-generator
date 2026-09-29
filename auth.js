@@ -128,7 +128,8 @@ function isVerified(row) {
   if (!row) return false;
   return row.verified === true
     || String(row.handle || "").replace(/^@/, "").toLowerCase() === "shortscraft"
-    || yearlyVerified(row);
+    || yearlyVerified(row)
+    || (Number(row.published_count || row.templates_count || 0) >= 5 && Number(row.followers_count || row.followers || 0) >= 100);
 }
 
 function effectivePlanFromRow(row) {

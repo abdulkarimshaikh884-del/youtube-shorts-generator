@@ -331,6 +331,19 @@ async function ensureStarGrant(user) {
   });
 }
 
+async function getSystemAccountId(client, excludeUserId) {
+  const { rows } = await client.query(
+    `select id from public.users
+      where lower(replace(coalesce(handle,''), '@', '')) = 'shortscraft' or role in ('admin', 'super_admin')
+      order by case when lower(replace(coalesce(handle,''), '@', '')) = 'shortscraft' then 0 else 1 end
+      limit 5`
+  );
+  const found = rows.find(r => r.id !== excludeUserId);
+  if (found) return found.id;
+  const fallback = await client.query(`select id from public.users where id <> $1 limit 1`, [excludeUserId]);
+  return fallback.rows[0]?.id;
+}
+
 async function starSummary(user) {
   if (!user || !user.id) return { balance: 0, received: 0, sent: 0, allowance: 0, period: monthKey() };
   const plan = PLANS[user.plan] || PLANS.free;
@@ -338,9 +351,10 @@ async function starSummary(user) {
 
   const summary = () => db.query(
     `select
-       coalesce(sum(amount) filter (where receiver_id = $1 and kind in ('monthly_grant','refund','admin_adjustment')), 0)::int as granted,
+       coalesce(sum(amount) filter (where receiver_id = $1 and kind in ('monthly_grant','refund','admin_adjustment') and (note not like '%"type":"payout_request"%' or note is null)), 0)::int as granted,
        coalesce(sum(amount) filter (where sender_id = $1 and kind = 'donation'), 0)::int as sent,
        coalesce(sum(amount) filter (where receiver_id = $1 and kind = 'donation'), 0)::int as received,
+       coalesce(sum(amount) filter (where sender_id = $1 and kind = 'admin_adjustment' and note like '%"type":"payout_request"%'), 0)::int as withdrawn,
        coalesce(sum(amount) filter (where receiver_id = $1 and kind = 'monthly_grant' and period_key = $2), 0)::int as this_period
      from public.star_transactions`,
     [user.id, period]
@@ -348,14 +362,7 @@ async function starSummary(user) {
 
   let { rows } = await summary();
 
-  /* The grant used to run unconditionally, ahead of this read. It opens a
-     transaction and takes an advisory lock — five round trips to a pooler in
-     another region — to top up a row that changes once a month, and
-     /api/auth/me is on every page load. The read above already reports what
-     this period has been granted, so the write only happens when it is
-     genuinely short. The guarantee is unchanged: a user who has not been
-     granted this month still gets granted, on the first request that notices. */
-  if ((Number(rows[0]?.this_period) || 0) < plan.starsPerMonth) {
+  if (plan.starsPerMonth > 0 && (Number(rows[0]?.this_period) || 0) < plan.starsPerMonth) {
     await ensureStarGrant(user);
     ({ rows } = await summary());
   }
@@ -363,10 +370,18 @@ async function starSummary(user) {
   const row = rows[0] || {};
   const sent = Number(row.sent) || 0;
   const granted = Number(row.granted) || 0;
+  const received = Number(row.received) || 0;
+  const withdrawn = Number(row.withdrawn) || 0;
+  const availableStars = Math.max(0, received - withdrawn);
   return {
     balance: Math.max(0, granted - sent),
-    received: Number(row.received) || 0,
+    received,
     sent,
+    withdrawn,
+    withdrawableStars: availableStars,
+    withdrawableINR: Number((availableStars * 3.50).toFixed(2)),
+    canWithdraw: (availableStars * 3.50) >= 50.00,
+    minWithdrawalINR: 50.00,
     allowance: plan.starsPerMonth,
     period
   };
@@ -422,6 +437,314 @@ async function donateStars(sender, target, amount, note, idempotencyKey) {
       receiver: publicActor(receiver)
     };
   });
+}
+
+async function requestPayout(user, starsAmount, upiId) {
+  if (!user || !user.id) return { error: "Please log in first.", status: 401 };
+  const cleanUpi = String(upiId || "").trim();
+  if (!cleanUpi || !cleanUpi.includes("@") || cleanUpi.length < 5 || cleanUpi.length > 50) {
+    return { error: "Please enter a valid UPI ID (e.g. yourname@upi or 9876543210@paytm).", status: 400 };
+  }
+
+  starsAmount = parseInt(starsAmount, 10);
+  if (isNaN(starsAmount) || starsAmount < 1) {
+    return { error: "Invalid stars amount.", status: 400 };
+  }
+
+  const inrAmount = Number((starsAmount * 3.50).toFixed(2));
+  if (inrAmount < 50.00) {
+    return {
+      error: `Minimum withdrawal is ₹50.00. ${starsAmount} Stars is equal to ₹${inrAmount.toFixed(2)}. You need at least 15 Stars (₹52.50) to withdraw.`,
+      status: 400
+    };
+  }
+
+  return db.tx(async (client) => {
+    await client.query(`select pg_advisory_xact_lock(hashtext($1))`, [`payout:${user.id}`]);
+    const totals = await client.query(
+      `select
+         coalesce(sum(amount) filter (where receiver_id = $1 and kind = 'donation'), 0)::int as received,
+         coalesce(sum(amount) filter (where sender_id = $1 and kind = 'admin_adjustment' and note like '%"type":"payout_request"%'), 0)::int as withdrawn
+       from public.star_transactions`,
+      [user.id]
+    );
+    const availableStars = Math.max(0, (Number(totals.rows[0]?.received) || 0) - (Number(totals.rows[0]?.withdrawn) || 0));
+    if (availableStars < starsAmount) {
+      return {
+        error: `Insufficient earnings. You have ${availableStars} withdrawable Stars (₹${(availableStars * 3.50).toFixed(2)}).`,
+        status: 400
+      };
+    }
+
+    const adminTargetId = await getSystemAccountId(client, user.id);
+    if (!adminTargetId) {
+      return { error: "Settlement account currently unavailable. Please try again shortly.", status: 503 };
+    }
+
+    const notePayload = JSON.stringify({
+      type: "payout_request",
+      upiId: cleanUpi,
+      inrAmount: inrAmount,
+      status: "pending",
+      requestedAt: new Date().toISOString()
+    });
+
+    const baseIdem = `payout:${user.id}:${Date.now()}`;
+    let remaining = starsAmount;
+    let chunkIdx = 0;
+    while (remaining > 0) {
+      const slice = Math.min(remaining, 100);
+      const idem = remaining === starsAmount ? baseIdem : `${baseIdem}:${chunkIdx++}`;
+      await client.query(
+        `insert into public.star_transactions
+           (sender_id, receiver_id, amount, kind, idempotency_key, note)
+         values ($1, $2, $3, 'admin_adjustment', $4, $5)`,
+        [user.id, adminTargetId, slice, idem, notePayload]
+      );
+      remaining -= slice;
+    }
+
+    await client.query(
+      `insert into public.support_tickets
+         (user_id, email, subject, category, priority, status)
+       values ($1, $2, $3, 'billing', 'high', 'open')`,
+      [user.id, user.email || `${user.handle || 'creator'}@shortscraft.online`, `Creator UPI Payout Request: ₹${inrAmount.toFixed(2)} (${starsAmount} Stars) to ${cleanUpi}`]
+    );
+
+    await client.query(
+      `insert into public.notifications
+         (user_id, actor_id, type, entity_type, entity_id, message)
+       values ($1, null, 'system', 'admin', $2, $3)`,
+      [user.id, baseIdem, `Your payout request of ₹${inrAmount.toFixed(2)} (${starsAmount} Stars) to ${cleanUpi} has been submitted.`]
+    );
+
+    return {
+      success: true,
+      withdrawnStars: starsAmount,
+      inrAmount: inrAmount,
+      upiId: cleanUpi,
+      remainingStars: availableStars - starsAmount,
+      remainingINR: Number(((availableStars - starsAmount) * 3.50).toFixed(2))
+    };
+  });
+}
+
+async function creatorWallet(user) {
+  if (!user || !user.id) return { error: "Please log in first.", status: 401 };
+  const { rows } = await db.query(
+    `select
+       coalesce(sum(amount) filter (where receiver_id = $1 and kind = 'donation'), 0)::int as total_received,
+       coalesce(sum(amount) filter (where sender_id = $1 and kind = 'admin_adjustment' and note like '%"type":"payout_request"%'), 0)::int as total_withdrawn
+     from public.star_transactions`,
+    [user.id]
+  );
+  const totalReceived = Number(rows[0]?.total_received) || 0;
+  const totalWithdrawn = Number(rows[0]?.total_withdrawn) || 0;
+  const availableStars = Math.max(0, totalReceived - totalWithdrawn);
+  const availableINR = Number((availableStars * 3.50).toFixed(2));
+  const totalEarnedINR = Number((totalReceived * 3.50).toFixed(2));
+
+  const history = await db.query(
+    `select id, amount as stars, note, created_at
+       from public.star_transactions
+      where sender_id = $1 and kind = 'admin_adjustment' and note like '%"type":"payout_request"%'
+      order by created_at desc limit 20`,
+    [user.id]
+  );
+
+  const parsedHistory = history.rows.map(r => {
+    let meta = {};
+    try { meta = JSON.parse(r.note || "{}"); } catch (e) {}
+    return {
+      id: r.id,
+      stars: r.stars,
+      inr: meta.inrAmount || Number((r.stars * 3.50).toFixed(2)),
+      upiId: meta.upiId || "",
+      status: meta.status || "pending",
+      createdAt: r.created_at
+    };
+  });
+
+  return {
+    success: true,
+    totalReceivedStars: totalReceived,
+    totalEarnedINR: totalEarnedINR,
+    availableStars: availableStars,
+    availableINR: availableINR,
+    canWithdraw: availableINR >= 50.00,
+    minWithdrawalINR: 50.00,
+    history: parsedHistory
+  };
+}
+
+async function unlockTemplate(user, templateId, templateType = "animation") {
+  if (!user || !user.id) return { error: "Please log in first to unlock templates.", status: 401 };
+  templateId = String(templateId || "").trim();
+  if (!templateId) return { error: "Invalid template ID.", status: 400 };
+
+  let tpl = null;
+  let isPremium = false;
+  let starPrice = 0;
+  let authorId = null;
+  let title = "Template";
+
+  if (templateType === "design") {
+    const { rows } = await db.query(`select * from public.design_templates where id = $1`, [templateId]);
+    tpl = rows[0];
+    if (!tpl) return { error: "Design template not found.", status: 404 };
+    const canvas = tpl.canvas && typeof tpl.canvas === "object" ? tpl.canvas : {};
+    isPremium = tpl.category === "premium" || canvas.isPremium === true;
+    starPrice = isPremium ? Math.max(1, parseInt(canvas.starPrice || 1, 10)) : 0;
+    authorId = tpl.author_id;
+    title = tpl.title || "Design Template";
+  } else {
+    const { rows } = await db.query(`select * from public.community_templates where id = $1`, [templateId]);
+    tpl = rows[0];
+    if (!tpl) return { error: "Animation template not found.", status: 404 };
+    const props = tpl.props && typeof tpl.props === "object" ? tpl.props : {};
+    isPremium = tpl.category === "premium" || props.isPremium === true;
+    starPrice = isPremium ? Math.max(2, parseInt(props.starPrice || 2, 10)) : 0;
+    authorId = tpl.author_id;
+    title = tpl.title || "Animation Template";
+  }
+
+  if (!isPremium || starPrice <= 0) {
+    return { success: true, unlocked: true, free: true, templateId, canRemix: false };
+  }
+
+  if (authorId === user.id) {
+    return { success: true, unlocked: true, isAuthor: true, templateId, canRemix: true };
+  }
+
+  const already = await db.query(
+    `select id from public.star_transactions
+      where sender_id = $1 and kind = 'donation' and note like $2 limit 1`,
+    [user.id, `%"templateId":"${templateId}"%`]
+  );
+  if (already.rows.length > 0) {
+    return { success: true, unlocked: true, alreadyUnlocked: true, templateId, canRemix: true };
+  }
+
+  const summary = await starSummary(user);
+  if (summary.balance < starPrice) {
+    return {
+      error: `Insufficient Stars. You have ${summary.balance} Stars, but this premium template costs ${starPrice} Stars.`,
+      status: 402,
+      needStars: starPrice - summary.balance,
+      starPrice,
+      currentBalance: summary.balance
+    };
+  }
+
+  const receiverId = authorId || (await getSystemAccountId(db, user.id));
+
+  return db.tx(async (client) => {
+    await client.query(`select pg_advisory_xact_lock(hashtext($1))`, [`stars:${user.id}`]);
+    const totals = await client.query(
+      `select
+         coalesce(sum(amount) filter (where receiver_id = $1 and kind in ('monthly_grant','refund','admin_adjustment')), 0)::int as granted,
+         coalesce(sum(amount) filter (where sender_id = $1 and kind = 'donation'), 0)::int as sent
+       from public.star_transactions`,
+      [user.id]
+    );
+    const bal = (Number(totals.rows[0]?.granted) || 0) - (Number(totals.rows[0]?.sent) || 0);
+    if (bal < starPrice) {
+      return {
+        error: `Insufficient Stars. You have ${Math.max(0, bal)} Stars, but this template costs ${starPrice} Stars.`,
+        status: 402
+      };
+    }
+
+    const notePayload = JSON.stringify({
+      type: "template_unlock",
+      templateId,
+      title,
+      kind: templateType,
+      starPrice
+    });
+
+    const idem = `unlock:${user.id}:${templateId}`;
+    await client.query(
+      `insert into public.star_transactions
+         (sender_id, receiver_id, amount, kind, idempotency_key, note)
+       values ($1, $2, $3, 'donation', $4, $5)`,
+      [user.id, receiverId, starPrice, idem, notePayload]
+    );
+
+    if (authorId && authorId !== user.id) {
+      await client.query(
+        `insert into public.notifications
+           (user_id, actor_id, type, entity_type, entity_id, message)
+         values ($1, $2, 'star', 'template', $3, $4)`,
+        [authorId, user.id, templateId, `unlocked your premium template "${title}" for ${starPrice} Stars!`]
+      );
+    }
+
+    return {
+      success: true,
+      unlocked: true,
+      canRemix: true,
+      templateId,
+      starPrice,
+      remainingStars: bal - starPrice
+    };
+  });
+}
+
+async function checkTemplateAccess(user, templateId, templateType = "animation") {
+  templateId = String(templateId || "").trim();
+  if (!templateId) return { unlocked: false, canRemix: false };
+
+  let isPremium = false;
+  let starPrice = 0;
+  let authorId = null;
+  let title = "";
+
+  if (templateType === "design") {
+    const { rows } = await db.query(`select * from public.design_templates where id = $1`, [templateId]);
+    if (!rows[0]) return { unlocked: false, canRemix: false };
+    const canvas = rows[0].canvas && typeof rows[0].canvas === "object" ? rows[0].canvas : {};
+    isPremium = rows[0].category === "premium" || canvas.isPremium === true;
+    starPrice = isPremium ? Math.max(1, parseInt(canvas.starPrice || 1, 10)) : 0;
+    authorId = rows[0].author_id;
+    title = rows[0].title || "Design Template";
+  } else {
+    const { rows } = await db.query(`select * from public.community_templates where id = $1`, [templateId]);
+    if (!rows[0]) return { unlocked: false, canRemix: false };
+    const props = rows[0].props && typeof rows[0].props === "object" ? rows[0].props : {};
+    isPremium = rows[0].category === "premium" || props.isPremium === true;
+    starPrice = isPremium ? Math.max(2, parseInt(props.starPrice || 2, 10)) : 0;
+    authorId = rows[0].author_id;
+    title = rows[0].title || "Animation Template";
+  }
+
+  if (!isPremium || starPrice <= 0) {
+    return { isPremium: false, starPrice: 0, unlocked: true, canRemix: false, hasAccess: true, title };
+  }
+
+  if (!user || !user.id) {
+    return { isPremium: true, starPrice, unlocked: false, canRemix: false, hasAccess: false, title };
+  }
+
+  if (authorId === user.id) {
+    return { isPremium: true, starPrice, unlocked: true, isAuthor: true, canRemix: true, hasAccess: true, title };
+  }
+
+  const { rows } = await db.query(
+    `select id from public.star_transactions
+      where sender_id = $1 and kind = 'donation' and note like $2 limit 1`,
+    [user.id, `%"templateId":"${templateId}"%`]
+  );
+
+  const unlocked = rows.length > 0;
+  return {
+    isPremium: true,
+    starPrice,
+    unlocked,
+    canRemix: unlocked,
+    hasAccess: unlocked,
+    title
+  };
 }
 
 async function listNotifications(user, limit = 30) {
@@ -543,7 +866,8 @@ async function notifyTemplateComment(templateId, actor, commentText) {
 module.exports = {
   setReaction, reactionState, discoveryMetrics, recordEvent,
   setFollow, followSummary,
-  starSummary, donateStars,
+  starSummary, donateStars, requestPayout, creatorWallet,
+  unlockTemplate, checkTemplateAccess,
   listNotifications, unreadSummary, markNotificationsRead,
   notifyTemplateComment, resolveUser, listFollows
 };

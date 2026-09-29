@@ -16,7 +16,7 @@ const props = { line0: 'Creator content', backgroundColor: '#123456', customBack
 const tile = { dataset: { comm: '1', tpl: 'ui-tabs', lines: '["Title"]', font: 'mono', dur: '5200' }, _creatorProps: props };
 const mountSource = shell.slice(shell.indexOf('  function mount(tile, force)'), shell.indexOf('  function filterTiles()'));
 vm.runInNewContext(mountSource + '\nmount(tile, false);', {
-  tile, currentAspect: '16:9', console,
+  tile, currentAspect: '16:9', tileAspect: '16:9', console,
   engine: () => ({ build: (id, opts) => { options = opts; return '<html>preview</html>'; } }),
   $: selector => selector === '.sh-stage' ? stage : null,
   document: { createElement: () => ({ setAttribute() {}, addEventListener() {} }) },

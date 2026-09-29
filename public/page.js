@@ -52,7 +52,8 @@
     var selector = toggle.getAttribute("data-password-toggle") || "#authPassword";
     var input = document.querySelector(selector);
     if (!input) return;
-    toggle.addEventListener("click", function () {
+    toggle.addEventListener("click", function (ev) {
+      if (ev) ev.preventDefault();
       var reveal = input.type === "password";
       input.type = reveal ? "text" : "password";
       toggle.setAttribute("aria-pressed", reveal ? "true" : "false");

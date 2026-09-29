@@ -227,6 +227,114 @@
   range.addEventListener("input", paint);
   paint();
 
+  
+  // ── Star Packs Razorpay Checkout ───────────────────────────
+  function beginStarCheckout(button) {
+    var packId = button.dataset.starPack;
+    if (!packId) return;
+
+    var original = button.textContent;
+    button.disabled = true;
+    button.textContent = "Starting checkout…";
+    var starNote = document.getElementById("starsBuyNote");
+    if (starNote) { starNote.textContent = ""; starNote.className = "pg-note pg-center"; }
+
+    fetch("/api/stars/purchase/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ packId: packId })
+    })
+      .then(function (r) {
+        if (r.status === 401) {
+          window.location.href = "/login?next=" + encodeURIComponent("/pricing#stars");
+          return null;
+        }
+        return r.json();
+      })
+      .then(function (res) {
+        if (!res || !res.success) throw new Error((res && res.error) || "Could not start star checkout.");
+        return loadRazorpay().then(function () {
+          return new Promise(function (resolve) {
+            var checkout = new window.Razorpay({
+              key: res.keyId,
+              order_id: res.orderId,
+              amount: res.amount,
+              currency: res.currency || "INR",
+              name: "ShortsCraft",
+              description: (res.pack ? res.pack.label : "Stars Pack") + " (" + (res.pack ? res.pack.stars : 10) + " Stars)",
+              theme: { color: "#f59e0b" },
+              handler: resolve,
+              modal: { ondismiss: function () { resolve(null); } }
+            });
+            checkout.on("payment.failed", function () { resolve(null); });
+            checkout.open();
+          });
+        });
+      })
+      .then(function (payment) {
+        if (!payment) {
+          if (starNote) starNote.textContent = "Payment cancelled.";
+          button.disabled = false;
+          button.textContent = original;
+          return null;
+        }
+        if (starNote) starNote.textContent = "Verifying payment…";
+        return fetch("/api/stars/purchase/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            razorpay_order_id: payment.razorpay_order_id,
+            razorpay_payment_id: payment.razorpay_payment_id,
+            razorpay_signature: payment.razorpay_signature,
+            packId: packId
+          })
+        }).then(function (r) { return r.json(); });
+      })
+      .then(function (verifyRes) {
+        button.disabled = false;
+        button.textContent = original;
+        if (!verifyRes) return;
+        if (verifyRes.success) {
+          if (starNote) {
+            starNote.className = "pg-note pg-center ok";
+            starNote.textContent = "★ Success! Added " + verifyRes.starsGranted + " Stars to your account.";
+          }
+          if (window.SC_UI && SC_UI.toast) {
+            SC_UI.toast("★ Added " + verifyRes.starsGranted + " Stars to your account!");
+          }
+          setTimeout(function () {
+            window.location.href = "/account#stars";
+          }, 1500);
+        } else {
+          if (starNote) {
+            starNote.className = "pg-note pg-center err";
+            starNote.textContent = verifyRes.error || "Payment verification failed. Please contact support.";
+          }
+        }
+      })
+      .catch(function (err) {
+        button.disabled = false;
+        button.textContent = original;
+        if (starNote) {
+          starNote.className = "pg-note pg-center err";
+          starNote.textContent = err.message || "Checkout error.";
+        }
+      });
+  }
+
+  document.querySelectorAll(".pg-buy-stars").forEach(function (button) {
+    button.addEventListener("click", function () {
+      beginStarCheckout(button);
+    });
+  });
+
+  if (window.location.hash === "#stars") {
+    var starSec = document.getElementById("stars");
+    if (starSec) {
+      setTimeout(function () { starSec.scrollIntoView({ behavior: "smooth" }); }, 100);
+    }
+  }
+
   fetch("/api/config", { headers: { Accept: "application/json" } })
     .then(function (r) { return r.json(); })
     .then(function (j) {

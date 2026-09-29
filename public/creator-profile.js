@@ -234,49 +234,360 @@
 
   function setupCreatorActions(c) {
     var wrap = $("#creatorActions");
+    var selfWrap = $("#creatorSelfActions");
     var follow = $("#creatorFollowBtn");
     var star = $("#creatorStarBtn");
-    if (!wrap || !follow || !star) return;
-    if (!c.id || c.viewerIsSelf) {
-      wrap.hidden = true;
+    var followersBtn = $("#creatorFollowersBtn");
+    var followingBtn = $("#creatorFollowingBtn");
+
+    // Attach click handlers to stats buttons for followers / following modal
+    if (followersBtn) {
+      followersBtn.onclick = function () {
+        openFollowsModal("followers", c);
+      };
+    }
+    if (followingBtn) {
+      followingBtn.onclick = function () {
+        openFollowsModal("following", c);
+      };
+    }
+
+    if (!c.id) {
+      if (wrap) wrap.hidden = true;
+      if (selfWrap) selfWrap.hidden = true;
       return;
     }
-    wrap.hidden = false;
+
+    // STRICT RULE: If the viewer is the creator themselves:
+    // They CANNOT follow or send stars to themselves.
+    // Show "Edit Profile", hide Follow and Send Stars.
+    if (c.viewerIsSelf) {
+      if (wrap) wrap.hidden = true;
+      if (selfWrap) selfWrap.hidden = false;
+      return;
+    }
+
+    // Otherwise, viewer is another user (or guest) looking at this creator:
+    if (selfWrap) selfWrap.hidden = true;
+    if (wrap) wrap.hidden = false;
+    if (follow) follow.hidden = false;
+    if (star) star.hidden = false;
+
+    // Set initial follow button state
     follow.dataset.active = c.followedByMe ? "1" : "0";
     follow.textContent = c.followedByMe ? "Following" : "Follow";
+    follow.classList.toggle("is-following", c.followedByMe === true);
+
     follow.onclick = function () {
       var active = follow.dataset.active === "1";
+      var nextActive = !active;
+
+      // Optimistic UI update
       follow.disabled = true;
-      fetch("/api/creators/" + encodeURIComponent(c.id) + "/follow", { method: active ? "DELETE" : "POST" })
-        .then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.success) throw new Error(j.error || "Could not update follow."); return j; }); })
+      follow.dataset.active = nextActive ? "1" : "0";
+      follow.textContent = nextActive ? "Following" : "Follow";
+      follow.classList.toggle("is-following", nextActive);
+
+      var followersEl = $("#creatorFollowers");
+      var currentCount = Number(followersEl ? followersEl.textContent : 0) || 0;
+      if (followersEl) {
+        followersEl.textContent = String(Math.max(0, currentCount + (nextActive ? 1 : -1)));
+      }
+
+      fetch("/api/creators/" + encodeURIComponent(c.id) + "/follow", {
+        method: active ? "DELETE" : "POST"
+      })
+        .then(function (r) {
+          if (r.status === 401) {
+            window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+            throw new Error("Please log in to follow creators.");
+          }
+          return r.json().then(function (j) {
+            if (!r.ok || !j.success) throw new Error(j.error || "Could not update follow.");
+            return j;
+          });
+        })
         .then(function (j) {
           follow.dataset.active = j.active ? "1" : "0";
           follow.textContent = j.active ? "Following" : "Follow";
-          if ($("#creatorFollowers")) $("#creatorFollowers").textContent = String(Number(j.followers) || 0);
+          follow.classList.toggle("is-following", j.active === true);
+          if (followersEl && j.followers != null) {
+            followersEl.textContent = String(Number(j.followers) || 0);
+          }
+          if (window.SC_UI && SC_UI.toast) {
+            SC_UI.toast(j.active ? "Following " + (c.handle || c.name) : "Unfollowed " + (c.handle || c.name));
+          }
         })
-        .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true); })
-        .finally(function () { follow.disabled = false; });
+        .catch(function (err) {
+          // Revert optimistic update
+          follow.dataset.active = active ? "1" : "0";
+          follow.textContent = active ? "Following" : "Follow";
+          follow.classList.toggle("is-following", active);
+          if (followersEl) followersEl.textContent = String(currentCount);
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true);
+        })
+        .finally(function () {
+          follow.disabled = false;
+        });
     };
+
     star.onclick = function () {
-      if (!window.SC_UI || !SC_UI.prompt) return;
-      SC_UI.prompt({
-        title: "Send Stars",
-        body: "Stars are non-cash appreciation. Enter an amount from 1 to 20.",
-        label: "Stars", value: "1", confirmLabel: "Send"
-      }).then(function (value) {
-        if (value == null) return;
-        var amount = Number(value);
-        star.disabled = true;
-        return fetch("/api/stars/donate", {
+      openStarsModal(c);
+    };
+  }
+
+  function openFollowsModal(kind, c) {
+    var modal = $("#followsModal");
+    var title = $("#followsModalTitle");
+    var list = $("#followsModalList");
+    var closeBtn = $("#followsModalClose");
+    if (!modal || !list) return;
+
+    var isFollowing = kind === "following";
+    if (title) title.textContent = isFollowing ? "Following" : "Followers";
+    list.innerHTML = '<div class="sc-people-empty"><span class="sh-skel" style="display:inline-block;padding:8px 16px;border-radius:8px;">Loading...</span></div>';
+    modal.hidden = false;
+
+    function closeModal() {
+      modal.hidden = true;
+      document.removeEventListener("keydown", onKey);
+    }
+    function onKey(e) {
+      if (e.key === "Escape") closeModal();
+    }
+    document.addEventListener("keydown", onKey);
+    if (closeBtn) closeBtn.onclick = closeModal;
+    modal.onclick = function (e) {
+      if (e.target === modal) closeModal();
+    };
+
+    var targetHandle = c.handle ? c.handle.replace(/^@/, "") : c.id;
+    fetch("/api/creators/" + encodeURIComponent(targetHandle) + "/" + kind)
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.success) throw new Error(j && j.error ? j.error : "Could not load list");
+        var people = j.people || [];
+        if (!people.length) {
+          list.innerHTML = '<div class="sc-people-empty">' + (isFollowing
+            ? "Not following anyone yet."
+            : "No followers yet.") + "</div>";
+          return;
+        }
+        list.innerHTML = "";
+        people.forEach(function (p) {
+          list.appendChild(createPersonRow(p));
+        });
+      })
+      .catch(function (err) {
+        list.innerHTML = '<div class="sc-people-empty">' + escapeHtml(err.message || "Could not load list.") + '</div>';
+      });
+  }
+
+  function createPersonRow(p) {
+    var row = document.createElement("article");
+    row.className = "ig-person";
+
+    var slug = encodeURIComponent(String(p.handle || "").replace(/^@/, ""));
+    var av = document.createElement("a");
+    av.className = "ig-person-av";
+    av.href = "/creator?handle=" + slug;
+    if (p.avatarUrl) {
+      av.style.backgroundImage = 'url("' + p.avatarUrl + '")';
+      av.style.backgroundSize = "cover";
+      av.style.backgroundPosition = "center";
+    } else {
+      av.textContent = String(p.handle || "CR").replace(/^@/, "").slice(0, 2).toUpperCase();
+    }
+
+    var info = document.createElement("div");
+    info.className = "ig-person-info";
+    var nameLink = document.createElement("a");
+    nameLink.className = "ig-person-name";
+    nameLink.href = "/creator?handle=" + slug;
+    nameLink.textContent = p.displayName || p.handle || "Creator";
+    if (p.verified) {
+      var tick = document.createElement("span");
+      tick.className = "sh-verified";
+      tick.title = "Verified creator";
+      tick.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      nameLink.appendChild(tick);
+    }
+    var meta = document.createElement("span");
+    meta.className = "ig-person-meta";
+    meta.textContent = (p.handle || "@creator") + " · " + (Number(p.published) || 0) +
+      (p.published === 1 ? " template" : " templates");
+    info.appendChild(nameLink);
+    info.appendChild(meta);
+
+    row.appendChild(av);
+    row.appendChild(info);
+
+    // User cannot follow themselves
+    if (!p.isViewer && p.id) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "ig-btn ig-person-follow";
+      var setLabel = function (on) {
+        btn.textContent = on ? "Following" : "Follow";
+        btn.dataset.active = on ? "1" : "0";
+        btn.classList.toggle("is-following", on);
+      };
+      setLabel(p.followedByViewer === true);
+      btn.onclick = function () {
+        var on = btn.dataset.active === "1";
+        btn.disabled = true;
+        fetch("/api/creators/" + encodeURIComponent(p.id) + "/follow", {
+          method: on ? "DELETE" : "POST"
+        })
+          .then(function (r) {
+            if (r.status === 401) {
+              window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+              throw new Error("Please log in first.");
+            }
+            return r.json();
+          })
+          .then(function (j) {
+            if (!j || !j.success) throw new Error(j && j.error ? j.error : "Could not update follow.");
+            setLabel(j.active === true);
+          })
+          .catch(function (err) {
+            if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true);
+          })
+          .finally(function () {
+            btn.disabled = false;
+          });
+      };
+      row.appendChild(btn);
+    }
+
+    return row;
+  }
+
+  function openStarsModal(c) {
+    var modal = $("#starsModal");
+    var recipientName = $("#starsRecipientName");
+    var userBalance = $("#starsUserBalance");
+    var presets = modal.querySelectorAll(".sc-star-pill");
+    var amountInput = $("#starsAmountInput");
+    var noteInput = $("#starsNoteInput");
+    var sendBtn = $("#starsModalSend");
+    var cancelBtn = $("#starsModalCancel");
+    var closeBtn = $("#starsModalClose");
+
+    if (!modal) return;
+
+    if (recipientName) recipientName.textContent = c.name + " (" + c.handle + ")";
+    if (amountInput) amountInput.value = "1";
+    if (noteInput) noteInput.value = "";
+    if (userBalance) userBalance.textContent = "...";
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.textContent = "Send Stars";
+    }
+
+    // Set preset buttons
+    presets.forEach(function (btn) {
+      btn.classList.toggle("active", btn.dataset.amount === "1");
+      btn.onclick = function () {
+        presets.forEach(function (b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        if (amountInput) amountInput.value = btn.dataset.amount;
+      };
+    });
+
+    if (amountInput) {
+      amountInput.oninput = function () {
+        var v = amountInput.value;
+        presets.forEach(function (b) {
+          b.classList.toggle("active", b.dataset.amount === v);
+        });
+      };
+    }
+
+    modal.hidden = false;
+
+    function closeModal() {
+      modal.hidden = true;
+      document.removeEventListener("keydown", onKey);
+    }
+    function onKey(e) {
+      if (e.key === "Escape") closeModal();
+    }
+    document.addEventListener("keydown", onKey);
+    if (closeBtn) closeBtn.onclick = closeModal;
+    if (cancelBtn) cancelBtn.onclick = closeModal;
+    modal.onclick = function (e) {
+      if (e.target === modal) closeModal();
+    };
+
+    // Fetch user stars balance
+    fetch("/api/stars")
+      .then(function (r) {
+        if (r.status === 401) {
+          if (userBalance) userBalance.textContent = "Log in to check";
+          return null;
+        }
+        return r.json();
+      })
+      .then(function (j) {
+        if (j && j.success) {
+          if (userBalance) userBalance.textContent = String(j.balance != null ? j.balance : 0);
+        }
+      })
+      .catch(function () {
+        if (userBalance) userBalance.textContent = "0";
+      });
+
+    if (sendBtn) {
+      sendBtn.onclick = function () {
+        var amount = parseInt(amountInput ? amountInput.value : 1, 10);
+        if (isNaN(amount) || amount < 1 || amount > 20) {
+          if (window.SC_UI && SC_UI.toast) SC_UI.toast("Please enter an amount between 1 and 20 Stars.", true);
+          return;
+        }
+
+        var note = noteInput ? String(noteInput.value || "").trim().slice(0, 120) : "";
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Sending...";
+
+        fetch("/api/stars/donate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: c.id, amount: amount, idempotencyKey: "star:" + c.id + ":" + Date.now() })
-        }).then(function (r) { return r.json().then(function (j) { if (!r.ok || !j.success) throw new Error(j.error || "Could not send Stars."); return j; }); })
-          .then(function () { if (window.SC_UI && SC_UI.toast) SC_UI.toast("Stars sent to " + c.handle); })
-          .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true); })
-          .finally(function () { star.disabled = false; });
-      });
-    };
+          body: JSON.stringify({
+            userId: c.id,
+            amount: amount,
+            note: note,
+            idempotencyKey: "star:" + c.id + ":" + Date.now()
+          })
+        })
+          .then(function (r) {
+            if (r.status === 401) {
+              window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+              throw new Error("Please log in to send Stars.");
+            }
+            return r.json().then(function (j) {
+              if (!r.ok || !j.success) throw new Error(j.error || "Could not send Stars.");
+              return j;
+            });
+          })
+          .then(function () {
+            closeModal();
+            var starCountEl = $("#creatorStars");
+            if (starCountEl) {
+              var current = Number(starCountEl.textContent) || 0;
+              starCountEl.textContent = String(current + amount);
+            }
+            if (window.SC_UI && SC_UI.toast) {
+              SC_UI.toast("★ Sent " + amount + (amount === 1 ? " Star" : " Stars") + " to " + (c.handle || c.name) + "!");
+            }
+          })
+          .catch(function (err) {
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Send Stars";
+            if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message, true);
+          });
+      };
+    }
   }
 
   function init() {

@@ -16,6 +16,14 @@ body.sh-body .ds-filter-btn.active,body.sh-body .ds-filter-btn[aria-pressed="tru
 .ds-page-container .ds-card-body { padding:13px 14px 16px; gap:5px; }
 .ds-page-container .ds-card-title { font-size:15px; line-height:1.35; margin:0; }
 .ds-page-container .ds-card-author { font-size:12px; line-height:1.4; color:var(--sc-muted); margin:0; }
+.ds-card .sh-tcreator-row { position:relative; z-index:2; display:flex; align-items:center; gap:7px; text-decoration:none; margin-top:6px; cursor:pointer; }
+.ds-card .sh-tcreator-avatar { width:22px; height:22px; border-radius:50%; background:var(--sc-surface-2); border:1px solid var(--sc-border); display:grid; place-items:center; font-size:9.5px; font-weight:750; color:var(--sc-text); flex:none; }
+.ds-card .sh-tcreator-info { display:flex; flex-direction:column; min-width:0; flex:1; line-height:1.2; }
+.ds-card .sh-tcreator-name { font-size:11.5px; font-weight:600; color:var(--sc-text); display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ds-card .sh-tcreator-name .sc-name-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ds-card .sh-tcreator-name .sh-verified { flex:none; width:12px; height:12px; display:inline-flex; color:#3b82f6; }
+.ds-card .sh-tcreator-handle { font-size:10.5px; color:var(--sc-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ds-card .sh-tcreator-row:hover .sh-tcreator-name .sc-name-text { text-decoration:underline; color:var(--sc-brand); }
 .ds-card-open { position:absolute; inset:0; z-index:1; width:100%; height:100%; border:0; background:transparent; cursor:pointer; }
 .ds-card-open:focus-visible { outline:2px solid var(--sc-text); outline-offset:-4px; border-radius:inherit; }
 #reviewReconstructedStage { width:100%; height:320px; }
@@ -656,9 +664,19 @@ body.sh-body .ds-filter-btn.active,body.sh-body .ds-filter-btn[aria-pressed="tru
   background: var(--sc-surface-3);
 }
 
+.ds-mode-badge.ds-badge-beta {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(236, 72, 153, 0.35);
+}
+
 /* ── Step 3: Progress ───────────────────────────────────────── */
 .ds-progress-wrap {
-  padding: 40px 20px;
+  padding: 32px 20px;
   text-align: center;
 }
 
@@ -684,13 +702,68 @@ body.sh-body .ds-filter-btn.active,body.sh-body .ds-filter-btn[aria-pressed="tru
   font-size: 15px;
   font-weight: 600;
   color: var(--sc-text);
-  margin: 0 0 8px;
+  margin: 0 0 14px;
+}
+
+.ds-progress-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 300px;
+  margin: 0 auto 16px;
+  text-align: left;
+}
+
+.ds-stage-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--sc-muted, #94a3b8);
+  transition: all 0.25s ease;
+}
+
+.ds-stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sc-border, #475569);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.ds-stage-step.active {
+  color: var(--sc-text, #ffffff);
+  font-weight: 600;
+}
+
+.ds-stage-step.active .ds-stage-dot {
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+  transform: scale(1.3);
+}
+
+.ds-stage-step.done {
+  color: #10b981;
+}
+
+.ds-stage-step.done .ds-stage-dot {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);
 }
 
 .ds-progress-hint {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--sc-muted);
   margin: 0;
+}
+
+/* ── Step 5: Error / Fallback Card ──────────────────────────── */
+.ds-error-fallback-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 /* ── Step 4: Review Layers ──────────────────────────────────── */
@@ -888,4 +961,52 @@ body.sh-body .ds-filter-btn.active,body.sh-body .ds-filter-btn[aria-pressed="tru
     bottom: 0;
     margin: 0;
   }
+}
+
+/* ── Premium Design Marketplace Styles ── */
+.badge-premium {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 10px rgba(245, 158, 11, 0.5);
+}
+.ds-card-prem-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 10px rgba(245, 158, 11, 0.4);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ds-modal-prem-box {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 14px 0;
+}
+.ds-modal-prem-box h4 {
+  margin: 0 0 6px;
+  color: #d97706;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ds-modal-prem-box p {
+  margin: 0;
+  color: var(--sc-muted, #64748b);
+  font-size: 12px;
+  line-height: 1.45;
 }

@@ -980,6 +980,24 @@ app.get("/api/stars", async (req, res) => {
   return res.json({ success: true, ...(await social.starSummary(req.user)) });
 });
 
+app.get("/api/stars/packs", (req, res) => {
+  return res.json({ success: true, packs: credits.STAR_PACKS });
+});
+
+app.get("/api/stars/wallet", async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
+  const out = await social.creatorWallet(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/stars/withdraw", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
+  const out = await social.requestPayout(req.user, req.body?.starsAmount, req.body?.upiId);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
 app.post("/api/stars/donate", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
   const out = await social.donateStars(
     req.user, req.body?.userId || req.body?.handle, req.body?.amount,
@@ -1104,6 +1122,7 @@ app.get("/api/creator", async (req, res) => {
 
   if (handle === "shortscraft" || !handle) {
     const prof = {
+      id: null,
       name: "ShortsCraft",
       handle: "@shortscraft",
       initials: "SC",
@@ -1111,8 +1130,11 @@ app.get("/api/creator", async (req, res) => {
       verified: true,
       youtube: "https://youtube.com/@TechVault-90",
       instagram: "https://instagram.com/tech_vault_in",
-      followers: "",
-      likes: "",
+      followers: 0,
+      following: 0,
+      followedByMe: false,
+      viewerIsSelf: false,
+      stars: 0,
       cat: "all"
     };
     // Every built-in template is credited to the official account, so it
@@ -1121,11 +1143,12 @@ app.get("/api/creator", async (req, res) => {
     // is backed by the shipped library and must still load.
     try {
       const { rows } = await db.query(
-        `select id, display_name, bio, youtube, instagram, (avatar_bytes is not null) as has_avatar
+        `select id, display_name, bio, youtube, instagram, plan, (avatar_bytes is not null) as has_avatar
            from public.users where lower(replace(handle, '@', '')) = 'shortscraft' limit 1`
       );
       const owner = rows[0];
       if (owner) {
+        prof.id = owner.id;
         if (owner.display_name) {
           prof.name = owner.display_name;
           prof.initials = owner.display_name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "SC";
@@ -1134,6 +1157,16 @@ app.get("/api/creator", async (req, res) => {
         if (owner.youtube) prof.youtube = owner.youtube;
         if (owner.instagram) prof.instagram = owner.instagram;
         prof.avatarUrl = owner.has_avatar ? `/api/users/${encodeURIComponent(owner.id)}/avatar` : "";
+        prof.viewerIsSelf = Boolean(req.user && req.user.id === owner.id);
+
+        const [followState, starState] = await Promise.all([
+          social.followSummary(owner.id, req.user),
+          social.starSummary(owner)
+        ]);
+        prof.followers = Number(followState.followers) || 0;
+        prof.following = Number(followState.following) || 0;
+        prof.followedByMe = followState.followed_by_me === true;
+        prof.stars = Number(starState.received) || 0;
       }
     } catch (err) {
       console.error("[/api/creator official]", err.message);
@@ -1182,7 +1215,7 @@ app.get("/api/creator", async (req, res) => {
     followers: 0,
     following: 0,
     followedByMe: false,
-    viewerIsSelf: req.user?.id === dbUser.id,
+    viewerIsSelf: Boolean(req.user && req.user.id === dbUser.id),
     stars: 0,
     cat: "all"
   } : null;
@@ -1723,6 +1756,150 @@ app.post("/api/razorpay/verify", rateLimit({ windowMs: 60_000, max: 20 }), async
     res.status(500).json({ success: false, error: "Verification failed." });
   }
 });
+
+// ── Stars purchase order ────────────────────────────────────
+app.post("/api/stars/purchase/order", rateLimit({ windowMs: 60_000, max: 15 }), async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: "Please log in before purchasing Stars." });
+    }
+    const packId = String(req.body?.packId || "");
+    const pack = credits.STAR_PACKS.find(p => p.id === packId);
+    if (!pack) {
+      return res.status(400).json({ success: false, error: "Invalid Star pack selected." });
+    }
+
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      return res.status(503).json({ success: false, error: "Payments are not configured. Please contact support." });
+    }
+
+    const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+    const r = await fetchWithTimeout("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${auth}`,
+      },
+      body: JSON.stringify({
+        amount: pack.price * 100,
+        currency: "INR",
+        receipt: `rcpt_star_${Date.now()}`.slice(0, 40),
+        notes: {
+          userId: req.user.id,
+          type: "stars_purchase",
+          packId: pack.id,
+          stars: pack.stars,
+          priceInr: pack.price
+        }
+      })
+    }, 10_000);
+
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      console.error("[stars/purchase/order]", t);
+      return res.status(502).json({ success: false, error: "Could not create payment order." });
+    }
+    const order = await r.json();
+    return res.json({
+      success: true,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      pack: pack
+    });
+  } catch (err) {
+    console.error("[stars/purchase/order]", err.message);
+    return res.status(500).json({ success: false, error: "Payment order failed." });
+  }
+});
+
+// ── Stars purchase verify ───────────────────────────────────
+app.post("/api/stars/purchase/verify", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: "Please log in first." });
+    }
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, packId } = req.body || {};
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, error: "Missing payment details." });
+    }
+    if (!keyId || !secret) {
+      return res.status(503).json({ success: false, error: "Payment service not configured." });
+    }
+
+    const expected = crypto.createHmac("sha256", secret).update(`${razorpay_order_id}|${razorpay_payment_id}`).digest("hex");
+    const got = Buffer.from(String(razorpay_signature));
+    const want = Buffer.from(expected);
+    if (got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
+      return res.status(400).json({ success: false, error: "Invalid payment signature." });
+    }
+
+    const pack = credits.STAR_PACKS.find(p => p.id === packId);
+    const starsToGrant = pack ? pack.stars : 10;
+    const baseIdem = `star-purchase:${razorpay_order_id}:${razorpay_payment_id}`;
+
+    let remaining = starsToGrant;
+    let chunkIdx = 0;
+    while (remaining > 0) {
+      const slice = Math.min(remaining, 100);
+      const idem = remaining === starsToGrant ? baseIdem : `${baseIdem}:${chunkIdx++}`;
+      await db.query(
+        `insert into public.star_transactions
+           (sender_id, receiver_id, amount, kind, idempotency_key, note)
+         values (null, $1, $2, 'admin_adjustment', $3, $4)
+         on conflict (idempotency_key) where idempotency_key is not null do nothing`,
+        [req.user.id, slice, idem, JSON.stringify({
+          type: "purchase",
+          packId: pack ? pack.id : "stars_10",
+          stars: slice,
+          orderId: razorpay_order_id,
+          paymentId: razorpay_payment_id
+        })]
+      );
+      remaining -= slice;
+    }
+
+    return res.json({
+      success: true,
+      starsGranted: starsToGrant,
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id
+    });
+  } catch (err) {
+    console.error("[stars/purchase/verify]", err.message);
+    return res.status(500).json({ success: false, error: "Verification failed." });
+  }
+});
+
+// ── Template Unlock & Access Control ─────────────────────────
+app.post("/api/templates/:id/unlock", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
+  const out = await social.unlockTemplate(req.user, req.params.id, "animation");
+  if (out.error) return res.status(out.status || 400).json({ success: false, ...out });
+  return res.json(out);
+});
+
+app.get("/api/templates/:id/access", async (req, res) => {
+  const out = await social.checkTemplateAccess(req.user, req.params.id, "animation");
+  return res.json({ success: true, ...out });
+});
+
+app.post("/api/designs/:id/unlock", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
+  const out = await social.unlockTemplate(req.user, req.params.id, "design");
+  if (out.error) return res.status(out.status || 400).json({ success: false, ...out });
+  return res.json(out);
+});
+
+app.get("/api/designs/:id/access", async (req, res) => {
+  const out = await social.checkTemplateAccess(req.user, req.params.id, "design");
+  return res.json({ success: true, ...out });
+});
+
 
 // ── Support tickets ─────────────────────────────────────────
 // /api/feedback remains as a compatibility alias for older cached pages, but

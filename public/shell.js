@@ -210,8 +210,74 @@
         // and an uploaded animation (which lives only in props) opened empty.
         + "&commId=" + encodeURIComponent(t.commId || "");
     }
-    $("#modalStudioBtn").href = editUrl;
-    $("#modalStudioBtn").onclick = function () { recordTemplateEvent(t, "edit"); };
+    var mStudioBtn = $("#modalStudioBtn");
+    mStudioBtn.className = "sh-modal-cta";
+    mStudioBtn.textContent = "✦ Use Template →";
+    mStudioBtn.href = editUrl;
+    mStudioBtn.onclick = function () { recordTemplateEvent(t, "edit"); };
+
+    if (t.isCommunity && t.isPremium) {
+      fetch("/api/templates/" + encodeURIComponent(t.commId) + "/access")
+        .then(function (r) { return r.json(); })
+        .then(function (acc) {
+          var stage = $("#modalStage");
+          if (acc && acc.hasAccess) {
+            mStudioBtn.className = "sh-modal-cta is-premium-remix";
+            mStudioBtn.textContent = "⚡ Remix & Customize →";
+          } else {
+            if (stage && !stage.querySelector(".sc-premium-watermark")) {
+              var wm = document.createElement("div");
+              wm.className = "sc-premium-watermark";
+              wm.innerHTML = '<div class="sc-watermark-ribbon"><span>★</span> ShortsCraft Premium Preview</div>';
+              stage.appendChild(wm);
+            }
+            mStudioBtn.className = "sh-modal-cta is-premium-unlock";
+            mStudioBtn.textContent = "★ Unlock Template (" + (t.starPrice || 2) + " Stars)";
+            mStudioBtn.onclick = function (ev) {
+              ev.preventDefault();
+              if (!signedIn()) {
+                location.href = "/login?next=" + encodeURIComponent(location.pathname + location.search);
+                return;
+              }
+              var confirmMsg = "Unlock this premium template for " + (t.starPrice || 2) + " Stars? You will get full access to remix, customize, and export it.";
+              if (!confirm(confirmMsg)) return;
+
+              mStudioBtn.disabled = true;
+              mStudioBtn.textContent = "Unlocking...";
+              fetch("/api/templates/" + encodeURIComponent(t.commId) + "/unlock", { method: "POST" })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                  mStudioBtn.disabled = false;
+                  if (res && res.success) {
+                    var wmEl = stage && stage.querySelector(".sc-premium-watermark");
+                    if (wmEl) wmEl.remove();
+                    mStudioBtn.className = "sh-modal-cta is-premium-remix";
+                    mStudioBtn.textContent = "⚡ Remix & Customize →";
+                    mStudioBtn.onclick = function () { recordTemplateEvent(t, "edit"); };
+                    if (window.SC_UI && SC_UI.toast) SC_UI.toast("Template unlocked! You can now remix it.");
+                    else alert("Template unlocked! You can now remix it.");
+                  } else if (res && res.needStars) {
+                    mStudioBtn.textContent = "★ Unlock Template (" + (t.starPrice || 2) + " Stars)";
+                    if (window.SC_AUTH && typeof window.SC_AUTH.openStarPacks === "function") {
+                      window.SC_AUTH.openStarPacks();
+                    } else if (confirm("You need " + (t.starPrice || 2) + " Stars to unlock this template. Go to Star Packs to top up?")) {
+                      location.href = "/pricing#stars";
+                    }
+                  } else {
+                    alert((res && res.error) || "Could not unlock template.");
+                    mStudioBtn.textContent = "★ Unlock Template (" + (t.starPrice || 2) + " Stars)";
+                  }
+                })
+                .catch(function (err) {
+                  mStudioBtn.disabled = false;
+                  alert("Unlock failed: " + err.message);
+                  mStudioBtn.textContent = "★ Unlock Template (" + (t.starPrice || 2) + " Stars)";
+                });
+            };
+          }
+        })
+        .catch(function () {});
+    }
 
     var creatorUrl = "/creator?handle=" + encodeURIComponent(author.handle.replace(/^@/, ""));
     $("#modalCreatorLink").href = creatorUrl;
@@ -745,6 +811,9 @@
           aspect: ct.aspect || "9:16",
           createdAt: ct.createdAt || null,
           isCommunity: true,
+          isPremium: ct.isPremium === true || ct.category === "premium",
+          starPrice: Number(ct.starPrice) || (ct.isPremium ? 2 : 0),
+          remixOf: ct.remixOf || null,
           likes: likes,
           downloads: downloads,
           score: score
@@ -799,6 +868,14 @@
 
         if (t.isCommunity) {
           tile.dataset.comm = "1";
+          if (t.isPremium) {
+            tile.dataset.premium = "1";
+            tile.dataset.starPrice = String(t.starPrice || 2);
+            var pBadge = document.createElement("span");
+            pBadge.className = "sh-tprem";
+            pBadge.innerHTML = '<span class="sh-tprem-star">★</span> ' + (t.starPrice || 2) + " Stars";
+            stage.appendChild(pBadge);
+          }
           tile.dataset.commId = t.commId;
           tile.dataset.accent = t.accent;
           tile.dataset.font = t.font;
@@ -1010,6 +1087,7 @@
 
   /* ── Category Chips & Search Filter ────────────────────── */
   var CHIP_ICONS = {
+    premium: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>',
     docu: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 9h20M7 5v4M12 5v4M17 5v4"/>',
     paper: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
     text: '<path d="M4 7V5h16v2M9 19h6M12 5v14"/>',
@@ -1026,6 +1104,7 @@
 
     var categoryLabels = {
       all: "All",
+      premium: "Premium",
       docu: "Documentary",
       paper: "Paper Craft",
       text: "Kinetic Text",
@@ -1046,7 +1125,8 @@
     if (bar.hasAttribute("data-links")) {
       cats.forEach(function (c) {
         var a = document.createElement("a");
-        a.className = "sh-chip";
+        a.className = "sh-chip" + (c.id === "premium" ? " sh-chip-premium" : "");
+        a.dataset.cat = c.id;
         a.href = c.id === "all" ? "/animations" : "/animations?cat=" + encodeURIComponent(c.id);
         if (CHIP_ICONS[c.id]) {
           a.innerHTML = '<svg class="sh-chip-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + CHIP_ICONS[c.id] + "</svg>";
@@ -1064,7 +1144,7 @@
     cats.forEach(function (c, i) {
       var b = document.createElement("button");
       b.type = "button";
-      b.className = "sh-chip" + (c.id === currentCategory ? " active" : "");
+      b.className = "sh-chip" + (c.id === currentCategory ? " active" : "") + (c.id === "premium" ? " sh-chip-premium" : "");
       b.dataset.cat = c.id;
       if (CHIP_ICONS[c.id]) {
         b.innerHTML = '<svg class="sh-chip-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + CHIP_ICONS[c.id] + "</svg>";
@@ -1282,7 +1362,138 @@
 
   /* ── Home: "See all" and the thumbnail card ───────────── */
   function wireHomeExtras() {
+    loadHomeDesigns();
     loadHomeTutorials();
+  }
+
+  /* Popular Thumbnails & Graphic Designs on the home page (3 lines / 12 items). */
+  function loadHomeDesigns() {
+    var box = $("#homeDesignsGrid");
+    if (!box) return;
+    fetch("/api/designs/templates?limit=12", { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var list = (j && j.success && j.templates) || [];
+        box.innerHTML = "";
+        if (!list.length) {
+          var empty = document.createElement("p");
+          empty.className = "sh-tut-empty";
+          empty.innerHTML = "No design templates yet. <a href=\"/designs\">Explore designs</a>.";
+          box.appendChild(empty);
+          return;
+        }
+        list.slice(0, 12).forEach(function (tpl) {
+          var card = document.createElement("article");
+          card.className = "ds-card ds-home-card";
+          if (tpl.isPremium) card.dataset.premium = "1";
+
+          var previewHtml = (window.SCDesignPreview && window.SCDesignPreview(tpl)) || "";
+          var badgeHtml = "";
+          if (tpl.isPremium) {
+            var stars = tpl.starPrice || 1;
+            badgeHtml = "<span class=\"ds-card-prem-badge\">★ " + stars + " Star" + (stars > 1 ? "s" : "") + "</span>";
+          }
+
+          var authorName = tpl.authorName || "Creator";
+          var authorHandle = tpl.authorHandle || "@creator";
+          var creatorSlug = encodeURIComponent(authorHandle.replace(/^@/, ""));
+          var creatorUrl = "/creator?handle=" + creatorSlug;
+          var initials = String(authorName).slice(0, 2).toUpperCase();
+          var tickSvg = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          var isVerified = tpl.authorVerified === true || String(authorHandle).replace(/^@/, "").toLowerCase() === "shortscraft";
+          var verifiedHtml = isVerified ? '<span class="sh-verified" aria-label="Verified creator" title="Verified creator">' + tickSvg + '</span>' : '';
+          var avStyle = tpl.authorAvatarUrl ? 'background-image:url(\'' + escapeHtml(tpl.authorAvatarUrl) + '\');background-size:cover;background-position:center;' : '';
+
+          card.innerHTML = [
+            "<div class=\"ds-card-thumb\">",
+            previewHtml,
+            badgeHtml,
+            "</div>",
+            "<div class=\"ds-card-body\">",
+            "  <h3 class=\"ds-card-title\">" + (escapeHtml(tpl.title) || "Untitled Design") + "</h3>",
+            "  <a href=\"" + creatorUrl + "\" class=\"sh-tcreator-row\" title=\"View profile of " + escapeHtml(authorName) + "\">",
+            "    <div class=\"sh-tcreator-avatar\"" + (avStyle ? " style=\"" + avStyle + "\"" : "") + ">" + (tpl.authorAvatarUrl ? "" : escapeHtml(initials)) + "</div>",
+            "    <div class=\"sh-tcreator-info\">",
+            "      <span class=\"sh-tcreator-name\"><span class=\"sc-name-text\">" + escapeHtml(authorName) + "</span>" + verifiedHtml + "</span>",
+            "      <span class=\"sh-tcreator-handle\">" + escapeHtml(authorHandle) + "</span>",
+            "    </div>",
+            "  </a>",
+            "</div>",
+            '  <button type="button" class="ds-card-open" aria-label="Open ' + (escapeHtml(tpl.title) || 'Design') + '"></button>'
+          ].join("");
+
+          var editBtn = card.querySelector(".ds-card-open");
+          if (editBtn) {
+            editBtn.addEventListener("click", function () {
+              useDesignTemplate(tpl.id, editBtn);
+            });
+          }
+
+          box.appendChild(card);
+        });
+      })
+      .catch(function (err) {
+        console.warn("loadHomeDesigns failed:", err);
+      });
+  }
+
+  function useDesignTemplate(templateId, btn) {
+    if (btn) btn.disabled = true;
+    fetch("/api/designs/templates/" + encodeURIComponent(templateId) + "/clone", { method: "POST" })
+      .then(function (r) {
+        if (r.status === 401) {
+          window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+          return null;
+        }
+        if (r.status === 402) {
+          return r.json().then(function (res) {
+            if (btn) btn.disabled = false;
+            var price = res.starPrice || 1;
+            var confirmMsg = "★ This is a Premium Design Template (" + price + " Star" + (price > 1 ? "s" : "") + ").\n\nWould you like to unlock it now to customize and export?";
+            if (!confirm(confirmMsg)) return null;
+
+            if (btn) btn.disabled = true;
+            fetch("/api/designs/" + encodeURIComponent(templateId) + "/unlock", { method: "POST" })
+              .then(function (ur) { return ur.json(); })
+              .then(function (ures) {
+                if (ures && ures.success) {
+                  useDesignTemplate(templateId, btn);
+                } else if (ures && ures.needStars) {
+                  if (btn) btn.disabled = false;
+                  if (confirm("You need " + price + " Star(s) to unlock this template. Go to Star Packs to top up?")) {
+                    location.href = "/pricing#stars";
+                  }
+                } else {
+                  if (btn) btn.disabled = false;
+                  alert((ures && ures.error) || "Could not unlock design template.");
+                }
+              })
+              .catch(function (err) {
+                if (btn) btn.disabled = false;
+                alert("Unlock failed: " + err.message);
+              });
+            return null;
+          });
+        }
+        return r.json();
+      })
+      .then(function (res) {
+        if (!res) return;
+        if (res && res.success && res.project) {
+          window.location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
+        } else if (res && res.error) {
+          if (res.error.toLowerCase().indexOf("log in") !== -1) {
+            window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+            return;
+          }
+          alert(res.error);
+          if (btn) btn.disabled = false;
+        }
+      })
+      .catch(function (err) {
+        if (btn) btn.disabled = false;
+        console.error(err);
+      });
   }
 
   /* Four newest Creator Tutorials on the home page. Each card links out to
@@ -1290,7 +1501,7 @@
   function loadHomeTutorials() {
     var box = $("#homeTutList");
     if (!box) return;
-    fetch("/api/skills?limit=4", { headers: { Accept: "application/json" } })
+    fetch("/api/skills?limit=12", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
       .then(function (j) {
         var list = (j && j.success && j.skills) || [];

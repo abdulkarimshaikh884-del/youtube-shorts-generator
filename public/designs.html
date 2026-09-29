@@ -24,19 +24,19 @@
 
 <!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
      the legacy theme and are deliberately never loaded here. -->
-<link rel="stylesheet" href="/shell.css?v=2026092402">
-<link rel="stylesheet" href="/page.css?v=2026092402">
-<link rel="stylesheet" href="/redesign.css?v=2026092402">
+<link rel="stylesheet" href="/shell.css?v=2026092501">
+<link rel="stylesheet" href="/page.css?v=2026092501">
+<link rel="stylesheet" href="/redesign.css?v=2026092501">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=2026092402">
+<link rel="stylesheet" href="/polish.css?v=2026092501">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
-<link rel="stylesheet" href="/designs.css?v=2026092402">
+<link rel="stylesheet" href="/designs.css?v=2026092501">
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092402">
+<link rel="stylesheet" href="/mobile.css?v=2026092501">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092402">
-<link rel="stylesheet" href="/monochrome.css?v=2026092402">
+<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body">
 
@@ -305,13 +305,14 @@
       <div class="ds-page-container">
         <header class="ds-header">
           <h1>Designs</h1>
-          <button type="button" class="ds-btn ds-btn-magic js-open-design-upload">Upload image</button>
+          <button type="button" class="ds-btn ds-btn-magic js-open-design-upload" id="openUploadDesignBtn">✨ Convert to Editable</button>
         </header>
         <div class="ds-library-heading"><label class="ds-search-label"><span class="sr-only">Search designs</span><input type="search" id="designSearch" placeholder="Search designs…" aria-label="Search designs"></label></div>
 
         <!-- Category Filter Bar -->
         <nav class="ds-filter-bar" id="designsFilterBar" aria-label="Design categories">
           <button type="button" class="ds-filter-btn active" data-cat="all" aria-pressed="true">All Designs</button>
+          <button type="button" class="ds-filter-btn ds-filter-btn-premium" data-cat="premium" aria-pressed="false">★ Premium</button>
           <button type="button" class="ds-filter-btn" data-cat="youtube-thumbnail" aria-pressed="false">YouTube Thumbnails</button>
           <button type="button" class="ds-filter-btn" data-cat="logo" aria-pressed="false">Logos &amp; Badges</button>
           <button type="button" class="ds-filter-btn" data-cat="poster" aria-pressed="false">Posters &amp; Flyers</button>
@@ -375,11 +376,11 @@
 
             <div class="ds-mode-grid">
               <div class="ds-mode-card featured" id="cardConvertEditable">
-                <span class="ds-mode-badge">AI Powered</span>
+                <span class="ds-mode-badge ds-badge-beta">BETA</span>
                 <div class="ds-mode-icon">✨</div>
                 <h3>Convert to Editable</h3>
-                <p>Detects text and layout, then builds an editable draft. Background repair is approximate; photos remain cropped image layers, not guaranteed transparent cutouts. Review before saving.</p>
-                <button type="button" class="ds-mode-btn ds-mode-btn-primary" id="btnConvertEditable">Create editable draft · 2 credits</button>
+                <p>AI separates the main parts of your design into editable layers. Complex designs may need small adjustments.</p>
+                <button type="button" class="ds-mode-btn ds-mode-btn-primary" id="btnConvertEditable">✨ Convert to Editable — BETA</button>
               </div>
 
               <div class="ds-mode-card" id="cardUseAsImage">
@@ -396,15 +397,24 @@
         <!-- Step 3: Progress -->
         <div class="ds-modal-step" id="modalStep3" hidden>
           <div class="ds-modal-header">
-            <h3 class="ds-modal-title">Analyzing &amp; Reconstructing Design</h3>
+            <h3 class="ds-modal-title">Converting Design to Editable Layers</h3>
           </div>
           <div class="ds-modal-body">
             <div class="ds-progress-wrap">
               <div class="ds-progress-bar-bg">
                 <div class="ds-progress-bar-fill" id="conversionProgressBar"></div>
               </div>
-              <p class="ds-progress-status" id="conversionProgressText">1. Uploading image...</p>
-              <p class="ds-progress-hint">Please keep this window open. We will show the result only after the server responds.</p>
+              <p class="ds-progress-status" id="conversionProgressText">Uploading image...</p>
+              <div class="ds-progress-stages" id="conversionStagesList">
+                <div class="ds-stage-step" data-stage="upload"><span class="ds-stage-dot"></span><span class="ds-stage-lbl">Uploading image</span></div>
+                <div class="ds-stage-step" data-stage="vision"><span class="ds-stage-dot"></span><span class="ds-stage-lbl">Analyzing design</span></div>
+                <div class="ds-stage-step" data-stage="text"><span class="ds-stage-dot"></span><span class="ds-stage-lbl">Detecting editable text</span></div>
+                <div class="ds-stage-step" data-stage="objects"><span class="ds-stage-dot"></span><span class="ds-stage-lbl">Separating major objects</span></div>
+                <div class="ds-stage-step" data-stage="background"><span class="ds-stage-dot"></span><span class="ds-stage-lbl">Rebuilding background</span></div>
+                <div class="ds-stage-step" data-stage="layers"><span class="ds-stage-dot"></span><span class="ds-stage-lbl">Creating editable layers</span></div>
+                <div class="ds-stage-step" data-stage="studio"><span class="ds-stage-dot"></span><span class="ds-stage-lbl">Preparing Design Studio</span></div>
+              </div>
+              <p class="ds-progress-hint">Please keep this window open. Complex designs may need a few moments.</p>
             </div>
           </div>
         </div>
@@ -444,6 +454,28 @@
               <button type="button" class="ds-btn ds-btn-outline" id="btnCancelReview">Cancel</button>
               <button type="button" class="ds-btn ds-btn-outline" id="btnConvertAgain">Re-analyze</button>
               <button type="button" class="ds-btn ds-btn-magic" id="btnOpenEditor">✦ Open in Design Studio →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Error / Fallback Card -->
+        <div class="ds-modal-step" id="modalStepError" hidden>
+          <div class="ds-modal-header">
+            <h3 class="ds-modal-title">Editable conversion couldn't fully complete</h3>
+            <button type="button" class="ds-modal-close" id="btnErrorClose" aria-label="Close dialog">&times;</button>
+          </div>
+          <div class="ds-modal-body">
+            <div class="ds-picked-preview-row">
+              <img id="errorImagePreview" class="ds-picked-thumb" src="" alt="Uploaded design">
+              <div class="ds-picked-info">
+                <strong id="errorFileName">Your design is safe</strong>
+                <span id="errorReasonText">We couldn't separate all layers automatically. You can retry or open the full image on your canvas.</span>
+              </div>
+            </div>
+            <div class="ds-error-fallback-actions">
+              <button type="button" class="ds-mode-btn ds-mode-btn-primary" id="btnErrorTryAgain">🔄 Try Again</button>
+              <button type="button" class="ds-mode-btn ds-mode-btn-subtle" id="btnErrorUseAsImage">🖼 Use as Image</button>
+              <button type="button" class="ds-mode-btn ds-mode-btn-magic" id="btnErrorOpenPartial" style="display:none;">✦ Open Editable Version</button>
             </div>
           </div>
         </div>
@@ -511,9 +543,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026092402" defer></script>
-<script src="/theme.js?v=2026092402" defer></script>
-<script src="/report.js?v=2026092402" defer></script>
-<script src="/page.js?v=2026092402" defer></script>
-<script src="/design-preview.js?v=2026092402" defer></script><script src="/designs.js?v=2026092402" defer></script></body>
+<script src="/authui.js?v=2026092501" defer></script>
+<script src="/theme.js?v=2026092501" defer></script>
+<script src="/report.js?v=2026092501" defer></script>
+<script src="/page.js?v=2026092501" defer></script>
+<script src="/design-preview.js?v=2026092501" defer></script><script src="/designs.js?v=2026092501" defer></script></body>
 </html>

@@ -792,6 +792,24 @@
         row.className = "sh-notification-item";
         row.href = targetFor(item);
         row.dataset.read = item.read ? "true" : "false";
+        row.addEventListener("click", function () {
+          if (!item.read) {
+            item.read = true;
+            row.dataset.read = "true";
+            var currentBadge = Number(badge ? badge.textContent : 0) || 0;
+            var nextBadge = Math.max(0, currentBadge - 1);
+            updateBadge(nextBadge);
+            if (typeof setTitleCount === "function") setTitleCount(nextBadge);
+            if (item.id) {
+              fetch("/api/notifications/read", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: [item.id] }),
+                keepalive: true
+              }).catch(function () {});
+            }
+          }
+        });
         var avatar = document.createElement("span");
         avatar.className = "sh-notification-item-avatar";
         var actor = item.actor;
@@ -909,6 +927,17 @@
       toast.appendChild(av);
       toast.appendChild(copy);
       toast.appendChild(close);
+      toast.addEventListener("click", function (ev) {
+        if (ev.target === close) return;
+        if (item.id) {
+          fetch("/api/notifications/read", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: [item.id] }),
+            keepalive: true
+          }).catch(function () {});
+        }
+      });
       document.body.appendChild(toast);
       setTimeout(function () { if (toast.parentNode) toast.remove(); }, 7000);
     }
@@ -1337,8 +1366,20 @@
     return row;
   }
 
+  function loadRazorpay() {
+    return new Promise(function (resolve, reject) {
+      if (window.Razorpay) return resolve();
+      var script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = resolve;
+      script.onerror = function () { reject(new Error("Could not load payment checkout.")); };
+      document.head.appendChild(script);
+    });
+  }
+
   function loadStarsPane() {
-    if (!$("#starsBalance")) return;
+    if (!$("#starsBalance") && !$("#walletAvailableInr")) return;
+
     fetch("/api/stars")
       .then(function (r) { return r.json(); })
       .then(function (j) {
@@ -1349,10 +1390,158 @@
         set("#starsSent", j.sent != null ? j.sent : 0);
         if ($("#starsAllowance") && j.allowance != null) {
           $("#starsAllowance").textContent =
-            "Your plan gives " + j.allowance + " Stars a month. The allowance refreshes on the 1st and does not stack.";
+            j.allowance > 0
+              ? "Your plan gives " + j.allowance + " Stars a month. Refreshes on the 1st."
+              : "Free plan gives 0 monthly Stars. Purchase Star packs to send appreciation or unlock templates.";
         }
       })
       .catch(function () {});
+
+    fetch("/api/stars/wallet")
+      .then(function (r) { return r.json(); })
+      .then(function (w) {
+        if (!w || !w.success) return;
+        var set = function (sel, value) { if ($(sel)) $(sel).textContent = String(value); };
+        set("#walletAvailableInr", "₹" + Number(w.availableINR || 0).toFixed(2));
+        set("#walletAvailableStars", (w.availableStars || 0) + " Stars available (70% revenue split = ₹3.50/star)");
+        set("#walletTotalEarnedInr", "₹" + Number(w.totalEarnedINR || 0).toFixed(2));
+        set("#walletTotalReceivedStars", "From " + (w.totalReceivedStars || 0) + " Stars earned across templates and tips");
+
+        var badge = $("#walletMinBadge");
+        if (badge) {
+          if (w.canWithdraw) {
+            badge.textContent = "Ready to withdraw";
+            badge.style.background = "rgba(16,185,129,0.15)";
+            badge.style.color = "#059669";
+            badge.style.borderColor = "rgba(16,185,129,0.3)";
+          } else {
+            badge.textContent = "Min. ₹50.00 required";
+            badge.style.background = "rgba(217,119,6,0.15)";
+            badge.style.color = "#d97706";
+            badge.style.borderColor = "rgba(217,119,6,0.3)";
+          }
+        }
+
+        var payoutBtn = $("#requestPayoutBtn");
+        var upiInp = $("#payoutUpiInput");
+        var starsInp = $("#payoutStarsInput");
+        var calcText = $("#payoutInrCalc");
+        var statusMsg = $("#payoutStatusMsg");
+
+        function updatePayoutState() {
+          var stars = parseInt(starsInp ? starsInp.value : 0, 10) || 0;
+          var inr = Number((stars * 3.50).toFixed(2));
+          if (calcText) {
+            calcText.textContent = "Estimated INR: ₹" + inr.toFixed(2) + (inr < 50 ? " (Minimum ₹50.00 required)" : "");
+          }
+          if (payoutBtn) {
+            payoutBtn.disabled = !w.canWithdraw || inr < 50 || stars > w.availableStars || !(upiInp && upiInp.value.includes("@"));
+          }
+        }
+
+        if (starsInp) starsInp.oninput = updatePayoutState;
+        if (upiInp) upiInp.oninput = updatePayoutState;
+
+        if (payoutBtn) {
+          payoutBtn.onclick = function () {
+            var upi = upiInp ? upiInp.value.trim() : "";
+            var stars = parseInt(starsInp ? starsInp.value : 0, 10) || 0;
+            if (!upi || !upi.includes("@")) {
+              if (statusMsg) {
+                statusMsg.style.display = "block";
+                statusMsg.style.background = "rgba(239,68,68,0.15)";
+                statusMsg.style.color = "#dc2626";
+                statusMsg.textContent = "Please enter a valid UPI ID (e.g. name@upi or mobile@paytm).";
+              }
+              return;
+            }
+            if (stars < 15 || (stars * 3.50) < 50) {
+              if (statusMsg) {
+                statusMsg.style.display = "block";
+                statusMsg.style.background = "rgba(239,68,68,0.15)";
+                statusMsg.style.color = "#dc2626";
+                statusMsg.textContent = "Minimum withdrawal is ₹50.00 (at least 15 Stars).";
+              }
+              return;
+            }
+
+            payoutBtn.disabled = true;
+            payoutBtn.textContent = "Submitting...";
+
+            fetch("/api/stars/withdraw", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ starsAmount: stars, upiId: upi })
+            })
+              .then(function (r) {
+                return r.json().then(function (j) {
+                  if (!r.ok || !j.success) throw new Error(j.error || "Could not submit payout request.");
+                  return j;
+                });
+              })
+              .then(function (j) {
+                if (statusMsg) {
+                  statusMsg.style.display = "block";
+                  statusMsg.style.background = "rgba(16,185,129,0.15)";
+                  statusMsg.style.color = "#059669";
+                  statusMsg.textContent = "✓ Payout request of ₹" + Number(j.inrAmount).toFixed(2) + " submitted successfully! Transferred via UPI within 24–48 hours.";
+                }
+                if (starsInp) starsInp.value = "";
+                loadStarsPane();
+              })
+              .catch(function (err) {
+                if (statusMsg) {
+                  statusMsg.style.display = "block";
+                  statusMsg.style.background = "rgba(239,68,68,0.15)";
+                  statusMsg.style.color = "#dc2626";
+                  statusMsg.textContent = err.message;
+                }
+              })
+              .finally(function () {
+                payoutBtn.disabled = false;
+                payoutBtn.textContent = "Request Payout";
+              });
+          };
+        }
+
+        // Payout history table
+        var histContainer = $("#payoutHistoryList");
+        if (histContainer) {
+          if (!w.history || !w.history.length) {
+            histContainer.innerHTML = '<p style="padding:16px;margin:0;font-size:13px;color:var(--sh-ink3);">No past withdrawal requests yet.</p>';
+          } else {
+            var histRows = w.history.map(function (item) {
+              var dateStr = new Date(item.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+              var isPending = (item.status || "pending") === "pending";
+              var badgeColor = isPending ? "#d97706" : "#059669";
+              var badgeBg = isPending ? "rgba(217,119,6,0.12)" : "rgba(16,185,129,0.12)";
+              return [
+                '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--sh-line);font-size:13px;flex-wrap:wrap;gap:8px;">',
+                '  <div>',
+                '    <strong style="color:var(--sh-ink);">₹' + Number(item.inr).toFixed(2) + '</strong> (' + item.stars + ' Stars)',
+                '    <div style="font-size:12px;color:var(--sh-ink3);">' + escapeHtml(item.upiId || "UPI") + ' · ' + dateStr + '</div>',
+                '  </div>',
+                '  <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:' + badgeBg + ';color:' + badgeColor + ';text-transform:capitalize;">' + escapeHtml(item.status || "pending") + '</span>',
+                '</div>'
+              ].join("");
+            });
+            histContainer.innerHTML = histRows.join("");
+          }
+        }
+      })
+      .catch(function () {});
+
+    setupStarPacksModal();
+  }
+
+  function setupStarPacksModal() {
+    var openBtn = $("#accountBuyStarsBtn");
+    if (openBtn) {
+      openBtn.onclick = function (e) {
+        e.preventDefault();
+        window.location.href = "/pricing#stars";
+      };
+    }
   }
 
   function loadSupportPane() {
