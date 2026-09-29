@@ -8,7 +8,7 @@ const assert = require('node:assert/strict');
 const base = 'http://127.0.0.1:3327';
 const out = path.resolve(__dirname, '../audit_results/mobile-layout');
 const phase = process.argv.includes('--before') ? 'before' : 'after';
-const routes = ['/', '/pricing', '/community', '/drafts', '/uploads', '/settings', '/tutorials', '/account', '/contact', '/about', '/privacy', '/terms', '/login', '/signup', '/forgot-password', '/reset-password', '/creator?handle=shortscraft', '/template?id=original-chat-story', '/admin', '/404'];
+const routes = ['/', '/animations', '/designs', '/pricing', '/community', '/drafts', '/uploads', '/settings', '/tutorials', '/account', '/contact', '/about', '/privacy', '/terms', '/login', '/signup', '/forgot-password', '/reset-password', '/creator?handle=shortscraft', '/template?id=original-chat-story', '/admin', '/404'];
 (async () => {
   fs.mkdirSync(out, {recursive: true});
   const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']});
@@ -117,8 +117,9 @@ const routes = ['/', '/pricing', '/community', '/drafts', '/uploads', '/settings
       interactions.push(`${width}x${height}: live edit, preview, advanced controls, final field, export dialog, AI`);
     }
     signedIn = true;
-    await page.setViewport({width: 390, height: 844, isMobile: true, hasTouch: true});
-    for (const route of ['/account#edit-profile', '/uploads', '/settings', '/drafts']) {
+    for (const signedWidth of [320,390]) {
+    await page.setViewport({width: signedWidth, height: signedWidth===320?568:844, isMobile: true, hasTouch: true});
+    for (const route of ['/account#edit-profile', '/uploads', '/settings', '/drafts', '/designs']) {
       await page.goto(base + route, {waitUntil:'networkidle0'});
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Signed-in fixture layout fits: ' + route);
       await page.screenshot({path: path.join(out, `after-signedin-${route.split('#')[0].slice(1)}-390.png`)});
@@ -136,6 +137,18 @@ const routes = ['/', '/pricing', '/community', '/drafts', '/uploads', '/settings
         }), 'Upload dialog fits without clipping');
         await page.screenshot({path: path.join(out, 'after-upload-dialog-390.png')});
       }
+      if (route === '/designs') {
+        await page.click('#openUploadDesignBtn');
+        await page.waitForFunction(()=>!document.querySelector('#designUploadModal').hidden);
+        await new Promise(r=>setTimeout(r,300));
+        assert(await page.$eval('#designUploadModal .ds-modal-card', el => {
+          const r=el.getBoundingClientRect();return r.width>0&&r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1;
+        }), 'Design converter fits mobile viewport');
+        await page.screenshot({path:path.join(out,'after-design-converter-390.png')});
+        await page.click('#closeDesignModal');
+        assert(await page.$eval('#designUploadModal', el=>el.hidden),'Design converter closes');
+      }
+    }
     }
     signedIn = false;
     await page.goto(base, {waitUntil:'networkidle0'});
@@ -143,6 +156,13 @@ const routes = ['/', '/pricing', '/community', '/drafts', '/uploads', '/settings
     assert(await page.$eval('#navMobile', el => !el.hidden && el.getBoundingClientRect().right <= innerWidth), 'Mobile menu opens inside viewport');
     await page.keyboard.press('Escape');
     assert(await page.$eval('#navMobile', el => el.hidden), 'Escape closes menu');
+    await page.click('.sh-ttitle');
+    await page.waitForSelector('#tplModal:not([hidden])');
+    for(const selector of ['#modalStudioBtn','#modalShareBtn','#modalClose']) {
+      await page.$eval(selector,el=>el.scrollIntoView({block:'center'}));
+      assert(await page.$eval(selector,el=>{const r=el.getBoundingClientRect();return r.width>0&&r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1;}), selector+' is reachable on mobile');
+    }
+    await page.click('#modalClose');
     await page.evaluate(() => { localStorage.setItem('sc_theme', 'dark'); });
     await page.reload({waitUntil:'networkidle0'});
     await page.screenshot({path:path.join(out,'after-home-dark-390.png')});

@@ -1622,6 +1622,7 @@
           btn.classList.add("is-active");
           btn.setAttribute("aria-selected", "true");
           btn.setAttribute("tabindex", "0");
+          if (window.innerWidth <= 640 && options.updateHash) btn.scrollIntoView({ block: "nearest", inline: "nearest" });
         } else {
           btn.classList.remove("is-active");
           btn.setAttribute("aria-selected", "false");

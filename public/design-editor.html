@@ -16,7 +16,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=circle2026">
 <link rel="stylesheet" href="/design-editor.css?v=2026092001">
 <link rel="stylesheet" href="/monochrome.css?v=2026092202">
-<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="light"?"light":"dark"}catch(e){}})();</script>
+<script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){}})();</script>
 </head>
 <body>
 
@@ -29,7 +29,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M15 19l-7-7 7-7"/></svg>
       </a>
       <input type="text" class="de-proj-title" id="projTitleInput" value="Untitled Thumbnail" maxlength="80"/>
-      <span class="de-save-status" id="saveStatus">Saved to cloud</span>
+      <span class="de-save-status" id="saveStatus" role="status">Unsaved design</span>
     </div>
 
     <div class="de-top-center">
@@ -50,11 +50,11 @@
     <div class="de-top-right">
       <button type="button" class="de-btn-secondary" id="btnPublish">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        <span>Publish Template</span>
+        <span>Publish</span>
       </button>
       <button type="button" class="de-btn-primary" id="btnExport">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Export Design</span>
+        <span>Export</span>
       </button>
     </div>
   </header>
@@ -299,7 +299,7 @@
 
   <!-- Mobile Floating Bottom Bar -->
   <nav class="de-mobile-bar">
-    <button type="button" class="de-mob-btn active" data-tab="text">
+    <button type="button" class="de-mob-btn" data-tab="text">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
       <span>Text</span>
     </button>
@@ -315,6 +315,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
       <span>Layers</span>
     </button>
+    <button type="button" class="de-mob-btn" data-tab="background"><span aria-hidden="true">◩</span><span>Backdrop</span></button>
+    <button type="button" class="de-mob-btn" data-tab="edit"><span aria-hidden="true">✎</span><span>Edit</span></button>
   </nav>
 
 </div>

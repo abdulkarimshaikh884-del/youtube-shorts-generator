@@ -4018,6 +4018,8 @@ a.sh-chip[href*="cat=premium"] {
   overflow: hidden;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   cursor: pointer;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 [data-theme="light"] .sh-chip[data-cat="premium"],

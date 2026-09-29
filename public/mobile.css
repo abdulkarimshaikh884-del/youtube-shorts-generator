@@ -680,8 +680,8 @@
   body.sh-body .sh-profile-hub { margin-top: 10px; gap: 6px; }
   body.sh-body .sh-profile-hub > a:not([hidden]),
   body.sh-body .sh-profile-hub > button:not([hidden]) { min-height: 40px; padding: 4px 9px; gap: 6px; font-size: 12px; }
-  body.sh-body .ig-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 16px; }
-  body.sh-body .ig-tab-btn { min-width: 0; min-height: 44px; padding: 6px 4px; gap: 4px; font-size: 10.5px; white-space: normal; }
+  body.sh-body .ig-tabs { display: flex; overflow-x: auto; flex-wrap: nowrap; gap: 4px; margin-top: 16px; scroll-padding-inline: 8px; }
+  body.sh-body .ig-tab-btn { flex: 0 0 auto; min-width: 0; min-height: 44px; padding: 6px 10px; gap: 5px; font-size: 12px; white-space: nowrap; }
   body.sh-body .ig-tab-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
   body.sh-body .ig-edit-container { padding: 12px; }
   body.sh-body .ig-pane, body.sh-body .sh-gallery-sec { scroll-margin-top: 64px; }

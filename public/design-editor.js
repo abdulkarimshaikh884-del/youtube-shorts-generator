@@ -40,8 +40,10 @@
     setupCanvasEvents();
     setupToolbar();
     setupInspector();
+    setupPublishModal();
     setupKeyboardShortcuts();
     setupWindowResize();
+    updateLayersList();
     updateZoom();
     render();
     exposeStudioApi();
@@ -170,6 +172,7 @@
         .then(function (res) {
           if (res && res.success && res.project) {
             applyProjectData(res.project);
+            $("#saveStatus").textContent = "Saved to cloud";
           }
         })
         .catch(function () {});
@@ -615,15 +618,37 @@
     toolBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
         var tab = btn.dataset.tab;
-        toolBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === tab); });
+        var mobile = window.matchMedia("(max-width: 1024px)").matches;
+        var curPanel = $(".de-app").dataset.mobilePanel;
+        var nextPanel = tab;
+        if (tab !== "edit" && curPanel === tab) {
+          nextPanel = "";
+        }
+        toolBtns.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === (nextPanel || tab)); });
 
         $$(".de-flyout-content").forEach(function (fc) { fc.setAttribute("hidden", ""); });
-        var target = $("#flyout" + tab.charAt(0).toUpperCase() + tab.slice(1));
-        if (target) {
-          target.removeAttribute("hidden");
-          if (flyout) flyout.removeAttribute("hidden");
+        if (tab !== "edit") {
+          var target = $("#flyout" + tab.charAt(0).toUpperCase() + tab.slice(1));
+          if (target) {
+            target.removeAttribute("hidden");
+            if (flyout) flyout.removeAttribute("hidden");
+          }
         }
+        if (mobile) setMobileDesignPanel(nextPanel);
       });
+    });
+
+    [flyout, $("#deInspector")].forEach(function (panel) {
+      var close = document.createElement("button");
+      close.type = "button";
+      close.className = "de-panel-close";
+      close.textContent = "Done";
+      close.setAttribute("aria-label", "Close controls and return to canvas");
+      close.onclick = function () { setMobileDesignPanel(""); };
+      panel.prepend(close);
+    });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") setMobileDesignPanel("");
     });
 
     // Add Text actions
@@ -675,22 +700,50 @@
     }
   }
 
+  function setMobileDesignPanel(tab) {
+    if (!tab && document.activeElement.closest(".de-flyout, .de-inspector")) {
+      var trigger = $(".de-mob-btn.active");
+      if (trigger) trigger.focus();
+    }
+    $(".de-app").dataset.mobilePanel = tab;
+    $$(".de-mob-btn").forEach(function (btn) {
+      btn.classList.toggle("active", btn.dataset.tab === tab);
+      btn.setAttribute("aria-expanded", String(btn.dataset.tab === tab));
+    });
+    requestAnimationFrame(updateZoom);
+  }
+
   function updateZoom() {
     var zoomSel = $("#zoomSelect");
     if (zoomSel && zoomSel.value === "fit") {
-      var availW = stageWrap.clientWidth - 48;
-      var availH = stageWrap.clientHeight - 48;
+      var padding = getComputedStyle(stageWrap);
+      var availW = stageWrap.clientWidth - parseFloat(padding.paddingLeft) - parseFloat(padding.paddingRight);
+      var availH = stageWrap.clientHeight - parseFloat(padding.paddingTop) - parseFloat(padding.paddingBottom);
       var scaleX = availW / project.canvas.width;
       var scaleY = availH / project.canvas.height;
-      zoomLevel = Math.min(scaleX, scaleY, 1.0);
+      zoomLevel = Math.max(0.01, Math.min(scaleX, scaleY, 1.0));
     }
-    canvasContainer.style.transform = "scale(" + zoomLevel.toFixed(3) + ")";
+    // Size the layout box as well as the painted canvas, so touch scrolling
+    // and centering use the actual preview dimensions.
+    canvasContainer.style.width = Math.round(project.canvas.width * zoomLevel) + "px";
+    canvasContainer.style.height = Math.round(project.canvas.height * zoomLevel) + "px";
+    canvasContainer.style.transform = "none";
+    canvas.style.transformOrigin = "top left";
+    canvas.style.transform = "scale(" + zoomLevel.toFixed(3) + ")";
   }
 
   function setupWindowResize() {
     window.addEventListener("resize", function () {
       updateZoom();
     });
+    if (window.ResizeObserver) new ResizeObserver(updateZoom).observe(stageWrap);
+    if (window.visualViewport) {
+      var syncViewport = function () {
+        $(".de-app").style.setProperty("--de-viewport-height", window.visualViewport.height + "px");
+      };
+      window.visualViewport.addEventListener("resize", syncViewport);
+      syncViewport();
+    }
   }
 
   function addTextLayer(text, font, size, weight, color) {
@@ -911,6 +964,7 @@
     }
 
     secCommon.removeAttribute("hidden");
+    if (window.matchMedia("(max-width: 1024px)").matches && !isDragging && !isTransforming) setMobileDesignPanel("edit");
     if (titleEl) titleEl.textContent = selectedElement.type.toUpperCase() + ": " + (selectedElement.name || selectedElement.id);
 
     if (selectedElement.type === "text") {
@@ -1141,12 +1195,13 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(project)
       })
-        .then(function (r) { return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error("save failed"); return r.json(); })
         .then(function (res) {
+          if (!res || !res.success) throw new Error("save failed");
           if (statusEl) statusEl.textContent = "Saved to cloud";
         })
         .catch(function () {
-          if (statusEl) statusEl.textContent = "Saved locally";
+          if (statusEl) { statusEl.textContent = "Not saved"; statusEl.title = "Could not save your changes. Check your connection and sign-in before leaving."; }
         });
     }, 1200);
   }
@@ -1281,6 +1336,5 @@
     document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
-  setupPublishModal();
   }
 })();
