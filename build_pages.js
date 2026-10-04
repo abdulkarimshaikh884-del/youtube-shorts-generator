@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026100202";
+const V = "2026100401";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -3353,6 +3353,14 @@ for (const file of selectedPages) {
 }
 for (const [file, p] of PAGES) {
   if (selectedPages.length && !selectedPages.includes(file)) continue;
+  // These two checked-in pages now form one hand-maintained account workspace.
+  // Their older templates above are retained for the reversible redesign, but
+  // must not overwrite the reviewed forms/settings when other pages rebuild.
+  if (["account.html", "settings.html"].includes(file)) {
+    if (!fs.existsSync(path.join(OUT, file))) throw new Error(`Missing canonical account page: ${file}`);
+    console.log(`kept hand-maintained public/${file}`);
+    continue;
+  }
   const html = chrome(p);
   fs.writeFileSync(path.join(OUT, file), html, "utf8");
   console.log(`wrote public/${file}  ${(html.length / 1024).toFixed(1)} KB`);

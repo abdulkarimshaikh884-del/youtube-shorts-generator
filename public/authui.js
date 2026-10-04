@@ -1696,8 +1696,16 @@
     function switchTab(targetName, options) {
       options = options || {};
       if (!panes[targetName]) return;
+      var requestedName = targetName;
+      var settingsPane = panes.settings;
+      if (settingsPane && settingsPane.contains(panes[targetName]) && targetName !== "settings") {
+        var group = panes[targetName].closest("[data-settings-group]");
+        if (group) group.open = true;
+        targetName = "settings";
+      }
       tabs.forEach(function (btn) {
-        var isTarget = btn.getAttribute("data-ig-tab") === targetName;
+        var activeTab = targetName === "followers" || targetName === "following" ? "creations" : targetName;
+        var isTarget = btn.getAttribute("data-ig-tab") === activeTab;
         if (isTarget) {
           btn.classList.add("is-active");
           btn.setAttribute("aria-selected", "true");
@@ -1713,6 +1721,7 @@
       Object.keys(panes).forEach(function (key) {
         var pane = panes[key];
         if (!pane) return;
+        if (settingsPane && key !== "settings" && settingsPane.contains(pane)) return;
         if (key === targetName) {
           pane.classList.add("is-active");
           pane.removeAttribute("hidden");
@@ -1726,7 +1735,7 @@
       if (targetName === "followers" || targetName === "following") loadPeoplePane(targetName);
 
       if (options.updateHash && window.history && history.replaceState) {
-        var nextHash = targetName === "creations" ? "" : "#" + (targetName === "edit" ? "edit-profile" : targetName);
+        var nextHash = requestedName === "creations" ? "" : "#" + (requestedName === "edit" ? "edit-profile" : requestedName);
         history.replaceState(null, "", location.pathname + location.search + nextHash);
       }
     }
@@ -1792,8 +1801,13 @@
       });
     }
 
-    var requestedTab = location.hash === "#edit-profile" ? "edit" : location.hash.replace(/^#/, "");
-    if (panes[requestedTab]) switchTab(requestedTab);
+    function syncAccountLocation() {
+      var requestedTab = location.hash === "#edit-profile" || location.hash === "#profile" ? "edit" : location.hash.replace(/^#/, "");
+      if (!requestedTab && new URLSearchParams(location.search).has("verify")) requestedTab = "settings";
+      switchTab(panes[requestedTab] ? requestedTab : "creations");
+    }
+    syncAccountLocation();
+    window.addEventListener("hashchange", syncAccountLocation);
 
     window.SC_ACCOUNT = window.SC_ACCOUNT || {};
     window.SC_ACCOUNT.switchTab = switchTab;
@@ -3329,6 +3343,9 @@
 
   function init() {
     completeMobileNav();
+    all('a[href="/settings"]').forEach(function (link) {
+      link.setAttribute("href", "/account#settings");
+    });
     all("#logoutBtn, #accLogout, #accLogoutPane, #accHubLogout, #popoverLogoutBtn, #navMobileLogout").forEach(function (b) {
       b.addEventListener("click", logout);
     });

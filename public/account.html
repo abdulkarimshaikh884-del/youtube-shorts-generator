@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<meta name="referrer" content="no-referrer"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>My Profile & Setup — ShortsCraft</title>
 <meta name="description" content="Manage your creator profile, channel links, daily credits, and account settings."/>
@@ -38,6 +39,7 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100201">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
+<link rel="stylesheet" href="/account-settings.css?v=2026100401">
 </head>
 <body class="sh-body">
 
@@ -414,26 +416,14 @@
              and it is the one that states a fact rather than just offering a
              destination. Those three panels are still here, still reachable,
              and they now say what they are and how to get back. -->
-        <nav class="ig-tabs" role="tablist">
+        <nav class="ig-tabs" role="tablist" aria-label="Profile sections">
           <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
             <span>Creations</span>
           </button>
-          <button type="button" class="ig-tab-btn" id="igTabStars" data-ig-tab="stars" role="tab" aria-controls="igPaneStars" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
-            <span>Earnings &amp; Stars</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabAccount" data-ig-tab="account" role="tab" aria-controls="igPaneAccount" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Plan &amp; credits</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabSupport" data-ig-tab="support" role="tab" aria-controls="igPaneSupport" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>Support</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabEdit" data-ig-tab="edit" role="tab" aria-controls="igPaneEdit" aria-selected="false">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Edit profile</span>
+          <button type="button" class="ig-tab-btn" id="igTabSettings" data-ig-tab="settings" role="tab" aria-controls="igPaneSettings" aria-selected="false" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+            <span>Settings</span>
           </button>
         </nav>
 
@@ -441,6 +431,50 @@
         <section class="ig-pane is-active" id="igPaneCreations" data-ig-pane="creations" role="tabpanel" aria-labelledby="igTabCreations">
           <div class="ig-grid" id="userCreationsGrid">
             <!-- Rendered by authui.js -->
+          </div>
+        </section>
+
+        <section class="ig-pane pf-settings" id="igPaneSettings" data-ig-pane="settings" role="tabpanel" aria-labelledby="igTabSettings" hidden>
+          <header class="pf-settings-head"><h2>Your settings</h2><p>Manage your profile, preferences and account in one place.</p></header>
+          <div class="pf-settings-list">
+            <details class="pf-setting-group" data-settings-group="edit">
+              <summary><span><strong>Edit profile</strong><small>Photo, username, bio and links</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <div class="pf-setting-content" data-settings-slot="edit"></div>
+            </details>
+            <details class="pf-setting-group" data-settings-group="account">
+              <summary><span><strong>Account &amp; credits</strong><small>Email, Google sign-in, plan and credit balance</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <div class="pf-setting-content" data-settings-slot="account">
+                <div class="pf-setting-row"><span><strong>Google sign-in</strong><small data-google-status role="status">Connect the Google account with the same email.</small></span><button type="button" class="ig-btn ig-btn-secondary" data-google-signin data-google-link disabled>Connect Google</button></div>
+              </div>
+            </details>
+            <div class="pf-setting-row pf-setting-standalone"><span><strong>Appearance</strong><small>Light or dark · saved on this device</small></span><button type="button" class="ig-btn ig-btn-secondary" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark theme</span></button></div>
+            <details class="pf-setting-group">
+              <summary><span><strong>Notifications</strong><small>Manage notifications on this device</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <div class="pf-setting-content">
+                <div class="pf-setting-row" data-push-row hidden><span><strong>This device</strong><small id="pushSettingsText">Get notifications even when ShortsCraft is closed.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="pushSettingsBtn">Turn on</button></div>
+                <p class="pf-setting-note">Likes, comments, new followers, support replies and template decisions also appear in your notification bell. Device notifications depend on browser support.</p>
+              </div>
+            </details>
+            <details class="pf-setting-group" data-settings-group="stars">
+              <summary><span><strong>Earnings &amp; Stars</strong><small>View existing records · money features Coming Soon</small></span><span class="pf-coming-soon">Coming Soon</span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <div class="pf-setting-content" data-settings-slot="stars"></div>
+            </details>
+            <details class="pf-setting-group" data-settings-group="support">
+              <summary><span><strong>Help &amp; support</strong><small>Help, feedback and your support requests</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <div class="pf-setting-content" data-settings-slot="support">
+                <div class="pf-support-links"><a class="ig-btn ig-btn-secondary" href="/tutorials">Help &amp; tutorials</a><a class="ig-btn ig-btn-secondary" href="/contact">Send feedback</a><a class="ig-btn ig-btn-secondary" href="/about">About ShortsCraft</a><a class="ig-btn ig-btn-secondary" href="/privacy">Privacy</a><a class="ig-btn ig-btn-secondary" href="/terms">Terms</a></div>
+              </div>
+            </details>
+            <section id="referralSettings" class="pf-setting-standalone" hidden aria-labelledby="referralHeading">
+              <h3 id="referralHeading">Invite friends</h3>
+              <p class="pf-setting-note">10 bonus credits for both of you after your friend verifies their account and completes a successful export. Up to 10 rewarded referrals per month.</p>
+              <div class="pf-setting-row"><label for="referralLink">Your invite link<input id="referralLink" readonly /></label><button type="button" class="ig-btn ig-btn-secondary" id="copyReferralLink">Copy</button></div>
+              <p id="referralStats" class="pf-setting-note" aria-live="polite"></p>
+              <div class="pf-setting-row" id="referralVerifyRow" hidden><span>Verify your email to qualify.</span><button type="button" class="ig-btn ig-btn-secondary" id="sendVerification">Verify email</button></div>
+              <p id="referralMessage" class="pf-setting-note" hidden role="status"></p>
+            </section>
+            <a class="pf-setting-row pf-setting-standalone pf-admin-link" href="/admin" data-auth="admin" hidden><span><strong>Admin Console</strong><small>Manage templates, categories and reports</small></span><span aria-hidden="true">›</span></a>
+            <div class="pf-setting-row pf-setting-standalone"><span><strong>Log out</strong><small>End this session on this device. Your work is kept.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="accLogout">Log out</button></div>
           </div>
         </section>
 
@@ -687,6 +721,8 @@
             </svg>
           </span>
           <h2>Log in to see your account</h2>
+          <p class="pg-gate-fine">Appearance is available without signing in.</p>
+          <button type="button" class="ig-btn ig-btn-secondary" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark theme</span></button>
           <div class="pg-row pg-gate-row">
             <a href="/login?next=/account" class="pg-bw">Log in</a>
             <a href="/signup?next=/account" class="pg-bo">Create an account</a>
@@ -759,9 +795,11 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026100202" defer></script>
+<script src="/account-settings.js?v=2026100401" defer></script>
+<script src="/authui.js?v=2026100401" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
 <script src="/page.js?v=2026100201" defer></script>
+<script src="/referrals.js?v=2026100201" defer></script>
 <script src="/templates-v2.js?v=2026092501"></script></body>
 </html>

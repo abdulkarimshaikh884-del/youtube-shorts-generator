@@ -1,0 +1,52 @@
+/* Scoped account-only layout. No public creator-page or global theme changes. */
+body.sh-body .pf-settings { max-width: 820px; margin: 0 auto; }
+.pf-settings-head { margin: 0 0 20px; }
+.pf-settings-head h2 { margin: 0 0 5px; font-size: 22px; color: var(--sh-ink); letter-spacing: -.025em; }
+.pf-settings-head p, .pf-setting-note { font-size: 13px; line-height: 1.6; color: var(--sh-ink2); margin: 0; }
+.pf-settings-list { display: grid; gap: 10px; }
+.pf-setting-group, .pf-setting-standalone { border: 1px solid var(--sh-line); border-radius: 12px; background: var(--sh-bg2); min-width: 0; }
+.pf-setting-group > summary { display: flex; align-items: center; gap: 12px; padding: 17px 20px; cursor: pointer; list-style: none; }
+.pf-setting-group > summary::-webkit-details-marker { display: none; }
+.pf-setting-group > summary > span:first-child { flex: 1; min-width: 0; }
+.pf-setting-group strong, .pf-setting-row strong { display: block; color: var(--sh-ink); font-size: 14px; font-weight: 600; }
+.pf-setting-group small, .pf-setting-row small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--sh-ink2); overflow-wrap: anywhere; }
+.pf-chevron { font-size: 24px; color: var(--sh-ink3); transition: transform .15s; }
+.pf-setting-group[open] > summary .pf-chevron { transform: rotate(90deg); }
+.pf-setting-group[open] > summary { border-bottom: 1px solid var(--sh-line); }
+.pf-setting-content { padding: 18px 20px; min-width: 0; }
+.pf-setting-content > .ig-pane { display: block; margin: 0; padding: 0; animation: none; }
+.pf-setting-row { display: flex; gap: 14px; align-items: center; justify-content: space-between; min-width: 0; }
+.pf-setting-row[hidden], .pf-settings-list [hidden], .sh-profile-hub[hidden] { display: none !important; }
+.pf-setting-row > span:first-child { min-width: 0; }
+.pf-setting-standalone { padding: 17px 20px; }
+.pf-setting-content .pf-setting-row { margin-bottom: 18px; }
+.pf-setting-row .ig-btn { flex-shrink: 0; min-height: 40px; }
+.pf-settings .ig-account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pf-settings .ig-account-card { min-width: 0; padding: 16px; }
+.pf-settings .ig-acc-val { font-size: 20px; overflow-wrap: anywhere; }
+.pf-settings .ig-edit-container { max-width: none; }
+.pf-settings .ig-edit-header { padding-top: 0; }
+.pf-settings .ig-pane-head { margin-top: 0; }
+.pf-support-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.pf-support-links a { text-decoration: none; }
+.pf-admin-link { text-decoration: none; color: var(--sh-ink); }
+.pf-coming-soon { font-size: 10px; padding: 4px 7px; border: 1px solid var(--sh-line); border-radius: 5px; color: var(--sh-ink2); white-space: nowrap; }
+.pf-settings summary:focus-visible, .pf-admin-link:focus-visible { outline: 2px solid var(--sh-ink); outline-offset: 3px; }
+.pf-settings #referralLink { display: block; margin-top: 8px; width: 100%; min-width: 0; background: var(--sh-bg1); color: var(--sh-ink); border: 1px solid var(--sh-line); border-radius: 7px; padding: 10px; font-size: 16px; }
+.pf-settings label[for="referralLink"] { flex: 1; min-width: 0; }
+@media (max-width: 640px) {
+  body.sh-body .ig-tabs { justify-content: flex-start; gap: 24px; }
+  body.sh-body .ig-tab-btn { min-height: 44px; font-size: 12px; }
+  .pf-settings-head h2 { font-size: 19px; }
+  .pf-setting-group > summary, .pf-setting-standalone { padding: 14px; }
+  .pf-setting-content { padding: 14px; }
+  .pf-setting-row { flex-wrap: wrap; gap: 10px; }
+  .pf-setting-row > span:first-child { flex: 1 1 160px; }
+  .pf-settings .ig-account-grid { grid-template-columns: 1fr; }
+  .pf-settings .ig-support-head { flex-wrap: wrap; gap: 12px; }
+  .pf-settings .ig-grid-2 { grid-template-columns: 1fr; }
+  .pf-settings .ig-form-foot { flex-wrap: wrap; gap: 10px; }
+  .pf-settings .ig-form-foot .ig-btn { flex: 1 1 100px; }
+  .pf-coming-soon { white-space: normal; max-width: 70px; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) { .pf-chevron { transition: none; } }

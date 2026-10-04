@@ -21,14 +21,15 @@ const puppeteer=require('puppeteer'),assert=require('node:assert/strict'),fs=req
   await page.setViewport({width,height:900,isMobile:width<600,hasTouch:width<600});
   for(role of [null,'user','super_admin']){
    await page.goto('http://127.0.0.1:3327/settings',{waitUntil:'networkidle2'});
-   await page.waitForFunction(()=>document.querySelector('[data-theme-toggle]'));
+   await page.waitForFunction(expected=>location.pathname==='/account' && document.querySelector('#accountBox').hidden===!expected,{},!!role);
+   const themeSelector=role?'#igPaneSettings [data-theme-toggle]':'#accountGuest [data-theme-toggle]';
    const visible=await page.$eval('main a[href="/admin"]',e=>!e.hidden);
    assert.equal(visible,role==='super_admin','Admin shortcut follows existing permissions');
    assert.equal(await page.$$eval('.sh-rail a[href="/admin"],#navMobile a[href="/admin"],.sh-rail [data-theme-toggle]',e=>e.length),0);
    assert.equal(await page.$$eval('a',e=>e.filter(a=>a.textContent.includes('Creator Studio')).length),0);
    assert(await page.$('main a[href="/tutorials"]'));assert(await page.$('main a[href="/contact"]'));
    const before=await page.evaluate(()=>document.documentElement.dataset.theme);
-   await page.click('main [data-theme-toggle]');
+   await page.click(themeSelector);
    assert.notEqual(await page.evaluate(()=>document.documentElement.dataset.theme),before);
    await page.reload({waitUntil:'networkidle2'});
    assert.notEqual(await page.evaluate(()=>document.documentElement.dataset.theme),before,'Preference survives reload');
