@@ -16,10 +16,11 @@ const fs = require("node:fs");
       req.continue();
     });
     fs.mkdirSync('audit_results/mobile-layout',{recursive:true});
-    for(const [width,height] of [[320,568],[390,844],[768,1024],[844,390],[1440,900]]) {
+    for(const [width,height] of [[320,568],[390,844],[390,440],[768,1024],[844,390],[1440,900]]) {
       await page.setViewport({width,height,isMobile:width<=1024,hasTouch:width<=1024});
       await page.goto('http://127.0.0.1:3327/design-editor',{waitUntil:'networkidle2'});
       await page.waitForFunction(()=>!!window.SC_STUDIO);
+      if(width===390 && height===844) await page.screenshot({path:'audit_results/mobile-layout/after-design-clean-390.png'});
       const mobile=width<=1024;
       for(const id of ['btnPublish','btnExport','btnUndo','btnRedo','zoomSelect']) {
         assert(await page.$eval('#'+id,el=>{const r=el.getBoundingClientRect();return r.width>0&&r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight;}),`${id} fits ${width}`);
@@ -34,6 +35,9 @@ const fs = require("node:fs");
       await page.waitForFunction(()=>document.querySelector('#propTextContent').getBoundingClientRect().height>0);
       await page.$eval('#propTextContent',el=>{el.value='Edited on a phone';el.dispatchEvent(new Event('input',{bubbles:true}));});
       assert(await page.evaluate(()=>SC_STUDIO.project.elements.some(e=>e.text==='Edited on a phone')),'Text edit updates actual project');
+      // Keep the QA-added heading separate from the default template text.
+      await page.evaluate(()=>{const el=SC_STUDIO.project.elements.find(e=>e.text==='Edited on a phone');el.y=440;SC_STUDIO.render();});
+      if(width===390 && height===844) await page.screenshot({path:'audit_results/mobile-layout/after-design-inspector-390.png'});
       if(mobile) {
         assert(await page.$eval('#designCanvas',el=>{const r=el.getBoundingClientRect();return r.width>30&&r.height>30&&r.left>=0&&r.right<=innerWidth+1;}),'Canvas still visible while editing');
         await page.$eval('#btnDeleteLayer',el=>el.scrollIntoView({block:'center'}));
@@ -47,12 +51,14 @@ const fs = require("node:fs");
       await page.evaluate(()=>{window.SC_AUTH_USER={id:'mobile-qa'};});
       // Use the normal publish UI; never submit it to a real backend.
       await page.click('#btnPublish');
-      const modalOpen=await page.$eval('#publishDesignModal',el=>getComputedStyle(el).display!=='none');
-      if(modalOpen) {
+      assert(await page.$eval('#publishDesignModal',el=>getComputedStyle(el).display!=='none'),'Publish button opens modal');
+      {
+        await page.$eval('#cancelPublishDesign',el=>el.scrollIntoView({block:'center'}));
+        assert(await page.$eval('#cancelPublishDesign',el=>{const r=el.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight;}),'Final publish controls are reachable');
         await page.click('#cancelPublishDesign');
         assert(await page.$eval('#publishDesignModal',el=>getComputedStyle(el).display==='none'),'Publish modal closes');
       }
-      if(width===390) await page.screenshot({path:'audit_results/mobile-layout/after-design-editor-390.png'});
+      if(width===390 && height===844) await page.screenshot({path:'audit_results/mobile-layout/after-design-editor-390.png'});
       console.log(`PASS design editor ${width}x${height}: tool panels, editing, preview, export`);
     }
     assert.deepEqual(errors,[]);

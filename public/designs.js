@@ -109,38 +109,6 @@
     });
   }
 
-  function buildCardPreview(tpl) {
-    var cWidth = tpl.canvas ? tpl.canvas.width : 1280;
-    var cHeight = tpl.canvas ? tpl.canvas.height : 720;
-    var aspectPct = ((cHeight / cWidth) * 100).toFixed(2);
-
-    var previewSrc = tpl.previewUrl || tpl.preview_url;
-    if (previewSrc) {
-      return '<div class="ds-pv-stage" style="padding-top:' + aspectPct + '%;"><img class="ds-pv-img ds-pv-hero" src="' + escapeHtml(previewSrc) + '" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;" alt="' + escapeHtml(tpl.title) + '" loading="lazy"/></div>';
-    }
-
-    var elementsHtml = "";
-    (tpl.elements || []).forEach(function (el) {
-      var leftPct = ((el.x / cWidth) * 100).toFixed(1);
-      var topPct = ((el.y / cHeight) * 100).toFixed(1);
-      var wPct = ((el.width / cWidth) * 100).toFixed(1);
-      var hPct = ((el.height / cHeight) * 100).toFixed(1);
-
-      if (el.type === "image") {
-        elementsHtml += '<img class="ds-pv-img" src="' + escapeHtml(el.src) + '" style="left:' + leftPct + '%;top:' + topPct + '%;width:' + wPct + '%;height:' + hPct + '%;z-index:' + (el.zIndex || 0) + ';" alt="" loading="lazy"/>';
-      } else if (el.type === "shape") {
-        var radius = el.radius ? 'border-radius:' + Math.round(el.radius * 0.3) + 'px;' : '';
-        if (el.shape === "circle") radius = 'border-radius:50%;';
-        if (el.shape === "pill") radius = 'border-radius:999px;';
-        elementsHtml += '<div class="ds-pv-shape" style="left:' + leftPct + '%;top:' + topPct + '%;width:' + wPct + '%;height:' + hPct + '%;background:' + (el.fill || '#f59e0b') + ';' + radius + 'z-index:' + (el.zIndex || 0) + ';"></div>';
-      } else if (el.type === "text") {
-        var fontSizeScaled = Math.max(10, Math.round((el.fontSize || 36) * 0.32));
-        elementsHtml += '<div class="ds-pv-txt" style="left:' + leftPct + '%;top:' + topPct + '%;color:' + (el.fill || '#fff') + ';font-family:' + (el.fontFamily || 'Anton') + ';font-size:' + fontSizeScaled + 'px;font-weight:' + (el.fontWeight || 800) + ';z-index:' + (el.zIndex || 0) + ';">' + escapeHtml(el.text) + '</div>';
-      }
-    });
-
-    return '<div class="ds-pv-stage" style="padding-top:' + aspectPct + '%;">' + elementsHtml + '</div>';
-  }
 
   function useTemplate(templateId, btn) {
     btn.disabled = true;
@@ -158,6 +126,10 @@
             btn.disabled = false;
             btn.textContent = origText;
             var price = res.starPrice || 1;
+            if (!window.SC_RELEASE || !SC_RELEASE.monetizationEnabled) {
+              if (window.SC_UI) SC_UI.toast("Paid template unlocks are Coming Soon.");
+              return null;
+            }
             var confirmMsg = "★ This is a Premium Design Template (" + price + " Star" + (price > 1 ? "s" : "") + ").\n\nWould you like to unlock it now to remix, customize, and export?";
             if (!confirm(confirmMsg)) return null;
 
@@ -205,11 +177,15 @@
           alert(res.error);
           btn.disabled = false;
           btn.textContent = origText;
+        } else {
+          throw new Error("The design could not be opened. Please retry.");
         }
       })
-      .catch(function () {
+      .catch(function (err) {
         btn.disabled = false;
         btn.textContent = origText;
+        if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message || "Could not open this design. Please retry.");
+        else alert(err.message || "Could not open this design. Please retry.");
       });
   }
 

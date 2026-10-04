@@ -61,12 +61,21 @@ async function call(j, method, url, body) {
 const ADMIN_ROUTES = [
   ["GET", "/api/admin/dashboard"],
   ["GET", "/api/admin/users"],
+  ["GET", "/api/admin/creators"],
   ["GET", "/api/admin/templates"],
+  ["GET", "/api/admin/withdrawals"],
+  ["GET", "/api/admin/stars/ledger"],
+  ["GET", "/api/admin/star-packs"],
+  ["GET", "/api/admin/ai-jobs"],
+  ["GET", "/api/admin/audit-logs"],
   ["GET", "/api/admin/support/tickets"],
   ["GET", "/api/admin/feature-flags"],
   ["PATCH", "/api/admin/feature-flags/paid_ai_models", { value: true }],
   ["PATCH", "/api/admin/templates/does-not-exist", { status: "published" }],
-  ["PATCH", "/api/admin/support/tickets/does-not-exist", { status: "closed" }]
+  ["PATCH", "/api/admin/support/tickets/does-not-exist", { status: "closed" }],
+  ["POST", "/api/admin/users/00000000-0000-0000-0000-000000000000/moderate", { action: "warn", reason: "test" }],
+  ["POST", "/api/admin/users/00000000-0000-0000-0000-000000000000/balance", { deltaStars: 10, reason: "test" }],
+  ["POST", "/api/admin/notifications/broadcast", { title: "Test", message: "Hello" }]
 ];
 
 const EMAIL = `adminprobe_${Date.now()}@example.invalid`;

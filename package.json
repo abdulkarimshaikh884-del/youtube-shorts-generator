@@ -39,15 +39,16 @@
     "test:skills": "node verify_skills.js",
     "test:publish": "node verify_publish.js",
     "test:lottie": "node verify_lottie.js",
-    "test:polish:offline": "node verify_polish_offline.js && node tests/polish-backend-offline.test.js && node tests/draft-sync-offline.test.js && node verify_ai_definition.js"
+    "test:polish:offline": "node verify_polish_offline.js && node tests/polish-backend-offline.test.js && node tests/draft-sync-offline.test.js && node verify_ai_definition.js",
+    "test:release:ui": "node tests/run-release-ui-qa.js"
   },
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "4.22.2",
-    "fflate": "^0.8.2",
+    "express": "4.22.3",
+    "fflate": "^0.8.3",
     "lottie-web": "^5.12.2",
     "pg": "^8.23.0",
     "puppeteer": "^25.3.0",
@@ -55,6 +56,7 @@
     "web-push": "^3.6.7"
   },
   "overrides": {
-    "body-parser": "1.20.6"
+    "body-parser": "1.20.6",
+    "qs": "6.16.0"
   }
 }

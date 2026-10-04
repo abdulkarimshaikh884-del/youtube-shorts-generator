@@ -26,16 +26,16 @@
      the legacy theme and are deliberately never loaded here. -->
 <link rel="stylesheet" href="/shell.css?v=2026092501">
 <link rel="stylesheet" href="/page.css?v=2026092501">
-<link rel="stylesheet" href="/redesign.css?v=2026092501">
+<link rel="stylesheet" href="/redesign.css?v=2026100101">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
 <link rel="stylesheet" href="/polish.css?v=2026092501">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092501">
+<link rel="stylesheet" href="/mobile.css?v=2026100101">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/ds.css?v=2026100201">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body">
@@ -367,7 +367,7 @@
             <li>Priority export queue</li>
             <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
           </ul>
-          <button type="button" class="pg-bw pg-buy" data-plan="pro" data-cycle="monthly">Choose Pro</button>
+          <button type="button" class="pg-bw pg-buy" data-plan="pro" data-cycle="monthly" disabled aria-disabled="true">Coming Soon</button>
         </article>
 
         <article class="pg-plan pg-max">
@@ -381,7 +381,7 @@
             <li>Highest export queue priority</li>
             <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
           </ul>
-          <button type="button" class="pg-bo pg-buy" data-plan="promax" data-cycle="monthly">Choose Pro Max</button>
+          <button type="button" class="pg-bo pg-buy" data-plan="promax" data-cycle="monthly" disabled aria-disabled="true">Coming Soon</button>
         </article>
       </div>
 
@@ -406,7 +406,7 @@
               <li>Unlock 1–5 premium designs</li>
               <li>Instant star balance delivery</li>
             </ul>
-            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_10" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 10 Stars · ₹49</button>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_10" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
 
           <article class="pg-plan pg-hot" style="border:2px solid #f59e0b;border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
@@ -419,7 +419,7 @@
               <li>Unlock ~22 premium templates</li>
               <li>Send appreciation tips to creators</li>
             </ul>
-            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_45" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 45 Stars · ₹199</button>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_45" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
 
           <article class="pg-plan" style="border:1px solid var(--sc-border);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);">
@@ -431,7 +431,7 @@
               <li>Unlock 60+ premium templates</li>
               <li>Tip favorite tutorial channels</li>
             </ul>
-            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_120" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 120 Stars · ₹499</button>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_120" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
 
           <article class="pg-plan pg-max" style="border:1px solid rgba(139,92,246,0.4);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
@@ -444,12 +444,12 @@
               <li>Unlimited remix & library unlocks</li>
               <li>Exclusive supporter recognition</li>
             </ul>
-            <button type="button" class="pg-bo pg-buy-stars" data-star-pack="stars_260" style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;border:none;font-weight:700;">Buy 260 Stars · ₹999</button>
+            <button type="button" class="pg-bo pg-buy-stars" data-star-pack="stars_260" style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
         </div>
 
         <p class="pg-note pg-center" id="starsBuyNote" role="status" aria-live="polite" style="margin-top:16px;"></p>
-        <p class="pg-fine pg-center" style="margin-top:8px;">Stars do not expire. Creators keep 70% (₹3.50/star) upon receiving unlocks or tips, withdrawable directly via UPI.</p>
+        <p class="pg-fine pg-center" style="margin-top:8px;">Stars purchases, donations, paid unlocks and payouts are Coming Soon. No payment will be taken in this Free release.</p>
       </section>
 
       <section class="pg-sec" id="credits">
@@ -535,9 +535,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026092501" defer></script>
+<script src="/authui.js?v=2026100202" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
-<script src="/page.js?v=2026092501" defer></script>
-<script src="/checkout.js?v=2026092501" defer></script></body>
+<script src="/page.js?v=2026100201" defer></script>
+<script src="/checkout.js?v=2026100202" defer></script></body>
 </html>

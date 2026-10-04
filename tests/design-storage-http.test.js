@@ -1,0 +1,37 @@
+"use strict";
+const assert=require("node:assert/strict"), crypto=require("node:crypto"), fs=require("node:fs"), path=require("node:path");
+assert.equal(process.env.SC_ISOLATED_POSTGRES_QA,"true");
+const target=new URL(process.env.DATABASE_URL); assert.equal(target.hostname,"127.0.0.1"); assert.equal(target.port,"55437"); assert.equal(target.pathname,"/shortscraft_qa");
+const db=require("../db"), BASE=process.env.BASE_URL, checks=[];
+async function call(cookie,method,route,body) {
+ const response=await fetch(BASE+route,{method,headers:{"Content-Type":"application/json",...(cookie?{Cookie:cookie}:{})},...(body?{body:JSON.stringify(body)}:{})});
+ return {status:response.status,data:await response.json(),cookie:response.headers.getSetCookie().map(c=>c.split(";")[0]).join("; ")};
+}
+function check(label,fn){fn();checks.push(label);console.log("PASS "+label);}
+(async()=>{
+ const suffix=crypto.randomBytes(5).toString("hex");
+ const a=await call(null,"POST","/api/auth/signup",{email:`designa-${suffix}@example.com`,password:"Design-qa-strong-2026",handle:`designa_${suffix}`});
+ const b=await call(null,"POST","/api/auth/signup",{email:`designb-${suffix}@example.com`,password:"Design-qa-strong-2026",handle:`designb_${suffix}`});
+ assert.equal(a.status,200);assert.equal(b.status,200);
+ const body={title:"Local real Design QA",canvas:{width:640,height:360},elements:[{id:"headline",type:"text",text:"Editable QA text",x:20,y:20,width:400,height:90,fontSize:36}],designType:"youtube-thumbnail",category:"youtube-thumbnail"};
+ assert.equal((await call(null,"PUT","/api/designs/projects/new",body)).status,401);
+ const saved=await call(a.cookie,"PUT","/api/designs/projects/new",body);assert.equal(saved.status,200);
+ const id=saved.data.project.id;
+ const row=(await db.query("select * from public.design_projects where id=$1",[id])).rows[0];
+ check("HTTP Design save stores real editable elements in PostgreSQL",()=>{assert.equal(row.user_id,a.data.user.id);assert.equal(row.elements[0].text,body.elements[0].text);});
+ const reopened=await call(a.cookie,"GET","/api/designs/projects/"+id);
+ check("HTTP Design reopen retains actual layers",()=>assert.equal(reopened.data.project.elements[0].text,body.elements[0].text));
+ check("other accounts cannot read or overwrite the project",()=>{});
+ assert.equal((await call(b.cookie,"GET","/api/designs/projects/"+id)).status,404);
+ assert.equal((await call(b.cookie,"PUT","/api/designs/projects/"+id,body)).status,403);
+ const published=await call(a.cookie,"POST","/api/designs/publish",{...body,projectId:id});assert.equal(published.status,200);
+ const tpl=published.data.template;
+ const publicRead=await call(null,"GET","/api/designs/templates/"+tpl.id);
+ check("real Design publication is public with genuine publisher and zero invented popularity",()=>{assert.equal(publicRead.status,200);assert.equal(publicRead.data.template.authorHandle,a.data.user.handle);assert.equal(publicRead.data.template.uses,0);assert.equal(publicRead.data.template.likes,0);});
+ const cloned=await call(b.cookie,"POST","/api/designs/templates/"+tpl.id+"/clone",{});assert.equal(cloned.status,200);
+ check("another user can clone a public design into their own durable project",()=>{assert.notEqual(cloned.data.project.id,id);assert.equal(cloned.data.project.userId,b.data.user.id);assert.equal(cloned.data.project.elements[0].text,body.elements[0].text);});
+ assert.equal((await call(b.cookie,"DELETE","/api/designs/projects/"+id)).status,404);
+ assert.equal((await call(a.cookie,"DELETE","/api/designs/projects/"+id)).status,200);
+ check("only the owner can delete the project",()=>{});
+ fs.writeFileSync(path.resolve(__dirname,"../audit_results/postgres-isolated/design-http-evidence.json"),JSON.stringify({testedAt:new Date().toISOString(),checks,boundary:"Real local Express/PostgreSQL layers/storage/ownership; not physical-device, image segmentation quality or production publication proof."},null,2));
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>db.getPool().end());

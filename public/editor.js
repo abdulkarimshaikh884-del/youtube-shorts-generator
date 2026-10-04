@@ -54,6 +54,7 @@
   var mounted = -1, pps = 60;
   var cost = { export: 1, animate: 2 };   // overwritten by GET /api/credits
   var attached = null;                    // {name, dataUrl} in the AI composer
+  var imageVersion = 0, imagePending = false;
   var uploadSeq = 0;                      // unique ids so each label targets its own input
   var creating = false;
   var sourceTemplateId = null;             // community publication, when opened from one
@@ -1466,6 +1467,7 @@
      replaceIndex: re-roll an existing clip instead of appending one. */
   function createScene(replaceIndex) {
     if (creating) { status("Still generating — one at a time."); return; }
+    if (imagePending) { status("Please wait while the image is checked."); return; }
     var prompt = ($("#edPrompt").value || "").trim();
     if (prompt.length < 8) {
       status("Describe the animation in a few more words.");
@@ -1493,7 +1495,7 @@
       btn.disabled = true;
       btn.textContent = "Designing…";
     }
-    status("Launch Boost AI is planning a multi-scene animation — please wait…");
+    status("Generating your animation — please wait…");
 
     addChatMessage("user", prompt);
 
@@ -1505,13 +1507,11 @@
       '<div class="ed-thinking-box" id="activeThinkingBox">' +
         '<div class="ed-think-head">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>' +
-          '<span>Launch Boost AI · Storyboard planning…</span>' +
+          '<span>AI · Generating animation…</span>' +
           '<span id="thElapsed" style="margin-left:auto;font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums;">0s</span>' +
         '</div>' +
         '<div class="ed-shimmer-track"><div class="ed-shimmer-bar"></div></div>' +
-        '<div class="ed-think-step active" id="thStep1">✦ Analyzing hook, message &amp; visual hierarchy...</div>' +
-        '<div class="ed-think-step" id="thStep2">✦ Planning story beats, layouts &amp; motion...</div>' +
-        '<div class="ed-think-step" id="thStep3">✦ Validating editable animation scenes...</div>' +
+        '<div class="ed-think-step active" id="thStep1">Waiting for the AI response. This may take a little while.</div>' +
         '<div style="display:flex;justify-content:flex-end;margin-top:6px;">' +
           '<button type="button" class="ed-result-btn" id="thCancelBtn" style="font-size:11px;padding:3px 9px;color:var(--ink3);background:transparent;border-color:var(--line);">Cancel</button>' +
         '</div>' +
@@ -1524,26 +1524,8 @@
       if (el) el.textContent = sec + "s";
     }, 1000);
 
-    var stepTimers = [
-      setTimeout(function () {
-        var s1 = document.getElementById("thStep1"), s2 = document.getElementById("thStep2");
-        if (s1) { s1.className = "ed-think-step done"; s1.textContent = "✓ Prompt and story structure analyzed"; }
-        if (s2) { s2.className = "ed-think-step active"; }
-      }, 3500),
-      setTimeout(function () {
-        var s2 = document.getElementById("thStep2"), s3 = document.getElementById("thStep3");
-        if (s2) { s2.className = "ed-think-step done"; s2.textContent = "✓ Multi-scene storyboard planned"; }
-        if (s3) { s3.className = "ed-think-step active"; }
-      }, 10000),
-      setTimeout(function () {
-        var s3 = document.getElementById("thStep3");
-        if (s3) { s3.className = "ed-think-step active"; s3.textContent = "✦ Rendering editable scenes to canvas..."; }
-      }, 18000)
-    ];
-
     function cleanup() {
       clearInterval(elapsedInterval);
-      stepTimers.forEach(function (t) { clearTimeout(t); });
     }
 
     var cancelBtn = document.getElementById("thCancelBtn");
@@ -1553,7 +1535,7 @@
         cleanup();
         creating = false;
         if (btn) {
-          btn.disabled = false;
+          btn.disabled = imagePending;
           btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg> Create / Refine';
         }
         if (aiMsg) {
@@ -1689,7 +1671,7 @@
     }).finally(function () {
       creating = false;
       if (btn) {
-        btn.disabled = false;
+        btn.disabled = imagePending;
         btn.innerHTML =
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg> ' +
           'Create / Refine';
@@ -1699,29 +1681,36 @@
 
   function attachImage(file) {
     if (!file) return;
-    if (!/^image\/(png|jpeg|jpg|webp|gif)$/.test(file.type)) {
-      status("Attach a png, jpeg, webp or gif.");
-      return;
-    }
-    if (file.size > 900 * 1024) {
-      status("That image is " + Math.round(file.size / 1024) + " KB — keep it under 900 KB.");
-      return;
-    }
-    var fr = new FileReader();
-    fr.onload = function () {
-      attached = { name: file.name, dataUrl: String(fr.result) };
-      $("#edImgName").textContent = file.name;
+    var version = ++imageVersion;
+    imagePending = true;
+    var button = $("#edCreate");
+    if (button) button.disabled = true;
+    status("Checking image…");
+    window.SC_IMAGE_INPUT.read(file).then(function (result) {
+      if (version !== imageVersion) return;
+      attached = result;
+      $("#edImgName").textContent = result.name;
       $("#edImgClear").hidden = false;
       status("Image attached — it will be animated inside the scene.");
-    };
-    fr.onerror = function () { status("Could not read that file."); };
-    fr.readAsDataURL(file);
+    }).catch(function (error) {
+      if (version !== imageVersion) return;
+      $("#edImg").value = "";
+      status(error.message || "Could not read that image.");
+    }).finally(function () {
+      if (version !== imageVersion) return;
+      imagePending = false;
+      if (button) button.disabled = creating;
+    });
   }
 
   function clearImage() {
+    imageVersion++; imagePending = false;
     attached = null;
     $("#edImg").value = "";
+    $("#edImgName").textContent = "image";
     $("#edImgClear").hidden = true;
+    var button = $("#edCreate");
+    if (button) button.disabled = creating;
   }
 
   function exportMp4() {
@@ -1755,7 +1744,7 @@
       })
     };
 
-    status("Rendering MP4 on server. This takes 4–8 seconds…");
+    status("Rendering MP4 on server. Time depends on the video and server load…");
 
     fetch("/api/export", {
       method: "POST",
@@ -2065,11 +2054,7 @@
     var imgClearBtn = $("#edImgClear");
     if (imgClearBtn) {
       imgClearBtn.addEventListener("click", function () {
-        attached = null;
-        var nameSpan = $("#edImgName");
-        if (nameSpan) nameSpan.textContent = "image";
-        imgClearBtn.hidden = true;
-        if (imgInput) imgInput.value = "";
+        clearImage();
       });
     }
 

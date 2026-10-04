@@ -127,5 +127,5 @@ const call = async (user, method, route, body) => {
   }
 
   console.log(`\nPUBLISH=${failures === 0 ? "PASS" : "FAIL"}${failures ? " (" + failures + " failing)" : ""}`);
-  process.exit(failures === 0 ? 0 : 1);
+  process.exitCode = failures === 0 ? 0 : 1;
 })();

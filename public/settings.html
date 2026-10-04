@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
+<meta name="referrer" content="no-referrer"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Settings — ShortsCraft</title>
 <meta name="description" content="Your ShortsCraft profile, plan and account controls."/>
@@ -27,7 +28,7 @@
      the legacy theme and are deliberately never loaded here. -->
 <link rel="stylesheet" href="/shell.css?v=2026092501">
 <link rel="stylesheet" href="/page.css?v=2026092501">
-<link rel="stylesheet" href="/redesign.css?v=2026092501">
+<link rel="stylesheet" href="/redesign.css?v=2026100101">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
 <link rel="stylesheet" href="/polish.css?v=2026092501">
@@ -61,9 +62,9 @@
 }
 </style>
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092501">
+<link rel="stylesheet" href="/mobile.css?v=2026100101">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/ds.css?v=2026100201">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body">
@@ -389,6 +390,17 @@
           </div>
         </div>
 
+        <section id="referralSettings" hidden aria-labelledby="referralHeading">
+          <h2 class="st-label" id="referralHeading">Invite friends</h2>
+          <div class="st-list">
+            <div class="st-row"><span class="st-grow"><strong>10 bonus credits for both of you</strong><span class="st-sub">Your friend must create a new account, verify their email and complete a successful animation export. Up to 10 rewarded referrals per month. Bonus credits do not reset daily.</span></span></div>
+            <div class="st-row"><label class="st-grow" for="referralLink">Your invite link<input id="referralLink" readonly style="display:block;width:100%;min-width:0;margin-top:8px;font-size:16px" /></label><button type="button" class="st-btn" id="copyReferralLink">Copy</button></div>
+            <div class="st-row"><span id="referralStats" class="st-sub" aria-live="polite"></span></div>
+            <div class="st-row" id="referralVerifyRow" hidden><span class="st-grow st-sub">Verify your email to qualify for an invitation reward.</span><button type="button" class="st-btn" id="sendVerification">Verify email</button></div>
+            <div class="st-row" id="referralMessage" hidden role="status"></div>
+          </div>
+        </section>
+
         <h2 class="st-label">Your work</h2>
         <div class="st-list">
           <a class="st-row st-link" href="/drafts#published"><span class="st-key">Published templates</span><span class="st-chev" aria-hidden="true">›</span></a>
@@ -484,9 +496,10 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026092501" defer></script>
+<script src="/authui.js?v=2026100202" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
-<script src="/page.js?v=2026092501" defer></script>
+<script src="/page.js?v=2026100201" defer></script>
+<script src="/referrals.js?v=2026100101" defer></script>
 </body>
 </html>

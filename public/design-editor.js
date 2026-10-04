@@ -739,7 +739,13 @@
     if (window.ResizeObserver) new ResizeObserver(updateZoom).observe(stageWrap);
     if (window.visualViewport) {
       var syncViewport = function () {
-        $(".de-app").style.setProperty("--de-viewport-height", window.visualViewport.height + "px");
+        var app = $(".de-app");
+        // Do not reflow the workspace while the user pinch-zooms it.
+        if (!window.matchMedia("(max-width: 1024px)").matches || window.visualViewport.scale > 1.05) {
+          app.style.removeProperty("--de-viewport-height");
+          return;
+        }
+        app.style.setProperty("--de-viewport-height", window.visualViewport.height + "px");
       };
       window.visualViewport.addEventListener("resize", syncViewport);
       syncViewport();

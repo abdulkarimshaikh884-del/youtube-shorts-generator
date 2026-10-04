@@ -26,18 +26,18 @@
      the legacy theme and are deliberately never loaded here. -->
 <link rel="stylesheet" href="/shell.css?v=2026092501">
 <link rel="stylesheet" href="/page.css?v=2026092501">
-<link rel="stylesheet" href="/redesign.css?v=2026092501">
+<link rel="stylesheet" href="/redesign.css?v=2026100101">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
 <link rel="stylesheet" href="/polish.css?v=2026092501">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
-<link rel="stylesheet" href="/designs.css?v=2026092501">
+<link rel="stylesheet" href="/designs.css?v=2026100101">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092501">
+<link rel="stylesheet" href="/mobile.css?v=2026100101">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/ds.css?v=2026100201">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body page-home">
@@ -342,7 +342,7 @@
           </button>
           <div class="sh-custom-select" id="qualityDropdown">
             <input type="hidden" name="quality" id="qualitySelect" value="mini">
-            <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Model tier: Free">
+            <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Generation model: Standard">
               <span class="sh-csel-val" id="qualityVal">Standard</span>
               <svg class="sh-csel-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
@@ -481,7 +481,7 @@
               </div>
             </div>
             <h3>Customize in Studio</h3>
-            <p>Change text, accent colors, kinetic speed, and sound in our fast browser studio. Real-time preview with zero rendering lag.</p>
+            <p>Adjust text, colors and timing in the browser studio, then preview your animation before export.</p>
           </div>
           <div class="sh-workflow-card">
             <div class="sh-wf-top">
@@ -566,7 +566,7 @@
         <div class="sh-finale-card">
           <div class="sh-finale-glow" aria-hidden="true"></div>
           <h2>Ready to Level Up Your YouTube Shorts?</h2>
-          <p>Join thousands of creators producing scroll-stopping motion graphics and viral thumbnails in seconds.</p>
+          <p>Choose a template, make it your own and export your next animation or design.</p>
           <div class="sh-frow">
             <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
             <a href="/animations" class="sh-bo">Browse All Templates</a>
@@ -574,7 +574,7 @@
           <div class="sh-finale-trust">
             <span>✓ No credit card required</span>
             <span>✓ 5 free daily credits</span>
-            <span>✓ Works on any browser</span>
+            <span>✓ Edit in your browser</span>
           </div>
         </div>
       </section>
@@ -640,9 +640,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026092501" defer></script>
+<script src="/authui.js?v=2026100202" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
 
-<script src="/design-preview.js?v=2026092501" defer></script><script src="/templates-v2.js?v=2026092501" defer></script><script src="/shell.js?v=2026092501" defer></script></body>
+<script src="/image-input.js?v=2026100201" defer></script><script src="/design-preview.js?v=2026092501" defer></script><script src="/templates-v2.js?v=2026092501" defer></script><script src="/shell.js?v=2026100202" defer></script></body>
 </html>

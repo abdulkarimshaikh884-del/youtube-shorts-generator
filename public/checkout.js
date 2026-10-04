@@ -230,6 +230,8 @@
   
   // ── Star Packs Razorpay Checkout ───────────────────────────
   function beginStarCheckout(button) {
+    // Free release: never create a gateway order, including direct calls.
+    if (!window.SC_RELEASE || !SC_RELEASE.monetizationEnabled) return;
     var packId = button.dataset.starPack;
     if (!packId) return;
 

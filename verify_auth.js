@@ -322,7 +322,7 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
     const expected = chrome.me.displayName || (local.charAt(0).toUpperCase() + local.slice(1));
     ok(chrome.name === expected && chrome.name !== "Account", "the sidebar shows who I am, by display name", chrome.name);
   }
-  ok(/credits left today/.test(chrome.badge), "the sidebar shows my credits", chrome.badge);
+  ok(new RegExp("\\b" + FREE_PER_DAY + " of " + FREE_PER_DAY + " left today\\b").test(chrome.badge), "the sidebar shows the current numeric credit balance", chrome.badge);
 
   console.log("\n---- /account ----");
   await page.goto(BASE + "/account", { waitUntil: "networkidle2" });

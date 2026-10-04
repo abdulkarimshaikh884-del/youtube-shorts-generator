@@ -75,7 +75,7 @@ body.sh-body :is(.pg-bw, .sh-bw, .sh-cta, .sh-ge-btn.sh-ge-primary, .ig-btn-prim
   border: 1px solid transparent !important;
   border-radius: 12px !important;
   background: var(--sc-brand) !important;
-  color: #fff !important;
+  color: var(--sc-on-brand, #fff) !important;
   font-weight: 650;
   box-shadow: 0 6px 16px color-mix(in srgb, var(--sc-brand) 24%, transparent) !important;
   text-decoration: none;
@@ -96,7 +96,7 @@ body.sh-body :is(.pg-bo, .sh-bo, .sh-ge-btn:not(.sh-ge-primary), .ig-btn-seconda
 body.sh-body :is(.pg-bo, .sh-bo, .sh-ge-btn:not(.sh-ge-primary), .ig-btn-secondary, .sh-hcta:not(.sh-hcta-primary)):hover {
   border-color: var(--sc-brand) !important; color: var(--sc-brand) !important; transform: none;
 }
-body.sh-body .sh-cgo { border-radius: 12px !important; background: var(--sc-brand) !important; color: #fff !important; }
+body.sh-body .sh-cgo { border-radius: 12px !important; background: var(--sc-brand) !important; color: var(--sc-on-brand, #fff) !important; }
 body.sh-body .sh-cgo:disabled { opacity: 1; }
 
 /* ── Cards ───────────────────────────────────────────────── */

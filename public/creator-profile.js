@@ -332,8 +332,10 @@
     };
 
     star.onclick = function () {
-      openStarsModal(c);
+      if (window.SC_UI) SC_UI.toast("Stars donations are Coming Soon.");
     };
+    star.disabled = true;
+    star.textContent = "Stars — Coming Soon";
   }
 
   function openFollowsModal(kind, c) {

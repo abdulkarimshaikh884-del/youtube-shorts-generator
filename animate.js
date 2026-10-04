@@ -16,7 +16,7 @@
 
 const MAX_CSS = 24000;
 const MAX_BODY = 8000;
-const MAX_IMG_BYTES = 1_200_000;      // ~1.2 MB data URL
+const MAX_IMG_BYTES = Math.ceil((900 * 1024) / 3) * 4 + 40; // 900 KB binary + data-URL/base64 overhead
 
 /* Tags a scene may use. No <img> — pictures arrive as --img on a background,
    which keeps every external reference out of the document. */

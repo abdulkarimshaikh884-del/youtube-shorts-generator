@@ -311,7 +311,9 @@ async function api(j, url, opts = {}) {
   );
   ok(!!ledgerRows[0], "the ledger has a row for this visitor",
     ledgerRows[0] && ledgerRows[0].left_credits);
-  await pgdb.query(`update public.credits set left_credits = 0 where key = $1`, [token]);
+  // Normalization enforces dailyLeft = perDay - spent. A fixture that only
+  // changes left_credits is repaired on read, so represent a fully spent day.
+  await pgdb.query(`update public.credits set left_credits = 0, spent = $2 where key = $1`, [token, FREE_PER_DAY]);
 
   st = await (await api(j, "/api/credits")).json();
   ok(st.left === 0, "the server reads the balance back from the ledger", st.left);

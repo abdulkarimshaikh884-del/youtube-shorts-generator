@@ -16,14 +16,14 @@ body.sh-body .ds-filter-btn.active,body.sh-body .ds-filter-btn[aria-pressed="tru
 .ds-page-container .ds-card-body { padding:13px 14px 16px; gap:5px; }
 .ds-page-container .ds-card-title { font-size:15px; line-height:1.35; margin:0; }
 .ds-page-container .ds-card-author { font-size:12px; line-height:1.4; color:var(--sc-muted); margin:0; }
-.ds-card .sh-tcreator-row { position:relative; z-index:2; display:flex; align-items:center; gap:7px; text-decoration:none; margin-top:6px; cursor:pointer; }
+.ds-card .ds-card-author { position:relative; z-index:2; display:flex; align-items:center; gap:7px; text-decoration:none; margin-top:6px; cursor:pointer; min-height:40px; }
 .ds-card .sh-tcreator-avatar { width:22px; height:22px; border-radius:50%; background:var(--sc-surface-2); border:1px solid var(--sc-border); display:grid; place-items:center; font-size:9.5px; font-weight:750; color:var(--sc-text); flex:none; }
 .ds-card .sh-tcreator-info { display:flex; flex-direction:column; min-width:0; flex:1; line-height:1.2; }
 .ds-card .sh-tcreator-name { font-size:11.5px; font-weight:600; color:var(--sc-text); display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ds-card .sh-tcreator-name .sc-name-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ds-card .sh-tcreator-name .sh-verified { flex:none; width:12px; height:12px; display:inline-flex; color:#3b82f6; }
 .ds-card .sh-tcreator-handle { font-size:10.5px; color:var(--sc-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ds-card .sh-tcreator-row:hover .sh-tcreator-name .sc-name-text { text-decoration:underline; color:var(--sc-brand); }
+.ds-card .ds-card-author:hover .sh-tcreator-name .sc-name-text { text-decoration:underline; color:var(--sc-brand); }
 .ds-card-open { position:absolute; inset:0; z-index:1; width:100%; height:100%; border:0; background:transparent; cursor:pointer; }
 .ds-card-open:focus-visible { outline:2px solid var(--sc-text); outline-offset:-4px; border-radius:inherit; }
 #reviewReconstructedStage { width:100%; height:320px; }

@@ -120,8 +120,26 @@ async function cleanup() {
     "unfollowing removes it", r.data && `${r.data.active}/${r.data.followers}`);
 
   console.log("\n---- Stars ----");
+  const initial = (await api(A.jar, "/api/stars")).data;
+  ok(initial && initial.balance === 0 && initial.allowance === 0, "Free signup does not invent a paid Star allowance", initial && initial.balance);
+  if (!require("./release-policy").monetizationEnabled) {
+    for (const endpoint of ["/api/stars/donate", "/api/stars/withdraw", "/api/stars/purchase/order", "/api/stars/purchase/verify"]) {
+      r = await api(A.jar, endpoint, { userId: B.id, amount: 2 });
+      ok(r.status === 503 && r.data.code === "MONETIZATION_COMING_SOON", endpoint + " is server-blocked for Free release", r.status);
+    }
+    const after = (await api(A.jar, "/api/stars")).data;
+    ok(after.balance === initial.balance && after.sent === initial.sent, "Coming Soon actions do not change Stars", after.balance);
+  } else {
+  // Donation tests need explicit funding, not a fabricated Free-plan grant.
+  // This fixture grant is permitted only by the guarded local PostgreSQL runner.
+  if (process.env.SC_ISOLATED_POSTGRES_QA !== "true") throw Error("Donation funding requires the isolated PostgreSQL QA runner; no production grant was made.");
+  const target = new URL(process.env.DATABASE_URL);
+  if (target.hostname !== "127.0.0.1" || target.port !== "55437" || target.pathname !== "/shortscraft_qa") throw Error("Refusing a non-isolated Star fixture grant.");
+  const owner = (await db.query("select id, role from public.users where role='super_admin' order by created_at limit 1")).rows[0];
+  const grant = await require("./admin").adjustUserBalance(owner,A.id,{type:"stars",delta:5,reason:"Isolated donation regression fixture"});
+  if (!grant.success) throw Error(grant.error || "Local fixture funding failed");
   const before = (await api(A.jar, "/api/stars")).data;
-  ok(before && before.balance > 0, "a new account has an allowance to give", before && before.balance);
+  ok(before && before.balance === 5, "an explicit local admin grant funds donation testing", before && before.balance);
 
   r = await api(A.jar, "/api/stars/donate", { userId: A.id, amount: 1 });
   ok(r.status === 400, "you cannot send Stars to yourself", r.status);
@@ -148,6 +166,7 @@ async function cleanup() {
   const notes = (await api(B.jar, "/api/notifications")).data;
   const list = (notes && (notes.notifications || notes.items)) || [];
   ok(Array.isArray(list) && list.length > 0, "B has a notification about it", list.length);
+  }
 
   console.log("\n---- the buttons on the page ----");
   const browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox"] });

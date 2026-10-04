@@ -11,7 +11,7 @@ const OUT = path.join(__dirname, "public");
    any change to those files: they are served with a long max-age, so without
    a new key a returning visitor keeps the old copy and sees a half-updated
    product. */
-const V = "2026092501";
+const V = "2026100202";
 
 /* Read from credits.js rather than require()ing it: that module pulls in db.js,
    which throws at import time when DATABASE_URL is unset — so generating static
@@ -609,7 +609,7 @@ ${pageHead("Pricing")}
             <li>Priority export queue</li>
             <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
           </ul>
-          <button type="button" class="pg-bw pg-buy" data-plan="pro" data-cycle="monthly">Choose Pro</button>
+          <button type="button" class="pg-bw pg-buy" data-plan="pro" data-cycle="monthly" disabled aria-disabled="true">Coming Soon</button>
         </article>
 
         <article class="pg-plan pg-max">
@@ -623,7 +623,7 @@ ${pageHead("Pricing")}
             <li>Highest export queue priority</li>
             <li class="pg-yearly-only" hidden>Verified creator badge while yearly plan is active</li>
           </ul>
-          <button type="button" class="pg-bo pg-buy" data-plan="promax" data-cycle="monthly">Choose Pro Max</button>
+          <button type="button" class="pg-bo pg-buy" data-plan="promax" data-cycle="monthly" disabled aria-disabled="true">Coming Soon</button>
         </article>
       </div>
 
@@ -648,7 +648,7 @@ ${pageHead("Pricing")}
               <li>Unlock 1–5 premium designs</li>
               <li>Instant star balance delivery</li>
             </ul>
-            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_10" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 10 Stars · ₹49</button>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_10" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
 
           <article class="pg-plan pg-hot" style="border:2px solid #f59e0b;border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
@@ -661,7 +661,7 @@ ${pageHead("Pricing")}
               <li>Unlock ~22 premium templates</li>
               <li>Send appreciation tips to creators</li>
             </ul>
-            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_45" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 45 Stars · ₹199</button>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_45" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
 
           <article class="pg-plan" style="border:1px solid var(--sc-border);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);">
@@ -673,7 +673,7 @@ ${pageHead("Pricing")}
               <li>Unlock 60+ premium templates</li>
               <li>Tip favorite tutorial channels</li>
             </ul>
-            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_120" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;">Buy 120 Stars · ₹499</button>
+            <button type="button" class="pg-bw pg-buy-stars" data-star-pack="stars_120" style="width:100%;background:linear-gradient(135deg, #f59e0b, #d97706);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
 
           <article class="pg-plan pg-max" style="border:1px solid rgba(139,92,246,0.4);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;background:var(--sc-surface-1, #0f172a);position:relative;">
@@ -686,12 +686,12 @@ ${pageHead("Pricing")}
               <li>Unlimited remix & library unlocks</li>
               <li>Exclusive supporter recognition</li>
             </ul>
-            <button type="button" class="pg-bo pg-buy-stars" data-star-pack="stars_260" style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;border:none;font-weight:700;">Buy 260 Stars · ₹999</button>
+            <button type="button" class="pg-bo pg-buy-stars" data-star-pack="stars_260" style="width:100%;background:linear-gradient(135deg, #8b5cf6, #6d28d9);color:#fff;border:none;font-weight:700;" disabled aria-disabled="true">Coming Soon</button>
           </article>
         </div>
 
         <p class="pg-note pg-center" id="starsBuyNote" role="status" aria-live="polite" style="margin-top:16px;"></p>
-        <p class="pg-fine pg-center" style="margin-top:8px;">Stars do not expire. Creators keep 70% (₹3.50/star) upon receiving unlocks or tips, withdrawable directly via UPI.</p>
+        <p class="pg-fine pg-center" style="margin-top:8px;">Stars purchases, donations, paid unlocks and payouts are Coming Soon. No payment will be taken in this Free release.</p>
       </section>
 
       <section class="pg-sec" id="credits">
@@ -1838,7 +1838,7 @@ const authPage = (kind) => {
             <input id="authPassword" name="password" type="password"
                    autocomplete="${isUp ? "new-password" : "current-password"}"
                    minlength="8" maxlength="200" required>
-            <button type="button" class="pg-pw-toggle" id="authPasswordToggle" data-password-toggle="#authPassword" aria-label="Show password" aria-pressed="false" tabindex="-1">
+            <button type="button" class="pg-pw-toggle" id="authPasswordToggle" data-password-toggle="#authPassword" aria-label="Show password" aria-pressed="false">
               <svg class="pg-pw-eye pg-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="pg-pw-eye pg-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
             </button>
@@ -2043,11 +2043,11 @@ const account = {
           <div class="ig-account-grid">
             <article class="ig-account-card ig-acc-highlight">
               <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Available to Withdraw</span>
-                <span class="ig-badge" id="walletMinBadge" style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(217,119,6,0.15);color:#d97706;border:1px solid rgba(217,119,6,0.3);">Min. ₹50.00</span>
+                <span class="ig-acc-lbl">Recorded estimate (not withdrawable)</span>
+                <span class="ig-badge" id="walletMinBadge" style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(217,119,6,0.15);color:#d97706;border:1px solid rgba(217,119,6,0.3);">Coming Soon</span>
               </div>
               <p class="ig-acc-val" id="walletAvailableInr" style="color:var(--sh-ink);font-weight:800;">₹0.00</p>
-              <p class="ig-acc-sub" id="walletAvailableStars">0 Stars available (70% revenue split = ₹3.50/star)</p>
+              <p class="ig-acc-sub" id="walletAvailableStars">Payouts — Coming Soon</p>
             </article>
 
             <article class="ig-account-card">
@@ -2068,13 +2068,13 @@ const account = {
           <div class="ig-card" style="margin-top:20px;padding:22px;border:1px solid var(--sh-line);border-radius:16px;background:var(--sh-bg2);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
               <h3 style="font-size:17px;font-weight:700;margin:0;color:var(--sh-ink);">Request UPI Payout</h3>
-              <span style="font-size:12px;color:var(--sh-ink3);">Settled to bank via UPI within 24–48 hours</span>
+              <span style="font-size:12px;color:var(--sh-ink3);">Coming Soon</span>
             </div>
             <p style="font-size:13px;color:var(--sh-ink2);margin:0 0 16px;line-height:1.5;">
-              Creators keep <strong>70% of every Star</strong> (₹3.50/star). Withdrawals require a valid UPI ID (e.g. Google Pay, PhonePe, Paytm, BHIM) and a minimum balance of exactly <strong>₹50.00</strong> (15 Stars = ₹52.50).
+              Payouts, Stars donations and paid unlocks are not available in this Free release. Existing records are preserved. Settlement terms will be published after verification; no payout date is promised.
             </p>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;align-items:end;">
+            <div hidden style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;align-items:end;">
               <div>
                 <label for="payoutUpiInput" style="display:block;font-size:12px;font-weight:600;color:var(--sh-ink2);margin-bottom:6px;">Your UPI ID</label>
                 <input type="text" id="payoutUpiInput" placeholder="yourname@okhdfcbank or 9876543210@paytm" style="width:100%;padding:10px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg1);color:var(--sh-ink);font-size:13px;" />
@@ -2299,7 +2299,7 @@ const indexPage = {
           </button>
           <div class="sh-custom-select" id="qualityDropdown">
             <input type="hidden" name="quality" id="qualitySelect" value="mini">
-            <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Model tier: Free">
+            <button type="button" class="sh-csel-btn" id="qualityBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Generation model: Standard">
               <span class="sh-csel-val" id="qualityVal">Standard</span>
               <svg class="sh-csel-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
             </button>
@@ -2438,7 +2438,7 @@ const indexPage = {
               </div>
             </div>
             <h3>Customize in Studio</h3>
-            <p>Change text, accent colors, kinetic speed, and sound in our fast browser studio. Real-time preview with zero rendering lag.</p>
+            <p>Adjust text, colors and timing in the browser studio, then preview your animation before export.</p>
           </div>
           <div class="sh-workflow-card">
             <div class="sh-wf-top">
@@ -2523,7 +2523,7 @@ const indexPage = {
         <div class="sh-finale-card">
           <div class="sh-finale-glow" aria-hidden="true"></div>
           <h2>Ready to Level Up Your YouTube Shorts?</h2>
-          <p>Join thousands of creators producing scroll-stopping motion graphics and viral thumbnails in seconds.</p>
+          <p>Choose a template, make it your own and export your next animation or design.</p>
           <div class="sh-frow">
             <a href="/editor" class="sh-bw">Create Animation Free <span aria-hidden="true">→</span></a>
             <a href="/animations" class="sh-bo">Browse All Templates</a>
@@ -2531,12 +2531,12 @@ const indexPage = {
           <div class="sh-finale-trust">
             <span>✓ No credit card required</span>
             <span>✓ 5 free daily credits</span>
-            <span>✓ Works on any browser</span>
+            <span>✓ Edit in your browser</span>
           </div>
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
+  scripts: `<script src="/image-input.js?v=${V}" defer></script><script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
 };
 
 /* ── ANIMATIONS ─────────────────────────────────────────────
@@ -3277,7 +3277,7 @@ const recoveryPage = (kind) => {
           <div class="pg-pw-wrap">
             <input id="resetPassword" name="password" type="password"
                    autocomplete="new-password" minlength="8" maxlength="200" required>
-            <button type="button" class="pg-pw-toggle" data-password-toggle="#resetPassword" aria-label="Show new password" aria-pressed="false" tabindex="-1">
+            <button type="button" class="pg-pw-toggle" data-password-toggle="#resetPassword" aria-label="Show new password" aria-pressed="false">
               <svg class="pg-pw-eye pg-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="pg-pw-eye pg-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
             </button>
@@ -3288,7 +3288,7 @@ const recoveryPage = (kind) => {
           <div class="pg-pw-wrap">
             <input id="resetConfirm" name="confirm" type="password"
                    autocomplete="new-password" minlength="8" maxlength="200" required>
-            <button type="button" class="pg-pw-toggle" data-password-toggle="#resetConfirm" aria-label="Show confirmed password" aria-pressed="false" tabindex="-1">
+            <button type="button" class="pg-pw-toggle" data-password-toggle="#resetConfirm" aria-label="Show confirmed password" aria-pressed="false">
               <svg class="pg-pw-eye pg-pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg class="pg-pw-eye pg-pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
             </button>

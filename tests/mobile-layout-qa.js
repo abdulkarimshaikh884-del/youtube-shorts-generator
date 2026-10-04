@@ -67,7 +67,7 @@ const routes = ['/', '/animations', '/designs', '/pricing', '/community', '/draf
     }
   }
   if (phase === 'after') {
-    for (const [width, height] of [[320,568], [390,844], [844,390], [1024,768]]) {
+    for (const [width, height] of [[320,568], [390,844], [390,440], [844,390], [1024,768]]) {
       console.log(`Checking Studio interactions at ${width}x${height}`);
       await page.setViewport({width, height, isMobile: true, hasTouch: true});
       await page.goto(base + '/editor?tpl=original-chat-story', {waitUntil: 'networkidle0'});
@@ -90,7 +90,9 @@ const routes = ['/', '/animations', '/designs', '/pricing', '/community', '/draf
         input.value = 'Mobile QA edit'; input.dispatchEvent(new Event('input', {bubbles:true}));
       });
       try {
-        await page.waitForFunction(() => [...document.querySelectorAll('#edFrame iframe')].some(f => f.contentDocument?.body.textContent.includes('Mobile QA edit')));
+        // This checks DOM content, not animation timing. rAF polling can stall
+        // in a background headless page even when the iframe already updated.
+        await page.waitForFunction(() => [...document.querySelectorAll('#edFrame iframe')].some(f => f.contentDocument?.body?.textContent.includes('Mobile QA edit')), {polling:100});
       } catch (error) {
         console.error('Preview update diagnostic', await page.evaluate(() => ({
           fields: [...document.querySelectorAll('#edFields input[type=text]')].map(el => ({id:el.id, value:el.value})),
@@ -156,8 +158,14 @@ const routes = ['/', '/animations', '/designs', '/pricing', '/community', '/draf
     assert(await page.$eval('#navMobile', el => !el.hidden && el.getBoundingClientRect().right <= innerWidth), 'Mobile menu opens inside viewport');
     await page.keyboard.press('Escape');
     assert(await page.$eval('#navMobile', el => el.hidden), 'Escape closes menu');
+    await page.$eval('.sh-ttitle',el=>el.scrollIntoView({block:'center'}));
     await page.click('.sh-ttitle');
-    await page.waitForSelector('#tplModal:not([hidden])');
+    try { await page.waitForSelector('#tplModal:not([hidden])',{timeout:5000}); }
+    catch(error) {
+      console.error('Template popup diagnostic', {url:page.url(),errors});
+      await page.screenshot({path:path.join(out,'template-popup-failure.png')});
+      throw error;
+    }
     for(const selector of ['#modalStudioBtn','#modalShareBtn','#modalClose']) {
       await page.$eval(selector,el=>el.scrollIntoView({block:'center'}));
       assert(await page.$eval(selector,el=>{const r=el.getBoundingClientRect();return r.width>0&&r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1;}), selector+' is reachable on mobile');

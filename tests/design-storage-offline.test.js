@@ -9,6 +9,8 @@ function load(env,query){
 (async()=>{
  const body={title:'Test',canvas:{width:600,height:400},elements:[{id:'one',type:'text',text:'Editable'}]};
  const local=load({},()=>{throw Error('No DB calls expected');});
+ const initial=await local.listTemplates('all');
+ assert(initial.templates.length>0);assert(initial.templates.every(t=>t.likes===0&&t.uses===0),'Built-in fallback templates must not invent popularity');
  assert.equal((await local.saveProject(null,'new',body)).status,401);
  const a=await local.saveProject('alice','new',body),b=await local.saveProject('alice','new',body);
  assert(a.success&&b.success);assert.notEqual(a.project.id,b.project.id);

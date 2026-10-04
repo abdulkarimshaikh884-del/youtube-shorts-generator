@@ -315,10 +315,11 @@
   var creditChip = document.querySelector(".sh-credit-chip");
   var accPlan = $("#accPlan"), accCredits = $("#accCredits");
   if (badge || creditChip || accPlan || accCredits) {
-    fetch("/api/credits", { headers: { Accept: "application/json" } })
-      .then(function (r) { return r.json(); })
+    window.SC_CREDIT_UI.state("loading");
+    fetch("/api/credits", { headers: { Accept: "application/json" }, signal:AbortSignal.timeout(10000) })
+      .then(function (r) { if (!r.ok) throw new Error("Credits unavailable"); return r.json(); })
       .then(function (j) {
-        if (!j || !j.success) throw new Error("credits unavailable");
+        j = window.SC_CREDIT_UI.validate(j);
         if (creditChip) {
           var chipPlan = creditChip.querySelector(".sh-credit-plan");
           var chipBalance = creditChip.querySelector(".sh-credit-balance");
@@ -336,30 +337,30 @@
 
           if (b) b.textContent = j.planLabel + " plan";
           if (sCredits) {
-            sCredits.textContent = j.left + " of " + j.perDay + " credits left today";
+            sCredits.textContent = (j.dailyLeft ?? j.left) + " of " + j.perDay + " left today" + (j.bonusCredits ? " · " + j.bonusCredits + " bonus" : "");
           } else if (sLegacy) {
-            sLegacy.textContent = j.left + " of " + j.perDay + " credits left today";
+            sLegacy.textContent = (j.dailyLeft ?? j.left) + " of " + j.perDay + " left today" + (j.bonusCredits ? " · " + j.bonusCredits + " bonus" : "");
           }
           if (sRates && j.cost) {
             sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
           }
           document.querySelectorAll(".sh-upop-credits-pill").forEach(function (el) {
-            el.textContent = "⚡ " + j.left + " / " + j.perDay + " Credits";
+            el.textContent = j.left + " available credits" + (j.bonusCredits ? " (" + j.bonusCredits + " bonus)" : "");
           });
           if (up && j.plan !== "free") {
             up.textContent = "Manage your plan ↗";
           }
         }
         if (accPlan) accPlan.textContent = j.planLabel + (j.plan === "free" ? "" : " · active");
-        if (accCredits) accCredits.textContent = j.left + " of " + j.perDay + " left today";
+        if (accCredits) accCredits.textContent = (j.dailyLeft ?? j.left) + " of " + j.perDay + " left today" + (j.bonusCredits ? " · " + j.bonusCredits + " bonus" : "");
         var fill = $("#crCreditFill");
         if (fill && j.perDay) {
-          var pct = Math.max(0, Math.min(100, Math.round((j.left / j.perDay) * 100)));
+          var pct = Math.max(0, Math.min(100, Math.round(((j.dailyLeft ?? j.left) / j.perDay) * 100)));
           fill.style.width = pct + "%";
         }
       })
       .catch(function () {
-        // the badge keeps its static copy; the cards say why they are blank
+        window.SC_CREDIT_UI.state("unavailable");
         if (accPlan && accPlan.textContent.trim() === "—") accPlan.textContent = "Could not load";
         if (accCredits && accCredits.textContent.trim() === "—") accCredits.textContent = "Could not load";
       });

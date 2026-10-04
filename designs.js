@@ -32,7 +32,7 @@ const SAMPLE_TEMPLATES = [
     preview_url: "/storage/designs/templates/heygen-trick.jpg",
     previewUrl: "/storage/designs/templates/heygen-trick.jpg",
     likes: 0,
-    uses: 342,
+    uses: 0,
     elements: [
       {
         id: "layer_background",
@@ -252,7 +252,7 @@ const SAMPLE_TEMPLATES = [
     preview_url: "/storage/designs/templates/growth-metrics.webp",
     previewUrl: "/storage/designs/templates/growth-metrics.webp",
     likes: 0,
-    uses: 195,
+    uses: 0,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#070b14", zIndex: 0 },
       { id: "card", type: "shape", shape: "roundedRectangle", x: 720, y: 100, width: 480, height: 520, fill: "#131b2e", radius: 24, stroke: "#2563eb", strokeWidth: 2, zIndex: 1 },
@@ -276,7 +276,7 @@ const SAMPLE_TEMPLATES = [
     preview_url: "/storage/designs/templates/vox-coverup.webp",
     previewUrl: "/storage/designs/templates/vox-coverup.webp",
     likes: 0,
-    uses: 128,
+    uses: 0,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1280, height: 720, fill: "#0a0a10", zIndex: 0 },
       { id: "badge", type: "shape", shape: "pill", x: 80, y: 80, width: 220, height: 48, fill: "#ef4444", zIndex: 1 },
@@ -299,7 +299,7 @@ const SAMPLE_TEMPLATES = [
     preview_url: "/storage/designs/templates/neon-logo.webp",
     previewUrl: "/storage/designs/templates/neon-logo.webp",
     likes: 0,
-    uses: 154,
+    uses: 0,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#050811", zIndex: 0 },
       { id: "ring", type: "shape", shape: "circle", x: 340, y: 240, width: 400, height: 400, fill: "transparent", stroke: "#06b6d4", strokeWidth: 16, zIndex: 1 },
@@ -320,7 +320,7 @@ const SAMPLE_TEMPLATES = [
     preview_url: "/storage/designs/templates/minimal-logo.webp",
     previewUrl: "/storage/designs/templates/minimal-logo.webp",
     likes: 0,
-    uses: 98,
+    uses: 0,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#0f172a", zIndex: 0 },
       { id: "brand_name", type: "text", text: "APEX", x: 340, y: 740, fontSize: 88, fontWeight: 900, fontFamily: "Space Grotesk", fill: "#ffffff", zIndex: 1 },
@@ -340,7 +340,7 @@ const SAMPLE_TEMPLATES = [
     preview_url: "/storage/designs/templates/event-poster.webp",
     previewUrl: "/storage/designs/templates/event-poster.webp",
     likes: 0,
-    uses: 112,
+    uses: 0,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1920, fill: "#090d16", zIndex: 0 },
       { id: "banner_t", type: "text", text: "GLOBAL SUMMIT 2026", x: 140, y: 178, fontSize: 22, fontWeight: 700, fontFamily: "Space Grotesk", fill: "#ffffff", zIndex: 1 },
@@ -360,7 +360,7 @@ const SAMPLE_TEMPLATES = [
     preview_url: "/storage/designs/templates/social-post.webp",
     previewUrl: "/storage/designs/templates/social-post.webp",
     likes: 0,
-    uses: 230,
+    uses: 0,
     elements: [
       { id: "bg", type: "shape", shape: "rectangle", x: 0, y: 0, width: 1080, height: 1080, fill: "#111827", zIndex: 0 },
       { id: "h1", type: "text", text: "3 SECONDS TO HOOK\nYOUR AUDIENCE.", x: 160, y: 440, fontSize: 72, fontWeight: 900, fontFamily: "Anton", fill: "#ffffff", zIndex: 1 }
@@ -442,7 +442,7 @@ async function ensureTables() {
       `);
       await seedOfficialTemplates();
     } catch (err) {
-      console.warn("[designs.js] Table init notice (running with memory cache):", err.message);
+      console.warn("[designs.js] Schema bootstrap unavailable; existing tables will be queried, and failed writes will return an error:", err.message);
     }
   })();
   return initPromise;

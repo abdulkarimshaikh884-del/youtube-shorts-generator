@@ -21,7 +21,7 @@ function unpack(value, secret) {
     return data.expires > Date.now() ? data : null;
   } catch { return null; }
 }
-function register(app, { auth, rateLimit, publicSiteUrl, fetchImpl = fetch }) {
+function register(app, { auth, rateLimit, publicSiteUrl, referrals, fetchImpl = fetch }) {
   const config = () => ({ id: process.env.GOOGLE_CLIENT_ID, secret: process.env.GOOGLE_CLIENT_SECRET });
   const configured = () => Boolean(config().id && config().secret);
   const cookie = (res, value, age) => res.append("Set-Cookie", `${COOKIE}=${value}; Path=/api/auth/google; HttpOnly; SameSite=Lax; Max-Age=${age}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`);
@@ -54,7 +54,7 @@ function register(app, { auth, rateLimit, publicSiteUrl, fetchImpl = fetch }) {
       const infoRes = await fetchImpl("https://openidconnect.googleapis.com/v1/userinfo", { headers: { Authorization: "Bearer " + token.access_token }, signal: AbortSignal.timeout(15_000) });
       if (!infoRes.ok) return fail("failed");
       const info = await infoRes.json();
-      const out = await auth.googleAccount(res, info, flow.userId);
+      const out = await auth.googleAccount(res, info, flow.userId, referrals?.readCode(req));
       if (out.error) return fail(out.error);
       return res.redirect(safeNext(flow.next));
     } catch {

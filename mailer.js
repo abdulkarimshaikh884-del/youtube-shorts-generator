@@ -64,4 +64,17 @@ async function sendPasswordReset({ to, resetUrl, tokenHash }) {
   return { id: data.id || crypto.randomUUID() };
 }
 
-module.exports = { configured, sendPasswordReset };
+async function sendEmailVerification({ to, verificationUrl, tokenHash }) {
+  if (!configured()) throw new Error("Verification email is not configured.");
+  const response = await fetch(RESEND_URL, {
+    method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json", "Idempotency-Key": `shortscraft-verify-${tokenHash.slice(0, 32)}` },
+    body: JSON.stringify({ from: process.env.AUTH_FROM_EMAIL, to: [to], subject: "Verify your ShortsCraft email",
+      html: `<div style="font-family:Arial,sans-serif;max-width:520px;padding:24px"><h1>Verify your email</h1><p>Confirm your account email to qualify for referral credits after your first successful export.</p><p><a href="${escapeHtml(verificationUrl)}">Verify email</a></p><p>This link expires in 24 hours. If you did not request this, ignore it.</p></div>`,
+      text: `Verify your ShortsCraft email within 24 hours: ${verificationUrl}` }),
+    signal: AbortSignal.timeout(12_000)
+  });
+  if (!response.ok) throw new Error("Verification email delivery failed. Please retry later.");
+  return response.json();
+}
+module.exports = { configured, sendPasswordReset, sendEmailVerification };

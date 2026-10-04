@@ -184,7 +184,7 @@ async function startSession(res, userId) {
   return token;
 }
 
-async function signUp(res, email, password, requestedHandle) {
+async function signUp(res, email, password, requestedHandle, referralCode = null) {
   email = normEmail(email);
   if (!validEmail(email)) return { error: "That email address does not look right." };
   if (typeof password !== "string" || password.length < MIN_PASSWORD) {
@@ -216,11 +216,16 @@ async function signUp(res, email, password, requestedHandle) {
 
   let rows;
   try {
-    ({ rows } = await db.query(
+    const create = async client => {
+      const created = await client.query(
       `insert into public.users (email, password_hash, plan, handle, display_name)
        values ($1, $2, 'free', $3, $4) returning *`,
       [email, hashPassword(password), handle, displayName]
-    ));
+      );
+      if (referralCode) await require("./referrals").attachNewUser(created.rows[0], referralCode, client);
+      return created;
+    };
+    ({ rows } = referralCode ? await db.tx(create) : await create(db));
   } catch (err) {
     /* The pre-check above gives the normal friendly path, while the database
        index closes the race where two near-simultaneous requests both pass
@@ -258,7 +263,7 @@ async function logIn(res, email, password) {
 
 // Only called with userinfo fetched directly from Google using a server-issued
 // authorization-code token. Never accept browser-supplied identity claims.
-async function googleAccount(res, info, linkingUserId = null) {
+async function googleAccount(res, info, linkingUserId = null, referralCode = null) {
   if (typeof info.sub !== "string" || !/^[A-Za-z0-9_-]{1,255}$/.test(info.sub) || info.email_verified !== true || !validEmail(normEmail(info.email))) {
     return { error: "unverified" };
   }
@@ -286,6 +291,7 @@ async function googleAccount(res, info, linkingUserId = null) {
       if (existing.rows.length) return { error: "link_required" };
       const handle = "@creator_" + crypto.randomBytes(10).toString("hex");
       const created = await client.query("insert into public.users (email, password_hash, plan, handle, display_name, google_sub) values ($1, $2, 'free', $3, $4, $5) returning *", [email, "google-only", handle, String(info.name || email.split("@")[0]).slice(0, 50), info.sub]);
+      if (referralCode) await require("./referrals").attachNewUser(created.rows[0], referralCode, client);
       return { row: created.rows[0] };
     });
   } catch (err) {

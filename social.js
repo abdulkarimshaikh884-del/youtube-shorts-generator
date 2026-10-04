@@ -10,6 +10,7 @@ const db = require("./db");
 const notify = require("./notify");
 const verified = require("./verified");
 const { PLANS } = require("./credits");
+const releasePolicy = require("./release-policy");
 
 const REACTIONS = new Set(["like", "save"]);
 const EVENTS = new Set(["view", "open", "edit", "export", "share"]);
@@ -380,7 +381,8 @@ async function starSummary(user) {
     withdrawn,
     withdrawableStars: availableStars,
     withdrawableINR: Number((availableStars * 3.50).toFixed(2)),
-    canWithdraw: (availableStars * 3.50) >= 50.00,
+    monetizationEnabled: releasePolicy.monetizationEnabled,
+    canWithdraw: releasePolicy.monetizationEnabled && (availableStars * 3.50) >= 50.00,
     minWithdrawalINR: 50.00,
     allowance: plan.starsPerMonth,
     period
@@ -571,7 +573,8 @@ async function creatorWallet(user) {
     totalEarnedINR: totalEarnedINR,
     availableStars: availableStars,
     availableINR: availableINR,
-    canWithdraw: availableINR >= 50.00,
+    monetizationEnabled: releasePolicy.monetizationEnabled,
+    canWithdraw: releasePolicy.monetizationEnabled && availableINR >= 50.00,
     minWithdrawalINR: 50.00,
     history: parsedHistory
   };
@@ -625,6 +628,8 @@ async function unlockTemplate(user, templateId, templateType = "animation") {
     return { success: true, unlocked: true, alreadyUnlocked: true, templateId, canRemix: true };
   }
 
+  // Free, author-owned and already-unlocked access above is preserved.
+  if (!releasePolicy.monetizationEnabled) return releasePolicy.unavailable();
   const summary = await starSummary(user);
   if (summary.balance < starPrice) {
     return {

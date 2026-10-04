@@ -10,9 +10,13 @@ const crypto = require("crypto");
 const db = require("./db");
 const mailer = require("./mailer");
 const paymentDelivery = require("./payment-delivery");
+const starPurchases = require("./star-purchases");
+const releasePolicy = require("./release-policy");
+const referrals = require("./referrals");
 const designs = require("./designs");
 const designConverter = require("./design-converter");
 const designAssets = require("./design-assets");
+const { validateAttachment } = require("./image-validation");
 
 const app = express();
 app.disable("x-powered-by");
@@ -210,6 +214,7 @@ const RETIRED_TOOL_ROUTES = [
   "/youtube-shorts-ideas-generator", "/ai-thumbnail-prompt-generator"
 ];
 app.get(RETIRED_TOOL_ROUTES, (req, res) => res.redirect(301, "/animations"));
+app.use(referrals.capture);
 app.use(
   express.static(path.join(__dirname, "public"), {
     maxAge: NODE_ENV === "production" ? "7d" : 0,
@@ -250,7 +255,7 @@ app.use((req, res, next) => {
 app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), async (req, res) => {
   try {
     const { email, password, handle } = req.body || {};
-    const out = await auth.signUp(res, email, password, handle);
+    const out = await auth.signUp(res, email, password, handle, referrals.readCode(req));
     if (out.error) return res.status(400).json({ success: false, error: out.error });
     console.log("[auth] new account · total", await auth.count());
     // A welcome in the new account's bell, and word to the owner. Neither may
@@ -291,7 +296,26 @@ function publicSiteUrl() {
   }
 }
 
-require("./google-auth").register(app, { auth, rateLimit, publicSiteUrl });
+require("./google-auth").register(app, { auth, rateLimit, publicSiteUrl, referrals });
+
+app.get("/api/referrals", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const out = await referrals.summary(req.user);
+  return res.status(out.status || 200).json(out);
+});
+app.post("/api/auth/verification/send", rateLimit({ windowMs: 3600_000, max: 3 }), async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
+  if (!referrals.enabled()) return res.status(503).json({ success: false, error: "Email verification is not enabled yet." });
+  if (!mailer.configured()) return res.status(503).json({ success: false, error: "Verification email is not configured. Please contact support." });
+  const { token, tokenHash } = await referrals.createVerification(req.user);
+  await mailer.sendEmailVerification({ to: req.user.email, verificationUrl: publicSiteUrl() + "/settings?verify=" + token, tokenHash });
+  return res.json({ success: true, message: "Check your inbox for a verification link. It expires in 24 hours." });
+});
+app.post("/api/auth/verification/confirm", rateLimit({ windowMs: 600_000, max: 10 }), async (req, res) => {
+  if (!referrals.enabled()) return res.status(503).json({ success: false, error: "Verification is not enabled yet." });
+  const out = await referrals.verifyEmail(req.user, req.body?.token);
+  return res.status(out.status || 200).json(out);
+});
 
 app.post("/api/auth/forgot", rateLimit({ windowMs: 15 * 60_000, max: 5 }), async (req, res) => {
   res.set("Cache-Control", "no-store");
@@ -451,6 +475,8 @@ const admin = require("./admin");
 const skills = require("./skills");
 const lottie = require("./lottie");
 const reports = require("./reports");
+// Block money mutations before credit/ledger middleware or provider calls.
+app.use(releasePolicy.middleware);
 app.use(credits.middleware);
 
 // A request that changed something may have created notifications. Deliver
@@ -981,7 +1007,7 @@ app.get("/api/stars", async (req, res) => {
 });
 
 app.get("/api/stars/packs", (req, res) => {
-  return res.json({ success: true, packs: credits.STAR_PACKS });
+  return res.json({ success: true, available: releasePolicy.monetizationEnabled, message: releasePolicy.message, packs: credits.STAR_PACKS });
 });
 
 app.get("/api/stars/wallet", async (req, res) => {
@@ -1251,7 +1277,8 @@ app.get("/api/config", (req, res) => {
   res.json({
     supabaseUrl: process.env.SUPABASE_URL || "",
     supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
-    razorpayKeyId: process.env.RAZORPAY_KEY_ID || "",
+    razorpayKeyId: releasePolicy.monetizationEnabled ? (process.env.RAZORPAY_KEY_ID || "") : "",
+    release: { monetizationEnabled: releasePolicy.monetizationEnabled, moneyStatus: "coming_soon" },
     proPriceInr: credits.PLANS.pro.price,
     freeCreditsPerDay: credits.PLANS.free.perDay,
     plans: Object.values(credits.PLANS),
@@ -1264,7 +1291,7 @@ app.get("/api/config", (req, res) => {
       // which this app no longer uses — told the frontend auth was off while
       // sign-up and log-in were working perfectly well.
       auth: Boolean(process.env.DATABASE_URL),
-      payments: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+      payments: releasePolicy.monetizationEnabled && Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
     },
   });
 });
@@ -1559,7 +1586,7 @@ async function planTermFor(planId, billingCycle) {
 }
 
 const paymentsLive = () =>
-  Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
+  releasePolicy.monetizationEnabled && Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 
 // ── Checkout availability and public plan prices ────────────
 app.get("/api/offer", async (req, res) => {
@@ -1821,54 +1848,9 @@ app.post("/api/stars/purchase/verify", rateLimit({ windowMs: 60_000, max: 20 }),
     if (!req.user) {
       return res.status(401).json({ success: false, error: "Please log in first." });
     }
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, packId } = req.body || {};
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const secret = process.env.RAZORPAY_KEY_SECRET;
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return res.status(400).json({ success: false, error: "Missing payment details." });
-    }
-    if (!keyId || !secret) {
-      return res.status(503).json({ success: false, error: "Payment service not configured." });
-    }
-
-    const expected = crypto.createHmac("sha256", secret).update(`${razorpay_order_id}|${razorpay_payment_id}`).digest("hex");
-    const got = Buffer.from(String(razorpay_signature));
-    const want = Buffer.from(expected);
-    if (got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
-      return res.status(400).json({ success: false, error: "Invalid payment signature." });
-    }
-
-    const pack = credits.STAR_PACKS.find(p => p.id === packId);
-    const starsToGrant = pack ? pack.stars : 10;
-    const baseIdem = `star-purchase:${razorpay_order_id}:${razorpay_payment_id}`;
-
-    let remaining = starsToGrant;
-    let chunkIdx = 0;
-    while (remaining > 0) {
-      const slice = Math.min(remaining, 100);
-      const idem = remaining === starsToGrant ? baseIdem : `${baseIdem}:${chunkIdx++}`;
-      await db.query(
-        `insert into public.star_transactions
-           (sender_id, receiver_id, amount, kind, idempotency_key, note)
-         values (null, $1, $2, 'admin_adjustment', $3, $4)
-         on conflict (idempotency_key) where idempotency_key is not null do nothing`,
-        [req.user.id, slice, idem, JSON.stringify({
-          type: "purchase",
-          packId: pack ? pack.id : "stars_10",
-          stars: slice,
-          orderId: razorpay_order_id,
-          paymentId: razorpay_payment_id
-        })]
-      );
-      remaining -= slice;
-    }
-
-    return res.json({
-      success: true,
-      starsGranted: starsToGrant,
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id
-    });
+    const result = await starPurchases.verifyAndDeliver(req.user, req.body);
+    if (result.error) return res.status(result.status || 400).json({ success: false, error: result.error });
+    return res.json(result);
   } catch (err) {
     console.error("[stars/purchase/verify]", err.message);
     return res.status(500).json({ success: false, error: "Verification failed." });
@@ -1950,7 +1932,25 @@ app.get("/api/admin/dashboard", async (req, res) => {
 });
 
 app.get("/api/admin/users", async (req, res) => {
-  const out = await admin.listUsers(req.user);
+  const out = await admin.listUsers(req.user, req.query);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/admin/users/:id/moderate", async (req, res) => {
+  const out = await admin.moderateUser(req.user, req.params.id, req.body?.action, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/admin/users/:id/balance", async (req, res) => {
+  const out = await admin.adjustUserBalance(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/creators", async (req, res) => {
+  const out = await admin.listCreators(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
@@ -1976,6 +1976,69 @@ app.get("/api/admin/templates", async (req, res) => {
 
 app.patch("/api/admin/templates/:id", async (req, res) => {
   const out = await admin.updateContent(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+// Money: Withdrawals, Star Ledger, Star Packs
+app.get("/api/admin/withdrawals", async (req, res) => {
+  const out = await admin.listWithdrawals(req.user, req.query?.status);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/admin/withdrawals/:id/process", async (req, res) => {
+  const out = await admin.processWithdrawal(req.user, req.params.id, req.body?.action, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/stars/ledger", async (req, res) => {
+  const out = await admin.listStarLedger(req.user, req.query);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/admin/stars/transactions/:id/reverse", async (req, res) => {
+  const out = await admin.reverseStarTransaction(req.user, req.params.id, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.get("/api/admin/star-packs", async (req, res) => {
+  const out = await admin.listStarPacks(req.user);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/admin/star-packs", async (req, res) => {
+  const out = await admin.saveStarPack(req.user, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+// Platform: AI Jobs & Broadcast
+app.get("/api/admin/ai-jobs", async (req, res) => {
+  const out = await admin.listAiJobs(req.user, req.query);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/admin/ai-jobs/:id/retry", async (req, res) => {
+  const out = await admin.retryAiJob(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+app.post("/api/admin/notifications/broadcast", async (req, res) => {
+  const out = await admin.broadcastNotification(req.user, req.body);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+// System: Audit logs & Feature flags
+app.get("/api/admin/audit-logs", async (req, res) => {
+  const out = await admin.listAuditLogs(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
@@ -2279,7 +2342,10 @@ app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, asy
   // validate what the user sent before complaining about our own configuration:
   // "your image is the wrong format" is actionable, "no API key" is not
   if (image) {
-    try { anim.sanitise({ css: "a{}", body: "<div></div>", img: image }); }
+    try {
+      await validateAttachment(image);
+      anim.sanitise({ css: "a{}", body: "<div></div>", img: image });
+    }
     catch (err) { return res.status(400).json({ success: false, error: err.message }); }
   }
   /* Order matters: validate the request, then check what this account is allowed
@@ -2580,7 +2646,6 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
     res.setHeader("Content-Disposition",
       `attachment; filename="shortscraft-${tpl}-${aspect.replace(":", "x")}.mp4"`);
     res.setHeader("Cache-Control", "no-store");
-    res.setHeader("X-Credits-Left", String((await credits.state(req)).left));
     const exportSession = crypto.createHash("sha256")
       .update(String(req.credits?.token || req.user?.id || req.ip || "anonymous"))
       .digest("hex").slice(0, 32);
@@ -2595,6 +2660,12 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
     } catch (metricErr) {
       console.warn("[export metric]", metricErr.message);
     }
+    // Qualification is recorded only after a real render succeeds. A referral
+    // service failure must not discard an MP4 the user has already paid for.
+    await referrals.successfulExport(req.user, req._creditChargeIds?.export).catch(err => console.error("[referral export]", err.message));
+    // A successful first export can add referral credits. Report the balance
+    // after qualification, not the stale pre-reward amount displayed by clients.
+    res.setHeader("X-Credits-Left", String((await credits.state(req)).left));
     return res.end(mp4);
   } catch (err) {
     await credits.refund(req, "export");

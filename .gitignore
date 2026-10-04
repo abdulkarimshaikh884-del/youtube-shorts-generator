@@ -60,6 +60,8 @@ audit_*.js
 # Audit/QA scratch scripts and screenshots
 _*.js
 _shots/
+scratch_*.png
+scratch_*.js
 supabase/.temp/
 public/storage/designs/job_*/
 scratch/

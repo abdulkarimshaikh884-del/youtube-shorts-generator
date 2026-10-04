@@ -13,6 +13,47 @@
   var $ = function (s) { return document.querySelector(s); };
   var all = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
 
+  // Same reviewed Free-only release policy as the server. Fail closed even
+  // when config cannot load. The API independently refuses money mutations.
+  window.SC_RELEASE = { monetizationEnabled: false };
+  var moneyControls = '.pg-buy,.pg-buy-stars,#creatorStarBtn,#starsModalSend,#accountBuyStarsBtn,#requestPayoutBtn';
+  function showMoneyComingSoon() {
+    all(moneyControls).forEach(function (el) {
+      el.textContent = "Coming Soon";
+      el.setAttribute("aria-disabled", "true");
+      el.title = "Money features are not available in this Free release.";
+      if (el.tagName === "BUTTON") el.disabled = true;
+    });
+    all('option[value="premium"]').forEach(function (el) { el.disabled = true; el.textContent = "Paid templates — Coming Soon"; });
+  }
+  document.addEventListener("click", function (event) {
+    if (event.target.closest(moneyControls)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (window.SC_UI) SC_UI.toast("Money features are Coming Soon. Free features remain available.");
+    }
+  }, true);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showMoneyComingSoon);
+  else showMoneyComingSoon();
+
+  // Shared chrome state: a failed request is not a static five-credit balance.
+  window.SC_CREDIT_UI = {
+    state: function (state) {
+      var text = state === "loading" ? "Loading…" : "Unavailable";
+      all('.sh-credit-balance,.sh-plan-credits,.sh-upop-credits-pill,#accCredits,#igCreditsCount').forEach(function (el) { el.textContent = text; });
+      all('.sh-credit-chip,.sh-plan-badge').forEach(function (el) {
+        el.dataset.creditState = state;
+        el.title = state === "loading" ? "Loading your balance" : "Credits could not load. Reload to retry.";
+      });
+    },
+    validate: function (data) {
+      if (!data || !data.success || !Number.isSafeInteger(data.left) || data.left < 0 || !Number.isSafeInteger(data.perDay) || data.perDay < 0) throw new Error("Credits unavailable");
+      if (!data.planLabel) data.planLabel = {free:"Free",pro:"Pro",promax:"Pro Max"}[data.plan] || "Plan";
+      all('.sh-credit-chip,.sh-plan-badge').forEach(function (el) { el.dataset.creditState = "ready"; el.removeAttribute("title"); });
+      return data;
+    }
+  };
+
   function safeProfileUrl(value, platform) {
     var raw = String(value || "").trim();
     if (!raw) return "";
@@ -142,13 +183,14 @@
         if ($("#crVerifiedBadge")) $("#crVerifiedBadge").hidden = true;
         if ($("#pageRemoveAvatarBtn")) $("#pageRemoveAvatarBtn").hidden = !user.avatarUrl;
 
-        fetch("/api/credits").then(function(r) { return r.json(); }).then(function(j) {
+        fetch("/api/credits", {signal:AbortSignal.timeout(10000)}).then(function(r) { if (!r.ok) throw new Error("Credits unavailable"); return r.json(); }).then(function(j) {
+          j = window.SC_CREDIT_UI.validate(j);
           if (j && j.success) {
             if ($("#accPlan")) $("#accPlan").textContent = j.planLabel;
-            if ($("#accCredits")) $("#accCredits").textContent = j.left + " of " + j.perDay + " left today";
+            if ($("#accCredits")) $("#accCredits").textContent = (j.dailyLeft ?? j.left) + " of " + j.perDay + " left today" + (j.bonusCredits ? " · " + j.bonusCredits + " bonus" : "");
             if ($("#igCreditsCount")) $("#igCreditsCount").textContent = j.left;
           }
-        }).catch(function() {});
+        }).catch(function() { window.SC_CREDIT_UI.state("unavailable"); });
 
         // A social link with nothing behind it is worse than no link at all —
         // hide it until the creator has actually filled it in.
@@ -747,9 +789,11 @@
     var moreButton = $("#notificationMore");
     if (!button || !panel || !list || !currentUser || button.dataset.ready === "1") return;
     button.dataset.ready = "1";
+    var unreadCount = 0;
 
     function updateBadge(n) {
-      n = Number(n) || 0;
+      n = Math.max(0, Number(n) || 0);
+      unreadCount = n;
       if (!badge) return;
       badge.textContent = n > 99 ? "99+" : String(n);
       badge.hidden = n < 1;
@@ -757,7 +801,7 @@
 
     function targetFor(item) {
       // The server decides the link, the same one a phone notification opens.
-      if (item.url && item.url.charAt(0) === "/") return item.url;
+      if (item.url && item.url.charAt(0) === "/" && item.url.slice(0,2) !== "//" && item.url.indexOf("\\") === -1) return item.url;
       if (item.entityType === "creator" && item.actor && item.actor.handle) {
         return "/creator?handle=" + encodeURIComponent(item.actor.handle.replace(/^@/, ""));
       }
@@ -771,6 +815,7 @@
 
     function render(data) {
       updateBadge(data.unread);
+      setTitleCount(data.unread);
       list.innerHTML = "";
       var items = data.notifications || [];
       // `total` counts every notification, not the page just fetched, so this
@@ -794,19 +839,20 @@
         row.dataset.read = item.read ? "true" : "false";
         row.addEventListener("click", function () {
           if (!item.read) {
-            item.read = true;
-            row.dataset.read = "true";
-            var currentBadge = Number(badge ? badge.textContent : 0) || 0;
-            var nextBadge = Math.max(0, currentBadge - 1);
-            updateBadge(nextBadge);
-            if (typeof setTitleCount === "function") setTitleCount(nextBadge);
             if (item.id) {
               fetch("/api/notifications/read", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ ids: [item.id] }),
+                signal: AbortSignal.timeout(10000),
                 keepalive: true
-              }).catch(function () {});
+              }).then(function (r) { if (!r.ok) throw new Error("Could not mark notification read"); return r.json(); })
+                .then(function (j) {
+                  if (!j || !j.success) throw new Error("Could not mark notification read");
+                  if (item.read) return;
+                  item.read = true; row.dataset.read = "true";
+                  updateBadge(Math.max(0, unreadCount - 1)); setTitleCount(unreadCount);
+                }).catch(notificationError);
             }
           }
         });
@@ -845,10 +891,28 @@
     var PAGE_MAX = 50;
     var shown = PAGE_STEP;
 
+    function notificationError() {
+      var error = document.getElementById("notificationError");
+      if (!error) {
+        error = document.createElement("p"); error.id = "notificationError";
+        error.className = "sh-notification-empty"; error.setAttribute("role", "alert");
+        list.prepend(error);
+      }
+      error.textContent = "Notifications could not load. ";
+      var retry = document.createElement("button"); retry.type = "button"; retry.textContent = "Retry";
+      retry.addEventListener("click", function () { retry.disabled = true; loadNotifications().catch(notificationError); });
+      error.appendChild(retry);
+    }
+
+    function closeNotifications(restoreFocus) {
+      panel.hidden = true; button.setAttribute("aria-expanded", "false");
+      if (restoreFocus) button.focus();
+    }
+
     function loadNotifications() {
-      return fetch("/api/notifications?limit=" + shown, { headers: { Accept: "application/json" } })
-        .then(function (r) { return r.json(); })
-        .then(function (j) { if (j && j.success) render(j); });
+      return fetch("/api/notifications?limit=" + shown, { headers: { Accept: "application/json" }, signal:AbortSignal.timeout(10000) })
+        .then(function (r) { if (!r.ok) throw new Error("Notifications unavailable"); return r.json(); })
+        .then(function (j) { if (!j || !j.success || !Array.isArray(j.notifications) || !Number.isSafeInteger(j.unread) || j.unread < 0) throw new Error("Notifications unavailable"); render(j); });
     }
 
     if (moreButton) {
@@ -856,7 +920,7 @@
         ev.stopPropagation();
         shown = Math.min(shown + PAGE_STEP, PAGE_MAX);
         moreButton.disabled = true;
-        loadNotifications().finally(function () { moreButton.disabled = false; });
+        loadNotifications().catch(notificationError).finally(function () { moreButton.disabled = false; });
       });
     }
 
@@ -867,20 +931,27 @@
       button.setAttribute("aria-expanded", opening ? "true" : "false");
       // Reopening starts from the short list again, so the panel does not keep
       // whatever depth a previous session scrolled to.
-      if (opening) { shown = PAGE_STEP; loadNotifications(); }
+      if (opening) { shown = PAGE_STEP; loadNotifications().catch(notificationError); }
     });
     document.addEventListener("click", function (ev) {
       if (!panel.hidden && !panel.contains(ev.target)) {
-        panel.hidden = true;
-        button.setAttribute("aria-expanded", "false");
+        closeNotifications(false);
       }
     });
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !panel.hidden) { ev.preventDefault(); closeNotifications(true); }
+    });
     if (readButton) readButton.addEventListener("click", function () {
+      if (readButton.disabled) return;
+      readButton.disabled = true;
       fetch("/api/notifications/read", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      }).then(function () { updateBadge(0); return loadNotifications(); }).catch(function () {});
+        body: JSON.stringify({}),
+        signal: AbortSignal.timeout(10000)
+      }).then(function (r) { if (!r.ok) throw new Error("Could not mark notifications read"); return r.json(); })
+        .then(function (j) { if (!j || !j.success) throw new Error("Could not mark notifications read"); updateBadge(0); setTitleCount(0); return loadNotifications(); })
+        .catch(notificationError).finally(function () { readButton.disabled = false; });
     });
     /* Live: the bell keeps itself up to date while a page is open. It polls
        the unread count (cheap), checks again the moment the tab comes back,
@@ -901,7 +972,7 @@
       var toast = document.createElement("a");
       toast.id = "scLiveToast";
       toast.className = "sh-live-toast";
-      toast.href = item.url || "/account";
+      toast.href = targetFor(item);
       toast.setAttribute("role", "status");
       var av = document.createElement("span");
       av.className = "sh-live-toast-av";
@@ -949,12 +1020,12 @@
       fetch("/api/notifications/unread", { headers: { Accept: "application/json" } })
         .then(function (r) { return r.json(); })
         .then(function (j) {
-          if (!j || !j.success) return;
+          if (!j || !j.success || !Number.isSafeInteger(j.unread) || j.unread < 0) return;
           updateBadge(j.unread);
           setTitleCount(j.unread);
           var latest = j.latest;
           if (!firstTick && latest && latest.id !== lastSeenId) {
-            if (!panel.hidden) loadNotifications();
+            if (!panel.hidden) loadNotifications().catch(notificationError);
             else showToast(latest);
           }
           lastSeenId = latest ? latest.id : lastSeenId;
@@ -964,7 +1035,6 @@
         .finally(function () { ticking = false; });
     }
 
-    if (readButton) readButton.addEventListener("click", function () { setTitleCount(0); });
     tick();
     setInterval(tick, POLL_MS);
     document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
@@ -1390,7 +1460,9 @@
         set("#starsSent", j.sent != null ? j.sent : 0);
         if ($("#starsAllowance") && j.allowance != null) {
           $("#starsAllowance").textContent =
-            j.allowance > 0
+            j.monetizationEnabled !== true
+              ? "Stars donations, purchases and paid unlocks are Coming Soon. Existing records are preserved."
+              : j.allowance > 0
               ? "Your plan gives " + j.allowance + " Stars a month. Refreshes on the 1st."
               : "Free plan gives 0 monthly Stars. Purchase Star packs to send appreciation or unlock templates.";
         }
@@ -1403,13 +1475,15 @@
         if (!w || !w.success) return;
         var set = function (sel, value) { if ($(sel)) $(sel).textContent = String(value); };
         set("#walletAvailableInr", "₹" + Number(w.availableINR || 0).toFixed(2));
-        set("#walletAvailableStars", (w.availableStars || 0) + " Stars available (70% revenue split = ₹3.50/star)");
+        set("#walletAvailableStars", (w.availableStars || 0) + " Stars recorded; payouts Coming Soon");
         set("#walletTotalEarnedInr", "₹" + Number(w.totalEarnedINR || 0).toFixed(2));
         set("#walletTotalReceivedStars", "From " + (w.totalReceivedStars || 0) + " Stars earned across templates and tips");
 
         var badge = $("#walletMinBadge");
         if (badge) {
-          if (w.canWithdraw) {
+          if (w.monetizationEnabled !== true) {
+            badge.textContent = "Coming Soon";
+          } else if (w.canWithdraw) {
             badge.textContent = "Ready to withdraw";
             badge.style.background = "rgba(16,185,129,0.15)";
             badge.style.color = "#059669";
@@ -1427,15 +1501,20 @@
         var starsInp = $("#payoutStarsInput");
         var calcText = $("#payoutInrCalc");
         var statusMsg = $("#payoutStatusMsg");
+        if (w.monetizationEnabled !== true) {
+          if (upiInp) upiInp.disabled = true;
+          if (starsInp) starsInp.disabled = true;
+          if (payoutBtn) { payoutBtn.disabled = true; payoutBtn.textContent = "Coming Soon"; }
+        }
 
         function updatePayoutState() {
           var stars = parseInt(starsInp ? starsInp.value : 0, 10) || 0;
           var inr = Number((stars * 3.50).toFixed(2));
           if (calcText) {
-            calcText.textContent = "Estimated INR: ₹" + inr.toFixed(2) + (inr < 50 ? " (Minimum ₹50.00 required)" : "");
+            calcText.textContent = w.monetizationEnabled !== true ? "Payouts are not available in this release." : "Estimated INR: ₹" + inr.toFixed(2) + (inr < 50 ? " (Minimum ₹50.00 required)" : "");
           }
           if (payoutBtn) {
-            payoutBtn.disabled = !w.canWithdraw || inr < 50 || stars > w.availableStars || !(upiInp && upiInp.value.includes("@"));
+            payoutBtn.disabled = w.monetizationEnabled !== true || !w.canWithdraw || inr < 50 || stars > w.availableStars || !(upiInp && upiInp.value.includes("@"));
           }
         }
 
@@ -1444,6 +1523,7 @@
 
         if (payoutBtn) {
           payoutBtn.onclick = function () {
+            if (w.monetizationEnabled !== true) return;
             var upi = upiInp ? upiInp.value.trim() : "";
             var stars = parseInt(starsInp ? starsInp.value : 0, 10) || 0;
             if (!upi || !upi.includes("@")) {
@@ -2518,7 +2598,7 @@
 
     function entriesFromZip(file) {
       if (file.size > 20 * 1024 * 1024) return Promise.reject(new Error("That ZIP is larger than 20 MB."));
-      return loadScript("/vendor/fflate.min.js?v=0.8.2", "fflate").then(function (fflate) {
+      return loadScript("/vendor/fflate.min.js?v=0.8.3", "fflate").then(function (fflate) {
         return readBytes(file).then(function (bytes) {
           var unpacked = 0;
           var out;
@@ -2926,7 +3006,7 @@
           icon = "⬡";
           desc = "Vector " + (el.shape || "shape") + " (" + (el.fill || "#fff") + ")";
         }
-        var conf = el.confidence ? Math.round(el.confidence * 100) + "%" : "90%";
+        var conf = Number.isFinite(el.confidence) ? Math.round(Math.max(0, Math.min(1, el.confidence)) * 100) + "%" : "Review layer";
         return [
           '<div class="ds-review-item">',
           '  <div class="ds-review-item-main">',

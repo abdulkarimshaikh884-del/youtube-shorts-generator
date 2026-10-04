@@ -141,6 +141,10 @@ const today = () => new Date().toISOString().slice(0, 10);
    once — fresh grant — rather than waiting for midnight). `planHint` comes
    from the signed-in account, which is the source of truth for the plan. */
 async function ensureRecord(key, planHint, executor = db) {
+  if (executor === db) return db.tx(client => ensureRecord(key, planHint, client));
+  // Covers creation, rollover, normalization, spending and refunds with one
+  // identity lock. A stale state read must never refill a concurrent charge.
+  await executor.query("select pg_advisory_xact_lock(hashtext($1))", ["credit:" + key]);
   const day = today();
   const { rows } = await executor.query(`select * from public.credits where key = $1`, [key]);
   let rec = rows[0] || null;
@@ -232,7 +236,9 @@ async function state(req) {
   const rec = await ensureRecord(req.credits.key, req.user ? req.user.plan : null);
   const plan = PLANS[rec.plan] || PLANS.free;
   return {
-    left: rec.left_credits,
+    left: Number(rec.left_credits) + bonus(rec),
+    dailyLeft: Number(rec.left_credits),
+    bonusCredits: bonus(rec),
     perDay: plan.perDay,
     monthlyCredits: plan.monthlyCredits,
     spentToday: rec.spent,
@@ -272,6 +278,8 @@ const TRANSACTION_KIND = {
   aiDetailed: "ai_detailed",
   aiAdvanced: "ai_advanced"
 };
+const bonusEnabled = () => process.env.REFERRALS_ENABLED === "true";
+const bonus = rec => bonusEnabled() ? Number(rec?.bonus_credits) || 0 : 0;
 
 function operationKey(req, kind) {
   req._creditOperationKeys = req._creditOperationKeys || {};
@@ -298,26 +306,31 @@ async function charge(req, kind) {
     }
 
     const locked = await client.query(
-      `select left_credits from public.credits where key = $1 for update`,
+      `select * from public.credits where key = $1 for update`,
       [req.credits.key]
     );
-    const left = Number(locked.rows[0]?.left_credits) || 0;
+    const daily = Number(locked.rows[0]?.left_credits) || 0;
+    const left = daily + bonus(locked.rows[0]);
     if (left < cost) return { ok: false, need: cost, left };
 
-    const updated = await client.query(
+    const dailyCost = Math.min(cost, daily);
+    const bonusCost = cost - dailyCost;
+    const updated = await client.query(bonusEnabled() ?
+      `update public.credits set left_credits = left_credits - $2,
+         spent = spent + $2, bonus_credits = bonus_credits - $3 where key = $1 returning *` :
       `update public.credits
           set left_credits = left_credits - $2, spent = spent + $2
-        where key = $1 returning left_credits`,
-      [req.credits.key, cost]
+        where key = $1 returning *`,
+      bonusEnabled() ? [req.credits.key, dailyCost, bonusCost] : [req.credits.key, dailyCost]
     );
-    const balance = Number(updated.rows[0].left_credits);
+    const balance = Number(updated.rows[0].left_credits) + bonus(updated.rows[0]);
     const inserted = await client.query(
       `insert into public.credit_transactions
          (credit_key, user_id, kind, amount, balance_after, idempotency_key, metadata)
        values ($1, $2, $3, $4, $5, $6, $7::jsonb)
        returning id`,
       [req.credits.key, req.user?.id || null, TRANSACTION_KIND[kind], -cost,
-       balance, idem, JSON.stringify({ path: req.path })]
+       balance, idem, JSON.stringify({ path: req.path, day: today(), dailyCost, bonusCost })]
     );
     req._creditChargeIds = req._creditChargeIds || {};
     req._creditChargeIds[kind] = inserted.rows[0].id;
@@ -343,14 +356,20 @@ async function refund(req, kind) {
     );
     if (prior.rows[0]) return Number(prior.rows[0].balance_after);
     const plan = PLANS[rec.plan] || PLANS.free;
-    const updated = await client.query(
+    const original = await client.query("select metadata from public.credit_transactions where id = $1 and credit_key = $2", [chargeId, req.credits.key]);
+    const metadata = original.rows[0]?.metadata || {};
+    const dailyCost = metadata.day && metadata.day !== today() ? 0 : Number(metadata.dailyCost ?? cost);
+    const bonusCost = Number(metadata.bonusCost || 0);
+    const updated = await client.query(bonusEnabled() ?
+      `update public.credits set left_credits = least($2, left_credits + $3),
+         spent = greatest(0, spent - $3), bonus_credits = bonus_credits + $4 where key = $1 returning *` :
       `update public.credits
           set left_credits = least($2, left_credits + $3),
               spent = greatest(0, spent - $3)
-        where key = $1 returning left_credits`,
-      [req.credits.key, plan.perDay, cost]
+        where key = $1 returning *`,
+      bonusEnabled() ? [req.credits.key, plan.perDay, dailyCost, bonusCost] : [req.credits.key, plan.perDay, dailyCost]
     );
-    const balance = Number(updated.rows[0]?.left_credits ?? rec.left_credits);
+    const balance = Number(updated.rows[0]?.left_credits ?? rec.left_credits) + bonus(updated.rows[0]);
     await client.query(
       `insert into public.credit_transactions
          (credit_key, user_id, kind, amount, balance_after, idempotency_key, metadata)
@@ -366,6 +385,7 @@ async function refund(req, kind) {
 /* Called right after a payment is verified, to grant the new plan's daily
    allowance immediately. */
 async function setPlan(req, planId, executor = db) {
+  if (executor === db) return db.tx(client => setPlan(req, planId, client));
   if (!PLANS[planId]) return false;
   await ensureRecord(req.credits.key, planId, executor);
   await executor.query(
@@ -375,4 +395,4 @@ async function setPlan(req, planId, executor = db) {
   return true;
 }
 
-module.exports = { middleware, state, entitlements, charge, refund, setPlan, PLANS, STAR_PACKS, COST, COOKIE, LIFETIME_SLOTS };
+module.exports = { middleware, state, entitlements, charge, refund, setPlan, ensureRecord, PLANS, STAR_PACKS, COST, COOKIE, LIFETIME_SLOTS };

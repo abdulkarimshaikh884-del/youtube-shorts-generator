@@ -122,6 +122,10 @@ body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', 
 .de-mobile-bar { display: none; }
 .de-panel-close { display: none; }
 
+/* Publishing uses the selected theme, including the standalone desktop editor. */
+#publishDesignModal > div { background: var(--de-panel) !important; border-color: var(--de-panel-border) !important; }
+#publishDesignModal :is(input, select) { color: var(--de-ink) !important; border-color: var(--de-panel-border) !important; }
+
 /* Phone and tablet workspace: preview above the active, scrollable controls. */
 @media (max-width: 1024px) {
   .de-app { height: var(--de-viewport-height, 100dvh); width: 100%; }
@@ -159,7 +163,7 @@ body, html { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', 
     min-width: 0;
     max-width: none;
     padding: 2px 4px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     text-overflow: ellipsis;
   }

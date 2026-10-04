@@ -232,9 +232,13 @@
               stage.appendChild(wm);
             }
             mStudioBtn.className = "sh-modal-cta is-premium-unlock";
-            mStudioBtn.textContent = "★ Unlock Template (" + (t.starPrice || 2) + " Stars)";
+            mStudioBtn.textContent = "Paid unlocks — Coming Soon";
             mStudioBtn.onclick = function (ev) {
               ev.preventDefault();
+              if (!window.SC_RELEASE || !SC_RELEASE.monetizationEnabled) {
+                if (window.SC_UI) SC_UI.toast("Paid template unlocks are Coming Soon.");
+                return;
+              }
               if (!signedIn()) {
                 location.href = "/login?next=" + encodeURIComponent(location.pathname + location.search);
                 return;
@@ -1234,8 +1238,25 @@
     var qVal  = $("#qualityVal");
     var tier  = $("#qualitySelect");
     var attached = null;
+    var imageVersion = 0, imagePending = false;
 
     if (qBtn && qMenu && tier) {
+      var options = Array.prototype.slice.call(qMenu.querySelectorAll(".sh-csel-opt"));
+      qBtn.setAttribute("aria-controls", qMenu.id);
+      qMenu.setAttribute("aria-label", "Generation model");
+      options.forEach(function (opt) { opt.tabIndex = 0; });
+      function closeModel(restoreFocus) {
+        qMenu.hidden = true;
+        qBtn.setAttribute("aria-expanded", "false");
+        if (restoreFocus) qBtn.focus();
+      }
+      function focusModel(last) {
+        qMenu.hidden = false;
+        qBtn.setAttribute("aria-expanded", "true");
+        var selected = qMenu.querySelector('[aria-selected="true"]');
+        var target = last ? options[options.length - 1] : (selected || options[0]);
+        if (target) target.focus();
+      }
       qBtn.addEventListener("click", function (ev) {
         ev.stopPropagation();
         var open = !qMenu.hidden;
@@ -1260,16 +1281,36 @@
             o.setAttribute("aria-selected", String(isSel));
           });
 
-          qMenu.hidden = true;
-          qBtn.setAttribute("aria-expanded", "false");
+          closeModel(true);
         });
       });
 
       document.addEventListener("click", function (ev) {
         if (qWrap && !qWrap.contains(ev.target)) {
-          qMenu.hidden = true;
-          qBtn.setAttribute("aria-expanded", "false");
+          closeModel(false);
         }
+      });
+      qBtn.addEventListener("keydown", function (ev) {
+        if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+          ev.preventDefault(); focusModel(ev.key === "ArrowUp");
+        }
+      });
+      qMenu.addEventListener("keydown", function (ev) {
+        var opt = ev.target.closest('.sh-csel-opt');
+        if (!opt) return;
+        var index = options.indexOf(opt), target;
+        if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); opt.click(); return; }
+        if (ev.key === "ArrowDown") target = options[(index + 1) % options.length];
+        if (ev.key === "ArrowUp") target = options[(index + options.length - 1) % options.length];
+        if (ev.key === "Home") target = options[0];
+        if (ev.key === "End") target = options[options.length - 1];
+        if (target) { ev.preventDefault(); target.focus(); }
+      });
+      qWrap.addEventListener("focusout", function (ev) {
+        if (!qWrap.contains(ev.relatedTarget)) closeModel(false);
+      });
+      document.addEventListener("keydown", function (ev) {
+        if (ev.key === "Escape" && !qMenu.hidden) { ev.preventDefault(); closeModel(true); }
       });
     }
 
@@ -1280,7 +1321,7 @@
       text.style.height = Math.min(text.scrollHeight, 180) + "px";
       /* The button stays blue and ready; pressing it with nothing typed puts
          the cursor in the box instead (see the submit handler). */
-      go.disabled = false;
+      go.disabled = imagePending;
       if (counter) counter.textContent = text.value.length + "/" + (text.maxLength > 0 ? text.maxLength : 500);
       if (field) field.classList.toggle("has-text", text.value.length > 0);
     }
@@ -1291,24 +1332,27 @@
     if (img) {
       img.addEventListener("change", function () {
         var file = img.files && img.files[0];
+        var version = ++imageVersion;
+        imagePending = !!file; sync();
         if (!file) return;
-        if (file.size > 900 * 1024) {
-          SC_UI.toast("That image is " + Math.round(file.size / 1024) + " KB — keep it under 900 KB.", true, 4000);
-          img.value = "";
-          return;
-        }
-        var fr = new FileReader();
-        fr.onload = function () {
-          attached = { name: file.name, dataUrl: String(fr.result) };
+        window.SC_IMAGE_INPUT.read(file).then(function (value) {
+          if (version !== imageVersion) return;
+          attached = value;
           var nameEl = $("#composerImgName");
           if (nameEl) nameEl.textContent = file.name;
           chip.hidden = false;
-        };
-        fr.readAsDataURL(file);
+        }).catch(function (err) {
+          if (version !== imageVersion) return;
+          img.value = "";
+          SC_UI.toast(err.message, true, 4000);
+        }).finally(function () {
+          if (version === imageVersion) { imagePending = false; sync(); }
+        });
       });
       if (chip) {
         chip.addEventListener("click", function () {
-          attached = null; img.value = ""; chip.hidden = true;
+          imageVersion++; imagePending = false;
+          attached = null; img.value = ""; chip.hidden = true; sync();
         });
       }
     }
@@ -1323,6 +1367,7 @@
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (imagePending) { SC_UI.toast("Please wait while the image is checked."); return; }
       var topic = text.value.trim();
       if (topic.length < 2) { text.focus(); return; }
 
@@ -1449,6 +1494,10 @@
           return r.json().then(function (res) {
             if (btn) btn.disabled = false;
             var price = res.starPrice || 1;
+            if (!window.SC_RELEASE || !SC_RELEASE.monetizationEnabled) {
+              if (window.SC_UI) SC_UI.toast("Paid template unlocks are Coming Soon.");
+              return null;
+            }
             var confirmMsg = "★ This is a Premium Design Template (" + price + " Star" + (price > 1 ? "s" : "") + ").\n\nWould you like to unlock it now to customize and export?";
             if (!confirm(confirmMsg)) return null;
 
@@ -1560,10 +1609,11 @@
     var badge = document.querySelector(".sh-plan-badge");
     var creditChip = document.querySelector(".sh-credit-chip");
     if (badge || creditChip) {
-      fetch("/api/credits", { headers: { Accept: "application/json" } })
-        .then(function (r) { return r.json(); })
+      window.SC_CREDIT_UI.state("loading");
+      fetch("/api/credits", { headers: { Accept: "application/json" }, signal:AbortSignal.timeout(10000) })
+        .then(function (r) { if (!r.ok) throw new Error("Credits unavailable"); return r.json(); })
         .then(function (j) {
-          if (!j || !j.success) return;
+          j = window.SC_CREDIT_UI.validate(j);
           if (j.cost && Number(j.cost.export) > 0) EXPORT_COST = Number(j.cost.export);
           if (creditChip) {
             var chipPlan = creditChip.querySelector(".sh-credit-plan");
@@ -1583,22 +1633,22 @@
 
             if (b) b.textContent = j.planLabel + " plan";
             if (sCredits) {
-              sCredits.textContent = j.left + " of " + j.perDay + " credits left today";
+              sCredits.textContent = (j.dailyLeft ?? j.left) + " of " + j.perDay + " left today" + (j.bonusCredits ? " · " + j.bonusCredits + " bonus" : "");
             } else if (sLegacy) {
-              sLegacy.textContent = j.left + " of " + j.perDay + " credits left today";
+              sLegacy.textContent = (j.dailyLeft ?? j.left) + " of " + j.perDay + " left today" + (j.bonusCredits ? " · " + j.bonusCredits + " bonus" : "");
             }
             if (sRates && j.cost) {
               sRates.textContent = "Export " + j.cost.export + " · AI scene " + j.cost.animate;
             }
           }
           document.querySelectorAll(".sh-upop-credits-pill").forEach(function (el) {
-            el.textContent = "⚡ " + j.left + " / " + j.perDay + " Credits";
+            el.textContent = j.left + " available credits" + (j.bonusCredits ? " (" + j.bonusCredits + " bonus)" : "");
           });
           if (up && j.plan !== "free") {
             up.textContent = "Manage your plan ↗";
           }
         })
-        .catch(function () {});
+        .catch(function () { window.SC_CREDIT_UI.state("unavailable"); });
     }
 
     var burger = $("#navBurger");

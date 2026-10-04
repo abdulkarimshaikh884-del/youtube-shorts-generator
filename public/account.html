@@ -27,16 +27,16 @@
      the legacy theme and are deliberately never loaded here. -->
 <link rel="stylesheet" href="/shell.css?v=2026092501">
 <link rel="stylesheet" href="/page.css?v=2026092501">
-<link rel="stylesheet" href="/redesign.css?v=2026092501">
+<link rel="stylesheet" href="/redesign.css?v=2026100101">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
 <link rel="stylesheet" href="/polish.css?v=2026092501">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
-<link rel="stylesheet" href="/mobile.css?v=2026092501">
+<link rel="stylesheet" href="/mobile.css?v=2026100101">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=2026092501">
+<link rel="stylesheet" href="/ds.css?v=2026100201">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
 </head>
 <body class="sh-body">
@@ -479,11 +479,11 @@
           <div class="ig-account-grid">
             <article class="ig-account-card ig-acc-highlight">
               <div class="ig-acc-head">
-                <span class="ig-acc-lbl">Available to Withdraw</span>
-                <span class="ig-badge" id="walletMinBadge" style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(217,119,6,0.15);color:#d97706;border:1px solid rgba(217,119,6,0.3);">Min. ₹50.00</span>
+                <span class="ig-acc-lbl">Recorded estimate (not withdrawable)</span>
+                <span class="ig-badge" id="walletMinBadge" style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(217,119,6,0.15);color:#d97706;border:1px solid rgba(217,119,6,0.3);">Coming Soon</span>
               </div>
               <p class="ig-acc-val" id="walletAvailableInr" style="color:var(--sh-ink);font-weight:800;">₹0.00</p>
-              <p class="ig-acc-sub" id="walletAvailableStars">0 Stars available (70% revenue split = ₹3.50/star)</p>
+              <p class="ig-acc-sub" id="walletAvailableStars">Payouts — Coming Soon</p>
             </article>
 
             <article class="ig-account-card">
@@ -504,13 +504,13 @@
           <div class="ig-card" style="margin-top:20px;padding:22px;border:1px solid var(--sh-line);border-radius:16px;background:var(--sh-bg2);">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
               <h3 style="font-size:17px;font-weight:700;margin:0;color:var(--sh-ink);">Request UPI Payout</h3>
-              <span style="font-size:12px;color:var(--sh-ink3);">Settled to bank via UPI within 24–48 hours</span>
+              <span style="font-size:12px;color:var(--sh-ink3);">Coming Soon</span>
             </div>
             <p style="font-size:13px;color:var(--sh-ink2);margin:0 0 16px;line-height:1.5;">
-              Creators keep <strong>70% of every Star</strong> (₹3.50/star). Withdrawals require a valid UPI ID (e.g. Google Pay, PhonePe, Paytm, BHIM) and a minimum balance of exactly <strong>₹50.00</strong> (15 Stars = ₹52.50).
+              Payouts, Stars donations and paid unlocks are not available in this Free release. Existing records are preserved. Settlement terms will be published after verification; no payout date is promised.
             </p>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;align-items:end;">
+            <div hidden style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;align-items:end;">
               <div>
                 <label for="payoutUpiInput" style="display:block;font-size:12px;font-weight:600;color:var(--sh-ink2);margin-bottom:6px;">Your UPI ID</label>
                 <input type="text" id="payoutUpiInput" placeholder="yourname@okhdfcbank or 9876543210@paytm" style="width:100%;padding:10px 12px;border:1px solid var(--sh-line);border-radius:10px;background:var(--sh-bg1);color:var(--sh-ink);font-size:13px;" />
@@ -759,9 +759,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026092501" defer></script>
+<script src="/authui.js?v=2026100202" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
-<script src="/page.js?v=2026092501" defer></script>
+<script src="/page.js?v=2026100201" defer></script>
 <script src="/templates-v2.js?v=2026092501"></script></body>
 </html>
