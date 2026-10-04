@@ -300,21 +300,37 @@ require("./google-auth").register(app, { auth, rateLimit, publicSiteUrl, referra
 
 app.get("/api/referrals", async (req, res) => {
   res.set("Cache-Control", "no-store");
-  const out = await referrals.summary(req.user);
-  return res.status(out.status || 200).json(out);
+  try {
+    const out = await referrals.summary(req.user);
+    return res.status(out.status || 200).json(out);
+  } catch (err) {
+    console.error("[referrals] summary unavailable", err.code || err.name);
+    return res.status(503).json({ success: false, error: "Referral details are temporarily unavailable. Please retry." });
+  }
 });
 app.post("/api/auth/verification/send", rateLimit({ windowMs: 3600_000, max: 3 }), async (req, res) => {
   if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
   if (!referrals.enabled()) return res.status(503).json({ success: false, error: "Email verification is not enabled yet." });
   if (!mailer.configured()) return res.status(503).json({ success: false, error: "Verification email is not configured. Please contact support." });
-  const { token, tokenHash } = await referrals.createVerification(req.user);
-  await mailer.sendEmailVerification({ to: req.user.email, verificationUrl: publicSiteUrl() + "/settings?verify=" + token, tokenHash });
-  return res.json({ success: true, message: "Check your inbox for a verification link. It expires in 24 hours." });
+  try {
+    const { token, tokenHash } = await referrals.createVerification(req.user);
+    await mailer.sendEmailVerification({ to: req.user.email, verificationUrl: publicSiteUrl() + "/account?verify=" + token + "#referrals", tokenHash });
+    return res.json({ success: true, message: "Check your inbox for a verification link. It expires in 24 hours." });
+  } catch (err) {
+    console.error("[referrals] verification email unavailable", err.code || err.name);
+    return res.status(503).json({ success: false, error: "Verification email could not be sent. Please retry later." });
+  }
 });
 app.post("/api/auth/verification/confirm", rateLimit({ windowMs: 600_000, max: 10 }), async (req, res) => {
+  if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
   if (!referrals.enabled()) return res.status(503).json({ success: false, error: "Verification is not enabled yet." });
-  const out = await referrals.verifyEmail(req.user, req.body?.token);
-  return res.status(out.status || 200).json(out);
+  try {
+    const out = await referrals.verifyEmail(req.user, req.body?.token);
+    return res.status(out.status || 200).json(out);
+  } catch (err) {
+    console.error("[referrals] verification unavailable", err.code || err.name);
+    return res.status(503).json({ success: false, error: "Verification is temporarily unavailable. Please retry." });
+  }
 });
 
 app.post("/api/auth/forgot", rateLimit({ windowMs: 15 * 60_000, max: 5 }), async (req, res) => {

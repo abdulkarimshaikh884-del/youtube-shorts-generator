@@ -1735,7 +1735,7 @@
       if (targetName === "followers" || targetName === "following") loadPeoplePane(targetName);
 
       if (options.updateHash && window.history && history.replaceState) {
-        var nextHash = requestedName === "creations" ? "" : "#" + (requestedName === "edit" ? "edit-profile" : requestedName);
+        var nextHash = requestedName === "creations" && !settingsPane ? "" : "#" + (requestedName === "edit" ? "edit-profile" : requestedName);
         history.replaceState(null, "", location.pathname + location.search + nextHash);
       }
     }
@@ -1804,7 +1804,7 @@
     function syncAccountLocation() {
       var requestedTab = location.hash === "#edit-profile" || location.hash === "#profile" ? "edit" : location.hash.replace(/^#/, "");
       if (!requestedTab && new URLSearchParams(location.search).has("verify")) requestedTab = "settings";
-      switchTab(panes[requestedTab] ? requestedTab : "creations");
+      switchTab(panes[requestedTab] ? requestedTab : (panes.settings ? "settings" : "creations"));
     }
     syncAccountLocation();
     window.addEventListener("hashchange", syncAccountLocation);

@@ -39,7 +39,7 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100201">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
-<link rel="stylesheet" href="/account-settings.css?v=2026100401">
+<link rel="stylesheet" href="/account-settings.css?v=2026100501">
 </head>
 <body class="sh-body">
 
@@ -407,36 +407,19 @@
              next to, and its labels were the least readable text on the
              page, so the profile now starts at its own content. -->
 
-        <!-- Tabs.
-
-             Followers, Following and Stars used to be tabs here as well as
-             counts in the header, and the counts were already buttons that
-             opened them. Two controls, side by side, doing one thing. The
-             counts won: a number you can open is the more useful of the two,
-             and it is the one that states a fact rather than just offering a
-             destination. Those three panels are still here, still reachable,
-             and they now say what they are and how to get back. -->
-        <nav class="ig-tabs" role="tablist" aria-label="Profile sections">
-          <button type="button" class="ig-tab-btn is-active" id="igTabCreations" data-ig-tab="creations" role="tab" aria-controls="igPaneCreations" aria-selected="true">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-            <span>Creations</span>
-          </button>
-          <button type="button" class="ig-tab-btn" id="igTabSettings" data-ig-tab="settings" role="tab" aria-controls="igPaneSettings" aria-selected="false" tabindex="-1">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
-            <span>Settings</span>
-          </button>
-        </nav>
-
-        <!-- Tab 1: published creations -->
-        <section class="ig-pane is-active" id="igPaneCreations" data-ig-pane="creations" role="tabpanel" aria-labelledby="igTabCreations">
-          <div class="ig-grid" id="userCreationsGrid">
-            <!-- Rendered by authui.js -->
-          </div>
-        </section>
-
-        <section class="ig-pane pf-settings" id="igPaneSettings" data-ig-pane="settings" role="tabpanel" aria-labelledby="igTabSettings" hidden>
-          <header class="pf-settings-head"><h2>Your settings</h2><p>Manage your profile, preferences and account in one place.</p></header>
+        <!-- One settings workspace beneath the profile divider.
+             Creations is its first option; header counts retain their links. -->
+        <section class="ig-pane pf-settings is-active" id="igPaneSettings" data-ig-pane="settings" role="region" aria-labelledby="settingsHeading">
+          <header class="pf-settings-head"><h2 id="settingsHeading">Settings</h2></header>
           <div class="pf-settings-list">
+            <details class="pf-setting-group" data-settings-group="creations">
+              <summary><span><strong>Creations</strong><small>Your published templates</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <div class="pf-setting-content">
+                <section class="ig-pane is-active" id="igPaneCreations" data-ig-pane="creations" role="region" aria-label="Your creations">
+                  <div class="ig-grid" id="userCreationsGrid"><!-- Rendered by authui.js --></div>
+                </section>
+              </div>
+            </details>
             <details class="pf-setting-group" data-settings-group="edit">
               <summary><span><strong>Edit profile</strong><small>Photo, username, bio and links</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
               <div class="pf-setting-content" data-settings-slot="edit"></div>
@@ -465,14 +448,19 @@
                 <div class="pf-support-links"><a class="ig-btn ig-btn-secondary" href="/tutorials">Help &amp; tutorials</a><a class="ig-btn ig-btn-secondary" href="/contact">Send feedback</a><a class="ig-btn ig-btn-secondary" href="/about">About ShortsCraft</a><a class="ig-btn ig-btn-secondary" href="/privacy">Privacy</a><a class="ig-btn ig-btn-secondary" href="/terms">Terms</a></div>
               </div>
             </details>
-            <section id="referralSettings" class="pf-setting-standalone" hidden aria-labelledby="referralHeading">
-              <h3 id="referralHeading">Invite friends</h3>
+            <details class="pf-setting-group" data-settings-group="referrals">
+              <summary><span><strong id="referralHeading">Referral</strong><small>Invite friends · earn 10 bonus credits each</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <section id="referralSettings" class="ig-pane is-active pf-setting-content" data-ig-pane="referrals" role="region" aria-labelledby="referralHeading">
               <p class="pf-setting-note">10 bonus credits for both of you after your friend verifies their account and completes a successful export. Up to 10 rewarded referrals per month.</p>
-              <div class="pf-setting-row"><label for="referralLink">Your invite link<input id="referralLink" readonly /></label><button type="button" class="ig-btn ig-btn-secondary" id="copyReferralLink">Copy</button></div>
+              <div id="referralReady" hidden>
+              <div class="pf-setting-row"><label for="referralLink">Your invite link<input id="referralLink" readonly /></label><button type="button" class="ig-btn ig-btn-secondary" id="copyReferralLink" disabled>Copy</button></div>
               <p id="referralStats" class="pf-setting-note" aria-live="polite"></p>
-              <div class="pf-setting-row" id="referralVerifyRow" hidden><span>Verify your email to qualify.</span><button type="button" class="ig-btn ig-btn-secondary" id="sendVerification">Verify email</button></div>
-              <p id="referralMessage" class="pf-setting-note" hidden role="status"></p>
-            </section>
+              <div class="pf-setting-row" id="referralVerifyRow" hidden><span>Verify your email to qualify when you join through an invite.</span><button type="button" class="ig-btn ig-btn-secondary" id="sendVerification">Verify email</button></div>
+              </div>
+              <p id="referralMessage" class="pf-setting-note" role="status">Loading referral details…</p>
+              <button type="button" class="ig-btn ig-btn-secondary" id="retryReferral" hidden>Retry</button>
+              </section>
+            </details>
             <a class="pf-setting-row pf-setting-standalone pf-admin-link" href="/admin" data-auth="admin" hidden><span><strong>Admin Console</strong><small>Manage templates, categories and reports</small></span><span aria-hidden="true">›</span></a>
             <div class="pf-setting-row pf-setting-standalone"><span><strong>Log out</strong><small>End this session on this device. Your work is kept.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="accLogout">Log out</button></div>
           </div>
@@ -486,7 +474,7 @@
         <section class="ig-pane" id="igPaneFollowers" data-ig-pane="followers" role="region" aria-labelledby="igHeadFollowers" hidden>
           <header class="ig-pane-head">
             <h2 id="igHeadFollowers">Followers</h2>
-            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+            <button type="button" class="ig-pane-back" data-ig-back="settings">Back to settings</button>
           </header>
           <div class="ig-people" id="followersList" data-kind="followers">
             <p class="ig-acc-sub">Loading…</p>
@@ -496,7 +484,7 @@
         <section class="ig-pane" id="igPaneFollowing" data-ig-pane="following" role="region" aria-labelledby="igHeadFollowing" hidden>
           <header class="ig-pane-head">
             <h2 id="igHeadFollowing">Following</h2>
-            <button type="button" class="ig-pane-back" data-ig-back="creations">Back to creations</button>
+            <button type="button" class="ig-pane-back" data-ig-back="settings">Back to settings</button>
           </header>
           <div class="ig-people" id="followingList" data-kind="following">
             <p class="ig-acc-sub">Loading…</p>
@@ -796,10 +784,10 @@
 </nav>
 
 <script src="/account-settings.js?v=2026100401" defer></script>
-<script src="/authui.js?v=2026100401" defer></script>
+<script src="/authui.js?v=2026100501" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
 <script src="/page.js?v=2026100201" defer></script>
-<script src="/referrals.js?v=2026100201" defer></script>
+<script src="/referrals.js?v=2026100501" defer></script>
 <script src="/templates-v2.js?v=2026092501"></script></body>
 </html>
