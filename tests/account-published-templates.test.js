@@ -39,7 +39,7 @@ const puppeteer = require("puppeteer");
 
     for (const width of [390, 1440]) {
       await page.setViewport({ width, height: 850, isMobile: width < 768, hasTouch: width < 768 });
-      await page.goto("http://127.0.0.1:3327/account", { waitUntil: "networkidle2" });
+      await page.goto("http://127.0.0.1:3327/account/creations", { waitUntil: "networkidle2" });
       await page.waitForFunction(() => document.querySelectorAll("#userCreationsGrid .cr-cre-card").length > 5);
       const result = await page.evaluate(() => {
         const cards = [...document.querySelectorAll("#userCreationsGrid .cr-cre-card")];

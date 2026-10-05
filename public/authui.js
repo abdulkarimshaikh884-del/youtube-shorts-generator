@@ -264,8 +264,8 @@
           }
         }
 
-        loadStarsPane();
-        loadSupportPane();
+        if (!window.SC_ACCOUNT_NAV || window.SC_ACCOUNT_NAV.current === "stars") loadStarsPane();
+        if (!window.SC_ACCOUNT_NAV || window.SC_ACCOUNT_NAV.current === "support") loadSupportPane();
 
         if ($("#pageDisplayName")) $("#pageDisplayName").value = dname;
         if ($("#pageHandle")) $("#pageHandle").value = handle;
@@ -275,7 +275,7 @@
         if ($("#pageWebsite")) $("#pageWebsite").value = user.website || "";
         if ($("#pageLocation")) $("#pageLocation").value = user.location || "";
 
-        loadUserCreations();
+        if (!window.SC_ACCOUNT_NAV || ["settings", "creations"].includes(window.SC_ACCOUNT_NAV.current)) loadUserCreations();
       }
     }
   }
@@ -1116,6 +1116,9 @@
         if ($("#studioPrivate")) $("#studioPrivate").textContent = items.filter(function (t) { return t.status === "draft"; }).length;
         if ($("#studioExports")) $("#studioExports").textContent = items.reduce(function (sum, t) { return sum + (Number(t.downloads) || 0); }, 0);
 
+        // The account menu needs the count, not hidden animation previews.
+        if (window.SC_ACCOUNT_NAV && window.SC_ACCOUNT_NAV.current !== "creations") return;
+
         if (!items.length && !library.length) {
           grid.innerHTML = '<div class="cr-cre-empty">' +
             '<h3>No templates yet</h3>' +
@@ -1695,6 +1698,7 @@
 
     function switchTab(targetName, options) {
       options = options || {};
+      if (window.SC_ACCOUNT_NAV) { window.SC_ACCOUNT_NAV.navigate(targetName); return; }
       if (!panes[targetName]) return;
       var requestedName = targetName;
       var settingsPane = panes.settings;
@@ -1806,8 +1810,12 @@
       if (!requestedTab && new URLSearchParams(location.search).has("verify")) requestedTab = "settings";
       switchTab(panes[requestedTab] ? requestedTab : (panes.settings ? "settings" : "creations"));
     }
-    syncAccountLocation();
-    window.addEventListener("hashchange", syncAccountLocation);
+    if (window.SC_ACCOUNT_NAV) {
+      if (["followers", "following"].includes(window.SC_ACCOUNT_NAV.current)) loadPeoplePane(window.SC_ACCOUNT_NAV.current);
+    } else {
+      syncAccountLocation();
+      window.addEventListener("hashchange", syncAccountLocation);
+    }
 
     window.SC_ACCOUNT = window.SC_ACCOUNT || {};
     window.SC_ACCOUNT.switchTab = switchTab;

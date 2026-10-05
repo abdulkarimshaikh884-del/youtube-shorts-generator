@@ -39,7 +39,7 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100201">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
-<link rel="stylesheet" href="/account-settings.css?v=2026100501">
+<link rel="stylesheet" href="/account-settings.css?v=2026100502">
 </head>
 <body class="sh-body">
 
@@ -430,8 +430,8 @@
                 <div class="pf-setting-row"><span><strong>Google sign-in</strong><small data-google-status role="status">Connect the Google account with the same email.</small></span><button type="button" class="ig-btn ig-btn-secondary" data-google-signin data-google-link disabled>Connect Google</button></div>
               </div>
             </details>
-            <div class="pf-setting-row pf-setting-standalone"><span><strong>Appearance</strong><small>Light or dark · saved on this device</small></span><button type="button" class="ig-btn ig-btn-secondary" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark theme</span></button></div>
-            <details class="pf-setting-group">
+            <div class="pf-setting-row pf-setting-standalone" data-settings-group="appearance"><span><strong>Appearance</strong><small>Light or dark · saved on this device</small></span><button type="button" class="ig-btn ig-btn-secondary" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark theme</span></button></div>
+            <details class="pf-setting-group" data-settings-group="notifications">
               <summary><span><strong>Notifications</strong><small>Manage notifications on this device</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
               <div class="pf-setting-content">
                 <div class="pf-setting-row" data-push-row hidden><span><strong>This device</strong><small id="pushSettingsText">Get notifications even when ShortsCraft is closed.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="pushSettingsBtn">Turn on</button></div>
@@ -462,7 +462,7 @@
               </section>
             </details>
             <a class="pf-setting-row pf-setting-standalone pf-admin-link" href="/admin" data-auth="admin" hidden><span><strong>Admin Console</strong><small>Manage templates, categories and reports</small></span><span aria-hidden="true">›</span></a>
-            <div class="pf-setting-row pf-setting-standalone"><span><strong>Log out</strong><small>End this session on this device. Your work is kept.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="accLogout">Log out</button></div>
+            <div class="pf-setting-row pf-setting-standalone" data-settings-group="logout"><span><strong>Log out</strong><small>End this session on this device. Your work is kept.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="accLogout">Log out</button></div>
           </div>
         </section>
 
@@ -783,11 +783,12 @@
   </a>
 </nav>
 
-<script src="/account-settings.js?v=2026100401" defer></script>
-<script src="/authui.js?v=2026100501" defer></script>
+<script src="/account-routes.js?v=2026100502" defer></script>
+<script src="/account-settings.js?v=2026100502" defer></script>
+<script src="/authui.js?v=2026100502" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
 <script src="/page.js?v=2026100201" defer></script>
-<script src="/referrals.js?v=2026100501" defer></script>
+<script src="/referrals.js?v=2026100502" defer></script>
 <script src="/templates-v2.js?v=2026092501"></script></body>
 </html>

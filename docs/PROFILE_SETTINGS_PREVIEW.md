@@ -2,6 +2,8 @@
 
 Implemented locally only. Not pushed to GitHub or deployed to production.
 
+Latest navigation revision: see [ACCOUNT_SETTINGS_PAGES.md](ACCOUNT_SETTINGS_PAGES.md). Settings rows now open dedicated URL pages, not inline expandable panels. The grouped-panel notes below record the earlier reversible revision.
+
 ## Layout and behavior
 
 - Profile header retained; one divider, then Settings. No Creations/Settings tab strip or extra introductory subtitle. Creations is the first expandable Settings option.

@@ -2,6 +2,7 @@
   "use strict";
   var section = document.getElementById("referralSettings");
   if (!section) return;
+  if (window.SC_ACCOUNT_ROUTES && (!window.SC_ACCOUNT_NAV || window.SC_ACCOUNT_NAV.current !== "referrals")) return;
   var message = document.getElementById("referralMessage");
   var ready = document.getElementById("referralReady");
   var retry = document.getElementById("retryReferral");
@@ -57,7 +58,7 @@
   api("/api/auth/me").then(function (j) {
     if (!j.user) {
       if (token) {
-        var next = "/account?verify=" + encodeURIComponent(token) + "#referrals";
+        var next = "/account/referrals?verify=" + encodeURIComponent(token);
         var login = document.querySelector('#accountGuest a[href^="/login"]');
         if (login) login.href = "/login?next=" + encodeURIComponent(next);
       }

@@ -8,6 +8,7 @@ const crypto = require("node:crypto");
 const puppeteer = require("puppeteer");
 const base = "http://127.0.0.1:3327";
 const out = "audit_results/profile-settings";
+const routes = require("../public/account-routes");
 let role = "user", saveFails = false, referralMode = "disabled", emailFails = false, verified = false;
 let user = {id:"qa-profile",email:"preview@example.test",handle:"preview_creator",displayName:"Preview Creator",plan:"free",role:"user",createdAt:"2026-10-01",followers:0,following:0};
 const mutations = [], errors = [];
@@ -53,10 +54,13 @@ function fixture(url, request) {
     });
     const go = async route => {
       await page.goto(base+route,{waitUntil:"networkidle2"});
-      await page.waitForFunction(()=>window.SC_ACCOUNT && document.querySelector("#accountBox").hidden === false);
+      const target = new URL(base+route);
+      const legacy = ["profile","edit-profile"].includes(target.hash.slice(1)) ? "edit" : target.hash.slice(1);
+      const expected = routes[legacy] || (target.pathname === "/settings" ? "/account" : target.pathname);
+      await page.waitForFunction(path=>location.pathname===path && window.SC_ACCOUNT_NAV && window.SC_ACCOUNT && document.querySelector("#accountBox").hidden === false,{},expected);
     };
     const visible = selector => page.$eval(selector,e=>e.checkVisibility({visibilityProperty:true}));
-    for (const width of [320,390,768,1440]) {
+    for (const width of process.argv.includes("--flows-only") ? [] : [320,390,768,1440]) {
       await page.setViewport({width,height:900,isMobile:width<600,hasTouch:width<600});
       for (const theme of ["light","dark"]) {
         await go("/account");
@@ -67,7 +71,8 @@ function fixture(url, request) {
         assert.equal(await visible("#igPaneCreations"),false);
         assert.equal(await page.$(".ig-tabs"),null,"No extra Creations/Settings tab bar");
         assert.equal(await page.$eval("#settingsHeading",e=>e.textContent.trim()),"Settings");
-        assert.equal(await page.$eval(".pf-settings-list > :first-child",e=>e.dataset.settingsGroup),"creations");
+        assert.equal(await page.$eval(".pf-settings-list > :first-child",e=>e.dataset.settingsLink),"creations");
+        assert.equal(await page.$("#igPaneSettings details, #igPaneSettings form"),null,"Menu has only links, not inline forms");
         assert.equal(await page.$$eval("[id]",els=>{const ids=els.map(e=>e.id);return ids.filter((id,i)=>ids.indexOf(id)!==i).length;}),0);
         assert.equal(await page.$$eval("#navMobile a",els=>els.filter(e=>e.textContent.trim()==="Settings").length),1);
         assert.equal(await visible(".pf-admin-link"),false);
@@ -77,29 +82,46 @@ function fixture(url, request) {
           await page.evaluate(()=>document.querySelector("#igPaneSettings").scrollIntoView({block:"center"}));
           await page.screenshot({path:`${out}/preview-settings-${theme}-${width}.png`});
         }
-        await page.click('[data-settings-group="creations"] > summary');
+        await Promise.all([page.waitForNavigation({waitUntil:"networkidle2"}),page.click('[data-settings-link="creations"]')]);
         assert(await visible("#igPaneCreations"));
-        await page.click('[data-settings-group="creations"] > summary');
+        assert.equal(new URL(page.url()).pathname,routes.creations);
+        assert.equal(await visible(".ig-header"),false,"Detail page does not repeat the profile header");
+        await Promise.all([page.waitForNavigation({waitUntil:"networkidle2"}),page.click('.pf-detail-head a')]);
+        assert.equal(new URL(page.url()).pathname,routes.settings);
         assert.equal(await visible("#igPaneCreations"),false);
-        await page.click("[data-theme-toggle]");
+        await go(routes.appearance);
+        await page.click("#accountDetail [data-theme-toggle]");
         assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme==="light"?"dark":"light");
         await page.reload({waitUntil:"networkidle2"});
         assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme==="light"?"dark":"light");
         for (const [hash,name] of [["creations","creations"],["edit-profile","edit"],["account","account"],["stars","stars"],["support","support"],["referrals","referrals"]]) {
           await go("/account#"+hash);
-          assert(await visible("#igPaneSettings"));
-          assert(await page.$eval(`[data-settings-group="${name}"]`,e=>e.open));
+          assert.equal(new URL(page.url()).pathname,routes[name],"Legacy hash redirects to dedicated page");
+          assert(await visible("#accountDetail"));
+          assert(await visible(`[data-settings-page="${name}"]`));
+          assert.equal(await visible("#igPaneSettings"),false);
           assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
         }
-        console.log(`PASS profile/settings ${width}px ${theme}: creations first, no tabs, grouped panels, deep links, theme persistence, privacy, no overflow`);
+        for (const name of ["notifications","logout"]) {
+          await go(routes[name]);
+          assert(await visible(`[data-settings-page="${name}"]`));
+          assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+        }
+        console.log(`PASS profile/settings ${width}px ${theme}: links, dedicated URL pages, back/reload, legacy redirects, theme persistence, privacy, no overflow`);
       }
     }
     await page.setViewport({width:1440,height:1000});
     await go("/settings?google_error=cancelled");
     assert.equal(new URL(page.url()).pathname,"/account");
-    assert.equal(new URL(page.url()).hash,"#settings");
+    assert.equal(new URL(page.url()).hash,"");
     assert(new URL(page.url()).searchParams.has("google_error"));
-    await page.click("#openEditProfileBtn");
+    await Promise.all([page.waitForNavigation({waitUntil:"networkidle2"}),page.click("#openEditProfileBtn")]);
+    assert.equal(new URL(page.url()).pathname,routes.edit);
+    await page.screenshot({path:out+"/preview-edit-profile-1440.png",fullPage:true});
+    await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
+    await page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,500)));
+    await page.screenshot({path:out+"/preview-edit-profile-390.png",fullPage:true});
+    await page.setViewport({width:1440,height:1000});
     await page.$eval("#pageDisplayName",e=>e.value="Updated preview name");
     await page.click("#pageSaveProfileBtn");
     await page.waitForFunction(()=>document.querySelector("#pageProfileMsg").textContent.includes("successfully"));
@@ -108,19 +130,19 @@ function fixture(url, request) {
     await page.click("#pageSaveProfileBtn");
     await page.waitForFunction(()=>document.querySelector("#pageProfileMsg").textContent.includes("unavailable"));
     assert.equal(await page.$eval("#pageSaveProfileBtn",e=>e.disabled),false);
-    await page.click("#pageCancelProfileBtn");
+    await Promise.all([page.waitForNavigation({waitUntil:"networkidle2"}),page.click("#pageCancelProfileBtn")]);
     assert(await visible("#igPaneCreations"));
     role="super_admin";
     await go("/account#settings");
     assert(await visible(".pf-admin-link"));
-    await page.evaluate(()=>document.querySelector('[data-settings-group="creations"] > summary').focus());
-    await page.keyboard.press("Enter");
-    assert(await visible("#igPaneCreations"),"Creations accordion opens with keyboard");
-    await page.keyboard.press("Enter");
-    assert.equal(await visible("#igPaneCreations"),false);
+    await page.evaluate(()=>document.querySelector('[data-settings-link="creations"]').focus());
+    await Promise.all([page.waitForNavigation({waitUntil:"networkidle2"}),page.keyboard.press("Enter")]);
+    assert(await visible("#igPaneCreations"),"Keyboard opens dedicated Creations page");
+    await page.goBack({waitUntil:"networkidle2"});
+    assert.equal(new URL(page.url()).pathname,routes.settings);
     await go("/account#followers");
     assert(await visible("#igPaneFollowers"));
-    await page.click('#igPaneFollowers [data-ig-back="settings"]');
+    await Promise.all([page.waitForNavigation({waitUntil:"networkidle2"}),page.click('.pf-detail-head a')]);
     assert(await visible("#igPaneSettings"));
     await go("/account#referrals");
     assert(await visible("#referralSettings"));
@@ -162,7 +184,10 @@ function fixture(url, request) {
     assert(await visible("#accountGuest"));
     assert.equal(await visible("#igPaneSettings"),false);
     assert(await visible("#accountGuest [data-theme-toggle]"),"Guest appearance remains accessible without exposing private settings");
-    assert.equal(await page.$eval('#accountGuest a[href^="/login"]',e=>new URL(e.href).searchParams.get("next")),"/account#settings");
+    assert.equal(await page.$eval('#accountGuest a[href^="/login"]',e=>new URL(e.href).searchParams.get("next")),"/account");
+    await page.goto(base+routes.edit,{waitUntil:"networkidle2"});
+    assert.equal(await visible("#accountDetail"),false,"Private detail page is hidden for guests");
+    assert.equal(await page.$eval('#accountGuest a[href^="/login"]',e=>new URL(e.href).searchParams.get("next")),routes.edit);
     await page.goto(base+"/creator?handle=preview_creator",{waitUntil:"networkidle2"});
     assert.equal(await page.$("#igPaneSettings"),null,"Public profile is not an account-settings surface");
     assert.deepEqual(mutations,["/api/auth/profile","/api/auth/profile"]);

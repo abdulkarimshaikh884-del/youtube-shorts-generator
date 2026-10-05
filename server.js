@@ -2814,6 +2814,8 @@ const PAGES = {
   "/design-editor": "design-editor.html",
 };
 
+for (const route of Object.values(require("./public/account-routes"))) PAGES[route] = "account.html";
+
 for (const [route, file] of Object.entries(PAGES)) {
   app.get(route, (req, res) => {
     const filePath = path.join(__dirname, "public", file);

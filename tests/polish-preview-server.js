@@ -4,6 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const root = path.resolve(__dirname, "../public");
+const accountRoutes = new Set(Object.values(require("../public/account-routes")));
 const mime = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".woff2": "font/woff2" };
 http.createServer((req, res) => {
   const pathname = new URL(req.url, "http://localhost").pathname;
@@ -17,7 +18,8 @@ http.createServer((req, res) => {
   let relative;
   try { relative = decodeURIComponent(pathname).replace(/^\/+/, "") || "index.html"; }
   catch { res.writeHead(400); return res.end(); }
-  if (!path.extname(relative)) relative += ".html";
+  if (accountRoutes.has(pathname.replace(/\/$/, ""))) relative = "account.html";
+  else if (!path.extname(relative)) relative += ".html";
   const target = path.resolve(root, relative);
   if (!target.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
   fs.readFile(target, (err, data) => {
