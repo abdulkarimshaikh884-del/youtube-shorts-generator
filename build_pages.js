@@ -129,9 +129,9 @@ ${p.body}
   </nav>
 </div>
 
-<script src="/authui.js?v=${V}" defer></script>
+<script src="/authui.js?v=2026100503" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
-<script src="/page.js?v=${V}" defer></script>
+<script src="/page.js?v=2026100503" defer></script>
 ${p.scripts || ""}</body>
 </html>
 `;
@@ -223,7 +223,7 @@ ${p.robots ? `<meta name="robots" content="${p.robots}"/>\n` : ""}<meta property
 <link rel="stylesheet" href="/redesign.css?v=${V}">
 <!-- Motion layer. Loads last so it can add transitions to the finished
      visual system without restating any of it. -->
-<link rel="stylesheet" href="/polish.css?v=${V}">
+<link rel="stylesheet" href="/polish.css?v=2026100503">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 ${p.head || ""}
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
@@ -231,6 +231,8 @@ ${p.head || ""}
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=${V}">
 <link rel="stylesheet" href="/monochrome.css?v=${V}">
+<link rel="stylesheet" href="/finishing.css?v=2026100503">
+<script src="/finishing.js?v=2026100503" defer></script>
 </head>
 `;
 
@@ -491,10 +493,10 @@ ${p.body}
 
 ${bottomNav(p)}
 
-<script src="/authui.js?v=${V}" defer></script>
+<script src="/authui.js?v=2026100503" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
 <script src="/report.js?v=${V}" defer></script>
-${p.noPageJs ? "" : `<script src="/page.js?v=${V}" defer></script>`}
+${p.noPageJs ? "" : `<script src="/page.js?v=2026100503" defer></script>`}
 ${p.scripts || ""}</body>
 </html>
 `;
@@ -2753,7 +2755,7 @@ const designsPage = {
 
       </div>
     </div>`,
-  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/designs.js?v=${V}" defer></script>`
+  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/designs.js?v=2026100503" defer></script>`
 };
 
 const templatePage = {

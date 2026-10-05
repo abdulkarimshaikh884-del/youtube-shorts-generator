@@ -29,7 +29,8 @@
     var version = ++loadVersion;
     var grid = $("#designsGrid");
     if (!grid) return;
-    grid.innerHTML = '<div class="ds-loading"><div class="ds-spinner"></div><p>Loading design templates...</p></div>';
+    grid.setAttribute("aria-busy", "true");
+    grid.innerHTML = '<div class="ds-loading" role="status"><div class="ds-spinner" aria-hidden="true"></div><p>Loading design templates...</p></div>';
 
     fetch("/api/designs/templates" + (category && category !== "all" ? "?category=" + encodeURIComponent(category) : ""))
       .then(function (r) { if (!r.ok) throw new Error("load"); return r.json(); })
@@ -46,7 +47,7 @@
       .catch(function (err) {
         if (version !== loadVersion) return;
         grid.innerHTML = '<div class="ds-empty"><h3>Could not load templates</h3><p>Please refresh the page to try again.</p></div>';
-      });
+      }).finally(function () { if (version === loadVersion) grid.removeAttribute("aria-busy"); });
   }
 
   function renderTemplates(templates) {

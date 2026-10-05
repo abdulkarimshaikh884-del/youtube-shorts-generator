@@ -1,0 +1,68 @@
+/* Small interface accents only. Neutral themes and template artwork stay intact. */
+:root {
+  --sc-accent: #0f766e;
+  --sc-accent-soft: #e6f5f1;
+  --sc-accent-line: #81bdb4;
+  --sc-amber: #92400e;
+  --sc-amber-soft: #fff4df;
+}
+:root[data-theme="dark"] {
+  --sc-accent: #5eead4;
+  --sc-accent-soft: #18332e;
+  --sc-accent-line: #3e766b;
+  --sc-amber: #fcd34d;
+  --sc-amber-soft: #352c19;
+}
+body.sh-body :is(.sh-ce-badge-pill,.sh-pp-pop-badge,.pg-hot-tag) {
+  background: var(--sc-accent-soft) !important;
+  color: var(--sc-accent) !important;
+  border: 1px solid var(--sc-accent-line) !important;
+  box-shadow: none !important;
+}
+body.sh-body :is(.sh-workflow-icon,.sh-workflow-num) {
+  color: var(--sc-accent); background: var(--sc-accent-soft);
+}
+body.sh-body .sh-workflow-card:nth-child(2) :is(.sh-workflow-icon,.sh-workflow-num) {
+  color:var(--sc-amber); background:var(--sc-amber-soft);
+}
+body.sh-body :is(.sh-credit-balance,.sh-nav a.active svg,.pf-setting-link:hover .pf-chevron) { color: var(--sc-accent) !important; }
+body.sh-body :is(.sh-pp-featured,.pg-plan.pg-hot) { border-color: var(--sc-accent-line) !important; }
+body.sh-body .sh-plan-cta-primary {
+  background: var(--sc-brand) !important; color: var(--sc-on-brand) !important;
+  box-shadow: none !important;
+}
+body.sh-body .sh-plan-dot { background: var(--sc-accent) !important; }
+body.sh-body .sh-pp-list li::before { color: var(--sc-accent); }
+body.sh-body :is(.sh-pp-card,.pg-plan,.ds-card,.pg-card,.pf-setting-link,.ig-cre-card) {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+body.sh-body :is(.pg-bw,.pg-bo,.ig-btn,.ds-btn-magic,.ds-filter-btn,.sh-plan-cta),
+.ed-body :is(.ed-btn,.ed-export,.ed-pub-btn),
+.de-app :is(.de-btn,.de-tool-btn) { transition: transform 140ms ease, background-color 160ms ease; }
+body.sh-body :is(.pg-bw,.pg-bo,.ig-btn,.ds-btn-magic,.ds-filter-btn,.sh-plan-cta):active:not(:disabled),
+.ed-body :is(.ed-btn,.ed-export,.ed-pub-btn):active:not(:disabled),
+.de-app :is(.de-btn,.de-tool-btn):active:not(:disabled) { transform: scale(.98); }
+@media (hover:hover) and (pointer:fine) {
+  body.sh-body :is(.sh-pp-card,.pg-plan,.ds-card,.pg-card,.pf-setting-link,.ig-cre-card):hover {
+    border-color: var(--sc-accent-line); box-shadow: 0 3px 12px #0000000c;
+  }
+}
+/* Added only when a section enters the viewport. Never hide content to wait for JS. */
+@keyframes scSectionIn { from { opacity:.7; transform:translateY(7px); } to { opacity:1; transform:translateY(0); } }
+.sc-enter { animation: scSectionIn 280ms ease-out backwards; }
+/* Indeterminate activity, not a made-up completion percentage. Pointer-transparent. */
+.sc-load-track { position:fixed; inset:0 0 auto; height:3px; z-index:100000; pointer-events:none; overflow:hidden; background:var(--sc-accent-soft); }
+.sc-load-track[hidden] { display:none !important; }
+.sc-load-track::after { content:""; display:block; width:35%; height:100%; background:var(--sc-accent); animation:scRequestMove 1s ease-in-out infinite; }
+@keyframes scRequestMove { from { transform:translateX(-110%); } to { transform:translateX(390%); } }
+.sc-load-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+button[aria-busy="true"]::after { content:""; position:static; inset:auto; background:none; display:inline-block; flex-shrink:0; vertical-align:middle; margin-inline-start:8px; width:12px; height:12px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:scBusySpin .7s linear infinite; }
+@keyframes scBusySpin { to { transform:rotate(360deg); } }
+body.sh-body :is(.ds-loading,.sh-comm-loading) { color:var(--sc-muted); }
+body.sh-body .ds-spinner { border-top-color:var(--sc-accent); }
+body.sh-body [data-credit-state="loading"] .sh-credit-balance { opacity:.7; }
+@media (prefers-reduced-motion:reduce) {
+  .sc-enter,.sc-load-track::after,button[aria-busy="true"]::after,
+  body.sh-body .ds-spinner,.ed-body *, .de-app * { animation:none !important; transition:none !important; }
+  .sc-load-track::after { width:100%; }
+}

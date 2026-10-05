@@ -143,6 +143,7 @@
 
       var label = send.textContent;
       send.disabled = true;
+      send.setAttribute("aria-busy", "true");
       send.textContent = kind === "signup" ? "Creating…" : "Logging in…";
       say("");
 
@@ -162,6 +163,7 @@
       }).catch(function (err) {
         say(err.message, true);
         send.disabled = false;
+        send.removeAttribute("aria-busy");
         send.textContent = label;
       });
     });
@@ -203,6 +205,7 @@
 
       var label = forgotSend.textContent;
       forgotSend.disabled = true;
+      forgotSend.setAttribute("aria-busy", "true");
       forgotSend.textContent = "Sending…";
       forgotSay("");
       forgotDevLink.hidden = true;
@@ -219,6 +222,7 @@
       }).then(function (j) {
         forgotSay(j.message || "If an account exists for that email, a reset link is on its way.", false, true);
         forgotSend.disabled = false;
+        forgotSend.removeAttribute("aria-busy");
         forgotSend.textContent = "Send another link";
         if (j.devResetUrl) {
           var resetUrl = new URL(j.devResetUrl, location.origin);
@@ -231,6 +235,7 @@
       }).catch(function (err) {
         forgotSay(err.message, true);
         forgotSend.disabled = false;
+        forgotSend.removeAttribute("aria-busy");
         forgotSend.textContent = label;
       });
     });
@@ -282,6 +287,7 @@
 
       var label = resetSend.textContent;
       resetSend.disabled = true;
+      resetSend.setAttribute("aria-busy", "true");
       resetSend.textContent = "Updating…";
       resetSay("");
 
@@ -300,6 +306,7 @@
       }).catch(function (err) {
         resetSay(err.message, true);
         resetSend.disabled = false;
+        resetSend.removeAttribute("aria-busy");
         resetSend.textContent = label;
       });
     });
@@ -397,6 +404,7 @@
       }
 
       send.disabled = true;
+      send.setAttribute("aria-busy", "true");
       var label = send.textContent;
       send.textContent = "Sending…";
       say("Sending…");
@@ -418,6 +426,7 @@
         say(err.message || "Could not send that. Please retry.", true);
       }).finally(function () {
         send.disabled = false;
+        send.removeAttribute("aria-busy");
         send.textContent = label;
       });
     });

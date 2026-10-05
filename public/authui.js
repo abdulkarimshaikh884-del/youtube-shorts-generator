@@ -671,6 +671,7 @@
 
       if (saveBtn) {
         saveBtn.disabled = true;
+        saveBtn.setAttribute("aria-busy", "true");
         saveBtn.textContent = "Saving…";
       }
       if (msg) msg.textContent = "";
@@ -708,6 +709,7 @@
       .finally(function () {
         if (saveBtn) {
           saveBtn.disabled = false;
+          saveBtn.removeAttribute("aria-busy");
           saveBtn.textContent = "Save Profile Changes";
         }
       });

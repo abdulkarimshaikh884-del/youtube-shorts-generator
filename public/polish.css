@@ -70,8 +70,7 @@ body.sh-body .sh-gallery-sec {
    Staggered rise, capped at 10 so a 59-card grid never makes
    anyone wait. Hover is a compositor-only lift. */
 body.sh-body .sh-gallery > * {
-  animation: scRise 340ms var(--sc-ease) both;
-  will-change: transform;
+  animation: scRise 340ms var(--sc-ease) backwards;
 }
 body.sh-body .sh-gallery > :nth-child(1)  { animation-delay: 0ms; }
 body.sh-body .sh-gallery > :nth-child(2)  { animation-delay: 40ms; }
@@ -143,7 +142,7 @@ body.sh-body .sh-notification-btn:active {
 body.sh-body .sh-cgo:hover,
 body.sh-body .sh-ge-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(40, 86, 216, .26);
+  box-shadow: 0 6px 16px rgba(20, 20, 20, .12);
 }
 body.sh-body .sh-cgo:active,
 body.sh-body .sh-ge-primary:active {

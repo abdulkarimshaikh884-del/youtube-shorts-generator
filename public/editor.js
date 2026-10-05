@@ -1721,8 +1721,8 @@
     var top = $("#edExport");
     var msg = $("#exportMsg");
     var label = btn ? btn.innerHTML : "Render & Download MP4";
-    if (btn) { btn.disabled = true; btn.textContent = "Rendering frame-by-frame…"; }
-    if (top) top.disabled = true;
+    if (btn) { btn.disabled = true; btn.setAttribute("aria-busy", "true"); btn.textContent = "Rendering frame-by-frame…"; }
+    if (top) { top.disabled = true; top.setAttribute("aria-busy", "true"); }
     if (msg) { msg.className = "ed-modal-msg"; msg.textContent = "Rendering video on high-performance server…"; }
 
     var payload = {
@@ -1793,8 +1793,8 @@
       refreshCredits();
     }).finally(function () {
       exporting = false;
-      if (btn) { btn.disabled = false; btn.innerHTML = label; }
-      if (top) top.disabled = false;
+      if (btn) { btn.disabled = false; btn.removeAttribute("aria-busy"); btn.innerHTML = label; }
+      if (top) { top.disabled = false; top.removeAttribute("aria-busy"); }
     });
   }
 
