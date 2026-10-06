@@ -7,7 +7,7 @@ const sharp = require('sharp');
 (async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(),'shortscraft-design-test-'));
   const moduleMock = {exports:{}};
-  vm.runInNewContext(fs.readFileSync(require.resolve('../design-converter'),'utf8'),{module:moduleMock,require,Buffer,console,__dirname:root});
+  vm.runInNewContext(fs.readFileSync(require.resolve('../design-converter'),'utf8')+'\nmodule.exports.qaRepair = reconstructBackground;',{module:moduleMock,require,Buffer,console,__dirname:root});
   const engine = moduleMock.exports;
   const input = await sharp(Buffer.from('<svg width="600" height="400"><rect width="600" height="400" fill="white"/><text x="0" y="80" font-size="40">HELLO</text></svg>')).png().toBuffer();
   assert.equal((await engine.validateImage(Buffer.from('bad'),'image/png')).success,undefined);
@@ -26,5 +26,8 @@ const sharp = require('sharp');
   assert.equal(result.qualityScore,undefined); assert.equal(result.requiresReview,true);
   assert.match(result.warning,/rectangular crops/);
   assert.equal(result.project.canvas.width,600);
+  const failedRepair=await engine.qaRepair(Buffer.from('invalid'),[],[],{width:600,height:400},root);
+  assert.equal(failedRepair.success,false);
+  assert.equal(failedRepair.relativeUrl,undefined,'Failed repair must not return the original as a clean background');
   console.log('PASS: real image decode, flat mode, unavailable AI fails honestly, detected text layers, zero coordinates, safe asset IDs, review warnings. Test assets:',root);
 })().catch(e=>{console.error(e);process.exitCode=1;});

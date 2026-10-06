@@ -324,6 +324,11 @@ body.page-home .sh-home > .sh-gallery-sec { margin-top: 32px !important; }
 }
 
 /* ── Universal Upload Modal Design Styles ─────────────────────── */
+.sc-publish-modal .ds-spinner { width:32px; height:32px; margin:0 auto 16px; border:3px solid var(--sc-border); border-top-color:var(--sc-text); border-radius:50%; animation:scDesignWait .8s linear infinite; }
+.sc-publish-modal #authReviewLayers .ds-template-preview { display:block; width:100%; height:auto; }
+.sc-publish-modal .ds-review-col { min-width:0; }
+@keyframes scDesignWait { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .sc-publish-modal .ds-spinner { animation:none; } }
 .ds-picked-preview-row {
   display: flex;
   align-items: center;

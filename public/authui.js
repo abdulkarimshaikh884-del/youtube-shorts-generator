@@ -2532,7 +2532,7 @@
       '        <input type="file" id="uploadFile"' + (TOUCH ? '' : ' accept="' + ACCEPT + '"') + ' hidden>',
       '        <input type="file" id="uploadFolder" webkitdirectory multiple hidden>',
       '      </div>',
-      '      <p class="sc-drop-hint">Upload any Lottie animation file/ZIP or any thumbnail/graphic image. ShortsCraft automatically detects the format and gives you live editable controls.</p>',
+      '      <p class="sc-drop-hint">Upload a Lottie animation or PNG, JPG or WebP design. Images are analysed automatically using AI credits; review estimated layers before saving or publishing.</p>',
       '    </section>',
       '    <section class="sc-publish-panel" data-panel="2" hidden>',
       '      <div class="sc-detect" id="uploadDetect"></div>',
@@ -2856,157 +2856,74 @@
 
     var currentDesignDataUri = null;
     var currentDesignProject = null;
-    var designInterval = null;
+    var designReadVersion = 0;
 
     function handleDesignImage(file) {
+      if (busy) return;
       if (file.size > 15 * 1024 * 1024) {
         showError("Image must be smaller than 15 MB.");
         return;
       }
       clearError();
+      var version = ++designReadVersion;
+      busy = true;
       var reader = new FileReader();
       reader.onload = function (e) {
+        if (version !== designReadVersion || modal.hidden) { busy = false; return; }
         currentDesignDataUri = e.target.result;
-        renderDesignModeChoice(file, currentDesignDataUri);
-        showStep("design");
+        var image = new Image();
+        image.onload = function () {
+          busy = false;
+          if (version !== designReadVersion || modal.hidden) return;
+          if (image.width < 32 || image.height < 32 || image.width > 8000 || image.height > 8000) {
+            showError("Image dimensions must be between 32 and 8000 pixels."); return;
+          }
+          startDesignConversion(currentDesignDataUri, false);
+        };
+        image.onerror = function () { busy = false; showError("This image could not be decoded. Choose PNG, JPG or WebP."); };
+        image.src = currentDesignDataUri;
       };
       reader.onerror = function () {
+        busy = false;
         showError("Could not read this image file.");
       };
       reader.readAsDataURL(file);
     }
 
-    function renderDesignModeChoice(file, dataUri) {
+    function renderDesignFailure(dataUri, message) {
       var container = $("#authDesignContent");
       if (!container) return;
-      var sizeMb = file.size > 0 ? (file.size / (1024 * 1024)).toFixed(2) + " MB" : "";
-      container.innerHTML = [
-        '<div class="ds-picked-preview-row">',
-        '  <img class="ds-picked-thumb" src="' + escapeHtml(dataUri) + '" alt="Preview">',
-        '  <div class="ds-picked-info">',
-        '    <strong>' + escapeHtml(file.name || "Uploaded Image") + '</strong>',
-        '    <span>' + (sizeMb ? sizeMb + " &middot; " : "") + 'Image detected</span>',
-        '  </div>',
-        '</div>',
-        '<div class="ds-mode-grid">',
-        '  <div class="ds-mode-card featured" id="authBtnConvertEditable">',
-        '    <span class="ds-mode-badge">AI Powered</span>',
-        '    <div class="ds-mode-icon">✨</div>',
-        '    <h3>Convert to Editable</h3>',
-        '    <p>Decomposes your image into editable text layers, clean inpainted background with text erased, transparent foreground cutouts, and vector shapes.</p>',
-        '    <button type="button" class="ds-mode-btn ds-mode-btn-primary">✦ Convert to Editable ✨</button>',
-        '  </div>',
-        '  <div class="ds-mode-card" id="authBtnUseAsImage">',
-        '    <span class="ds-mode-badge" style="background:#475569;">Simple Layer</span>',
-        '    <div class="ds-mode-icon">🖼</div>',
-        '    <h3>Use as Image</h3>',
-        '    <p>Opens your image directly on a flat canvas layer without altering pixels. Add text badges, shapes, or stickers right on top.</p>',
-        '    <button type="button" class="ds-mode-btn ds-mode-btn-subtle">Use as Image</button>',
-        '  </div>',
-        '</div>',
-        '<div style="margin-top:18px;text-align:center;">',
-        '  <button type="button" class="pg-bo sc-detect-again" id="authDesignBackBtn">Choose a different file</button>',
-        '</div>'
-      ].join("");
-
-      var btnConvert = $("#authBtnConvertEditable");
-      if (btnConvert) {
-        btnConvert.addEventListener("click", function () {
-          startDesignConversion(dataUri, false);
-        });
-      }
-      var btnImage = $("#authBtnUseAsImage");
-      if (btnImage) {
-        btnImage.addEventListener("click", function () {
-          startDesignConversion(dataUri, true);
-        });
-      }
-      var btnBackFile = $("#authDesignBackBtn");
-      if (btnBackFile) {
-        btnBackFile.addEventListener("click", function () {
-          reset();
-          showStep(1);
-        });
-      }
+      container.innerHTML = '<p role="alert">' + escapeHtml(message || "Your image could not be analysed.") + '</p><div class="sc-drop-actions"><button type="button" class="pg-bw" id="authDesignRetry">Retry analysis</button><button type="button" class="pg-bo" id="authDesignFlat">Use one image layer</button><button type="button" class="pg-bo" id="authDesignBackBtn">Choose another file</button></div><p class="sc-drop-hint">A single image layer does not make its text or subjects editable.</p>';
+      $("#authDesignRetry").onclick = function () { startDesignConversion(dataUri, false); };
+      $("#authDesignFlat").onclick = function () { startDesignConversion(dataUri, true); };
+      $("#authDesignBackBtn").onclick = function () { reset(); showStep(1); };
+      $("#authDesignRetry").focus();
     }
 
-    function startDesignConversion(dataUri, useAsImage) {
-      if (designInterval) clearInterval(designInterval);
+    async function startDesignConversion(dataUri, useAsImage) {
+      if (busy) return;
       var container = $("#authDesignContent");
       if (!container) return;
-
-      var stages = [
-        { pct: 15, msg: "1. Uploading image..." },
-        { pct: 35, msg: "2. Analyzing visual layout with AI..." },
-        { pct: 55, msg: "3. Detecting text & typography..." },
-        { pct: 70, msg: "4. Finding foreground subjects & cutouts..." },
-        { pct: 85, msg: "5. Rebuilding clean background (inpainting)..." },
-        { pct: 95, msg: "6. Creating editable layers..." },
-        { pct: 100, msg: "7. Preparing Design Studio..." }
-      ];
-
-      container.innerHTML = [
-        '<div class="ds-progress-wrap">',
-        '  <div class="ds-spinner" style="margin: 0 auto 16px;"></div>',
-        '  <h3 style="margin: 0 0 8px; font-size: 16px; font-weight: 600;">Analyzing &amp; Reconstructing Design</h3>',
-        '  <p id="authDesignProgMsg" style="margin: 0 0 16px; font-size: 13px; color: var(--sc-muted);">1. Uploading image...</p>',
-        '  <div class="ds-progress-bar-bg" style="max-width: 380px; margin: 0 auto;">',
-        '    <div class="ds-progress-bar-fill" id="authDesignProgBar" style="width: 15%;"></div>',
-        '  </div>',
-        '</div>'
-      ].join("");
-
-      var bar = $("#authDesignProgBar");
-      var txt = $("#authDesignProgMsg");
-      var curIdx = 0;
-
-      designInterval = setInterval(function () {
-        if (curIdx < stages.length - 1) {
-          curIdx++;
-          if (bar) bar.style.width = stages[curIdx].pct + "%";
-          if (txt) txt.textContent = stages[curIdx].msg;
-        }
-      }, 1100);
-
-      fetch("/api/designs/convert", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: dataUri,
-          useAsImage: useAsImage,
-          designType: "youtube-thumbnail"
-        })
-      })
-        .then(function (r) {
-          if (r.status === 401) {
-            location.href = "/login?next=" + encodeURIComponent(location.pathname);
-            return null;
-          }
-          return r.json();
-        })
-        .then(function (res) {
-          clearInterval(designInterval);
-          if (!res) return;
-          if (!res.success || !res.project) {
-            throw new Error(res.error || "Could not convert this design.");
-          }
-          if (bar) bar.style.width = "100%";
-          if (txt) txt.textContent = "Conversion complete!";
-
-          currentDesignProject = res.project;
-          setTimeout(function () {
-            if (useAsImage) {
-              saveDesignAndOpenEditor(res.project);
-            } else {
-              renderDesignReview(res, dataUri);
-            }
-          }, 450);
-        })
-        .catch(function (err) {
-          clearInterval(designInterval);
-          alert(err.message || "Conversion failed. Please try again.");
-          renderDesignModeChoice({ name: "Uploaded Image", size: 0 }, dataUri);
+      busy = true;
+      showStep("design");
+      container.setAttribute("aria-busy", "true");
+      container.innerHTML = '<div class="ds-progress-wrap" role="status"><div class="ds-spinner" aria-hidden="true"></div><h3>Analysing your image</h3><p>Waiting for image analysis and layer reconstruction…</p><p class="sc-drop-hint">Please keep this window open. You will review the result before saving.</p></div>';
+      try {
+        var response = await fetch("/api/designs/convert", {
+          method:"POST", signal:AbortSignal.timeout(240000),
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({image:dataUri,useAsImage:useAsImage,designType:"youtube-thumbnail"})
         });
+        var res = await response.json();
+        if (!response.ok || !res.success || !res.project) throw new Error(res.error || "Could not analyse this image.");
+        currentDesignProject = res.project;
+        await loadScript("/design-preview.js?v=2026100601", "SCDesignPreview");
+        busy = false;
+        renderDesignReview(res, dataUri);
+      } catch (err) {
+        busy = false;
+        renderDesignFailure(dataUri, err.message);
+      } finally { container.removeAttribute("aria-busy"); }
     }
 
     function renderDesignReview(jobData, dataUri) {
@@ -3019,25 +2936,25 @@
         var desc = "";
         if (el.type === "text") {
           icon = "T";
-          desc = '"' + escapeHtml(el.text) + '" (' + (el.fontFamily || "Anton") + ', ' + (el.fontSize || 36) + 'px)';
+          desc = '"' + el.text + '" (' + (el.fontFamily || "Anton") + ', ' + (el.fontSize || 36) + 'px)';
         } else if (el.type === "image" && el.role === "background") {
           icon = "🖼";
-          desc = "Reconstructed clean background";
+          desc = "Background repair — inspect residual text";
         } else if (el.type === "image") {
           icon = "✂";
-          desc = "Foreground cutout (" + (el.width || 0) + "x" + (el.height || 0) + "px)";
+          desc = "Image crop (" + (el.width || 0) + "x" + (el.height || 0) + "px)";
         } else if (el.type === "shape") {
           icon = "⬡";
           desc = "Vector " + (el.shape || "shape") + " (" + (el.fill || "#fff") + ")";
         }
-        var conf = Number.isFinite(el.confidence) ? Math.round(Math.max(0, Math.min(1, el.confidence)) * 100) + "%" : "Review layer";
+        var conf = "Needs review";
         return [
           '<div class="ds-review-item">',
           '  <div class="ds-review-item-main">',
           '    <span class="ds-review-ico">' + icon + '</span>',
           '    <div class="ds-review-info">',
           '      <strong class="ds-review-name">' + escapeHtml(el.name || el.id) + '</strong>',
-          '      <span class="ds-review-detail">' + desc + '</span>',
+          '      <span class="ds-review-detail">' + escapeHtml(desc) + '</span>',
           '    </div>',
           '  </div>',
           '  <div class="ds-review-item-meta">',
@@ -3048,6 +2965,7 @@
       }).join("");
 
       container.innerHTML = [
+        '<p class="sc-drop-hint" role="status">' + escapeHtml(jobData.warning || (jobData.isAiConverted === false ? "This is one image layer; its text and subjects are not separately editable." : "Check the estimated text, image crops and background repair before saving.")) + '</p>',
         '<div class="ds-review-layout">',
         '  <div class="ds-review-col">',
         '    <div class="ds-review-toggle" style="margin-bottom:8px;display:flex;gap:8px;">',
@@ -3055,13 +2973,14 @@
         '      <button type="button" class="pg-bw active" id="authToggleEdit" style="padding:4px 10px;font-size:12px;">Reconstructed</button>',
         '    </div>',
         '    <div class="ds-review-preview-box" style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--sc-border);background:#000;">',
-        '      <img id="authReviewImg" src="' + escapeHtml(jobData.originalUrl || dataUri) + '" style="width:100%;height:auto;display:block;" alt="Design preview">',
+        '      <img id="authReviewImg" src="' + escapeHtml(jobData.originalUrl || dataUri) + '" style="width:100%;height:auto;display:none;" alt="Original upload">',
+        '      <div id="authReviewLayers">' + window.SCDesignPreview(jobData.project) + '</div>',
         '    </div>',
         '  </div>',
         '  <div class="ds-review-col">',
         '    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">',
-        '      <strong style="font-size:13px;color:var(--sc-text);">' + elements.length + ' Editable Layers Detected</strong>',
-        '      <span class="ds-conf-pill" style="background:#10b981;color:#fff;">Ready</span>',
+        '      <strong style="font-size:13px;color:var(--sc-text);">' + elements.length + ' layers</strong>',
+        '      <span class="ds-conf-pill">Needs review</span>',
         '    </div>',
         '    <div class="ds-review-layers-list" style="max-height:260px;overflow-y:auto;border:1px solid var(--sc-border);border-radius:8px;padding:6px;background:var(--sc-surface-2);">' + layersHtml + '</div>',
         '  </div>',
@@ -3071,6 +2990,17 @@
         '  <button type="button" class="pg-bw ds-btn-magic" id="authReviewOpenBtn">✦ Open in Studio Editor &rarr;</button>',
         '</div>'
       ].join("");
+
+      function setDesignView(original) {
+        $("#authReviewImg").style.display = original ? "block" : "none";
+        $("#authReviewLayers").hidden = original;
+        $("#authToggleOrig").setAttribute("aria-pressed", String(original));
+        $("#authToggleEdit").setAttribute("aria-pressed", String(!original));
+      }
+      $("#authToggleOrig").onclick = function () { setDesignView(true); };
+      $("#authToggleEdit").onclick = function () { setDesignView(false); };
+      setDesignView(false);
+      $("#authToggleEdit").focus();
 
       var btnOpen = $("#authReviewOpenBtn");
       if (btnOpen) {
@@ -3087,31 +3017,29 @@
       }
     }
 
-    function saveDesignAndOpenEditor(project) {
+    async function saveDesignAndOpenEditor(project) {
+      if (busy) return;
       var btn = $("#authReviewOpenBtn");
-      if (btn) {
-        btn.disabled = true;
-        btn.textContent = "Opening Studio...";
-      }
-
-      fetch("/api/designs/projects/" + encodeURIComponent(project.id || "new"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(project)
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res && res.success && res.project) {
-            window.location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
-          } else {
-            sessionStorage.setItem("sc_pending_design", JSON.stringify(project));
-            window.location.href = "/design-editor?session=1";
-          }
-        })
-        .catch(function () {
-          sessionStorage.setItem("sc_pending_design", JSON.stringify(project));
-          window.location.href = "/design-editor?session=1";
+      busy = true;
+      if (btn) { btn.disabled = true; btn.setAttribute("aria-busy", "true"); }
+      try {
+        var response = await fetch("/api/designs/projects/" + encodeURIComponent(project.id || "new"), {
+          method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(project)
         });
+        var res = await response.json();
+        if (!response.ok || !res.success || !res.project || !res.project.id) throw new Error(res.error || "Your design could not be saved. Please retry.");
+        location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
+      } catch (err) {
+        var error = document.createElement("p");
+        error.className = "sc-drop-error";
+        error.setAttribute("role", "alert");
+        error.textContent = err.message || "Your design could not be saved. Please retry.";
+        clearError();
+        $("#authDesignContent").prepend(error);
+      } finally {
+        busy = false;
+        if (btn) { btn.disabled = false; btn.removeAttribute("aria-busy"); btn.focus(); }
+      }
     }
 
     function showStep(nextStep) {
@@ -3151,7 +3079,7 @@
       uploaded = null;
       currentDesignDataUri = null;
       currentDesignProject = null;
-      if (designInterval) clearInterval(designInterval);
+      designReadVersion++;
       var container = $("#authDesignContent");
       if (container) container.innerHTML = "";
       $("#publishName").value = "";
@@ -3170,22 +3098,25 @@
       $("#publishClose").focus();
     }
     function closeModal() {
-      if (submit.disabled || busy) return;
-      if (designInterval) clearInterval(designInterval);
+      if (modal.hidden || submit.disabled || busy) return;
+      designReadVersion++;
       modal.hidden = true;
       document.body.style.overflow = previousOverflow;
       if (returnFocus && returnFocus.isConnected) returnFocus.focus();
     }
 
     all(".sh-tupload-btn, #topbarUploadBtn, #openUploadModalBtn, #popoverUploadBtn, .js-open-upload").forEach(function (button) {
+      // The Designs page owns its image uploader. Never open two dialogs.
+      if (document.getElementById("designUploadModal")) return;
       /* The label lives in the markup; replacing textContent here would also
          remove the button's icon. */
       button.addEventListener("click", function (ev) { ev.preventDefault(); openModal(); });
     });
     $("#publishClose").addEventListener("click", closeModal);
     modal.addEventListener("click", function (ev) { if (ev.target === modal) closeModal(); });
+    document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && !modal.hidden) closeModal(); });
     modal.addEventListener("keydown", function (ev) {
-      if (ev.key === "Escape") closeModal();
+      if (ev.key === "Escape") { ev.stopPropagation(); closeModal(); }
       if (ev.key !== "Tab") return;
       var focusable = Array.from(modal.querySelectorAll('button:not(:disabled), input:not([hidden]), select, textarea, a[href]')).filter(function (el) { return el.getClientRects().length > 0; });
       var first = focusable[0], last = focusable[focusable.length - 1];

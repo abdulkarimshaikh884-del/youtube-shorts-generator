@@ -4,7 +4,6 @@
 (function () {
   "use strict";
 
-  var currentCategory = "all";
   var uploadModal = null;
   var currentJob = null;
   var currentProject = null;
@@ -12,13 +11,16 @@
   var loadedTemplates = [];
   var loadVersion = 0;
   var converting = false;
+  var openingModal = false;
+  var returnFocus = null;
+  var previousOverflow = "";
+  var readVersion = 0;
 
   function $(sel, el) { return (el || document).querySelector(sel); }
   function $$(sel, el) { return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
 
   function init() {
-    loadTemplates(currentCategory);
-    setupFilters();
+    loadTemplates();
     setupUploadModal();
     var search = $("#designSearch");
     if (search) search.addEventListener("input", function () { renderTemplates(loadedTemplates); });
@@ -55,8 +57,13 @@
     if (!grid) return;
     grid.innerHTML = "";
     var query = ($("#designSearch").value || "").trim().toLowerCase();
-    templates = templates.filter(function (tpl) { return (tpl.title + " " + (tpl.description || "")).toLowerCase().includes(query); });
-    if (!templates.length) { grid.innerHTML = '<div class="ds-empty"><h3>No matching designs</h3><p>Try another search or category.</p></div>'; return; }
+    var seen = new Set();
+    templates = templates.filter(function (tpl) {
+      if (!tpl || !tpl.id || seen.has(String(tpl.id))) return false;
+      seen.add(String(tpl.id));
+      return [tpl.title, tpl.description, tpl.authorName, tpl.authorHandle].join(" ").toLowerCase().includes(query);
+    });
+    if (!templates.length) { grid.innerHTML = '<div class="ds-empty"><h3>No matching designs</h3><p>Try another search.</p></div>'; return; }
 
     templates.forEach(function (tpl) {
       var card = document.createElement("article");
@@ -66,19 +73,19 @@
       var previewHtml = window.SCDesignPreview(tpl);
       var badgeHtml = "";
       if (tpl.isPremium) {
-        var stars = tpl.starPrice || 1;
+        var stars = Math.max(1, Math.floor(Number(tpl.starPrice) || 1));
         badgeHtml = '<span class="ds-card-prem-badge">★ ' + stars + ' Star' + (stars > 1 ? 's' : '') + '</span>';
       }
 
-      var authorName = tpl.authorName || "Creator";
-      var authorHandle = tpl.authorHandle || "@creator";
+      var authorName = String(tpl.authorName || "Publisher unavailable");
+      var authorHandle = String(tpl.authorHandle || "");
       var creatorSlug = encodeURIComponent(authorHandle.replace(/^@/, ""));
       var creatorUrl = "/creator?handle=" + creatorSlug;
       var initials = String(authorName).slice(0, 2).toUpperCase();
       var tickSvg = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       var isVerified = tpl.authorVerified === true || String(authorHandle).replace(/^@/, "").toLowerCase() === "shortscraft";
       var verifiedHtml = isVerified ? '<span class="sh-verified" aria-label="Verified creator" title="Verified creator">' + tickSvg + '</span>' : '';
-      var avStyle = tpl.authorAvatarUrl ? 'background-image:url(\'' + escapeHtml(tpl.authorAvatarUrl) + '\');background-size:cover;background-position:center;' : '';
+      var avatar = /^(\/[^/]|https:\/\/|data:image\/(png|jpeg|webp);base64,)/i.test(tpl.authorAvatarUrl || "") ? tpl.authorAvatarUrl : "";
 
       card.innerHTML = [
         '<div class="ds-card-thumb">',
@@ -88,15 +95,22 @@
         '<div class="ds-card-body">',
         '  <h3 class="ds-card-title">' + escapeHtml(tpl.title) + '</h3>',
         '  <a href="' + creatorUrl + '" class="ds-card-author" title="View profile of ' + escapeHtml(authorName) + '">',
-        '    <div class="sh-tcreator-avatar"' + (avStyle ? ' style="' + avStyle + '"' : '') + '>' + (tpl.authorAvatarUrl ? '' : escapeHtml(initials)) + '</div>',
+        '    <div class="sh-tcreator-avatar">' + (avatar ? '<img src="' + escapeHtml(avatar) + '" alt="" loading="lazy">' : escapeHtml(initials)) + '</div>',
         '    <div class="sh-tcreator-info">',
         '      <span class="sh-tcreator-name"><span class="sc-name-text">' + escapeHtml(authorName) + '</span>' + verifiedHtml + '</span>',
-        '      <span class="sh-tcreator-handle">' + escapeHtml(authorHandle) + '</span>',
+        (authorHandle ? '      <span class="sh-tcreator-handle">' + escapeHtml(authorHandle) + '</span>' : ''),
         '    </div>',
         '  </a>',
         '</div>',
         '  <button type="button" class="ds-card-open" aria-label="Edit ' + escapeHtml(tpl.title) + ' by ' + escapeHtml(authorName) + '"></button>'
       ].join("");
+      if (!authorHandle) card.querySelector(".ds-card-author").removeAttribute("href");
+      var avatarImage = card.querySelector(".sh-tcreator-avatar img");
+      if (avatarImage) avatarImage.addEventListener("error", function () { this.parentElement.textContent = initials; }, {once:true});
+      var previewImage = card.querySelector(".ds-template-preview");
+      if (previewImage && previewImage.tagName === "IMG") previewImage.addEventListener("error", function () {
+        this.outerHTML = window.SCDesignPreview(Object.assign({}, tpl, {previewUrl:null,preview_url:null}));
+      }, {once:true});
 
       // The entire card opens the existing editor flow.
       var editBtn = card.querySelector(".ds-card-open");
@@ -111,135 +125,43 @@
   }
 
 
-  function useTemplate(templateId, btn) {
-    btn.disabled = true;
-    var origText = btn.textContent || "✦ Edit Template →";
-    btn.textContent = "Opening...";
-
-    fetch("/api/designs/templates/" + encodeURIComponent(templateId) + "/clone", { method: "POST" })
-      .then(function (r) {
-        if (r.status === 401) {
-          window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
-          return null;
-        }
-        if (r.status === 402) {
-          return r.json().then(function (res) {
-            btn.disabled = false;
-            btn.textContent = origText;
-            var price = res.starPrice || 1;
-            if (!window.SC_RELEASE || !SC_RELEASE.monetizationEnabled) {
-              if (window.SC_UI) SC_UI.toast("Paid template unlocks are Coming Soon.");
-              return null;
-            }
-            var confirmMsg = "★ This is a Premium Design Template (" + price + " Star" + (price > 1 ? "s" : "") + ").\n\nWould you like to unlock it now to remix, customize, and export?";
-            if (!confirm(confirmMsg)) return null;
-
-            btn.disabled = true;
-            btn.textContent = "Unlocking...";
-            fetch("/api/designs/" + encodeURIComponent(templateId) + "/unlock", { method: "POST" })
-              .then(function (ur) { return ur.json(); })
-              .then(function (ures) {
-                if (ures && ures.success) {
-                  if (window.SC_UI && SC_UI.toast) SC_UI.toast("Design unlocked! Opening editor...");
-                  useTemplate(templateId, btn);
-                } else if (ures && ures.needStars) {
-                  btn.disabled = false;
-                  btn.textContent = origText;
-                  if (window.SC_AUTH && typeof window.SC_AUTH.openStarPacks === "function") {
-                    window.SC_AUTH.openStarPacks();
-                  } else if (confirm("You need " + price + " Star(s) to unlock this template. Go to Star Packs to top up?")) {
-                    location.href = "/pricing#stars";
-                  }
-                } else {
-                  btn.disabled = false;
-                  btn.textContent = origText;
-                  alert((ures && ures.error) || "Could not unlock design template.");
-                }
-              })
-              .catch(function (err) {
-                btn.disabled = false;
-                btn.textContent = origText;
-                alert("Unlock failed: " + err.message);
-              });
-            return null;
-          });
-        }
-        return r.json();
-      })
-      .then(function (res) {
-        if (!res) return;
-        if (res && res.success && res.project) {
-          window.location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
-        } else if (res && res.error) {
-          if (res.error.toLowerCase().indexOf("log in") !== -1) {
-            window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
-            return;
-          }
-          alert(res.error);
-          btn.disabled = false;
-          btn.textContent = origText;
-        } else {
-          throw new Error("The design could not be opened. Please retry.");
-        }
-      })
-      .catch(function (err) {
-        btn.disabled = false;
-        btn.textContent = origText;
-        if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message || "Could not open this design. Please retry.");
-        else alert(err.message || "Could not open this design. Please retry.");
-      });
+  function setCardBusy(btn, label) {
+    btn.disabled = !!label;
+    if (label) { btn.setAttribute("aria-busy", "true"); btn.closest(".ds-card").dataset.opening = label; }
+    else { btn.removeAttribute("aria-busy"); delete btn.closest(".ds-card").dataset.opening; }
   }
 
-  // ── 2. Filter Bar ────────────────────────────────────────────
-  function setupFilters() {
-    var bar = $("#designsFilterBar");
-    if (!bar) return;
-
-    bar.addEventListener("click", function (ev) {
-      var btn = ev.target && ev.target.closest(".sh-chip, .ds-filter-btn");
-      if (!btn) return;
-
-      bar.querySelectorAll(".sh-chip, .ds-filter-btn").forEach(function (b) {
-        b.setAttribute("aria-pressed", String(b === btn));
-        b.classList.toggle("active", b === btn);
-      });
-
-      currentCategory = btn.dataset.cat || "all";
-      loadTemplates(currentCategory);
-    });
+  async function useTemplate(templateId, btn) {
+    if (btn.disabled) return;
+    setCardBusy(btn, "Opening…");
+    try {
+      var response = await fetch("/api/designs/templates/" + encodeURIComponent(templateId) + "/clone", {method:"POST"});
+      if (response.status === 401) { location.href = "/login?next=" + encodeURIComponent(location.pathname); return; }
+      var res = await response.json();
+      if (response.status === 402) {
+        if (!window.SC_RELEASE || !SC_RELEASE.monetizationEnabled) throw new Error("Paid template unlocks are Coming Soon.");
+        var price = res.starPrice || 1;
+        if (!confirm("Unlock this template for " + price + " Star(s)?")) return;
+        setCardBusy(btn, "Unlocking…");
+        var unlock = await fetch("/api/designs/" + encodeURIComponent(templateId) + "/unlock", {method:"POST"});
+        var unlocked = await unlock.json();
+        if (!unlock.ok || !unlocked.success) {
+          if (unlocked.needStars && window.SC_AUTH && SC_AUTH.openStarPacks) SC_AUTH.openStarPacks();
+          throw new Error(unlocked.error || "Could not unlock this template.");
+        }
+        response = await fetch("/api/designs/templates/" + encodeURIComponent(templateId) + "/clone", {method:"POST"});
+        res = await response.json();
+      }
+      if (!response.ok || !res.success || !res.project || !res.project.id) throw new Error(res.error || "The design could not be opened. Please retry.");
+      location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
+    } catch (err) {
+      if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message || "Could not open this design.");
+      else alert(err.message || "Could not open this design.");
+    } finally { setCardBusy(btn, ""); }
   }
+
 
   // ── 3. Upload & Convert to Editable Modal ────────────────────
-  var STAGES = [
-    { id: "upload", label: "Uploading image...", pct: 15 },
-    { id: "vision", label: "Analyzing design...", pct: 32 },
-    { id: "text", label: "Detecting editable text...", pct: 50 },
-    { id: "objects", label: "Separating major objects...", pct: 68 },
-    { id: "background", label: "Rebuilding background...", pct: 82 },
-    { id: "layers", label: "Creating editable layers...", pct: 93 },
-    { id: "studio", label: "Preparing Design Studio...", pct: 100 }
-  ];
-
-  function updateStageUI(stageIndex) {
-    var bar = $("#conversionProgressBar");
-    var txt = $("#conversionProgressText");
-    var s = STAGES[stageIndex] || STAGES[STAGES.length - 1];
-    if (bar) bar.style.width = s.pct + "%";
-    if (txt) txt.textContent = s.label;
-
-    var steps = $$(".ds-stage-step");
-    steps.forEach(function (stepEl, idx) {
-      if (idx < stageIndex) {
-        stepEl.classList.remove("active");
-        stepEl.classList.add("done");
-      } else if (idx === stageIndex) {
-        stepEl.classList.add("active");
-        stepEl.classList.remove("done");
-      } else {
-        stepEl.classList.remove("active", "done");
-      }
-    });
-  }
 
   function setupUploadModal() {
     var triggerBtns = $$(".js-open-design-upload, .js-open-upload, #topbarUploadBtn, #openUploadDesignBtn");
@@ -249,7 +171,7 @@
     triggerBtns.forEach(function (btn) {
       btn.addEventListener("click", function (ev) {
         ev.preventDefault();
-        openModal();
+        openModal(btn);
       });
     });
 
@@ -296,20 +218,6 @@
       }
     });
 
-    // Action buttons in modal
-    var btnConvert = $("#btnConvertEditable");
-    var btnFlat = $("#btnUseAsImage");
-
-    if (btnConvert) {
-      btnConvert.addEventListener("click", function () {
-        startConversion(false);
-      });
-    }
-    if (btnFlat) {
-      btnFlat.addEventListener("click", function () {
-        startConversion(true);
-      });
-    }
 
     // Review Layers actions
     var btnOpenEditor = $("#btnOpenEditor");
@@ -323,8 +231,7 @@
     }
     if (btnConvertAgain) {
       btnConvertAgain.addEventListener("click", function () {
-        showStep(1);
-        $("#closeDesignModal").focus();
+        startConversion(false);
       });
     }
     if (btnCancelReview) {
@@ -357,9 +264,11 @@
     }
   }
 
-  function openModal() {
+  function openModal(trigger) {
+    if (openingModal) return;
+    openingModal = true;
     fetch("/api/auth/me", { headers: { Accept: "application/json" } })
-      .then(function (r) { return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error("Account unavailable"); return r.json(); })
       .then(function (j) {
         if (!j || !j.user) {
           window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
@@ -367,6 +276,8 @@
         }
         var modal = $("#designUploadModal");
         if (!modal) return;
+        returnFocus = trigger || document.activeElement;
+        previousOverflow = document.body.style.overflow;
         modal.classList.add("open");
         modal.removeAttribute("hidden");
         document.body.style.overflow = "hidden";
@@ -374,8 +285,8 @@
         $("#closeDesignModal").focus();
       })
       .catch(function () {
-        window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
-      });
+        if (window.SC_UI) SC_UI.toast("Could not check your account. Please try Upload again.", true);
+      }).finally(function () { openingModal = false; });
   }
 
   function closeModal() {
@@ -384,13 +295,13 @@
     if (!modal) return;
     modal.classList.remove("open");
     modal.setAttribute("hidden", "");
-    document.body.style.overflow = "";
+    document.body.style.overflow = previousOverflow;
+    readVersion++;
     currentJob = null;
     currentProject = null;
     originalDataUri = null;
     $("#designFileInput").value = "";
-    var trigger = $(".js-open-design-upload");
-    if (trigger) trigger.focus();
+    if (returnFocus && returnFocus.isConnected) returnFocus.focus();
   }
 
   function showStep(stepKey) {
@@ -399,10 +310,20 @@
     });
     var target = $("#modalStep" + stepKey);
     if (target) target.removeAttribute("hidden");
+    if (target) {
+      var focusTarget = target.querySelector('button:not([disabled]),[tabindex="0"]') || target.querySelector("h3");
+      if (focusTarget) { if (!focusTarget.hasAttribute("tabindex") && focusTarget.tagName === "H3") focusTarget.tabIndex = -1; focusTarget.focus(); }
+    }
+    var dialog = $("#designUploadModal [role=dialog]");
+    if (dialog && target) {
+      dialog.removeAttribute("aria-labelledby");
+      dialog.setAttribute("aria-label", target.querySelector("h3").textContent);
+    }
   }
 
   function handlePickedFile(file) {
-    if (!file) return;
+    if (!file || converting) return;
+    var version = ++readVersion;
     if (!/\.(png|jpe?g|webp)$/i.test(file.name)) {
       alert("Please choose a PNG, JPG, or WebP image.");
       return;
@@ -414,9 +335,11 @@
 
     var reader = new FileReader();
     reader.onload = function (e) {
+      if (version !== readVersion) return;
       var dataUri = e.target.result;
       var testImg = new Image();
       testImg.onload = function () {
+        if (version !== readVersion) return;
         if (testImg.naturalWidth < 32 || testImg.naturalHeight < 32) {
           alert("Image dimensions are too small (minimum 32x32 pixels).");
           return;
@@ -433,7 +356,7 @@
         var sizeEl = $("#pickedFileSize");
         if (sizeEl) sizeEl.textContent = (file.size / (1024 * 1024)).toFixed(2) + " MB";
 
-        showStep(2); // Step 2: Choose Mode (Convert to Editable vs Use as Image)
+        startConversion(false); // An uploaded image is analysed automatically.
       };
       testImg.onerror = function () {
         alert("The selected image file is corrupted or could not be decoded. Please choose another image.");
@@ -446,7 +369,6 @@
     reader.readAsDataURL(file);
   }
 
-  var stageTimer = null;
 
   function showErrorFallback(msg, partialProject) {
     showStep("Error");
@@ -469,79 +391,31 @@
   function startConversion(useAsImage) {
     if (!originalDataUri || converting) return;
     converting = true;
-    showStep(3); // Step 3: Progress screen
-
-    if (stageTimer) clearTimeout(stageTimer);
-
-    if (useAsImage) {
-      var bar = $("#conversionProgressBar");
-      var txt = $("#conversionProgressText");
-      if (bar) bar.style.width = "100%";
-      if (txt) txt.textContent = "Preparing your image…";
-      $$(".ds-stage-step").forEach(function (s) { s.classList.remove("active"); s.classList.add("done"); });
-    } else {
-      updateStageUI(0);
-      var currentStage = 0;
-      var stageDelays = [1800, 3000, 3500, 4000, 4000];
-      var delayIdx = 0;
-      function scheduleNext() {
-        if (delayIdx < stageDelays.length) {
-          stageTimer = setTimeout(function () {
-            currentStage++;
-            updateStageUI(currentStage);
-            delayIdx++;
-            scheduleNext();
-          }, stageDelays[delayIdx]);
-        }
-      }
-      scheduleNext();
-    }
-
+    currentJob = null;
+    currentProject = null;
+    showStep(3);
+    var status = $("#conversionProgressText");
+    if (status) status.textContent = useAsImage ? "Preparing one image layer…" : "Uploading and analysing your image…";
     fetch("/api/designs/convert", {
-      method: "POST",
-      signal: AbortSignal.timeout(240000),
+      method: "POST", signal: AbortSignal.timeout(240000),
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image: originalDataUri,
-        useAsImage: useAsImage,
-        designType: "youtube-thumbnail"
-      })
-    })
-      .then(function (r) {
-        return r.json().then(function (data) {
-          return { status: r.status, ok: r.ok, data: data };
-        });
-      })
-      .then(function (result) {
-        converting = false;
-        if (stageTimer) clearTimeout(stageTimer);
-        var res = result.data;
-        if (!result.ok || !res || !res.success || !res.project) {
-          var err = new Error((res && res.error) || "Could not convert this design.");
-          if (res && res.project) err.partialProject = res.project;
-          throw err;
-        }
-
-        updateStageUI(STAGES.length - 1);
-        $$(".ds-stage-step").forEach(function (s) { s.classList.remove("active"); s.classList.add("done"); });
-
-        currentJob = res;
-        currentProject = res.project;
-
-        setTimeout(function () {
-          if (useAsImage) {
-            saveAndOpenEditor();
-          } else {
-            renderReviewLayers(res);
-            showStep(4); // Step 4: Review Layers
-          }
-        }, 400);
-      })
-      .catch(function (err) {
-        converting = false;
-        if (stageTimer) clearTimeout(stageTimer);
-        showErrorFallback(err.message, err.partialProject);
-      });
+      body: JSON.stringify({image:originalDataUri,useAsImage:useAsImage,designType:"youtube-thumbnail"})
+    }).then(function (r) {
+      return r.json().then(function (data) { return {ok:r.ok,status:r.status,data:data}; });
+    }).then(function (result) {
+      converting = false;
+      var res = result.data;
+      if (!result.ok || !res || !res.success || !res.project) {
+        throw new Error((res && res.error) || "Your image could not be analysed. Please retry.");
+      }
+      currentJob = res;
+      currentProject = res.project;
+      if (useAsImage) saveAndOpenEditor();
+      else { renderReviewLayers(res); showStep(4); }
+    }).catch(function (err) {
+      converting = false;
+      showErrorFallback(err.message);
+    });
   }
 
   // ── 4. Render Review Layers Screen ───────────────────────────
@@ -572,7 +446,7 @@
       var detail = "";
       if (el.type === "text") {
         typeIcon = "T";
-        detail = '"' + escapeHtml(el.text) + '" (' + el.fontFamily + ', ' + el.fontSize + 'px)';
+        detail = '"' + el.text + '" (' + el.fontFamily + ', ' + el.fontSize + 'px)';
       } else if (el.type === "image" && el.role === "background") {
         typeIcon = "🖼";
         detail = "Background image — inspect text repair";
@@ -591,7 +465,7 @@
         '  <span class="ds-review-ico">' + typeIcon + '</span>',
         '  <div class="ds-review-info">',
         '    <strong class="ds-review-name">' + escapeHtml(el.name || el.id) + '</strong>',
-        '    <span class="ds-review-detail">' + detail + '</span>',
+        '    <span class="ds-review-detail">' + escapeHtml(detail) + '</span>',
         '  </div>',
         '</div>',
         '<div class="ds-review-item-meta">',
@@ -618,6 +492,8 @@
     var wrapEdit = $("#reviewEditWrap");
 
     if (btnOrig && btnEdit && wrapOrig && wrapEdit) {
+      btnEdit.classList.add("active"); btnOrig.classList.remove("active");
+      wrapOrig.style.display = "none"; wrapEdit.style.display = "block";
       btnOrig.onclick = function () {
         btnOrig.classList.add("active");
         btnEdit.classList.remove("active");
@@ -634,10 +510,12 @@
   }
 
   function saveAndOpenEditor() {
-    if (!currentProject) return;
+    if (!currentProject || converting) return;
+    converting = true;
     var openBtn = $("#btnOpenEditor");
     if (openBtn) {
       openBtn.disabled = true;
+      openBtn.setAttribute("aria-busy", "true");
       openBtn.textContent = "Opening Studio...";
     }
 
@@ -646,15 +524,16 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(currentProject)
     })
-      .then(function (r) { return r.json(); })
+      .then(function (r) { return r.json().then(function (res) { if (!r.ok) throw new Error(res.error || "Your design could not be saved."); return res; }); })
       .then(function (res) {
-        if (res && res.success && res.project) {
+        if (res && res.success && res.project && res.project.id) {
           window.location.href = "/design-editor?id=" + encodeURIComponent(res.project.id);
         } else { throw new Error(res && res.error || "Your design could not be saved. Please retry."); }
       })
       .catch(function (err) {
+        converting = false;
         alert(err.message || "Your design could not be saved. Please retry.");
-        if (openBtn) { openBtn.disabled = false; openBtn.textContent = "Open in Design Studio →"; }
+        if (openBtn) { openBtn.disabled = false; openBtn.removeAttribute("aria-busy"); openBtn.textContent = "Open in Design Studio →"; }
         renderReviewLayers(currentJob);
         showStep(4);
       });

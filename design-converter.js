@@ -1606,8 +1606,8 @@ async function reconstructBackground(imageBuffer, textElements, foregroundObject
     return { success: true, path: bgPath, relativeUrl: "assets/background.webp", maskPath };
   } catch (err) {
     console.warn("[design-converter] Background inpainting warning:", err.message);
-    await sharp(imageBuffer).webp({ quality: 88 }).toFile(bgPath);
-    return { success: true, path: bgPath, relativeUrl: "assets/background.webp" };
+    // Never overlay editable text on an unmodified, baked-in original.
+    return { success: false, error: "Background repair failed. Please retry or use one image layer." };
   }
 }
 
@@ -1821,6 +1821,7 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
 
   // 4. Background Inpainting (erasing baked text AND erased foreground object footprints)
   const bgRes = await reconstructBackground(imageBuffer, analysis.textElements, segmentedObjects, meta, ws.assetsDir);
+  if (!bgRes.success) return { success: false, error: bgRes.error };
   const backgroundUrl = `${ws.urlBase}/${bgRes.relativeUrl}`;
 
   // 5. Assemble Project Elements with correct Z-ordering
@@ -1949,7 +1950,7 @@ async function convertToEditable(imageBuffer, mimeType, { callAI, useAsImage = f
     project,
     analysis,
     isAiConverted: true,
-    warning: "Review before saving: text and fonts are AI estimates; background repair uses colour patches. Object layers are rectangular crops and remain visible in the background. Complex designs require manual cleanup.",
+    warning: "Review before saving: text and fonts are AI estimates; background repair uses colour patches, not generative inpainting. Object layers use rectangular crops or approximate colour-keying. Inspect residual text, edges and overlap; complex designs require manual cleanup.",
     fallback: !!analysis.isFallback,
     requiresReview: true
   };
