@@ -12,10 +12,27 @@ body.sh-body .ds-filter-btn.active,body.sh-body .ds-filter-btn[aria-pressed="tru
 .ds-page-container .ds-card-thumb { aspect-ratio:16/9; height:auto; padding:0; background:var(--sc-surface-2); display:flex; align-items:center; justify-content:center; }
 .ds-template-preview { display:block; width:100%; height:100%; object-fit:contain; }
 .ds-page-container .ds-card { position:relative; cursor:pointer; }
-.ds-page-container .ds-card-body { padding:13px 14px 16px; gap:5px; }
-.ds-page-container .ds-card-title { font-size:15px; line-height:1.4; margin:0; min-height:2.8em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
+.ds-page-container .ds-card-body { padding:12px 14px; gap:6px; }
+.ds-page-container .ds-card-title { font-size:15px; line-height:1.4; margin:0; min-height:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; overflow-wrap:anywhere; }
 .ds-page-container .ds-card-author { font-size:12px; line-height:1.4; color:var(--sc-muted); margin:0; }
-.ds-card .ds-card-author { position:relative; z-index:2; display:flex; align-items:center; gap:7px; text-decoration:none; margin-top:6px; cursor:pointer; min-height:40px; }
+.ds-card .ds-card-author { position:relative; z-index:2; display:flex; align-items:center; gap:7px; text-decoration:none; margin-top:0; cursor:pointer; min-height:32px; min-width:0; flex:1; }
+.ds-card-footer { display:flex; align-items:center; gap:8px; }
+.ds-card-menu-trigger { position:relative; z-index:2; flex:none; width:40px; height:40px; border:0; border-radius:8px; background:transparent; color:var(--sc-text); font:700 24px/1 sans-serif; cursor:pointer; }
+.ds-card-menu-trigger:hover,.ds-card-menu-trigger[aria-expanded="true"] { background:var(--sc-surface-2); }
+.ds-design-menu { position:fixed; z-index:1200; width:210px; padding:5px; border:1px solid var(--sc-border); border-radius:10px; background:var(--sc-surface); color:var(--sc-text); box-shadow:0 8px 30px #0003; }
+.ds-design-menu button,.ds-design-menu a { display:block; box-sizing:border-box; width:100%; min-height:44px; padding:12px; text-align:left; border:0; border-radius:6px; background:transparent; color:inherit; font:inherit; font-size:13px; text-decoration:none; cursor:pointer; }
+.ds-design-menu button:hover,.ds-design-menu a:hover { background:var(--sc-surface-2); }
+.ds-card-unavailable { font-size:11px; color:var(--sc-muted); }
+.ds-preview-dialog { width:min(850px,calc(100vw - 24px)); max-height:90dvh; padding:0; overflow:auto; border:1px solid var(--sc-border); border-radius:14px; background:var(--sc-surface); color:var(--sc-text); }
+.ds-preview-dialog::backdrop { background:#0008; }
+.ds-preview-dialog header,.ds-preview-dialog footer { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px; }
+.ds-preview-dialog h2 { margin:0; font-size:17px; }
+.ds-preview-dialog button { min-height:44px; padding:10px 16px; border:1px solid var(--sc-border); border-radius:9px; background:var(--sc-surface-2); color:var(--sc-text); font:inherit; cursor:pointer; }
+.ds-preview-dialog .ds-preview-close { font-size:24px; padding:4px 14px; }
+.ds-preview-image { height:min(60dvh,calc(min(850px,100vw - 24px) / var(--ds-preview-ratio,1.77778))); background:var(--sc-surface-2); display:flex; justify-content:center; }
+.ds-preview-image .ds-template-preview { object-fit:contain; height:100%; }
+.ds-preview-dialog footer { flex-wrap:wrap; font-size:13px; }
+.ds-preview-dialog footer p { margin:0; width:100%; }
 .ds-card .sh-tcreator-avatar { width:22px; height:22px; border-radius:50%; background:var(--sc-surface-2); border:1px solid var(--sc-border); display:grid; place-items:center; font-size:9.5px; font-weight:750; color:var(--sc-text); flex:none; }
 .ds-card .sh-tcreator-info { display:flex; flex-direction:column; min-width:0; flex:1; line-height:1.2; }
 .ds-card .sh-tcreator-name { font-size:11.5px; font-weight:600; color:var(--sc-text); display:flex; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -49,7 +66,7 @@ body.sh-body .ds-filter-btn.active,body.sh-body .ds-filter-btn[aria-pressed="tru
  .ds-search-label input { width:100%; min-width:0; box-sizing:border-box; }
  .ds-search-label { width:auto; flex:1; min-width:0; max-width:230px; }
  .ds-page-container .ds-grid { grid-template-columns:minmax(0,1fr); gap:16px; }
- .ds-page-container .ds-card-title { min-height:1.4em; }
+ .ds-page-container .ds-card-title { min-height:0; }
  .ds-modal-card { max-height:90dvh; overflow-y:auto; }
 }
 .ds-page-container {

@@ -49,6 +49,7 @@ const puppeteer = require("puppeteer");
     await page.$eval("#designSearch",e=>{e.value="fixture_publisher";e.dispatchEvent(new Event("input"));});
     assert.equal((await page.$$(".ds-card")).length,1);
     await page.click(".ds-card-open");
+    await page.click(".ds-preview-edit");
     await page.waitForFunction(()=>document.querySelector(".ds-card").dataset.opening);
     assert.equal(await page.$eval(".ds-card-open",e=>e.textContent),"");
     await page.$eval(".ds-card-open",e=>e.click());

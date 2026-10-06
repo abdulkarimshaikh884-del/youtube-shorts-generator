@@ -15,6 +15,8 @@
   var returnFocus = null;
   var previousOverflow = "";
   var readVersion = 0;
+  var activeMenu = null;
+  var menuTrigger = null;
 
   function $(sel, el) { return (el || document).querySelector(sel); }
   function $$(sel, el) { return Array.prototype.slice.call((el || document).querySelectorAll(sel)); }
@@ -24,6 +26,10 @@
     setupUploadModal();
     var search = $("#designSearch");
     if (search) search.addEventListener("input", function () { renderTemplates(loadedTemplates); });
+    document.addEventListener("click", function (ev) { if (activeMenu && !activeMenu.contains(ev.target) && !menuTrigger.contains(ev.target)) closeCardMenu(false); });
+    document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && activeMenu) { ev.preventDefault(); closeCardMenu(true); } });
+    window.addEventListener("resize", function () { closeCardMenu(false); });
+    window.addEventListener("scroll", function () { closeCardMenu(false); }, true);
   }
 
   // ── 1. Load & Render Templates ──────────────────────────────
@@ -45,6 +51,8 @@
           return;
         }
         renderTemplates(res.templates);
+        var linkedCard = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+        if (linkedCard) { linkedCard.scrollIntoView({block:"center"}); linkedCard.querySelector(".ds-card-open").focus({preventScroll:true}); }
       })
       .catch(function (err) {
         if (version !== loadVersion) return;
@@ -55,6 +63,7 @@
   function renderTemplates(templates) {
     var grid = $("#designsGrid");
     if (!grid) return;
+    closeCardMenu(false);
     grid.innerHTML = "";
     var query = ($("#designSearch").value || "").trim().toLowerCase();
     var seen = new Set();
@@ -68,6 +77,7 @@
     templates.forEach(function (tpl) {
       var card = document.createElement("article");
       card.className = "ds-card";
+      card.id = "design-" + String(tpl.id);
       if (tpl.isPremium) card.dataset.premium = "1";
 
       var previewHtml = window.SCDesignPreview(tpl);
@@ -94,6 +104,8 @@
         '</div>',
         '<div class="ds-card-body">',
         '  <h3 class="ds-card-title">' + escapeHtml(tpl.title) + '</h3>',
+        (tpl.editable === false ? '<span class="ds-card-unavailable">Editable layers unavailable</span>' : ''),
+        '<div class="ds-card-footer">',
         '  <a href="' + creatorUrl + '" class="ds-card-author" title="View profile of ' + escapeHtml(authorName) + '">',
         '    <div class="sh-tcreator-avatar">' + (avatar ? '<img src="' + escapeHtml(avatar) + '" alt="" loading="lazy">' : escapeHtml(initials)) + '</div>',
         '    <div class="sh-tcreator-info">',
@@ -101,12 +113,15 @@
         (authorHandle ? '      <span class="sh-tcreator-handle">' + escapeHtml(authorHandle) + '</span>' : ''),
         '    </div>',
         '  </a>',
+        '  <button type="button" class="ds-card-menu-trigger" aria-label="Options for ' + escapeHtml(tpl.title) + '" aria-haspopup="menu" aria-expanded="false">⋯</button>',
         '</div>',
-        '  <button type="button" class="ds-card-open" aria-label="Edit ' + escapeHtml(tpl.title) + ' by ' + escapeHtml(authorName) + '"></button>'
+        '</div>',
+        '  <button type="button" class="ds-card-open" aria-label="View ' + escapeHtml(tpl.title) + ' by ' + escapeHtml(authorName) + '"></button>'
       ].join("");
       if (!authorHandle) card.querySelector(".ds-card-author").removeAttribute("href");
       var avatarImage = card.querySelector(".sh-tcreator-avatar img");
       if (avatarImage) avatarImage.addEventListener("error", function () { this.parentElement.textContent = initials; }, {once:true});
+      card.querySelector(".ds-card-menu-trigger").addEventListener("click", function () { openCardMenu(tpl, this, creatorUrl, authorHandle); });
       var previewImage = card.querySelector(".ds-template-preview");
       if (previewImage && previewImage.tagName === "IMG") previewImage.addEventListener("error", function () {
         this.outerHTML = window.SCDesignPreview(Object.assign({}, tpl, {previewUrl:null,preview_url:null}));
@@ -116,12 +131,71 @@
       var editBtn = card.querySelector(".ds-card-open");
       if (editBtn) {
         editBtn.addEventListener("click", function () {
-          useTemplate(tpl.id, editBtn);
+          showDesignPreview(tpl, editBtn);
         });
       }
 
       grid.appendChild(card);
     });
+  }
+
+  function closeCardMenu(restoreFocus) {
+    if (!activeMenu) return;
+    activeMenu.remove(); activeMenu = null;
+    menuTrigger.setAttribute("aria-expanded", "false");
+    if (restoreFocus) menuTrigger.focus();
+    menuTrigger = null;
+  }
+
+  function showDesignPreview(tpl, editBtn) {
+    closeCardMenu(false);
+    var dialog = document.createElement("dialog"); dialog.className = "ds-preview-dialog";
+    var ratio = Number(tpl.canvas && tpl.canvas.width) / Number(tpl.canvas && tpl.canvas.height);
+    if (Number.isFinite(ratio) && ratio > .1 && ratio < 10) dialog.style.setProperty('--ds-preview-ratio',String(ratio));
+    dialog.setAttribute("aria-label", String(tpl.title || "Design preview"));
+    dialog.innerHTML = '<header><h2>' + escapeHtml(tpl.title) + '</h2><button type="button" class="ds-preview-close" aria-label="Close preview">×</button></header><div class="ds-preview-image">' + window.SCDesignPreview(tpl) + '</div><footer><span>' + escapeHtml(tpl.authorName || "Publisher unavailable") + '</span>' +
+      (tpl.editable === false ? '<p>Only the preview is available. This design cannot be edited until its publisher restores the layers.</p>' : '<button type="button" class="ds-preview-edit">Edit design →</button>') + '</footer>';
+    document.body.appendChild(dialog);
+    var image = dialog.querySelector('.ds-template-preview');
+    if (image && image.tagName === 'IMG') image.addEventListener('error',function () {
+      this.outerHTML = window.SCDesignPreview(Object.assign({},tpl,{previewUrl:null,preview_url:null}));
+    },{once:true});
+    dialog.querySelector('.ds-preview-close').onclick = function () { dialog.close(); };
+    dialog.addEventListener('click',function (ev) { if (ev.target === dialog) { var r = dialog.getBoundingClientRect(); if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) dialog.close(); } });
+    dialog.addEventListener('close',function () { dialog.remove(); editBtn.focus({preventScroll:true}); });
+    var edit = dialog.querySelector('.ds-preview-edit');
+    if (edit) edit.onclick = function () { dialog.close(); useTemplate(tpl.id, editBtn); };
+    dialog.showModal();
+  }
+
+  function openCardMenu(tpl, trigger, creatorUrl, authorHandle) {
+    var wasOpen = menuTrigger === trigger;
+    closeCardMenu(false);
+    if (wasOpen) return;
+    menuTrigger = trigger; trigger.setAttribute("aria-expanded", "true");
+    var menu = document.createElement("div"); menu.className = "ds-design-menu"; menu.setAttribute("role", "menu");
+    menu.innerHTML = '<button type="button" role="menuitem" data-action="preview">View design</button>' + (tpl.editable === false ? '' : '<button type="button" role="menuitem" data-action="edit">Edit design</button>') + '<button type="button" role="menuitem" data-action="share">Copy design link</button>' +
+      (authorHandle ? '<a role="menuitem" href="' + creatorUrl + '">View publisher</a>' : '');
+    document.body.appendChild(menu); activeMenu = menu;
+    var rect = trigger.getBoundingClientRect(), height = menu.getBoundingClientRect().height;
+    menu.style.left = Math.max(8, Math.min(rect.right - 220, innerWidth - 228)) + "px";
+    menu.style.top = Math.max(8, Math.min(rect.bottom + 4, innerHeight - height - 8)) + "px";
+    var openBtn = trigger.closest(".ds-card").querySelector(".ds-card-open");
+    var edit = menu.querySelector('[data-action="edit"]');
+    if (edit) edit.onclick = function () { closeCardMenu(true); useTemplate(tpl.id, openBtn); };
+    menu.querySelector('[data-action="preview"]').onclick = function () { showDesignPreview(tpl, openBtn); };
+    menu.querySelector('[data-action="share"]').onclick = async function () {
+      try { await navigator.clipboard.writeText(location.origin + "/designs#" + encodeURIComponent("design-" + tpl.id));
+        if (window.SC_UI && SC_UI.toast) SC_UI.toast("Design link copied.");
+      } catch (err) { alert("Could not copy the link. Please allow clipboard access and retry."); }
+      closeCardMenu(true);
+    };
+    menu.addEventListener("keydown", function (ev) {
+      var items = Array.from(menu.querySelectorAll('[role="menuitem"]')), index = items.indexOf(document.activeElement);
+      if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); items[(index + (ev.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus(); }
+      if (ev.key === "Tab") closeCardMenu(false);
+    });
+    menu.querySelector("button").focus({preventScroll:true});
   }
 
 

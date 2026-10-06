@@ -26,6 +26,17 @@ const sharp = require('sharp');
   assert.equal(result.qualityScore,undefined); assert.equal(result.requiresReview,true);
   assert.match(result.warning,/rectangular crops/);
   assert.equal(result.project.canvas.width,600);
+  // Exercise the actual converter's file manifest, not handcrafted fake WebPs.
+  const db = require('../db'), assets = require('../design-assets');
+  const oldTx = db.tx, committed = [];
+  try {
+    db.tx = async fn => fn({query:async(sql,params)=>{ committed.push(params); return {rowCount:1}; }});
+    const persisted = await assets.persistJob('isolated-test-owner',result.jobId);
+    assert(persisted.count >= 3);
+    assert(committed.every(row => assets.validAsset(row[1])),'Only publishable WebP assets may reach storage');
+    assert(committed.every(row => !row[1].includes('removal_mask')),'Debug mask must not block or enter durable storage');
+    for(const row of committed) assert.equal((await sharp(row[3]).metadata()).format,'webp');
+  } finally { db.tx = oldTx; }
   const failedRepair=await engine.qaRepair(Buffer.from('invalid'),[],[],{width:600,height:400},root);
   assert.equal(failedRepair.success,false);
   assert.equal(failedRepair.relativeUrl,undefined,'Failed repair must not return the original as a clean background');

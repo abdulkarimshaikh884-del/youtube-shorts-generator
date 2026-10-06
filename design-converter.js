@@ -1587,7 +1587,9 @@ async function reconstructBackground(imageBuffer, textElements, foregroundObject
     }
 
     // Save removal mask for development debugging
-    const maskPath = path.join(assetsDir, "removal_mask.png");
+    // Debug artifacts are private scratch files, not publishable WebP layers.
+    // persistJob deliberately rejects anything other than the asset manifest.
+    const maskPath = path.join(path.dirname(assetsDir), "removal_mask.png");
     const maskRgba = Buffer.alloc(width * height * 4);
     for (let i = 0; i < width * height; i++) {
       if (removalMask[i]) {

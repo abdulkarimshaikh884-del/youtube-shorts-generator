@@ -2259,7 +2259,7 @@ const indexPage = {
   title: "ShortsCraft — Create and customize motion templates",
   desc: "Create short-form animations from a prompt or customize motion templates in a focused browser editor. Preview freely and export a real MP4 when it is ready.",
   // Only the two words the hero's handwriting uses, so the font is a few KB.
-  head: `<link rel="stylesheet" href="/designs.css?v=${V}">
+  head: `<link rel="stylesheet" href="/designs.css?v=2026100602">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>`,
   body: `    <main class="sh-home">
@@ -2605,7 +2605,7 @@ const designsPage = {
   active: "designs",
   title: "Editable Designs & Thumbnails — ShortsCraft",
   desc: "Browse design templates or turn an image into an editable draft. Review detected text and image layers before editing.",
-  head: `<link rel="stylesheet" href="/designs.css?v=${V}">`,
+  head: `<link rel="stylesheet" href="/designs.css?v=2026100602">`,
   body: `    <main class="sh-home sh-library">
       <div class="ds-page-container">
         <header class="ds-header">
@@ -2708,7 +2708,7 @@ const designsPage = {
 
       </div>
     </div>`,
-  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/designs.js?v=2026100601" defer></script>`
+  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/designs.js?v=2026100602" defer></script>`
 };
 
 const templatePage = {

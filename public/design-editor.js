@@ -34,9 +34,9 @@
   var redoStack = [];
   var zoomLevel = 1.0;
   var autoSaveTimer = null;
+  var editorReady = false;
 
-  function init() {
-    loadProjectFromUrlOrStorage();
+  async function init() {
     setupCanvasEvents();
     setupToolbar();
     setupInspector();
@@ -47,9 +47,30 @@
     updateZoom();
     render();
     exposeStudioApi();
+    if (document.fonts) document.fonts.ready.then(function () { render(); });
+    setEditorReady(false);
+    try { await loadProjectFromUrlOrStorage(); setEditorReady(true); }
+    catch (err) {
+      $("#saveStatus").textContent = "Could not open design";
+      showLoadNotice(err.message + " Return to Designs and try again, or reload this page.", true);
+    }
+  }
+
+  function setEditorReady(ready) {
+    editorReady = ready;
+    $$(".de-toolbar,.de-flyout,.de-inspector,.de-top-center,.de-top-right,.de-mobile-bar,#projTitleInput,#canvasContainer").forEach(function (el) { el.inert = !ready; });
+    stageWrap.setAttribute("aria-busy", String(!ready));
+  }
+
+  function showLoadNotice(message, error) {
+    var notice = $("#designLoadNotice");
+    if (!notice) { notice = document.createElement("div"); notice.id = "designLoadNotice"; notice.className = "de-load-notice"; stageWrap.prepend(notice); }
+    notice.textContent = message;
+    notice.setAttribute("role", error ? "alert" : "status"); notice.hidden = !message;
   }
 
   function exposeStudioApi() {
+    window.SC_STUDIO_PROJECT = project;
     window.SC_STUDIO = {
       project: project,
       render: render,
@@ -148,7 +169,7 @@
   }
 
   // ── 1. Load Project ──────────────────────────────────────────
-  function loadProjectFromUrlOrStorage() {
+  async function loadProjectFromUrlOrStorage() {
     var params = new URLSearchParams(window.location.search);
     var projId = params.get("id");
     var tplId = params.get("tpl");
@@ -167,27 +188,34 @@
     }
 
     if (projId) {
-      fetch("/api/designs/projects/" + encodeURIComponent(projId))
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res && res.success && res.project) {
-            applyProjectData(res.project);
-            $("#saveStatus").textContent = "Saved to cloud";
-          }
-        })
-        .catch(function () {});
+      $("#saveStatus").textContent = "Loading design…";
+      showLoadNotice("Loading your design…", false);
+      var response = await fetch("/api/designs/projects/" + encodeURIComponent(projId));
+      var res = await response.json();
+      if (!response.ok || !res.success || !res.project) throw new Error(res.error || "The saved design could not be loaded.");
+      applyProjectData(res.project);
+      $("#saveStatus").textContent = "Saved to cloud";
+      showLoadNotice(project.elements.length ? "" : "This saved project has no layers. Open a template from Designs or add a new layer.", false);
+      if (res.project.recoveryTemplateId) {
+        showLoadNotice("This older copy may be missing the original template layers. Your saved changes have not been replaced. ", false);
+        var recover = document.createElement("a");
+        recover.href = "/design-editor?tpl=" + encodeURIComponent(res.project.recoveryTemplateId);
+        recover.textContent = "Open a fresh editable copy";
+        $("#designLoadNotice").appendChild(recover);
+      }
       return;
     }
 
     if (tplId) {
-      fetch("/api/designs/templates/" + encodeURIComponent(tplId))
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res && res.success && res.template) {
-            applyProjectData(res.template);
-          }
-        })
-        .catch(function () {});
+      $("#saveStatus").textContent = "Opening template…";
+      showLoadNotice("Preparing your editable copy…", false);
+      var cloneResponse = await fetch("/api/designs/templates/" + encodeURIComponent(tplId) + "/clone", {method:"POST"});
+      var cloned = await cloneResponse.json();
+      if (!cloneResponse.ok || !cloned.success || !cloned.project) throw new Error(cloned.error || "The template could not be opened.");
+      applyProjectData(cloned.project);
+      history.replaceState(null, "", "/design-editor?id=" + encodeURIComponent(project.id));
+      $("#saveStatus").textContent = "Saved to cloud";
+      showLoadNotice("", false);
       return;
     }
 
@@ -203,6 +231,14 @@
   }
 
   function applyProjectData(data) {
+    if (!data.canvas || !Number.isFinite(data.canvas.width) || !Number.isFinite(data.canvas.height) || data.canvas.width < 1 || data.canvas.height < 1 || !Array.isArray(data.elements)) {
+      throw new Error("This design has invalid canvas or layer data.");
+    }
+    project.source = data.source || {type:"scratch"};
+    project.designType = data.designType || project.designType;
+    project.backgroundColor = data.backgroundColor || data.canvas.backgroundColor || "#090d16";
+    project.previewUrl = data.previewUrl || "";
+    selectedElement = null; undoStack = []; redoStack = [];
     if (data.id) project.id = data.id;
     if (data.name || data.title) {
       project.name = data.name || data.title;
@@ -233,9 +269,13 @@
   function preloadImage(src) {
     if (!src || imageCache[src]) return;
     var img = new Image();
+    imageCache[src] = img;
     img.crossOrigin = "anonymous";
     img.onload = function () {
-      imageCache[src] = img;
+      render();
+    };
+    img.onerror = function () {
+      showLoadNotice("A design image could not be loaded. Check your connection and sign-in, then reload before exporting.", true);
       render();
     };
     img.src = src;
@@ -359,7 +399,7 @@
     var src = el.src || el.dataSrc;
     if (!src) return;
     var img = imageCache[src];
-    if (img && img.complete) {
+    if (img && img.complete && img.naturalWidth) {
       if (el.filter) ctx.filter = el.filter;
       ctx.drawImage(img, el.x, el.y, el.width, el.height);
       if (el.filter) ctx.filter = "none";
@@ -377,6 +417,17 @@
 
     // Auto-fit text if width constraint is present (e.g. for product-name)
     var lines = String(el.text || "").split("\n");
+    // Newly added text used to have no width/height, making hit testing and
+    // selection handles NaN. Measure it before interactions, not just drawing.
+    ctx.font = fontWeight + " " + fontSize + "px '" + fontFamily + "', -apple-system, sans-serif";
+    if (!Number.isFinite(el.width) || el.autoWidth) {
+      el.autoWidth = true;
+      el.width = Math.max(20, ...lines.map(function (line) { return ctx.measureText(line).width; }));
+    }
+    if (!Number.isFinite(el.height) || el.autoHeight) {
+      el.autoHeight = true;
+      el.height = Math.max(20, lines.length * fontSize * (el.lineHeight || 1.15));
+    }
     if ((el.autoFit || el.role === "product-name") && el.width) {
       ctx.font = fontWeight + " " + fontSize + "px '" + fontFamily + "', -apple-system, sans-serif";
       var maxLineWidth = 0;
@@ -514,6 +565,7 @@
           recordState();
           updateInspector();
           render();
+          triggerAutosave();
         }
       }
     });
@@ -532,6 +584,7 @@
           activeHandle = hName;
           dragStart = pos;
           initialElemState = Object.assign({}, selectedElement);
+          selectedElement.autoWidth = false; selectedElement.autoHeight = false;
           if (e.preventDefault) e.preventDefault();
           return;
         }
@@ -759,9 +812,12 @@
       name: text,
       type: "text",
       text: text,
-      x: 120,
-      y: 160 + (project.elements.length * 20),
-      fontSize: size,
+      x: Math.round(project.canvas.width * .1),
+      y: Math.round(project.canvas.height * .3) + (project.elements.length % 4) * 12,
+      width: Math.round(project.canvas.width * .8),
+      height: Math.min(size, project.canvas.width * .1, project.canvas.height * .2) * 1.3,
+      autoFit: true,
+      fontSize: Math.min(size, project.canvas.width * .1, project.canvas.height * .2),
       fontWeight: weight,
       fontFamily: font,
       fill: color,
@@ -935,6 +991,14 @@
     // Undo & Redo buttons
     $("#btnUndo").onclick = undo;
     $("#btnRedo").onclick = redo;
+    // Inspector controls previously only redrew the canvas: edits disappeared
+    // on reload. Bubble after each control's handler so we save its new value.
+    $("#deInspector").addEventListener("input", function (ev) {
+      if (selectedElement && ev.target.matches("input,textarea,select")) triggerAutosave();
+    });
+    $("#deInspector").addEventListener("change", function (ev) {
+      if (selectedElement && ev.target.matches("input,textarea,select")) { recordState(); triggerAutosave(); }
+    });
   }
 
   function replaceSelectedImage(newSrc, newName) {
@@ -1115,6 +1179,7 @@
           el.hidden = !el.hidden;
           render();
           updateLayersList();
+          recordState(); triggerAutosave();
         });
       }
 
@@ -1125,6 +1190,7 @@
           el.locked = !el.locked;
           render();
           updateLayersList();
+          recordState(); triggerAutosave();
         });
       }
 
@@ -1150,6 +1216,7 @@
     updateInspector();
     render();
     updateUndoRedoButtons();
+    exposeStudioApi(); triggerAutosave();
   }
 
   function redo() {
@@ -1162,6 +1229,7 @@
     updateInspector();
     render();
     updateUndoRedoButtons();
+    exposeStudioApi(); triggerAutosave();
   }
 
   function updateUndoRedoButtons() {
@@ -1191,6 +1259,8 @@
 
   // ── 8. Autosave & Cloud Sync ─────────────────────────────────
   function triggerAutosave() {
+    if (!editorReady) return;
+    project.canvas.backgroundColor = project.backgroundColor;
     clearTimeout(autoSaveTimer);
     var statusEl = $("#saveStatus");
     if (statusEl) statusEl.textContent = "Saving...";
@@ -1214,6 +1284,11 @@
 
   // ── 9. Export & Publishing ───────────────────────────────────
   function exportDesign() {
+    if (!editorReady) return;
+    if (project.elements.some(function (el) { var src = el.src || el.dataSrc; var img = imageCache[src]; return el.type === "image" && !el.hidden && src && (!img || !img.complete || !img.naturalWidth); })) {
+      showLoadNotice("Wait for all images to load before exporting. If an image failed, reload or replace that layer.", true);
+      return;
+    }
     selectedElement = null;
     render();
 

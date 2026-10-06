@@ -370,7 +370,12 @@ const SAMPLE_TEMPLATES = [
 
 // In-memory cache for fast access & offline/local fallback
 const memoryTemplates = new Map();
-SAMPLE_TEMPLATES.forEach(t => memoryTemplates.set(t.id, { ...t, status: "published" }));
+SAMPLE_TEMPLATES.forEach(t => {
+  // Built-in text boxes are constrained layouts; longer replacement headlines
+  // must fit their original panel rather than disappear beyond the canvas.
+  t.elements = t.elements.map(el => el.type === "text" && el.width ? { ...el, autoFit: true } : el);
+  memoryTemplates.set(t.id, { ...t, status: "published" });
+});
 const memoryProjects = new Map();
 
 function hasDatabase() {
@@ -449,8 +454,12 @@ async function ensureTables() {
 }
 
 function publicProject(row) {
+  const legacyTemplate = (!row.source || row.source.type === "scratch") &&
+    Array.isArray(row.elements) && row.elements.length <= 1 && row.elements.every(e => e.type === "text")
+    ? SAMPLE_TEMPLATES.find(t => row.name === `${t.title} (Copy)`) : null;
   return {
     id: row.id,
+    recoveryTemplateId: legacyTemplate ? legacyTemplate.id : null,
     userId: row.user_id || row.userId,
     name: row.name,
     title: row.name,
@@ -465,6 +474,27 @@ function publicProject(row) {
 }
 
 function publicTemplate(row) {
+  // Early database seeds stored previews but no editable content. Repair only
+  // known built-ins at read time; never overwrite creator content or live rows.
+  // These specific legacy seeds reused existing artwork under new titles.
+  // Recover only when both their ID and bundled preview path match; arbitrary
+  // creator uploads must never receive unrelated built-in content.
+  const legacyArtwork = {
+    dt_ai_breakthrough: ["dt_heygen_trick", "/storage/designs/templates/heygen-trick.webp"],
+    dt_finance_market_crash: ["dt_growth_metrics", "/storage/designs/templates/growth-metrics.webp"],
+    dt_gaming_championship: ["dt_neon_brand_logo", "/storage/designs/templates/neon-logo.webp"],
+    dt_secret_reveal: ["dt_vox_masterclass", "/storage/designs/templates/vox-coverup.webp"],
+    dt_podcast_spotlight: ["dt_vox_masterclass", "/storage/designs/templates/vox-coverup.webp"]
+  }[row.id];
+  const canonicalId = legacyArtwork && (row.preview_url || row.previewUrl) === legacyArtwork[1] ? legacyArtwork[0] : row.id;
+  const canonical = SAMPLE_TEMPLATES.find(t => t.id === canonicalId);
+  let restoredFromTemplateId = null;
+  if ((row.source_type || row.sourceType) === "shortscraft_official" &&
+      Array.isArray(row.elements) && row.elements.length === 0 && canonical) {
+    row = { ...row, canvas: { ...row.canvas, ...canonical.canvas },
+      elements: canonical.elements, design_type: canonical.design_type };
+    restoredFromTemplateId = canonical.id;
+  }
   const canvas = row.canvas && typeof row.canvas === "object" ? row.canvas : { width: 1280, height: 720 };
   const isPremium = row.category === "premium" || canvas.isPremium === true;
   const starPrice = (canvas && Number(canvas.starPrice)) || (isPremium ? 1 : 0);
@@ -492,6 +522,8 @@ function publicTemplate(row) {
     authorAvatarUrl: avatarUrl,
     canvas,
     elements: Array.isArray(row.elements) ? row.elements : [],
+    editable: Array.isArray(row.elements) && row.elements.length > 0,
+    restoredFromTemplateId,
     previewUrl: row.preview_url || row.previewUrl || "",
     likes: Number(row.likes) || 0,
     uses: Number(row.uses) || 0,
@@ -758,6 +790,10 @@ async function cloneTemplate(userOrId, templateId) {
   const tplRes = await getTemplate(templateId);
   if (!tplRes.success) return tplRes;
   const tpl = tplRes.template;
+
+  if (!tpl.elements.length) {
+    return { error: "This design has a preview only; its editable layers are missing. Please choose another design.", status: 409 };
+  }
 
   if (tpl.isPremium) {
     const isOwner = tpl.authorId === uid;
