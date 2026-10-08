@@ -509,6 +509,8 @@ async function requestPayout(user, starsAmount, upiId) {
       remaining -= slice;
     }
 
+    await require("./email-events").enqueueSafe({userId:user.id,kind:"withdrawal_requested",eventKey:baseIdem,data:{amountPaise:Math.round(inrAmount*100),reference:baseIdem}},client);
+
     await client.query(
       `insert into public.support_tickets
          (user_id, email, subject, category, priority, status)

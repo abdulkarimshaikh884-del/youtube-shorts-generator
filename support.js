@@ -136,9 +136,9 @@ async function addMessage(user, id, body) {
     );
     if (!locked.rows[0]) return { error: "Ticket not found.", status: 404 };
     if (locked.rows[0].status === "closed") return { error: "This ticket is closed.", status: 409 };
-    await client.query(
+    const messageResult = await client.query(
       `insert into public.support_messages (ticket_id, author_id, author_role, body)
-       values ($1, $2, $3, $4)`,
+       values ($1, $2, $3, $4) returning id`,
       [id, user.id, role, body]
     );
     await client.query(
@@ -148,6 +148,7 @@ async function addMessage(user, id, body) {
       [id, role === "admin" ? "waiting_on_user" : "open"]
     );
     if (role === "admin" && ticket.ticket.userId) {
+      await require("./email-events").enqueueSafe({userId:ticket.ticket.userId,kind:"support_reply",eventKey:String(messageResult.rows[0].id),data:{reference:id}},client);
       await client.query(
         `insert into public.notifications
            (user_id, actor_id, type, entity_type, entity_id, message)

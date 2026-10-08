@@ -9,6 +9,8 @@ const fs = require("fs");
 const crypto = require("crypto");
 const db = require("./db");
 const mailer = require("./mailer");
+const emailEvents = require("./email-events");
+const authEmail = require("./auth-email");
 const paymentDelivery = require("./payment-delivery");
 const starPurchases = require("./star-purchases");
 const releasePolicy = require("./release-policy");
@@ -256,6 +258,7 @@ app.post("/api/auth/signup", rateLimit({ windowMs: 3_600_000, max: 20 }), async 
     const out = await auth.signUp(res, email, password, handle, referrals.readCode(req));
     if (out.error) return res.status(400).json({ success: false, error: out.error });
     console.log("[auth] new account · total", await auth.count());
+    await authEmail.rememberBrowser(req, res, out.user, { baseline: true });
     // A welcome in the new account's bell, and word to the owner. Neither may
     // stand between a person and the account they just made.
     notify.welcome(out.user).then(notify.schedule).catch((err) => console.error("[notify] welcome", err.message));
@@ -272,6 +275,7 @@ app.post("/api/auth/login", rateLimit({ windowMs: 600_000, max: 20 }), async (re
     const out = await auth.logIn(res, email, password);
     // deliberately vague: never reveal whether the address exists
     if (out.error) return res.status(401).json({ success: false, error: out.error });
+    await authEmail.rememberBrowser(req, res, out.user);
     return res.json({ success: true, user: out.user });
   } catch (err) {
     console.error("[/api/auth/login]", err.message);
@@ -387,6 +391,7 @@ app.post("/api/auth/reset", rateLimit({ windowMs: 15 * 60_000, max: 10 }), async
   try {
     const out = await auth.resetPassword(res, req.body && req.body.token, req.body && req.body.password);
     if (out.error) return res.status(400).json({ success: false, error: out.error });
+    await authEmail.rememberBrowser(req, res, out.user, { baseline: true });
     return res.json({ success: true, user: out.user });
   } catch (err) {
     console.error("[/api/auth/reset]", err.message);
@@ -497,11 +502,12 @@ app.use(credits.middleware);
 // them to phones and browsers straight away rather than on the next sweep.
 app.use((req, res, next) => {
   if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") {
-    res.on("finish", () => { if (res.statusCode < 400) notify.schedule(); });
+    res.on("finish", () => { if (res.statusCode < 400) { notify.schedule(); emailEvents.schedule(); } });
   }
   next();
 });
 notify.start();
+emailEvents.start();
 
 app.get("/api/credits", async (req, res) => {
   try {
@@ -1310,6 +1316,7 @@ app.get("/api/config", (req, res) => {
       auth: Boolean(process.env.DATABASE_URL),
       payments: releasePolicy.monetizationEnabled && Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
       passwordResetEmail: mailer.configured(),
+      transactionalEmails: emailEvents.enabled(),
       referrals: referrals.enabled(),
       verificationEmail: referrals.enabled() && mailer.configured(),
     },

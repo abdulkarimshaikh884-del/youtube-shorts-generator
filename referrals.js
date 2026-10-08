@@ -73,6 +73,7 @@ async function qualify(inviteeId) {
           `referral:${inviteeId}:${id}`, JSON.stringify({ type: "referral_reward", inviteeId, inviterId })]);
     }
     await client.query("update public.referrals set status = 'rewarded', rewarded_at = now() where invitee_id = $1", [inviteeId]);
+    for (const id of [inviterId, inviteeId]) await require("./email-events").enqueueSafe({userId:id,kind:"referral_reward",eventKey:inviteeId,data:{credits:REWARD}},client);
     return { rewarded: true, creditsEach: REWARD };
   });
 }

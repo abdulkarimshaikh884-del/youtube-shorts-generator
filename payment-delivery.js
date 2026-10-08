@@ -33,6 +33,7 @@ async function deliver(req, payment) {
       throw new Error("Payment account no longer exists");
     }
     if (!await credits.setPlan(req, planId, client)) throw new Error("Invalid payment plan");
+    await require("./email-events").enqueueSafe({userId:req.user.id,kind:"purchase_receipt",eventKey:paymentId,data:{amountPaise:amount,reference:paymentId,product:`${planId} (${term})`}},client);
     return { alreadyProcessed: false };
   });
 }

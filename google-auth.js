@@ -56,6 +56,7 @@ function register(app, { auth, rateLimit, publicSiteUrl, referrals, fetchImpl = 
       const info = await infoRes.json();
       const out = await auth.googleAccount(res, info, flow.userId, referrals?.readCode(req));
       if (out.error) return fail(out.error);
+      await require("./auth-email").rememberBrowser(req, res, out.user, { baseline: out.created || out.linkedNow });
       return res.redirect(safeNext(flow.next));
     } catch {
       // Never log authorization codes, access tokens or provider responses.

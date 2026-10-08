@@ -70,13 +70,14 @@ function urlFor(row) {
 }
 
 /* ── Creating notifications ──────────────────────────────── */
-async function toUser(client, userId, { actorId = null, type = "system", entityType = null, entityId = "", message }) {
+async function toUser(client, userId, { actorId = null, type = "system", entityType = null, entityId = "", message, emailData = null }) {
   if (!userId || (actorId && userId === actorId) || !message) return;
-  await (client || db).query(
+  const inserted = await (client || db).query(
     `insert into public.notifications (user_id, actor_id, type, entity_type, entity_id, message)
-     values ($1, $2, $3, $4, $5, $6)`,
+     values ($1, $2, $3, $4, $5, $6) returning id`,
     [userId, actorId, type, entityType, String(entityId || ""), String(message).slice(0, 240)]
   );
+  if (emailData && inserted.rows?.[0]?.id) await require("./email-events").enqueueSafe({userId,kind:"template_status",eventKey:String(inserted.rows[0].id),data:emailData},client);
 }
 
 /* The owner, plus staff who hold `permission`. The person who caused it is
@@ -141,7 +142,8 @@ async function templateModerated(moderator, before, after) {
   if (!say) return;
   await toUser(null, after.author_id, {
     actorId: moderator.id, type: "template_status", entityType: "template", entityId: after.id,
-    message: say(after.title, String(after.review_note || "").slice(0, 120))
+    message: say(after.title, String(after.review_note || "").slice(0, 120)),
+    emailData: {title:after.title,status:after.status}
   });
 }
 
@@ -157,7 +159,8 @@ async function tutorialReviewed(moderator, skill, previousStatus) {
   if (!say) return;
   await toUser(null, skill.author.id, {
     actorId: moderator.id, type: "template_status", entityType: "tutorial", entityId: skill.id,
-    message: say(skill.title, String(skill.reviewNote || "").slice(0, 120))
+    message: say(skill.title, String(skill.reviewNote || "").slice(0, 120)),
+    emailData: {title:skill.title,status:skill.status}
   });
 }
 

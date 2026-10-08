@@ -52,6 +52,7 @@ async function verifyAndDeliver(user, receipt, fetchImpl = fetch) {
             amountPaise: offset === 0 ? Number(payment.amount) : 0, captured: true })]
       );
     }
+    await require("./email-events").enqueueSafe({userId:user.id,kind:"purchase_receipt",eventKey:paymentId,data:{amountPaise:Number(payment.amount),reference:paymentId,product:`${pack.stars} Stars`}},client);
     return { success: true, alreadyProcessed: false, starsGranted: pack.stars, orderId, paymentId };
   });
 }

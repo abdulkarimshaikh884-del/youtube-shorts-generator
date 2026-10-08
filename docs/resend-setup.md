@@ -1,7 +1,10 @@
 # ShortsCraft transactional email setup
 
-Email delivery is not active in the inspected production environment.
-The owner must complete account creation and handle credentials privately.
+Updated 8 October 2026: the owner configured the sender and confirmed that
+one live password-reset email arrived in Gmail. That proves delivery for that
+request, not reset-link completion or every automatic event. Credentials stay
+private. See [transactional event rollout](transactional-emails.md) for the
+new optional event queue, migration and activation checklist.
 
 1. Create/sign in to [Resend](https://resend.com/signup).
 2. In Domains, add `mail.shortscraft.online`. At the domain's DNS provider,

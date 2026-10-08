@@ -92,7 +92,7 @@ function load(file, deps) {
   return module.exports;
 }
 const credits = load("credits.js", { "./db": db });
-const referrals = load("referrals.js", { "./db": db, "./credits": credits });
+const referrals = load("referrals.js", { "./db": db, "./credits": credits, "./email-events": { enqueueSafe: async () => false } });
 async function run() {
   state.users.owner = { role:"super_admin" }; state.users.friend = { role:"user" };
   state.codes.abcdefghijklmnop = "owner";

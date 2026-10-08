@@ -223,9 +223,10 @@ async function signUp(res, email, password, requestedHandle, referralCode = null
       [email, hashPassword(password), handle, displayName]
       );
       if (referralCode) await require("./referrals").attachNewUser(created.rows[0], referralCode, client);
+      await require("./email-events").enqueueSafe({ userId: created.rows[0].id, kind: "welcome", eventKey: "created", data: { displayName } }, client);
       return created;
     };
-    ({ rows } = referralCode ? await db.tx(create) : await create(db));
+    ({ rows } = await db.tx(create));
   } catch (err) {
     /* The pre-check above gives the normal friendly path, while the database
        index closes the race where two near-simultaneous requests both pass
@@ -283,7 +284,8 @@ async function googleAccount(res, info, linkingUserId = null, referralCode = nul
         const own = await client.query("select * from public.users where id = $1 for update", [linkingUserId]);
         if (!own.rows[0] || normEmail(own.rows[0].email) !== email || own.rows[0].google_sub) return { error: "conflict" };
         const updated = await client.query("update public.users set google_sub = $2, updated_at = now() where id = $1 returning *", [linkingUserId, info.sub]);
-        return { row: updated.rows[0] };
+        await require("./email-events").enqueueSafe({userId: linkingUserId,kind:"google_linked",eventKey:"linked"},client);
+        return { row: updated.rows[0], linkedNow: true };
       }
       const existing = await client.query("select id from public.users where lower(email) = $1", [email]);
       // Existing password accounts have not necessarily verified their email.
@@ -292,7 +294,8 @@ async function googleAccount(res, info, linkingUserId = null, referralCode = nul
       const handle = "@creator_" + crypto.randomBytes(10).toString("hex");
       const created = await client.query("insert into public.users (email, password_hash, plan, handle, display_name, google_sub) values ($1, $2, 'free', $3, $4, $5) returning *", [email, "google-only", handle, String(info.name || email.split("@")[0]).slice(0, 50), info.sub]);
       if (referralCode) await require("./referrals").attachNewUser(created.rows[0], referralCode, client);
-      return { row: created.rows[0] };
+      await require("./email-events").enqueueSafe({userId:created.rows[0].id,kind:"welcome",eventKey:"created",data:{displayName:created.rows[0].display_name}},client);
+      return { row: created.rows[0], created: true };
     });
   } catch (err) {
     if (err.code === "23505") return { error: "conflict" };
@@ -300,7 +303,7 @@ async function googleAccount(res, info, linkingUserId = null, referralCode = nul
   }
   if (result.error) return result;
   await startSession(res, result.row.id);
-  return { user: publicUser(result.row) };
+  return { user: publicUser(result.row), created: result.created === true, linkedNow: result.linkedNow === true };
 }
 
 /* Always returns the same public shape, whether the address exists or not.
@@ -375,6 +378,7 @@ async function resetPassword(res, token, password) {
     // fresh session below, and consume all reset links for the account.
     await client.query(`delete from public.sessions where user_id = $1`, [userId]);
     await client.query(`delete from public.password_reset_tokens where user_id = $1`, [userId]);
+    await require("./email-events").enqueueSafe({userId,kind:"password_changed",eventKey:tokenHash},client);
     return updated.rows[0] || null;
   });
 

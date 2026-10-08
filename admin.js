@@ -390,6 +390,7 @@ async function processWithdrawal(actor, txId, action, data = {}) {
     );
 
     await audit(actor, "withdrawal_paid", "withdrawal", txId, null, { utr, inrAmount: meta.inrAmount, upiId: meta.upiId });
+    await require("./email-events").enqueueSafe({userId:tx.sender_id,kind:"withdrawal_processed",eventKey:txId,data:{reference:String(txId),amountPaise:Math.round(Number(meta.inrAmount)*100)}});
     return { success: true, withdrawal: { id: txId, status: "paid", utr } };
   }
 
@@ -418,6 +419,7 @@ async function processWithdrawal(actor, txId, action, data = {}) {
     );
 
     await audit(actor, "withdrawal_rejected", "withdrawal", txId, null, { reason });
+    await require("./email-events").enqueueSafe({userId:tx.sender_id,kind:"withdrawal_rejected",eventKey:txId,data:{reference:String(txId)}});
     return { success: true, withdrawal: { id: txId, status: "rejected", reason } };
   }
 

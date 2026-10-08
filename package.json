@@ -23,6 +23,8 @@
     "test:ai": "node verify_ai_definition.js",
     "test:auth": "node verify_auth.js",
     "test:auth-reset": "node verify_password_reset.js",
+    "test:emails:postgres": "node tests/transactional-email-postgres.test.js",
+    "test:emails:preview": "node tests/email-templates-preview.js",
     "test:legacy": "node verify_studio_redesign.js && node verify_generator_restore.js",
     "test:studio": "node verify_studio_redesign.js",
     "test:contrast": "node verify_contrast.js",

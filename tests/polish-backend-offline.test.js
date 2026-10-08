@@ -13,6 +13,7 @@ function load(file, deps) {
     process: { env: {} },
     require(name) {
       if (Object.hasOwn(deps, name)) return deps[name];
+      if (name === "./email-events") return { enqueueSafe: async () => false };
       if (["crypto", "fs", "path"].includes(name)) return require(name);
       throw new Error("Unexpected dependency: " + name);
     }
