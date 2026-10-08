@@ -290,19 +290,56 @@ function operationKey(req, kind) {
   return req._creditOperationKeys[kind];
 }
 
+function operationFingerprint(req, kind) {
+  // Stable JSON keys allow a harmless key-order change, but never permit one
+  // client key to buy different prompts, images or exports. Only the transport
+  // idempotency field is excluded; all actual work inputs remain bound.
+  function stable(value, depth = 0) {
+    if (depth > 100) throw new Error("The request is nested too deeply.");
+    if (Array.isArray(value)) return value.map(item => stable(item, depth + 1));
+    if (value && typeof value === "object") {
+      const out = Object.create(null);
+      for (const key of Object.keys(value).sort()) out[key] = stable(value[key], depth + 1);
+      return out;
+    }
+    return value;
+  }
+  const body = Object.fromEntries(Object.entries(req.body || {}).filter(([key]) => key !== "idempotencyKey"));
+  return crypto.createHash("sha256").update(JSON.stringify([String(req.path || ""), kind, stable(body)])).digest("hex");
+}
+
 async function charge(req, kind) {
   const cost = COST[kind];
   if (!cost) throw new Error("Unknown charge kind: " + kind);
   const idem = operationKey(req, kind);
+  let fingerprint;
+  try { fingerprint = operationFingerprint(req, kind); }
+  catch {
+    return { ok: false, status: 400, code: "CREDIT_INVALID_OPERATION", error: "The request could not be safely identified. Simplify it and retry.", charged: 0 };
+  }
 
   return db.tx(async (client) => {
-    await ensureRecord(req.credits.key, req.user ? req.user.plan : null, client);
+    // Serialize the operation BEFORE checking the ledger. The identity lock
+    // inside ensureRecord also serializes different keys spending one balance.
+    await client.query("select pg_advisory_xact_lock(hashtext($1))", ["credit-operation:" + idem]);
+    const record = await ensureRecord(req.credits.key, req.user ? req.user.plan : null, client);
     const existing = await client.query(
-      `select id, balance_after from public.credit_transactions where idempotency_key = $1`,
+      `select id, balance_after, metadata from public.credit_transactions where idempotency_key = $1`,
       [idem]
     );
     if (existing.rows[0]) {
-      return { ok: true, left: existing.rows[0].balance_after, charged: 0, reused: true };
+      const prior = existing.rows[0];
+      const currentLeft = Number(record.left_credits) + bonus(record);
+      const mismatch = prior.metadata?.operationFingerprint && prior.metadata.operationFingerprint !== fingerprint;
+      if (mismatch) return { ok: false, status: 409, code: "CREDIT_IDEMPOTENCY_CONFLICT", error: "This request key was already used for different work. Start a new request; no credits were charged again.", left: currentLeft, charged: 0, reused: true };
+      const refunded = prior.id ? await client.query(
+        "select id from public.credit_transactions where idempotency_key = $1", ["refund:" + prior.id]
+      ) : { rows: [] };
+      if (refunded.rows[0]) return { ok: false, status: 409, code: "CREDIT_OPERATION_REFUNDED", error: "This failed request was already refunded. Retry as a new request; no credits were charged again.", left: currentLeft, charged: 0, reused: true };
+      // We do not have a durable response cache. Reporting ok:true here would
+      // run expensive work again without charging, even after a prior refund.
+      // Keep the first request authoritative and reject all duplicate work.
+      return { ok: false, status: 409, code: "CREDIT_OPERATION_REPLAY", error: "This request was already accepted. Wait for its result or start a new request for another result. No credits were charged again.", left: currentLeft, charged: 0, reused: true };
     }
 
     const locked = await client.query(
@@ -330,7 +367,7 @@ async function charge(req, kind) {
        values ($1, $2, $3, $4, $5, $6, $7::jsonb)
        returning id`,
       [req.credits.key, req.user?.id || null, TRANSACTION_KIND[kind], -cost,
-       balance, idem, JSON.stringify({ path: req.path, day: today(), dailyCost, bonusCost })]
+       balance, idem, JSON.stringify({ path: req.path, day: today(), dailyCost, bonusCost, operationFingerprint: fingerprint })]
     );
     req._creditChargeIds = req._creditChargeIds || {};
     req._creditChargeIds[kind] = inserted.rows[0].id;

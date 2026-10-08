@@ -2,7 +2,7 @@
 // DB-free failure/keyboard/image contracts. All API writes are intercepted.
 const fs = require("node:fs"), path = require("node:path");
 const {spawn} = require("node:child_process");
-const puppeteer = require("puppeteer"), sharp = require("sharp");
+const puppeteer = require("./qa-browser"), sharp = require("sharp");
 const root = path.resolve(__dirname,".."), base = "http://127.0.0.1:3327";
 const out = path.join(root,"audit_results/page-certification/interactions");
 const results = [], errors = [], writes = [];

@@ -674,7 +674,11 @@ async function listContent(user) {
   try {
     const dsRes = await db.query(
       `select dt.id, dt.title, dt.design_type as tpl, dt.category, dt.status, 'design_template' as source_format,
-              '' as review_note, null as scheduled_at, dt.created_at as published_at, dt.created_at,
+              coalesce((select a.after_data->>'reviewNote'
+                from public.admin_audit_log a
+                where a.action = 'design_template_moderation' and a.entity_type = 'design_template'
+                  and a.entity_id = dt.id order by a.created_at desc, a.id desc limit 1), '') as review_note,
+              null as scheduled_at, dt.created_at as published_at, dt.created_at,
               coalesce(u.display_name, dt.author_name) as author_name,
               coalesce(u.handle, dt.author_handle) as author_handle,
               u.email as author_email,
@@ -721,14 +725,25 @@ async function updateContent(user, id, data) {
   }
 
   if (String(id).startsWith("dt_")) {
-    const before = await db.query(`select * from public.design_templates where id = $1`, [id]);
-    if (!before.rows[0]) return { error: "Design template not found.", status: 404 };
-    const { rows } = await db.query(
-      `update public.design_templates set status = $2, updated_at = now() where id = $1 returning *`,
-      [id, status]
-    );
-    await audit(user, "design_template_moderation", "design_template", id, before.rows[0], rows[0]);
-    return { success: true, template: { id, status, reviewNote: note } };
+    // Store private review details in the existing private audit ledger, never
+    // inside a public canvas or description. Status and reason commit together.
+    return db.tx(async client => {
+      const before = await client.query(`select * from public.design_templates where id = $1 for update`, [id]);
+      if (!before.rows[0]) return { error: "Design template not found.", status: 404 };
+      const { rows } = await client.query(
+        `update public.design_templates set status = $2, updated_at = now() where id = $1 returning *`,
+        [id, status]
+      );
+      const reviewNote = status === "published" ? "" : note;
+      await client.query(
+        `insert into public.admin_audit_log
+           (actor_id, action, entity_type, entity_id, before_data, after_data)
+         values ($1, $2, $3, $4, $5::jsonb, $6::jsonb)`,
+        [user.id, "design_template_moderation", "design_template", String(id),
+          JSON.stringify(before.rows[0]), JSON.stringify({ ...rows[0], reviewNote })]
+      );
+      return { success: true, template: { id, status, reviewNote } };
+    });
   }
 
   const before = await db.query(`select * from public.community_templates where id = $1`, [id]);

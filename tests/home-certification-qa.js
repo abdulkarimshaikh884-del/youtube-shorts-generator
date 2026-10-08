@@ -4,7 +4,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
-const puppeteer = require("puppeteer");
+const puppeteer = require("./qa-browser");
 const root = path.resolve(__dirname, "..");
 const out = path.join(root, "audit_results/home-certification");
 const base = "http://127.0.0.1:3327";

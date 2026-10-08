@@ -35,6 +35,14 @@
   var zoomLevel = 1.0;
   var autoSaveTimer = null;
   var editorReady = false;
+  var serverRevision = null;
+  var changeVersion = 0;
+  var savedVersion = 0;
+  var saveInFlight = null;
+  var saveConflict = false;
+  var lastSaveError = null;
+  var pendingImages = 0;
+  var MAX_DESIGN_BYTES = 512 * 1024;
 
   async function init() {
     setupCanvasEvents();
@@ -80,6 +88,7 @@
       undo: undo,
       redo: redo,
       triggerAutosave: triggerAutosave,
+      saveNow: flushAutosave,
       selectElement: function (idOrRole) {
         var el = project.elements.find(function (e) {
           return e.id === idOrRole || e.role === idOrRole;
@@ -99,8 +108,7 @@
         });
         if (el && el.type === "image") {
           selectedElement = el;
-          replaceSelectedImage(newSrc, newName);
-          return true;
+          return replaceSelectedImage(newSrc, newName, el);
         }
         return false;
       },
@@ -235,6 +243,11 @@
       throw new Error("This design has invalid canvas or layer data.");
     }
     project.source = data.source || {type:"scratch"};
+    serverRevision = data.revision || null;
+    project.revision = serverRevision;
+    changeVersion = savedVersion = 0;
+    saveConflict = false;
+    lastSaveError = null;
     project.designType = data.designType || project.designType;
     project.backgroundColor = data.backgroundColor || data.canvas.backgroundColor || "#090d16";
     project.previewUrl = data.previewUrl || "";
@@ -734,11 +747,9 @@
       imgInput.onchange = function () {
         if (imgInput.files && imgInput.files[0]) {
           var file = imgInput.files[0];
-          var reader = new FileReader();
-          reader.onload = function (e) {
-            addImageLayer(e.target.result, file.name);
-          };
-          reader.readAsDataURL(file);
+          readImageFile(file).then(function (src) { return addImageLayer(src, file.name); })
+            .catch(function (err) { showSaveNotice(err.message); });
+          imgInput.value = "";
         }
       };
     }
@@ -858,27 +869,99 @@
     triggerAutosave();
   }
 
-  function addImageLayer(dataUri, name) {
+  function jsonBytes(value) { return new Blob([JSON.stringify(value)]).size; }
+
+  function compactElements(elements) {
+    return elements.map(function (el) {
+      var copy = Object.assign({}, el);
+      if (copy.src && copy.dataSrc === copy.src) delete copy.dataSrc;
+      return copy;
+    });
+  }
+
+  function fitsLayerBudget(layer, replaced) {
+    var layers = compactElements(project.elements.filter(function (el) { return el !== replaced; }));
+    layers.push(layer);
+    return layers.length <= 100 && jsonBytes(layers) <= MAX_DESIGN_BYTES;
+  }
+
+  function readImageFile(file) {
+    return new Promise(function (resolve, reject) {
+      if (!/^image\/(png|jpeg|webp)$/.test(file.type) || file.size > 15 * 1024 * 1024) {
+        return reject(new Error("Choose a PNG, JPG or WebP image up to 15 MB. SVG files are not supported."));
+      }
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error("This image could not be read. Please choose it again.")); };
+      reader.onload = function () { resolve(reader.result); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function normalizeEditableImage(src, replaced) {
+    if (typeof src !== "string" || !src) throw new Error("Choose a valid image.");
+    if (!src.startsWith("data:")) return {src:src, width:320, height:320};
+    if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(src) || src.length > 22 * 1024 * 1024) {
+      throw new Error("Choose a PNG, JPG or WebP image up to 15 MB.");
+    }
+    var image = await new Promise(function (resolve, reject) {
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { reject(new Error("The image is damaged or cannot be decoded. Your existing layer has not changed.")); };
+      img.src = src;
+    });
+    if (!image.naturalWidth || !image.naturalHeight || image.naturalWidth * image.naturalHeight > 40 * 1000 * 1000) {
+      throw new Error("This image is too large to edit safely. Resize it to under 40 megapixels first.");
+    }
+    var otherLayers = compactElements(project.elements.filter(function (el) { return el !== replaced; }));
+    var budget = Math.min(192 * 1024, MAX_DESIGN_BYTES - jsonBytes(otherLayers) - 8192);
+    if (budget < 8192 || (!replaced && otherLayers.length >= 100)) {
+      throw new Error("This design is already at its size or layer limit. Remove an image layer before adding another.");
+    }
+    var factor = Math.min(1280 / image.naturalWidth, 1280 / image.naturalHeight, 1);
+    var buffer = document.createElement("canvas");
+    for (var attempt = 0; attempt < 5; attempt++) {
+      buffer.width = Math.max(1, Math.round(image.naturalWidth * factor));
+      buffer.height = Math.max(1, Math.round(image.naturalHeight * factor));
+      buffer.getContext("2d").drawImage(image, 0, 0, buffer.width, buffer.height);
+      for (var quality = .88; quality >= .52; quality -= .12) {
+        var encoded = buffer.toDataURL("image/webp", quality);
+        if (encoded.length <= budget) return {src:encoded, width:buffer.width, height:buffer.height};
+      }
+      factor *= .75;
+    }
+    throw new Error("This image could not fit safely in the design. Try a smaller image; your existing layer has not changed.");
+  }
+
+  async function addImageLayer(dataUri, name) {
+    pendingImages++;
+    var normalized;
+    try { normalized = await normalizeEditableImage(dataUri, null); }
+    catch (err) { showSaveNotice(err.message); return false; }
+    finally { pendingImages--; }
     var newZ = project.elements.length ? Math.max.apply(null, project.elements.map(function (e) { return e.zIndex || 0; })) + 1 : 1;
+    var scale = Math.min(project.canvas.width * .5 / normalized.width, project.canvas.height * .5 / normalized.height, 1);
+    var width = Math.round(normalized.width * scale), height = Math.round(normalized.height * scale);
     var el = {
       id: "img_" + Math.random().toString(36).slice(2, 8),
       name: name || "Sticker",
       type: "image",
-      src: dataUri,
-      x: 300,
-      y: 200,
-      width: 320,
-      height: 320,
+      src: normalized.src,
+      x: Math.round((project.canvas.width - width) / 2),
+      y: Math.round((project.canvas.height - height) / 2),
+      width: width,
+      height: height,
       zIndex: newZ
     };
+    if (!fitsLayerBudget(el, null)) { showSaveNotice("This image would exceed the design size limit. Remove an image layer before adding another."); return false; }
     project.elements.push(el);
     selectedElement = el;
-    preloadImage(dataUri);
+    preloadImage(normalized.src);
     recordState();
     updateLayersList();
     updateInspector();
     render();
     triggerAutosave();
+    return true;
   }
 
   function normalizeHex(c, fallback) {
@@ -939,11 +1022,10 @@
       fileRep.onchange = function () {
         if (fileRep.files && fileRep.files[0]) {
           var f = fileRep.files[0];
-          var reader = new FileReader();
-          reader.onload = function (e) {
-            replaceSelectedImage(e.target.result, f.name);
-          };
-          reader.readAsDataURL(f);
+          var target = selectedElement;
+          readImageFile(f).then(function (src) { return replaceSelectedImage(src, f.name, target); })
+            .catch(function (err) { showSaveNotice(err.message); });
+          fileRep.value = "";
         }
       };
     }
@@ -1001,19 +1083,30 @@
     });
   }
 
-  function replaceSelectedImage(newSrc, newName) {
-    if (!selectedElement || selectedElement.type !== "image") return;
-    selectedElement.src = newSrc;
-    selectedElement.dataSrc = newSrc;
-    if (newName && !(selectedElement.name && selectedElement.name.includes("Replaceable"))) {
-      selectedElement.name = newName;
+  async function replaceSelectedImage(newSrc, newName, target) {
+    target = target || selectedElement;
+    if (!target || target.type !== "image") return false;
+    pendingImages++;
+    var normalized;
+    try { normalized = await normalizeEditableImage(newSrc, target); }
+    catch (err) { showSaveNotice(err.message); return false; }
+    finally { pendingImages--; }
+    if (!project.elements.includes(target)) return false;
+    var next = Object.assign({}, target, {src: normalized.src});
+    delete next.dataSrc;
+    if (!fitsLayerBudget(next, target)) { showSaveNotice("This image would exceed the design size limit. Remove an image layer before replacing this one."); return false; }
+    target.src = normalized.src;
+    delete target.dataSrc;
+    if (newName && !(target.name && target.name.includes("Replaceable"))) {
+      target.name = newName;
     }
-    preloadImage(newSrc);
+    preloadImage(normalized.src);
     recordState();
     updateLayersList();
     updateInspector();
     render();
     triggerAutosave();
+    return true;
   }
 
   function updateInspector() {
@@ -1261,30 +1354,79 @@
   function triggerAutosave() {
     if (!editorReady) return;
     project.canvas.backgroundColor = project.backgroundColor;
+    changeVersion++;
     clearTimeout(autoSaveTimer);
     var statusEl = $("#saveStatus");
+    if (saveConflict) { if (statusEl) statusEl.textContent = "Not saved · conflict"; return; }
     if (statusEl) statusEl.textContent = "Saving...";
-
-    autoSaveTimer = setTimeout(function () {
-      fetch("/api/designs/projects/" + encodeURIComponent(project.id), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(project)
-      })
-        .then(function (r) { if (!r.ok) throw new Error("save failed"); return r.json(); })
-        .then(function (res) {
-          if (!res || !res.success) throw new Error("save failed");
-          if (statusEl) statusEl.textContent = "Saved to cloud";
-        })
-        .catch(function () {
-          if (statusEl) { statusEl.textContent = "Not saved"; statusEl.title = "Could not save your changes. Check your connection and sign-in before leaving."; }
-        });
-    }, 1200);
+    autoSaveTimer = setTimeout(function () { flushAutosave().catch(function () {}); }, 1200);
   }
+
+  function showSaveNotice(message, retry) {
+    var notice = $("#designSaveNotice");
+    if (!notice) { notice = document.createElement("div"); notice.id = "designSaveNotice"; notice.className = "de-load-notice"; stageWrap.prepend(notice); }
+    notice.textContent = message || ""; notice.hidden = !message; notice.setAttribute("role", "alert");
+    if (retry) {
+      var button = document.createElement("button"); button.type = "button"; button.className = "de-btn-secondary"; button.textContent = "Retry save";
+      button.onclick = function () { lastSaveError = null; flushAutosave().catch(function () {}); };
+      notice.appendChild(document.createTextNode(" ")); notice.appendChild(button);
+    }
+  }
+
+  function flushAutosave() {
+    clearTimeout(autoSaveTimer);
+    if (!editorReady || saveConflict) return Promise.reject(new Error("Reload the cloud version after preserving your edits."));
+    if (saveInFlight) return saveInFlight.then(function () { return changeVersion > savedVersion ? flushAutosave() : undefined; });
+    if (changeVersion === savedVersion) return Promise.resolve();
+    var version = changeVersion;
+    var snapshot = JSON.parse(JSON.stringify(project));
+    snapshot.elements = compactElements(snapshot.elements);
+    snapshot.expectedRevision = serverRevision;
+    var statusEl = $("#saveStatus");
+    if (jsonBytes(snapshot.elements) > MAX_DESIGN_BYTES || snapshot.elements.length > 100) {
+      if (statusEl) statusEl.textContent = "Not saved";
+      showSaveNotice("This design exceeds its size or layer limit. Remove a large image or extra layers before saving. Your edits are still on screen.");
+      return Promise.reject(new Error("Design size limit"));
+    }
+    if (statusEl) { statusEl.textContent = "Saving..."; statusEl.title = ""; }
+    lastSaveError = null;
+    saveInFlight = fetch("/api/designs/projects/" + encodeURIComponent(project.id), {
+      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(snapshot)
+    }).then(async function (response) {
+      var result;
+      try { result = await response.json(); } catch (_) { result = {}; }
+      if (!response.ok || !result.success || !result.project || typeof result.project.revision !== "string") {
+        var error = new Error(result.error || "Your changes could not be saved. Check your connection and sign-in, then retry before leaving.");
+        error.status = response.status; throw error;
+      }
+      serverRevision = result.project.revision;
+      project.revision = serverRevision;
+      savedVersion = version;
+      showSaveNotice("");
+      if (statusEl) statusEl.textContent = changeVersion === savedVersion ? "Saved to cloud" : "Saving...";
+    }).catch(function (error) {
+      saveConflict = error.status === 409;
+      lastSaveError = error;
+      if (statusEl) { statusEl.textContent = saveConflict ? "Not saved · conflict" : "Not saved"; statusEl.title = error.message; }
+      showSaveNotice(error.message, !saveConflict && error.status !== 413);
+      throw error;
+    }).finally(function () {
+      saveInFlight = null;
+      // Never let an older acknowledgement mark a newer edit saved. Drain one
+      // latest snapshot only after the previous request has completed.
+      if (!lastSaveError && changeVersion > savedVersion) flushAutosave().catch(function () {});
+    });
+    return saveInFlight;
+  }
+
+  window.addEventListener("beforeunload", function (event) {
+    if (changeVersion > savedVersion || saveInFlight || pendingImages) { event.preventDefault(); event.returnValue = ""; }
+  });
 
   // ── 9. Export & Publishing ───────────────────────────────────
   function exportDesign() {
     if (!editorReady) return;
+    if (pendingImages) { showSaveNotice("Wait for your image to finish preparing before exporting."); return; }
     if (project.elements.some(function (el) { var src = el.src || el.dataSrc; var img = imageCache[src]; return el.type === "image" && !el.hidden && src && (!img || !img.complete || !img.naturalWidth); })) {
       showLoadNotice("Wait for all images to load before exporting. If an image failed, reload or replace that layer.", true);
       return;
@@ -1304,7 +1446,6 @@
     var closeBtn = $("#closePublishDesignModal");
     var cancelBtn = $("#cancelPublishDesign");
     var catSelect = $("#pubDesignCategory");
-    var premBox = $("#pubDesignPremiumBox");
     var submitBtn = $("#submitPublishDesign");
     var msg = $("#pubDesignMsg");
 
@@ -1318,23 +1459,17 @@
     if (closeBtn) closeBtn.onclick = closeModal;
     if (cancelBtn) cancelBtn.onclick = closeModal;
 
-    if (catSelect && premBox) {
-      catSelect.onchange = function () {
-        var isPrem = catSelect.value === "premium";
-        premBox.style.display = isPrem ? "block" : "none";
-        if (submitBtn) {
-          submitBtn.textContent = isPrem ? "Submit for Quality Review ★" : "Publish Template 🚀";
-        }
-      };
-    }
-
     form.onsubmit = function (ev) {
       ev.preventDefault();
       var title = ($("#pubDesignTitle").value || "").trim();
       if (!title) return;
 
-      var isPrem = catSelect.value === "premium";
-      var starPrice = isPrem ? Math.max(1, parseInt(($("#pubDesignStarPrice") && $("#pubDesignStarPrice").value) || "1", 10) || 1) : 0;
+      if (pendingImages) { if (msg) msg.textContent = "Wait for your image to finish preparing before publishing."; return; }
+      if (project.elements.some(function (el) { var src = el.src || el.dataSrc, img = imageCache[src]; return el.type === "image" && !el.hidden && src && (!img || !img.complete || !img.naturalWidth); })) {
+        if (msg) msg.textContent = "An image has not loaded. Reload or replace that layer before publishing.";
+        return;
+      }
+      selectedElement = null; render();
       var previewData = canvas.toDataURL("image/webp", 0.85);
 
       if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Publishing..."; }
@@ -1344,12 +1479,12 @@
         title: title,
         description: "Community design template on ShortsCraft",
         category: catSelect.value,
-        isPremium: isPrem,
-        starPrice: starPrice,
+        isPremium: false,
+        starPrice: 0,
         remixOf: (project.source && project.source.remixOf) || null,
-        designType: isPrem ? (project.designType || "youtube-thumbnail") : catSelect.value,
+        designType: catSelect.value,
         canvas: project.canvas,
-        elements: project.elements,
+        elements: compactElements(project.elements),
         previewUrl: previewData,
         isAiConverted: (project.source && project.source.type === "ai-converted")
       };
@@ -1365,9 +1500,7 @@
           if (res && res.success) {
             if (msg) {
               msg.style.color = "#10b981";
-              msg.textContent = isPrem
-                ? "★ Submitted for Quality Review! Once approved by admin, it will go live in the marketplace."
-                : "🎉 Design template published successfully to the community gallery!";
+              msg.textContent = "Your free design template is published in the community gallery.";
             }
             setTimeout(closeModal, 2500);
           } else {
@@ -1375,11 +1508,11 @@
               msg.style.color = "#ef4444";
               msg.textContent = (res && res.error) || "Could not publish template.";
             }
-            if (submitBtn) submitBtn.textContent = isPrem ? "Submit for Quality Review ★" : "Publish Template 🚀";
+            if (submitBtn) submitBtn.textContent = "Publish Template";
           }
         })
         .catch(function (err) {
-          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = isPrem ? "Submit for Quality Review ★" : "Publish Template 🚀"; }
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Publish Template"; }
           if (msg) { msg.style.color = "#ef4444"; msg.textContent = "Failed to publish: " + err.message; }
         });
     };
@@ -1394,12 +1527,11 @@
     var titleInp = $("#pubDesignTitle");
     if (titleInp) titleInp.value = project.name || "My Design Template";
     var catSelect = $("#pubDesignCategory");
-    var premBox = $("#pubDesignPremiumBox");
     var submitBtn = $("#submitPublishDesign");
     if (catSelect) {
-      catSelect.value = "premium";
-      if (premBox) premBox.style.display = "block";
-      if (submitBtn) submitBtn.textContent = "Submit for Quality Review ★";
+      catSelect.value = project.designType;
+      if (!catSelect.value) catSelect.value = "youtube-thumbnail";
+      if (submitBtn) submitBtn.textContent = "Publish Template";
     }
     modal.style.display = "flex";
   }

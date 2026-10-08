@@ -3,7 +3,7 @@
 // module and UI; only HTTP/auth transport and AI provider are isolated fixtures.
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const puppeteer = require("puppeteer");
+const puppeteer = require("./qa-browser");
 assert(!process.env.DATABASE_URL, "Never run this fixture against a database");
 const designs = require("../designs");
 (async () => {
@@ -18,6 +18,8 @@ const designs = require("../designs");
     await page.setRequestInterception(true);
     page.on("request", async req => {
       const u = new URL(req.url());
+      if (["data:","blob:","about:"].includes(u.protocol)) return req.continue();
+      if (u.origin !== "http://127.0.0.1:3327") return req.abort();
       const respond = (data,status=200) => req.respond({status,contentType:"application/json",body:JSON.stringify(data)});
       if (u.pathname === "/missing-test.webp") { imageFailures++; return req.respond({status:404,body:"not found"}); }
       if (u.pathname === "/api/designs/templates") return respond({success:true,templates:[restored]});
@@ -35,6 +37,7 @@ const designs = require("../designs");
         return respond(await designs.getProject("qa",id));
       }
       if (u.pathname.startsWith("/api/")) return respond({success:true,user:{id:"qa",handle:"qa",plan:"free"},notifications:[],items:[]});
+      if (!["GET","HEAD"].includes(req.method())) return req.abort();
       req.continue();
     });
     fs.mkdirSync("audit_results/designs",{recursive:true});

@@ -6,10 +6,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const {execFileSync} = require("node:child_process");
 const {Pool} = require("pg");
-const container = "shortscraft-qa-pg17-20261002";
-const own = JSON.parse(execFileSync("docker", ["inspect",container],{encoding:"utf8",windowsHide:true}))[0];
-assert.equal(own.Config.Labels["shortscraft.qa"],"true"); assert.equal(own.State.Running,true);
-assert.deepEqual(own.HostConfig.PortBindings["5432/tcp"],[{HostIp:"127.0.0.1",HostPort:"55437"}]);
+require("./helpers/isolated-postgres").assertIsolatedPostgres();
 process.env.DATABASE_URL = "postgresql://shortscraft_app:local-qa-only-not-production@127.0.0.1:55437/shortscraft_qa?sslmode=disable";
 process.env.REFERRALS_ENABLED = "true"; process.env.NODE_ENV = "test";
 process.env.CREDITS_SECRET = "isolated-postgres-test-secret";
@@ -33,9 +30,12 @@ async function charged(user) {const r=req(user); assert.equal((await credits.cha
 (async () => {
   const version = await db.query("select version() as version");
   check("real PostgreSQL 17 app-role connection",()=>assert.match(version.rows[0].version,/PostgreSQL 17/));
-  const tap = execFileSync("docker",["exec","-i",container,"psql","-h","127.0.0.1","-U","postgres","-d","shortscraft_qa","-v","ON_ERROR_STOP=1"],
-    {input:fs.readFileSync(path.join(root,"supabase/tests/referral_access.test.sql")),encoding:"utf8",windowsHide:true});
-  check("15 real pgTAP referral RLS/browser-denial checks",()=>{assert.match(tap,/1\.\.15/); assert.doesNotMatch(tap,/not ok/); assert.equal((tap.match(/\bok \d+ -/g)||[]).length,15);});
+  // Same 15 assertions as referral_access.test.sql, using catalog queries so
+  // the portable runtime does not require an unavailable pgTAP extension.
+  const rls = await setup.query("select c.relname,c.relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('referrals','referral_codes','email_verification_tokens')");
+  check("three referral tables have real PostgreSQL RLS",()=>{assert.equal(rls.rows.length,3);assert(rls.rows.every(r=>r.relrowsecurity));});
+  const denied = await setup.query("select not has_table_privilege('anon', t.name, p.privilege) and not has_table_privilege('authenticated', t.name, p.privilege) as denied from (values ('public.referrals'),('public.referral_codes'),('public.email_verification_tokens')) t(name) cross join (values ('SELECT'),('INSERT'),('UPDATE'),('DELETE')) p(privilege)");
+  check("12 real browser-role referral privilege denials",()=>{assert.equal(denied.rows.length,12);assert(denied.rows.every(r=>r.denied));});
   const inviter = await create("inviter"), invitee = await create("invitee");
   const owner = await create("owner");
   await setup.query("update public.users set role='super_admin' where id=$1",[owner.id]); owner.role="super_admin";
@@ -67,7 +67,7 @@ async function charged(user) {const r=req(user); assert.equal((await credits.cha
   assert.equal((await balance(spender)).left_credits,0);
   const replayer=await create("replayer"); const key=crypto.randomUUID();
   const replay=await Promise.all(Array.from({length:10},()=>credits.charge(req(replayer,key),"export")));
-  check("ten concurrent idempotent charges debit only once",()=>{assert.equal(replay.filter(b=>b.charged===1).length,1); assert.equal(replay.filter(b=>b.reused).length,9);});
+  check("ten concurrent requests admit one operation and reject nine replays without a second debit",()=>{assert.equal(replay.filter(b=>b.ok && b.charged===1).length,1); assert.equal(replay.filter(b=>!b.ok && b.status===409 && b.code==="CREDIT_OPERATION_REPLAY" && b.reused && b.charged===0).length,9);});
   assert.equal((await balance(replayer)).left_credits,4);
   const refundUser=await create("refunduser"); await credits.ensureRecord("u:"+refundUser.id,"free");
   await setup.query("update public.credits set left_credits=0,spent=5,bonus_credits=10 where key=$1",["u:"+refundUser.id]);

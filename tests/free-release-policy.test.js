@@ -12,7 +12,7 @@ app.use(express.json());
 app.use((req, res, next) => { req.user = req.headers["x-test-role"] ? {...user, role: req.headers["x-test-role"]} : null; next(); });
 app.use(policy.middleware);
 app.use((req, res) => { routeCalls++; res.json({success: true}); });
-const paths = ["/api/razorpay/order", "/api/razorpay/verify", "/api/stars/purchase/order", "/api/stars/purchase/verify", "/api/stars/donate", "/api/stars/withdraw", "/api/admin/withdrawals/record/process", "/api/admin/stars/transactions/record/reverse", "/api/admin/star-packs", "/api/admin/users/member/balance"];
+const paths = ["/api/auth/star", "/api/razorpay/order", "/api/razorpay/verify", "/api/stars/purchase/order", "/api/stars/purchase/verify", "/api/stars/donate", "/api/stars/withdraw", "/api/admin/withdrawals/record/process", "/api/admin/stars/transactions/record/reverse", "/api/admin/star-packs", "/api/admin/users/member/balance"];
 (async () => {
   assert.equal(policy.monetizationEnabled, false);
   const server = app.listen(0, "127.0.0.1");
@@ -45,6 +45,6 @@ const paths = ["/api/razorpay/order", "/api/razorpay/verify", "/api/stars/purcha
     assert.equal((await social.unlockTemplate(user, "template")).code, "MONETIZATION_COMING_SOON");
     assert.equal((await social.unlockTemplate(null, "template")).status, 401);
     assert.equal(writes, 0);
-    console.log("PASS Free release: 30 HTTP auth/Coming Soon cases; reads and free/owned/unlocked access preserved; zero financial route calls/writes (isolated stubs). Queries: " + queries);
+    console.log("PASS Free release: 33 HTTP auth/Coming Soon cases including legacy donation alias; reads and free/owned/unlocked access preserved; zero financial route calls/writes (isolated stubs). Queries: " + queries);
   } finally { await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

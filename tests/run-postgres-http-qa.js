@@ -1,13 +1,11 @@
 "use strict";
-// All writes go to the dedicated, labelled local PostgreSQL 17 container.
+// All writes go to the owner-verified portable or labelled local PostgreSQL 17 QA server.
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const fs = require("node:fs");
 const {spawn,execFileSync} = require("node:child_process");
 const root = path.resolve(__dirname,"..");
-const own = JSON.parse(execFileSync("docker",["inspect","shortscraft-qa-pg17-20261002"],{encoding:"utf8",windowsHide:true}))[0];
-assert.equal(own.Config.Labels["shortscraft.qa"],"true"); assert.equal(own.State.Running,true);
-assert.deepEqual(own.HostConfig.PortBindings["5432/tcp"],[{HostIp:"127.0.0.1",HostPort:"55437"}]);
+require("./helpers/isolated-postgres").assertIsolatedPostgres();
 const env={...process.env,DATABASE_URL:"postgresql://shortscraft_app:local-qa-only-not-production@127.0.0.1:55437/shortscraft_qa?sslmode=disable",
   PORT:"3341",BASE_URL:"http://127.0.0.1:3341",PUBLIC_SITE_URL:"http://127.0.0.1:3341",NODE_ENV:"development",DISABLE_RATE_LIMIT:"true",REFERRALS_ENABLED:"true",
   CREDITS_SECRET:"isolated-test-secret-not-production-long-enough",ALLOW_DB_MUTATION_TESTS:"1",SC_ISOLATED_POSTGRES_QA:"true"};

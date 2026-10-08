@@ -1,24 +1,37 @@
 "use strict";
 // Run tests/polish-preview-server.js first. API writes are intercepted.
+// External fonts are deliberately blocked: this also verifies usable fallbacks.
 const assert = require("node:assert/strict");
-const puppeteer = require("puppeteer");
+const puppeteer = require("./qa-browser");
 const fs = require("node:fs");
+const base = 'http://127.0.0.1:3327';
 (async () => {
   const browser = await puppeteer.launch({headless:true});
   try {
     const page = await browser.newPage();
     const errors = [];
+    const savedProjects = new Map();
+    let revision = 0;
     page.on("pageerror", e => errors.push(e.message));
     await page.setRequestInterception(true);
     page.on("request", req => {
       const url = new URL(req.url());
+      if(['data:','blob:','about:'].includes(url.protocol)) return req.continue();
+      if(url.origin!==base) return req.abort();
+      if(url.pathname.startsWith('/api/designs/projects/') && req.method()==='POST') {
+        const project=JSON.parse(req.postData());
+        project.revision='qa-revision-'+(++revision);
+        savedProjects.set(project.id,project);
+        return req.respond({status:200,contentType:'application/json',body:JSON.stringify({success:true,project})});
+      }
       if(url.pathname.startsWith('/api/')) return req.respond({status:200,contentType:'application/json',body:JSON.stringify({success:true,user:{id:'mobile-qa',email:'qa@example.test',handle:'qa'},project:{}})});
+      if(!['GET','HEAD'].includes(req.method())) return req.abort();
       req.continue();
     });
     fs.mkdirSync('audit_results/mobile-layout',{recursive:true});
     for(const [width,height] of [[320,568],[390,844],[390,440],[768,1024],[844,390],[1440,900]]) {
       await page.setViewport({width,height,isMobile:width<=1024,hasTouch:width<=1024});
-      await page.goto('http://127.0.0.1:3327/design-editor',{waitUntil:'networkidle2'});
+      await page.goto(base+'/design-editor',{waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>!!window.SC_STUDIO);
       if(width===390 && height===844) await page.screenshot({path:'audit_results/mobile-layout/after-design-clean-390.png'});
       const mobile=width<=1024;
@@ -59,6 +72,12 @@ const fs = require("node:fs");
         assert(await page.$eval('#publishDesignModal',el=>getComputedStyle(el).display==='none'),'Publish modal closes');
       }
       if(width===390 && height===844) await page.screenshot({path:'audit_results/mobile-layout/after-design-editor-390.png'});
+      // A real acknowledgement includes a revision. Verify the saved edit and
+      // drain pending writes before navigating; do not dismiss an unsaved-work guard.
+      await page.evaluate(()=>SC_STUDIO.saveNow());
+      assert.equal(await page.$eval('#saveStatus',el=>el.textContent),'Saved to cloud');
+      const projectId=await page.evaluate(()=>SC_STUDIO.project.id);
+      assert(savedProjects.get(projectId)?.elements.some(el=>el.text==='Edited on a phone'),'Autosave fixture acknowledges the actual edited project');
       console.log(`PASS design editor ${width}x${height}: tool panels, editing, preview, export`);
     }
     assert.deepEqual(errors,[]);

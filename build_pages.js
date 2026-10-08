@@ -3308,11 +3308,11 @@ for (const file of selectedPages) {
 }
 for (const [file, p] of PAGES) {
   if (selectedPages.length && !selectedPages.includes(file)) continue;
-  // These two checked-in pages now form one hand-maintained account workspace.
-  // Their older templates above are retained for the reversible redesign, but
-  // must not overwrite the reviewed forms/settings when other pages rebuild.
-  if (["account.html", "settings.html"].includes(file)) {
-    if (!fs.existsSync(path.join(OUT, file))) throw new Error(`Missing canonical account page: ${file}`);
+  // These checked-in application pages are maintained directly. Their older
+  // templates above remain for historical reference, but must never overwrite
+  // reviewed account forms, the 14-section admin UI or Designs upload recovery.
+  if (["account.html", "settings.html", "admin.html", "designs.html"].includes(file)) {
+    if (!fs.existsSync(path.join(OUT, file))) throw new Error(`Missing canonical hand-maintained page: ${file}`);
     console.log(`kept hand-maintained public/${file}`);
     continue;
   }

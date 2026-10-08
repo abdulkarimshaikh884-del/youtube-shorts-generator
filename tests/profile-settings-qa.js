@@ -5,13 +5,13 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const {execFileSync} = require("node:child_process");
 const crypto = require("node:crypto");
-const puppeteer = require("puppeteer");
+const puppeteer = require("./qa-browser");
 const base = "http://127.0.0.1:3327";
 const out = "audit_results/profile-settings";
 const routes = require("../public/account-routes");
 let role = "user", saveFails = false, referralMode = "disabled", emailFails = false, verified = false;
 let user = {id:"qa-profile",email:"preview@example.test",handle:"preview_creator",displayName:"Preview Creator",plan:"free",role:"user",createdAt:"2026-10-01",followers:0,following:0};
-const mutations = [], errors = [];
+const mutations = [], errors = [], confirmations = [];
 function fixture(url, request) {
   if (url.pathname === "/api/auth/me") return {success:true,user:role ? {...user,role} : null};
   if (url.pathname === "/api/credits") return {success:true,plan:"free",planLabel:"Free",left:5,dailyLeft:5,perDay:5,bonusCredits:0,cost:{export:1,animate:2}};
@@ -21,7 +21,7 @@ function fixture(url, request) {
     return {success:true,enabled:true,code:"qa_code_12345678",reward:10,monthlyLimit:10,rewarded:3,pending:2,this_month:1,emailVerified:verified};
   }
   if (url.pathname === "/api/auth/verification/send") return emailFails ? {error:"Verification email could not be sent. Please retry later."} : {success:true,message:"Check your inbox for a verification link."};
-  if (url.pathname === "/api/auth/verification/confirm") { verified = true; return {success:true}; }
+  if (url.pathname === "/api/auth/verification/confirm") { confirmations.push(JSON.parse(request.postData())); verified = true; return {success:true}; }
   if (url.pathname === "/api/auth/google/config") return {enabled:false};
   if (url.pathname === "/api/auth/profile") {
     mutations.push(url.pathname);
@@ -43,6 +43,7 @@ function fixture(url, request) {
   const browser = await puppeteer.launch({headless:true});
   try {
     const page = await browser.newPage();
+    page.setDefaultTimeout(15000);
     page.on("pageerror",e=>errors.push(e.message));
     await page.setRequestInterception(true);
     page.on("request",r=>{
@@ -53,7 +54,7 @@ function fixture(url, request) {
       r.continue();
     });
     const go = async route => {
-      await page.goto(base+route,{waitUntil:"networkidle2"});
+      await page.goto(base+route,{waitUntil:"domcontentloaded"});
       const target = new URL(base+route);
       const legacy = ["profile","edit-profile"].includes(target.hash.slice(1)) ? "edit" : target.hash.slice(1);
       const expected = routes[legacy] || (target.pathname === "/settings" ? "/account" : target.pathname);
@@ -146,6 +147,7 @@ function fixture(url, request) {
     assert(await visible("#igPaneSettings"));
     await go("/account#referrals");
     assert(await visible("#referralSettings"));
+    await page.waitForFunction(()=>document.querySelector("#referralMessage").textContent.includes("not available yet"));
     assert.equal(await visible("#referralReady"),false);
     assert.match(await page.$eval("#referralMessage",e=>e.textContent),/not available yet/);
     assert.equal(await page.$eval("#copyReferralLink",e=>e.disabled),true);
@@ -169,7 +171,14 @@ function fixture(url, request) {
     emailFails = false;
     await page.click("#sendVerification");
     await page.waitForFunction(()=>document.querySelector("#referralMessage").textContent.includes("Check your inbox"));
-    await go("/account?verify="+"a".repeat(43)+"#referrals");
+    const verificationToken = "a".repeat(43);
+    await go("/account?verify="+verificationToken+"#referrals");
+    // go() only establishes account-shell readiness. Confirmation continues
+    // asynchronously through auth, confirm, referral refresh and URL cleanup.
+    await page.waitForFunction(()=>!new URL(location.href).searchParams.has("verify") &&
+      document.querySelector("#referralVerifyRow").hidden &&
+      document.querySelector("#referralMessage").textContent.includes("Your email is verified."));
+    assert.deepEqual(confirmations,[{token:verificationToken}],"The verification endpoint receives the exact token once");
     assert.equal(new URL(page.url()).searchParams.has("verify"),false,"Verification token removed from address bar");
     assert.equal(await visible("#referralVerifyRow"),false);
     assert.match(await page.$eval("#referralMessage",e=>e.textContent),/email is verified/);
@@ -177,6 +186,11 @@ function fixture(url, request) {
     await page.evaluate(()=>document.querySelector("#referralSettings").scrollIntoView({block:"center"}));
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     await page.screenshot({path:out+"/preview-referrals-390.png"});
+    await page.reload({waitUntil:"domcontentloaded"});
+    await page.waitForFunction(()=>!document.querySelector("#referralReady").hidden &&
+      document.querySelector("#referralVerifyRow").hidden &&
+      document.querySelector("#referralMessage").textContent.includes("Your account is verified."));
+    assert.deepEqual(confirmations,[{token:verificationToken}],"Reload after URL cleanup must not replay verification");
     console.log("PASS referral UI fixtures: unavailable, outage/retry, actual response fields, copy, verification send/error, confirmation cleanup, mobile overflow. Provider delivery and reward grants tested separately.");
     role=null;
     await page.goto(base+"/settings",{waitUntil:"networkidle2"});

@@ -26,7 +26,14 @@ function load(env,query){
  assert(a.success&&b.success);assert.notEqual(a.project.id,b.project.id);
  assert.equal((await local.saveProject('bob',a.project.id,body)).status,403);
  assert.equal((await local.getProject('bob',a.project.id)).status,404);
+ assert.equal((await local.getProject(null,a.project.id)).status,401);
+ assert.equal((await local.getProject(a.project.id)).status,401,'Legacy ID-only reads must not bypass ownership');
  assert.equal((await local.getProject('alice',a.project.id)).project.elements[0].text,'Editable');
+ assert.equal((await local.saveProject('alice',a.project.id,body)).status,409,'Existing designs require the loaded revision');
+ const updated=await local.saveProject('alice',a.project.id,{...body,elements:[{id:'one',type:'text',text:'New edit'}],expectedRevision:a.project.revision});
+ assert(updated.success);assert.notEqual(updated.project.revision,a.project.revision);
+ assert.equal((await local.saveProject('alice',a.project.id,{...body,expectedRevision:a.project.revision})).status,409,'Stale saves must not overwrite newer content');
+ assert.equal((await local.getProject('alice',a.project.id)).project.elements[0].text,'New edit');
  const cloned=await local.cloneTemplate('alice',canonical.id);
  assert(cloned.success); assert(cloned.project.elements.length>10); assert.equal(cloned.project.source.parentTemplateId,canonical.id);
  const down=load({DATABASE_URL:'offline-placeholder',NODE_ENV:'production'},async()=>{throw Error('simulated outage');});
@@ -37,5 +44,5 @@ function load(env,query){
  assert.equal((await down.publishTemplate({id:'alice'},body)).status,503);
  const missing=load({NODE_ENV:'production'},()=>{});
  assert.equal((await missing.saveProject('alice','new',body)).status,503);
- console.log('PASS unique new IDs, save/reopen, owner isolation, outage reporting and no production memory-only success.');
+ console.log('PASS unique IDs, revision-safe save/reopen, authenticated owner isolation, outage reporting and no production memory-only success.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

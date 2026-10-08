@@ -391,6 +391,9 @@ async function starSummary(user) {
 
 async function donateStars(sender, target, amount, note, idempotencyKey) {
   if (!sender || !sender.id) return { error: "Please log in first.", status: 401 };
+  // Legacy route aliases and internal callers must obey the same release gate.
+  // Stop before user lookup, monthly grants or any donation/notification write.
+  if (!releasePolicy.monetizationEnabled) return releasePolicy.unavailable();
   const receiver = await resolveUser(target);
   if (!receiver) return { error: "Creator not found.", status: 404 };
   if (receiver.id === sender.id) return { error: "You cannot send Stars to yourself.", status: 400 };

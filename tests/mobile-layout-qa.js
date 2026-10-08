@@ -1,7 +1,7 @@
 "use strict";
 // Isolated browser layout QA. Run tests/polish-preview-server.js first.
 // No live database, credentials, payments, AI generation or uploads are used.
-const puppeteer = require('puppeteer');
+const puppeteer = require('./qa-browser');
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
@@ -126,9 +126,11 @@ const routes = ['/', '/animations', '/designs', '/pricing', '/community', '/draf
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'Signed-in fixture layout fits: ' + route);
       await page.screenshot({path: path.join(out, `after-signedin-${route.split('#')[0].slice(1)}-390.png`)});
       if (route.startsWith('/account')) {
-        await page.click('#openEditProfileBtn');
-        await new Promise(r => setTimeout(r, 400));
-        assert(await page.$eval('#igPaneEdit', el => !el.hidden), 'Profile editing opens inline');
+        await page.waitForFunction(()=>location.pathname==='/account/edit-profile' && window.SC_ACCOUNT_NAV && document.querySelector('#accountBox').hidden===false);
+        assert(await page.$eval('#igPaneEdit', el => el.checkVisibility({visibilityProperty:true})), 'Legacy edit-profile link opens dedicated page');
+        assert(await page.$eval('#pageEditProfileForm', el => el.checkVisibility({visibilityProperty:true})), 'Profile form is usable on its dedicated page');
+        assert(await page.$eval('.ig-header', el => el.hidden), 'Detail page does not repeat profile header');
+        assert(await page.$eval('.pf-detail-head a', el => new URL(el.href).pathname==='/account'), 'Detail page links back to settings');
         await page.screenshot({path: path.join(out, 'after-profile-form-390.png')});
       }
       if (route === '/uploads') {
@@ -140,7 +142,8 @@ const routes = ['/', '/animations', '/designs', '/pricing', '/community', '/draf
         await page.screenshot({path: path.join(out, 'after-upload-dialog-390.png')});
       }
       if (route === '/designs') {
-        await page.click('#openUploadDesignBtn');
+        assert(await page.$eval('#topbarUploadBtn', el=>{const r=el.getBoundingClientRect();return r.width>0&&r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight;}), 'Header image upload is reachable without opening mobile navigation');
+        await page.click('#topbarUploadBtn');
         await page.waitForFunction(()=>!document.querySelector('#designUploadModal').hidden);
         await new Promise(r=>setTimeout(r,300));
         assert(await page.$eval('#designUploadModal .ds-modal-card', el => {

@@ -1,6 +1,6 @@
 "use strict";
 // Browser-only API contracts; fixtures are never saved or sent to the database.
-const puppeteer=require("puppeteer");
+const puppeteer=require("./qa-browser");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
@@ -12,7 +12,7 @@ const templates=[{id:"comm_test",title:"Animation",category:"Kinetic Text",statu
 (async()=>{
  fs.mkdirSync(out,{recursive:true});const browser=await puppeteer.launch({headless:true,args:["--no-sandbox"]});
  const errors=[];let unavailable=false;const writes=[];
- try{const page=await browser.newPage();page.on("pageerror",e=>errors.push(e.message));await page.setRequestInterception(true);
+ try{const page=await browser.newPage();page.setDefaultTimeout(15000);page.on("pageerror",e=>errors.push(e.message));await page.setRequestInterception(true);
  page.on("request",req=>{const u=new URL(req.url());if(u.protocol==="data:"||u.protocol==="about:")return req.continue();if(u.origin!==base)return req.abort();if(!u.pathname.startsWith("/api/"))return req.continue();
   if(req.method()!=="GET"){writes.push({path:u.pathname,body:req.postData()});return req.respond({status:403,contentType:"application/json",body:JSON.stringify({success:false,error:"Test writes not permitted"})});}
   if(unavailable&&u.pathname==="/api/admin/templates")return req.respond({status:503,contentType:"application/json",body:'{"success":false,"error":"Test database unavailable"}'});

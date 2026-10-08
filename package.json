@@ -40,7 +40,9 @@
     "test:publish": "node verify_publish.js",
     "test:lottie": "node verify_lottie.js",
     "test:polish:offline": "node verify_polish_offline.js && node tests/polish-backend-offline.test.js && node tests/draft-sync-offline.test.js && node verify_ai_definition.js",
-    "test:release:ui": "node tests/run-release-ui-qa.js"
+    "test:release:ui": "node tests/run-release-ui-qa.js",
+    "test:launch:offline": "node tests/run-launch-offline-qa.js",
+    "test:launch:postgres": "node tests/postgres-release-isolated.test.js && node tests/run-postgres-http-qa.js"
   },
   "license": "MIT",
   "type": "commonjs",
@@ -51,8 +53,9 @@
     "fflate": "^0.8.3",
     "lottie-web": "^5.12.2",
     "pg": "^8.23.0",
+    "proxy-addr": "2.0.8",
     "puppeteer": "^25.3.0",
-    "sharp": "0.35.4",
+    "sharp": "0.35.5",
     "web-push": "^3.6.7"
   },
   "overrides": {

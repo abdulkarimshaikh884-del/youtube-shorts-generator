@@ -17,14 +17,17 @@
      - the top bar swaps Log in/Sign up for Account/Log out when signed in
      - /account shows the email, plan and credits; logging out returns to guest
 
-   Usage: node verify_auth.js   [BASE_URL=http://localhost:3000]
+   Usage: run against the owned isolated Postgres QA server only.
+   Set BASE_URL and DATABASE_URL explicitly; this verifier creates test users.
    ============================================================ */
-const fs = require("fs");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 
 /* Read the grant from credits.js so a plan change does not make this stale. */
 const FREE_PER_DAY = require("./credits").PLANS.free.perDay;
-const path = require("path");
-const puppeteer = require("puppeteer");
+const puppeteer = require("./tests/qa-browser");
+const { assertIsolatedPostgres } = require("./tests/helpers/isolated-postgres");
 
 const BASE = process.env.BASE_URL || "http://localhost:3000";
 let failures = 0;
@@ -74,9 +77,25 @@ async function api(j, url, body, method = "POST") {
 const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
 (async () => {
+  // The browser and HTTP sections perform real writes. A loopback address is
+  // insufficient: the local app could still be using the production database.
+  require("dotenv").config({ quiet: true });
+  assert(process.env.BASE_URL, "Set BASE_URL to the isolated QA server explicitly.");
+  const target = new URL(BASE);
+  assert.equal(target.protocol, "http:");
+  assert(["127.0.0.1", "localhost"].includes(target.hostname), "QA server must be loopback-only.");
+  const database = new URL(process.env.DATABASE_URL || "");
+  assert(["127.0.0.1", "localhost"].includes(database.hostname), "Auth QA must never write a cloud database.");
+  assert.equal(database.port, "55437");
+  assert.equal(database.pathname, "/shortscraft_qa");
+  assertIsolatedPostgres();
   const email = `${uniq()}@example.com`;
+  const email2 = `${uniq()}@example.com`;
   const password = "correct-horse-battery";
   const j = jar();
+  const db = require("./db");
+  let browser;
+  try {
 
   console.log("\n---- signup ----");
   let r = await api(j, "/api/auth/signup", { email, password });
@@ -93,8 +112,6 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   console.log("\n---- the store ----");
   // Accounts live in Postgres now, not .users.json — read the row back out to
   // prove what was actually written.
-  require("dotenv").config();
-  const db = require("./db");
   const { rows: userRows } = await db.query(
     `select * from public.users where lower(email) = $1`, [email.toLowerCase()]
   );
@@ -220,13 +237,19 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
 
   /* ── browser ───────────────────────────────────────────── */
   console.log("\n---- pages ----");
-  const browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox"] });
+  browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox"] });
   const page = await browser.newPage();
+  page.setDefaultTimeout(15000);
+  const screenshotDir = path.join(__dirname, "audit_results", "auth-current-pages");
+  fs.mkdirSync(screenshotDir, { recursive: true });
   const errs = [];
   page.on("pageerror", (e) => errs.push("pageerror: " + e.message));
   page.on("console", (m) => {
     const t = m.text();
-    if (m.type() === "error" && !/google-analytics|gtag|favicon|503/.test(t)) errs.push("console: " + t);
+    // The duplicate-handle check deliberately produces one real 400. Exclude
+    // only that endpoint/status; unrelated browser errors must still fail.
+    const expectedProfile400 = /\/api\/auth\/profile(?:\?|$)/.test(m.location().url || "") && /status of 400/.test(t);
+    if (m.type() === "error" && !expectedProfile400 && !/google-analytics|gtag|favicon|503/.test(t)) errs.push("console: " + t);
   });
   await page.setViewport({ width: 1280, height: 900 });
 
@@ -262,7 +285,6 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   }
 
   console.log("\n---- signing up in the browser ----");
-  const email2 = `${uniq()}@example.com`;
   await page.goto(BASE + "/signup", { waitUntil: "networkidle2" });
   await wait(400);
   // client-side validation first
@@ -278,14 +300,13 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   // Signup now asks for a unique handle as well. Client-side validation
   // rejects the form before it ever reaches the API when that field is
   // blank, so leaving it empty made this look like a broken redirect.
-  await page.evaluate((e, p, h) => {
+  await Promise.all([page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 20000 }), page.evaluate((e, p, h) => {
     document.querySelector("#authEmail").value = e;
     document.querySelector("#authPassword").value = p;
     const handle = document.querySelector("#authHandle");
     if (handle) handle.value = h;
     document.querySelector("#authForm").dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-  }, email2, password, email2.split("@")[0].toLowerCase());
-  await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }).catch(() => {});
+  }, email2, password, email2.split("@")[0].toLowerCase())]);
   await wait(800);
   ok(page.url() === BASE + "/" || page.url() === BASE, "signing up lands on the home page", page.url().replace(BASE, ""));
 
@@ -348,83 +369,164 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   console.log("\n---- account profile editor ----");
   const profileBefore = await page.evaluate(() => ({
     modal: !!document.querySelector("#editProfileModal"),
-    editHidden: document.querySelector("#igPaneEdit").hasAttribute("hidden"),
-    active: document.querySelector('.ig-tab-btn[aria-selected="true"]')?.dataset.igTab || ""
+    headerVisible: document.querySelector(".ig-header").checkVisibility(),
+    settingsVisible: document.querySelector("#igPaneSettings").checkVisibility(),
+    first: document.querySelector(".pf-settings-list > :first-child")?.dataset.settingsLink,
+    inlineForm: !!document.querySelector("#igPaneSettings form, #igPaneSettings details"),
+    oldTabs: !!document.querySelector(".ig-tabs")
   }));
   ok(!profileBefore.modal, "the account page does not create a duplicate edit-profile modal");
-  ok(profileBefore.editHidden && profileBefore.active === "creations", "the account starts on Posts", profileBefore.active);
+  ok(profileBefore.headerVisible && profileBefore.settingsVisible && profileBefore.first === "creations",
+    "the account starts on the profile/settings hub, with Creations first", profileBefore.first);
+  ok(!profileBefore.inlineForm && !profileBefore.oldTabs, "the settings menu contains links, not obsolete inline panels or tabs");
 
-  await page.click("#openEditProfileBtn");
-  await wait(450);
+  const accountReady = async (route) => {
+    await page.waitForFunction(pathname => location.pathname === pathname && window.SC_ACCOUNT_NAV &&
+      window.SC_ACCOUNT && document.querySelector("#accountBox")?.hidden === false, {}, route);
+  };
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+    page.click("#openEditProfileBtn")
+  ]);
+  await accountReady("/account/edit-profile");
   const profileAfter = await page.evaluate(() => ({
     modal: !!document.querySelector("#editProfileModal"),
-    editShown: !document.querySelector("#igPaneEdit").hasAttribute("hidden") && document.querySelector("#igPaneEdit").offsetParent !== null,
-    active: document.querySelector('.ig-tab-btn[aria-selected="true"]')?.dataset.igTab || "",
-    hash: location.hash,
-    controls: document.querySelector("#igTabEdit").getAttribute("aria-controls")
+    editShown: document.querySelector("#igPaneEdit").checkVisibility(),
+    headerHidden: !document.querySelector(".ig-header").checkVisibility(),
+    path: location.pathname,
+    back: document.querySelector(".pf-detail-head a")?.getAttribute("href"),
+    duplicateIds: [...document.querySelectorAll("[id]")].map(e => e.id).filter((id, i, ids) => ids.indexOf(id) !== i).length
   }));
-  ok(!profileAfter.modal && profileAfter.editShown, "Edit profile opens the inline editor without a popup");
-  ok(profileAfter.active === "edit" && profileAfter.hash === "#edit-profile", "the Edit tab and URL state stay in sync", `${profileAfter.active}/${profileAfter.hash}`);
-  ok(profileAfter.controls === "igPaneEdit", "profile tabs expose their controlled panels", profileAfter.controls);
+  ok(!profileAfter.modal && profileAfter.editShown && profileAfter.headerHidden,
+    "Edit profile opens its dedicated page without repeating the hub or a popup");
+  ok(profileAfter.path === "/account/edit-profile" && profileAfter.back === "/account",
+    "the editor has a dedicated URL and a working route back to Settings", profileAfter.path);
+  ok(profileAfter.duplicateIds === 0, "the dedicated editor has no duplicate control IDs", profileAfter.duplicateIds);
+
+  const savedName = "Auth QA " + uniq();
+  await page.$eval("#pageDisplayName", (el, value) => { el.value = value; }, savedName);
+  const profileResponse = page.waitForResponse(response => response.url() === BASE + "/api/auth/profile" && response.request().method() === "POST");
+  await page.click("#pageSaveProfileBtn");
+  const savedResponse = await profileResponse;
+  const saved = await savedResponse.json();
+  await page.waitForFunction(() => /successfully/.test(document.querySelector("#pageProfileMsg").textContent));
+  ok(savedResponse.status() === 200 && saved.success && saved.user.displayName === savedName,
+    "the browser saves the profile through the real API", savedResponse.status());
+  const { rows: persistedProfile } = await db.query("select display_name, handle from public.users where lower(email) = $1", [email2.toLowerCase()]);
+  ok(persistedProfile[0]?.display_name === savedName, "the profile edit is persisted in the isolated database");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await accountReady("/account/edit-profile");
+  ok(await page.$eval("#pageDisplayName", el => el.value) === savedName,
+    "the saved profile survives a full page reload");
+  await page.screenshot({ path: path.join(screenshotDir, "edit-profile-saved-desktop.png"), fullPage: true });
+
+  // Exercise a real server rejection, not a mocked success/error response.
+  // The first unique account owns this handle, so the second cannot claim it.
+  await page.$eval("#pageHandle", (el, value) => { el.value = value; }, rec.handle);
+  const rejectedResponse = page.waitForResponse(response => response.url() === BASE + "/api/auth/profile" && response.request().method() === "POST");
+  await page.click("#pageSaveProfileBtn");
+  const rejected = await rejectedResponse;
+  await page.waitForFunction(() => /already taken/.test(document.querySelector("#pageProfileMsg").textContent));
+  const failedEdit = await page.evaluate(() => ({
+    handle: document.querySelector("#pageHandle").value,
+    saveEnabled: !document.querySelector("#pageSaveProfileBtn").disabled,
+    message: document.querySelector("#pageProfileMsg").textContent
+  }));
+  ok(rejected.status() === 400 && /already taken/.test(failedEdit.message),
+    "a duplicate creator handle is rejected with an actionable message", rejected.status());
+  ok(failedEdit.handle === rec.handle && failedEdit.saveEnabled,
+    "a rejected save retains user input and re-enables Save");
+  const { rows: unchangedProfile } = await db.query("select display_name, handle from public.users where lower(email) = $1", [email2.toLowerCase()]);
+  ok(unchangedProfile[0]?.display_name === savedName && unchangedProfile[0]?.handle === persistedProfile[0]?.handle,
+    "a rejected save leaves the persisted profile unchanged");
 
   await page.evaluate(() => { document.querySelector("#pageDisplayName").value = "Unsaved change"; });
-  await page.click("#pageCancelProfileBtn");
-  await wait(350);
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+    page.click("#pageCancelProfileBtn")
+  ]);
+  await accountReady("/account/creations");
+  ok(await page.$eval("#igPaneCreations", el => el.checkVisibility()), "Cancel returns to the dedicated Creations page", new URL(page.url()).pathname);
+  await page.goto(BASE + "/account/edit-profile", { waitUntil: "domcontentloaded" });
+  await accountReady("/account/edit-profile");
   const cancelled = await page.evaluate(() => ({
-    value: document.querySelector("#pageDisplayName").value,
-    active: document.querySelector('.ig-tab-btn[aria-selected="true"]')?.dataset.igTab || "",
-    hash: location.hash
+    name: document.querySelector("#pageDisplayName").value,
+    handle: document.querySelector("#pageHandle").value
   }));
-  ok(cancelled.value !== "Unsaved change", "Cancel restores the saved profile values");
-  ok(cancelled.active === "creations" && cancelled.hash === "", "Cancel returns to Posts", `${cancelled.active}/${cancelled.hash}`);
+  ok(cancelled.name === savedName && cancelled.handle === persistedProfile[0]?.handle,
+    "reopening after Cancel restores both saved profile values, not unsaved or rejected input");
+
+  await page.goto(BASE + "/account/credits", { waitUntil: "domcontentloaded" });
+  await accountReady("/account/credits");
+  ok(await page.$eval("#accEmail", el => el.checkVisibility() && el.textContent.trim()) === email2.toLowerCase(),
+    "the dedicated Account & credits page visibly shows the correct email");
+  ok(await page.$eval("#accPlan", el => el.checkVisibility() && el.textContent.trim()) === "Free",
+    "the dedicated Account & credits page visibly shows the current plan");
 
   await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
-  await page.reload({ waitUntil: "networkidle2" });
-  await page.waitForFunction(
-    () => !document.querySelector("#accountBox").hasAttribute("hidden"),
-    { timeout: 15000 }
-  ).catch(() => {});
+  await page.goto(BASE + "/account", { waitUntil: "domcontentloaded" });
+  await accountReady("/account");
   const mobileAccount = await page.evaluate(() => {
     const actionButtons = [...document.querySelectorAll(".ig-actions-row .ig-btn")];
-    const tabs = document.querySelector(".ig-tabs");
-    const reachable = (sel) => {
+    const reachable = (sel, href) => {
       const el = document.querySelector(sel);
-      return !!el && !el.hasAttribute("hidden");
+      if (!el || !el.checkVisibility() || (href && el.getAttribute("href") !== href)) return false;
+      const box = el.getBoundingClientRect();
+      return box.width >= 64 && box.height >= 36 && box.left >= 0 && box.right <= innerWidth;
     };
     return {
       overflow: document.documentElement.scrollWidth > window.innerWidth + 1,
       actionCount: actionButtons.length,
-      // The header used to carry a third button that logged you out. Log out
-      // now lives in the top bar and under Plan and credits, so this checks
-      // that whatever the header does carry is usable, and separately that
-      // signing out is still reachable — rather than pinning a count.
       buttonsVisible: actionButtons.length >= 2 && actionButtons.every((button) => {
         const box = button.getBoundingClientRect();
-        // Phone target rule (public/mobile.css): actions at least 36px tall;
-        // the Stars action is deliberately compact, so 64px wide is the floor.
         return box.width >= 64 && box.height >= 36 && box.left >= 0 && box.right <= window.innerWidth;
       }),
-      logoutReachable: reachable("#logoutBtn") || reachable("#accLogoutPane"),
-      tabsContained: tabs.scrollWidth >= tabs.clientWidth && tabs.getBoundingClientRect().right <= window.innerWidth
+      logoutReachable: reachable('[data-settings-link="logout"]', "/account/logout"),
+      creationsReachable: reachable('[data-settings-link="creations"]', "/account/creations"),
+      referralsReachable: reachable('[data-settings-link="referrals"]', "/account/referrals"),
+      linksContained: [...document.querySelectorAll(".pf-settings-list > a")].filter(el => el.checkVisibility()).every(el => {
+        const box = el.getBoundingClientRect();
+        return box.height >= 36 && box.left >= 0 && box.right <= innerWidth;
+      })
     };
   });
   ok(!mobileAccount.overflow, "the mobile account page has no horizontal page overflow");
   ok(mobileAccount.buttonsVisible, "all profile actions remain visible and touch-friendly on mobile",
     mobileAccount.actionCount + " actions");
   ok(mobileAccount.logoutReachable, "signing out is reachable from the account page");
-  ok(mobileAccount.tabsContained, "profile tabs stay accessible inside their own mobile scroller");
+  ok(mobileAccount.creationsReachable && mobileAccount.referralsReachable && mobileAccount.linksContained,
+    "Creations, Referral and all visible Settings rows remain accessible on mobile");
+  await page.screenshot({ path: path.join(screenshotDir, "settings-mobile-390.png"), fullPage: true });
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+    page.click('[data-settings-link="creations"]')
+  ]);
+  await accountReady("/account/creations");
+  ok(await page.$eval("#igPaneCreations", el => el.checkVisibility()) &&
+    await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+    "the mobile Creations link opens a usable dedicated page without overflow");
+  await page.screenshot({ path: path.join(screenshotDir, "creations-mobile-390.png"), fullPage: true });
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+    page.click(".pf-detail-head a")
+  ]);
+  await accountReady("/account");
+  ok(new URL(page.url()).pathname === "/account", "the detail-page Back link returns to Settings");
 
   console.log("\n---- logging out in the browser ----");
   await page.setViewport({ width: 1280, height: 900 });
   await page.waitForFunction(
     () => document.querySelector("#accountBox") && !document.querySelector("#accountBox").hasAttribute("hidden"),
     { timeout: 15000 }
-  ).catch(() => {});
+  );
   // The account header no longer carries its own log-out button; the top bar
   // is the one control present on every page.
-  await page.click("#logoutBtn");
-  await page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }).catch(() => {});
-  await wait(900);
+  await Promise.all([
+    page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 20000 }),
+    page.click("#logoutBtn")
+  ]);
+  await page.waitForFunction(() => [...document.querySelectorAll('a[href="/login"]')].some(el => el.checkVisibility()) &&
+    !document.querySelector("#logoutBtn")?.checkVisibility());
   const after = await page.evaluate(() => {
     const vis = (s) => [...document.querySelectorAll(s)]
       .filter((el) => !el.hasAttribute("hidden") && el.offsetParent !== null).length;
@@ -436,8 +538,8 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   console.log("\n---- errors ----");
   ok(errs.length === 0, "no console or page errors", errs.length ? errs[0] : 0);
 
-  await browser.close();
-
+  } finally {
+  if (browser) await browser.close();
   /* Verifiers must not become fake production users. Remove only the two
      unique addresses generated by this run, including their sessions. */
   const testEmails = [email.toLowerCase(), email2.toLowerCase()];
@@ -454,6 +556,7 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   });
   await db.getPool().end();
   ok(true, "temporary auth test accounts are removed");
+  }
 
   console.log(`\nAUTH=${failures === 0 ? "PASS" : "FAIL"}${failures ? " (" + failures + " failing)" : ""}`);
   process.exit(failures === 0 ? 0 : 1);

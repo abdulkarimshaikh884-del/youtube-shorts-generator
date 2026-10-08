@@ -1,7 +1,7 @@
 "use strict";
 // Shared primary buttons: opaque, flat-background, enabled controls only.
 // This is a targeted contrast test, NOT full WCAG certification.
-const fs=require("node:fs"),path=require("node:path"),{spawn}=require("node:child_process"),puppeteer=require("puppeteer");
+const fs=require("node:fs"),path=require("node:path"),{spawn}=require("node:child_process"),puppeteer=require("./qa-browser");
 const root=path.resolve(__dirname,".."),base="http://127.0.0.1:3327",out=path.join(root,"audit_results/page-certification");
 const routes=["/","/animations","/designs","/community","/drafts","/uploads","/settings","/pricing","/tutorials","/account","/contact","/about","/privacy","/terms","/login","/signup","/forgot-password","/reset-password","/creator?handle=shortscraft","/template?id=original-chat-story","/404"];
 (async()=>{

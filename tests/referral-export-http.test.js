@@ -41,9 +41,10 @@ async function bonus(user) {return (await db.query("select bonus_credits from pu
   const after=(await call(inviteeJar,"GET","/api/credits")).data;
   check("a real failed render refunds and does not increase referral bonus",()=>{assert.equal(after.left,credit.left); assert.equal(after.bonusCredits,10);});
   const repeated=await call(inviteeJar,"POST","/api/export",body,{"Idempotency-Key":idem});
-  assert.equal(repeated.status,200); assert.equal(await bonus(inviter),10); assert.equal(await bonus(invitee),10);
+  assert.equal(repeated.status,409); assert.equal(repeated.data.code,"CREDIT_OPERATION_REPLAY");
+  assert.equal(await bonus(inviter),10); assert.equal(await bonus(invitee),10);
   assert.equal((await call(inviteeJar,"GET","/api/credits")).data.left,14);
-  check("HTTP retry does not spend or award referral twice",()=>{});
+  check("HTTP replay is rejected before repeated rendering and does not spend or award referral twice",()=>{});
   const offer=await call(null,"GET","/api/offer"); assert.equal(offer.data.paymentsLive,false);
   assert.equal((await call(inviteeJar,"POST","/api/razorpay/order",{plan:"pro"})).status,503);
   assert.equal((await call(inviteeJar,"GET","/api/auth/me")).data.user.plan,"free");

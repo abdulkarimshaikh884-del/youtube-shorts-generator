@@ -17,6 +17,7 @@ const designs = require("./designs");
 const designConverter = require("./design-converter");
 const designAssets = require("./design-assets");
 const { validateAttachment } = require("./image-validation");
+const { usesRouteJsonParser } = require("./request-body-policy");
 
 const app = express();
 app.disable("x-powered-by");
@@ -162,10 +163,7 @@ app.use((req, res, next) => {
 // ── Body parsing ────────────────────────────────────────────
 const jsonSmall = express.json({ limit: "100kb" });
 app.use((req, res, next) => {
-  // These two routes accept an attached base64 image. Let their route-level
-  // 2 MB parser handle the body; parsing globally at 100 KB first made the
-  // larger parser unreachable and every real image upload failed with 413.
-  if (req.path === "/api/animate" || req.path === "/api/export" || req.path === "/api/auth/avatar" || req.path === "/api/lottie" || req.path === "/api/designs/convert") return next();
+  if (usesRouteJsonParser(req)) return next();
   return jsonSmall(req, res, next);
 });
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
@@ -465,7 +463,7 @@ app.get("/api/users/:id/avatar", async (req, res) => {
   return res.send(avatar.avatar_bytes);
 });
 
-app.post("/api/auth/star", async (req, res) => {
+app.post("/api/auth/star", releasePolicy.middleware, async (req, res) => {
   const out = await social.donateStars(
     req.user,
     req.body?.userId || req.body?.handle,
@@ -661,9 +659,10 @@ app.post("/api/designs/convert", rateLimit({ windowMs: 60_000, max: 20 }), jsonD
     try {
       const chargeRes = await credits.charge(req, "aiStandard");
       if (!chargeRes.ok) {
-        return res.status(402).json({
+        return res.status(chargeRes.status || 402).json({
           success: false,
-          error: `You need ${chargeRes.need} credit to convert a design. You have ${chargeRes.left} left today.`
+          code: chargeRes.code,
+          error: chargeRes.error || `You need ${chargeRes.need} credit to convert a design. You have ${chargeRes.left} left today.`
         });
       }
       charged = true;
@@ -740,13 +739,13 @@ app.get("/api/designs/projects/:id", async (req, res) => {
 
 app.put("/api/designs/projects/:id", rateLimit({ windowMs: 60_000, max: 120 }), express.json({ limit: "2mb" }), async (req, res) => {
   const out = await designs.saveProject(req.user, req.params.id, req.body);
-  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error, code: out.code });
   return res.json(out);
 });
 
 app.post("/api/designs/projects/:id", rateLimit({ windowMs: 60_000, max: 120 }), express.json({ limit: "2mb" }), async (req, res) => {
   const out = await designs.saveProject(req.user, req.params.id, req.body);
-  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error, code: out.code });
   return res.json(out);
 });
 
@@ -1285,7 +1284,9 @@ app.get("/api/creator", async (req, res) => {
 
 // ── Health check ────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, version: "2.0.0", time: new Date().toISOString() });
+  const revision = String(process.env.RENDER_GIT_COMMIT || "");
+  res.set("Cache-Control", "no-store");
+  res.json({ ok: true, version: "2.0.0", revision: /^[a-f0-9]{40}$/.test(revision) ? revision : null, time: new Date().toISOString() });
 });
 
 // ── Public config (frontend reads this) ─────────────────────
@@ -1308,6 +1309,9 @@ app.get("/api/config", (req, res) => {
       // sign-up and log-in were working perfectly well.
       auth: Boolean(process.env.DATABASE_URL),
       payments: releasePolicy.monetizationEnabled && Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+      passwordResetEmail: mailer.configured(),
+      referrals: referrals.enabled(),
+      verificationEmail: referrals.enabled() && mailer.configured(),
     },
   });
 });
@@ -2386,9 +2390,10 @@ app.post("/api/animate", rateLimit({ windowMs: 60_000, max: 8 }), jsonImage, asy
   const billKind = quality === "max" ? "aiAdvanced" : (quality === "pro" ? "aiDetailed" : "aiStandard");
   const bill = await credits.charge(req, billKind);
   if (!bill.ok) {
-    return res.status(402).json({
+    return res.status(bill.status || 402).json({
       success: false,
-      error: `This generation costs ${bill.need} credits and you have ${bill.left} left today.`,
+      code: bill.code,
+      error: bill.error || `This generation costs ${bill.need} credits and you have ${bill.left} left today.`,
       credits: await credits.state(req)
     });
   }
@@ -2549,9 +2554,10 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
   // never bills, and refunded below if the render itself fails.
   const bill = await credits.charge(req, "export");
   if (!bill.ok) {
-    return res.status(402).json({
+    return res.status(bill.status || 402).json({
       success: false,
-      error: `Exporting costs ${bill.need} credit and you have ${bill.left} left today.`,
+      code: bill.code,
+      error: bill.error || `Exporting costs ${bill.need} credit and you have ${bill.left} left today.`,
       credits: await credits.state(req)
     });
   }

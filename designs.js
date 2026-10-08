@@ -468,8 +468,11 @@ function publicProject(row) {
     source: row.source || { type: "scratch" },
     elements: Array.isArray(row.elements) ? row.elements : [],
     previewUrl: row.preview_url || row.previewUrl || "",
-    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
-    updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : Date.now()
+    createdAt: new Date(row.created_at || row.createdAt || Date.now()).getTime(),
+    updatedAt: new Date(row.updated_at || row.updatedAt || Date.now()).getTime(),
+    // Keep PostgreSQL's full timestamp precision for compare-and-swap saves.
+    // JavaScript Date would truncate microseconds and miss concurrent updates.
+    revision: row.revision || (row.updated_at ? new Date(row.updated_at).toISOString() : null)
   };
 }
 
@@ -538,7 +541,9 @@ function cleanElements(elements) {
     if (!el || typeof el !== "object") return null;
     const type = String(el.type || "").toLowerCase();
     if (!["text", "image", "shape", "background"].includes(type)) return null;
-    return el;
+    const clean = { ...el };
+    if (clean.src && clean.dataSrc === clean.src) delete clean.dataSrc;
+    return clean;
   }).filter(Boolean);
 }
 
@@ -557,7 +562,7 @@ async function listProjects(user) {
     try {
       await ensureTables();
       const { rows } = await db.query(
-        `select * from public.design_projects where user_id = $1 order by updated_at desc limit $2`,
+        `select *, updated_at::text as revision from public.design_projects where user_id = $1 order by updated_at desc limit $2`,
         [uid, MAX_PROJECTS_PER_USER]
       );
       return { success: true, projects: rows.map(publicProject) };
@@ -580,15 +585,14 @@ async function getProject(userOrId, optionalId) {
   const id = isDirectId ? userOrId : String(optionalId || "");
   const uid = isDirectId ? null : getUserId(userOrId);
 
+  if (!uid) return { error: "Please log in first.", status: 401 };
   if (!id) return { error: "Project ID required.", status: 400 };
 
   if (hasDatabase()) {
     try {
       await ensureTables();
-      const query = uid
-        ? `select * from public.design_projects where id = $1 and user_id = $2`
-        : `select * from public.design_projects where id = $1`;
-      const params = uid ? [id, uid] : [id];
+      const query = `select *, updated_at::text as revision from public.design_projects where id = $1 and user_id = $2`;
+      const params = [id, uid];
       const { rows } = await db.query(query, params);
       if (rows[0]) return { success: true, project: publicProject(rows[0]) };
     } catch (e) {
@@ -598,7 +602,7 @@ async function getProject(userOrId, optionalId) {
   }
 
   const p = memoryProjects.get(id);
-  if (!p || (uid && p.userId !== uid && p.userId !== "guest_creator")) {
+  if (!p || p.userId !== uid) {
     return { error: "Design project not found.", status: 404 };
   }
   return { success: true, project: publicProject(p) };
@@ -636,6 +640,13 @@ async function saveProject(userOrBody, idOrBody, optionalBody) {
   const canvas = body?.canvas && typeof body.canvas === "object" ? body.canvas : { width: 1280, height: 720 };
   const source = body?.source && typeof body.source === "object" ? body.source : { type: "scratch" };
   const elements = cleanElements(body?.elements);
+  if (Array.isArray(body?.elements) && body.elements.length > MAX_ELEMENTS) {
+    return { error: `This design has too many layers. Keep at most ${MAX_ELEMENTS} before saving.`, status: 413 };
+  }
+  const expectedRevision = body?.expectedRevision == null ? null : String(body.expectedRevision);
+  if (expectedRevision !== null && (expectedRevision.length > 64 || !Number.isFinite(Date.parse(expectedRevision)))) {
+    return { error: "The saved design version is invalid. Reload before editing.", status: 400 };
+  }
   const previewUrl = String(body?.previewUrl || "");
   if (Buffer.byteLength(previewUrl, "utf8") > 1024 * 1024) {
     return { error: "Design preview is too large to save.", status: 413 };
@@ -649,22 +660,26 @@ async function saveProject(userOrBody, idOrBody, optionalBody) {
   if (hasDatabase() && uid !== "anonymous") {
     try {
       await ensureTables();
-      const { rows } = await db.query(
+      const values = [projectId, uid, name, designType, JSON.stringify(canvas), JSON.stringify(source), payload, previewUrl];
+      const { rows } = expectedRevision !== null ? await db.query(
+        `update public.design_projects
+            set name = $3, design_type = $4, canvas = $5::jsonb, source = $6::jsonb,
+                elements = $7::jsonb, preview_url = $8,
+                updated_at = greatest(clock_timestamp(), updated_at + interval '1 microsecond')
+          where id = $1 and user_id = $2 and updated_at = $9::timestamptz
+          returning *, updated_at::text as revision`,
+        [...values, expectedRevision]
+      ) : await db.query(
         `insert into public.design_projects (id, user_id, name, design_type, canvas, source, elements, preview_url, updated_at)
          values ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7::jsonb, $8, now())
-         on conflict (id) do update
-           set name = excluded.name,
-               design_type = excluded.design_type,
-               canvas = excluded.canvas,
-               source = excluded.source,
-               elements = excluded.elements,
-               preview_url = coalesce(excluded.preview_url, public.design_projects.preview_url),
-               updated_at = now()
-           where public.design_projects.user_id = excluded.user_id
-         returning *`,
-        [projectId, uid, name, designType, JSON.stringify(canvas), JSON.stringify(source), payload, previewUrl]
+          on conflict (id) do nothing
+          returning *, updated_at::text as revision`,
+        values
       );
       if (rows[0]) return { success: true, project: publicProject(rows[0]) };
+      const own = await db.query(`select 1 from public.design_projects where id = $1 and user_id = $2`, [projectId, uid]);
+      if (own.rows[0]) return { error: "This design changed in another tab or device. Your edits are still on screen: export a PNG before reloading. The newer cloud version was not overwritten.", status: 409, code: "DESIGN_SAVE_CONFLICT" };
+      if (expectedRevision !== null) return { error: "The saved design is no longer available. Export your edits before returning to Designs.", status: 404 };
       return { error: "This project could not be updated by your account.", status: 403 };
     } catch (e) {
       console.warn("[designs.js] saveProject storage unavailable:", e.message);
@@ -675,6 +690,11 @@ async function saveProject(userOrBody, idOrBody, optionalBody) {
   if (process.env.NODE_ENV === "production") return { error: "Project storage is unavailable.", status: 503 };
   const existingProject = memoryProjects.get(projectId);
   if (existingProject && existingProject.userId !== uid) return { error: "This project belongs to another account.", status: 403 };
+  if (existingProject && (!expectedRevision || existingProject.revision !== expectedRevision)) {
+    return { error: "This design changed in another tab or device. Export your edits before reloading; the cloud version was not overwritten.", status: 409, code: "DESIGN_SAVE_CONFLICT" };
+  }
+  if (!existingProject && expectedRevision) return { error: "The saved design is no longer available. Export your edits before returning to Designs.", status: 404 };
+  const updatedAt = Math.max(Date.now(), (existingProject?.updatedAt || 0) + 1);
   const projectRecord = {
     id: projectId,
     userId: uid,
@@ -685,7 +705,8 @@ async function saveProject(userOrBody, idOrBody, optionalBody) {
     elements,
     previewUrl,
     createdAt: memoryProjects.get(projectId)?.createdAt || Date.now(),
-    updatedAt: Date.now()
+    updatedAt,
+    revision: new Date(updatedAt).toISOString()
   };
   memoryProjects.set(projectId, projectRecord);
   return { success: true, project: publicProject(projectRecord) };
@@ -859,8 +880,14 @@ async function publishTemplate(user, body) {
     : ((typeof body.remixOf === "string" && body.remixOf.startsWith("dt_")) ? body.remixOf : null);
   const elements = cleanElements(body.elements);
   if (!elements.length) return { error: "Cannot publish an empty design template.", status: 400 };
+  if (body.elements.length > MAX_ELEMENTS || Buffer.byteLength(JSON.stringify(elements), "utf8") > MAX_BYTES) {
+    return { error: "This design exceeds the size or layer limit. Remove a large image or extra layers before publishing.", status: 413 };
+  }
 
   const isPremium = String(body.category) === "premium" || body.isPremium === true;
+  if (isPremium && !require("./release-policy").monetizationEnabled) {
+    return { error: "Paid design publishing is Coming Soon. Choose a free category to publish your design.", status: 503, code: "MONETIZATION_COMING_SOON" };
+  }
   let starPrice = 0;
   if (isPremium) {
     starPrice = Math.max(1, parseInt(body.starPrice, 10) || 1);
@@ -874,6 +901,9 @@ async function publishTemplate(user, body) {
   if (isPremium) {
     canvas.isPremium = true;
     canvas.starPrice = starPrice;
+  } else {
+    delete canvas.isPremium;
+    delete canvas.starPrice;
   }
   if (body.remixOf && typeof body.remixOf === "object") {
     canvas.remixOf = body.remixOf;

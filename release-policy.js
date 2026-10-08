@@ -10,7 +10,7 @@ const unavailable = () => ({ success: false, error: message, code: "MONETIZATION
 
 function middleware(req, res, next) {
   if (monetizationEnabled || !["POST", "PATCH", "PUT", "DELETE"].includes(req.method)) return next();
-  const moneyRoute = /^\/api\/(?:razorpay\/(?:order|verify)|stars\/(?:donate|withdraw|purchase\/(?:order|verify))|admin\/(?:withdrawals\/[^/]+\/process|stars\/transactions\/[^/]+\/reverse|star-packs(?:\/[^/]+)?))\/?$/i.test(req.path);
+  const moneyRoute = /^\/api\/(?:auth\/star|razorpay\/(?:order|verify)|stars\/(?:donate|withdraw|purchase\/(?:order|verify))|admin\/(?:withdrawals\/[^/]+\/process|stars\/transactions\/[^/]+\/reverse|star-packs(?:\/[^/]+)?))\/?$/i.test(req.path);
   const starAdjustment = /^\/api\/admin\/users\/[^/]+\/balance\/?$/i.test(req.path) && String(req.body?.type || "stars").toLowerCase() === "stars";
   if (!moneyRoute && !starAdjustment) return next();
   if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });

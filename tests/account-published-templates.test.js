@@ -1,7 +1,7 @@
 "use strict";
 // Database-free regression check. Start polish-preview-server.js first.
 const assert = require("node:assert/strict");
-const puppeteer = require("puppeteer");
+const puppeteer = require("./qa-browser");
 
 (async () => {
   const browser = await puppeteer.launch({ headless: true });

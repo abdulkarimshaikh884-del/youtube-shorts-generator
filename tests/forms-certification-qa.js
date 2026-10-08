@@ -1,7 +1,7 @@
 "use strict";
 // Owns a DB-free preview. All API responses (including writes)
 // are intercepted in this browser; no account, email or ticket is created.
-const puppeteer=require("puppeteer"),fs=require("node:fs"),path=require("node:path");
+const puppeteer=require("./qa-browser"),fs=require("node:fs"),path=require("node:path");
 const base="http://127.0.0.1:3327",out=path.resolve(__dirname,"../audit_results/page-certification/forms");
 const {spawn}=require("node:child_process");
 const results=[],errors=[],writes=[];
