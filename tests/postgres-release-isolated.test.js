@@ -103,11 +103,14 @@ async function charged(user) {const r=req(user); assert.equal((await credits.cha
   await setup.query(`create function public.qa_fail_referral() returns trigger language plpgsql as $$ begin
     if new.metadata->>'inviteeId' = '${rollback.id}' then raise exception 'injected local grant failure'; end if; return new; end $$;
     create trigger qa_fail_referral before insert on public.credit_transactions for each row execute function public.qa_fail_referral();`);
-  await assert.rejects(referrals.successfulExport(rollback,rollbackCharge._creditChargeIds.export),/injected local grant failure/);
+  const recoveredLater = await referrals.successfulExport(rollback,rollbackCharge._creditChargeIds.export);
+  assert.equal(recoveredLater.recoveryPending,true,"successful export is not undone by an auxiliary reward failure");
+  assert.equal((await db.query("select metadata->>'exportSucceeded' as proof from public.credit_transactions where id=$1",[rollbackCharge._creditChargeIds.export])).rows[0].proof,"true","actual completion proof survives the reward transaction rollback");
   check("a real SQL grant failure rolls back both referral awards",()=>{});
   assert.equal((await balance(rollback)).bonus_credits,0); assert.equal(await balance(other),undefined);
   await setup.query("drop trigger qa_fail_referral on public.credit_transactions; drop function public.qa_fail_referral()");
-  await referrals.qualify(rollback.id); assert.equal((await balance(rollback)).bonus_credits,10); assert.equal((await balance(other)).bonus_credits,10);
+  assert.equal((await referrals.reconcile()).rewarded,1); assert.equal((await balance(rollback)).bonus_credits,10); assert.equal((await balance(other)).bonus_credits,10);
+  assert.equal((await referrals.qualify(rollback.id)).rewarded,false,"recovered reward cannot be granted twice");
   check("referral retry after rollback awards once",()=>{});
   assert.equal((await admin.adjustUserBalance(invitee,referred.id,{type:"credits",delta:10,reason:"QA"})).status,403);
   assert.equal((await admin.setStaff(invitee,referred.id,{role:"admin"})).status,403);

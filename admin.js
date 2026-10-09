@@ -91,7 +91,7 @@ async function listUsers(user, options = {}) {
   const params = [];
   if (q) {
     params.push(`%${q}%`);
-    sql += ` and (lower(u.handle) like $${params.length} or lower(u.display_name) like $${params.length} or (u.email is not null and lower(u.email) like $${params.length}))`;
+    sql += ` and (lower(u.handle) like $${params.length} or lower(u.display_name) like $${params.length}${owner ? ` or (u.email is not null and lower(u.email) like $${params.length})` : ""})`;
   }
   if (roleFilter && roleFilter !== "all") {
     params.push(roleFilter);
@@ -115,7 +115,7 @@ async function listUsers(user, options = {}) {
       const purchased = Number(r.stars_purchased) || 0;
       const withdrawable = Math.max(0, earned - withdrawn);
       const rawHandle = (r.handle || "").replace(/^@+/, "");
-      const emailPrefix = r.email ? r.email.split("@")[0] : "";
+      const emailPrefix = owner && r.email ? r.email.split("@")[0] : "";
       const safeHandle = rawHandle ? `@${rawHandle}` : (emailPrefix ? `@${emailPrefix}` : `@user_${r.id.slice(0, 6)}`);
       const safeDisplayName = r.display_name || rawHandle || emailPrefix || `User #${r.id.slice(0, 6)}`;
       return {
@@ -148,36 +148,38 @@ async function moderateUser(actor, targetId, action, params = {}) {
   if (!can(actor, verificationAction ? "creators.verify" : "users.manage")) return denied();
   if (!validId(targetId)) return { error: "Target user not found.", status: 404 };
 
-  const targetRes = await db.query(`select id, email, display_name, handle, role, verified from public.users where id = $1`, [targetId]);
+  return db.tx(async client => {
+  const targetRes = await client.query(`select id, email, display_name, handle, role, verified from public.users where id = $1 for update`, [targetId]);
   const target = targetRes.rows[0];
   if (!target) return { error: "Target user not found.", status: 404 };
   if (target.role === "super_admin") return { error: "Owner account cannot be modified.", status: 403 };
 
-  const reason = String(params?.reason || "").trim();
-  if (!reason && (action === "ban" || action === "suspend" || action === "warn")) {
+  const reason = String(params?.reason || "").trim().slice(0, 1000);
+  if (!reason && ["ban", "unban", "suspend", "warn"].includes(action)) {
     return { error: "Reason is mandatory for moderation action.", status: 400 };
   }
 
   if (action === "warn") {
-    await db.query(
+    await client.query(
       `insert into public.notifications (user_id, actor_id, type, entity_type, entity_id, message)
        values ($1, $2, 'system', 'moderation', 'warning', $3)`,
       [targetId, actor.id, `⚠️ Account Warning: ${reason}`]
     );
-    await audit(actor, "user_warned", "user", targetId, null, { reason });
+    await audit(actor, "user_warned", "user", targetId, null, { reason }, client);
     return { success: true, message: `Warning issued to @${target.handle}.` };
   }
 
   if (action === "ban") {
-    await db.query(`update public.users set role = 'banned', updated_at = now() where id = $1`, [targetId]);
-    await db.query(`delete from public.sessions where user_id = $1`, [targetId]);
-    await audit(actor, "user_banned", "user", targetId, { role: target.role }, { role: "banned", reason });
+    await client.query(`update public.users set role = 'banned', updated_at = now() where id = $1`, [targetId]);
+    await client.query(`delete from public.sessions where user_id = $1`, [targetId]);
+    await audit(actor, "user_banned", "user", targetId, { role: target.role }, { role: "banned", reason }, client);
     return { success: true, message: `Account @${target.handle} has been banned.` };
   }
 
   if (action === "unban") {
-    await db.query(`update public.users set role = 'user', updated_at = now() where id = $1`, [targetId]);
-    await audit(actor, "user_unbanned", "user", targetId, { role: "banned" }, { role: "user", reason });
+    if (target.role !== "banned") return { error: "Only a banned account can be restored.", status: 400 };
+    await client.query(`update public.users set role = 'user', staff_permissions = '{}'::text[], updated_at = now() where id = $1`, [targetId]);
+    await audit(actor, "user_unbanned", "user", targetId, { role: "banned" }, { role: "user", reason }, client);
     return { success: true, message: `Account @${target.handle} has been unbanned.` };
   }
 
@@ -185,8 +187,8 @@ async function moderateUser(actor, targetId, action, params = {}) {
     let verifiedState = true;
     if (action === "unverify_creator") verifiedState = false;
     else if (action === "verify" && params.verified !== undefined) verifiedState = Boolean(params.verified);
-    await db.query(`update public.users set verified = $2, updated_at = now() where id = $1`, [targetId, verifiedState]);
-    await audit(actor, "user_verify_toggle", "user", targetId, { verified: target.verified }, { verified: verifiedState });
+    await client.query(`update public.users set verified = $2, updated_at = now() where id = $1`, [targetId, verifiedState]);
+    await audit(actor, "user_verify_toggle", "user", targetId, { verified: target.verified }, { verified: verifiedState }, client);
     return { success: true, message: `Creator verification set to ${verifiedState} for @${target.handle || "user"}.` };
   }
 
@@ -196,12 +198,13 @@ async function moderateUser(actor, targetId, action, params = {}) {
     const validRoles = ["user", "moderator", "sub_admin", "admin"];
     if (!validRoles.includes(newRole)) return { error: "Invalid role specified.", status: 400 };
     const granted = newRole === "user" ? [] : permissions.normalise(permissions.ROLE_PRESETS[newRole === "admin" ? "sub_admin" : newRole] || []);
-    await db.query(`update public.users set role = $2, staff_permissions = $3::text[], updated_at = now() where id = $1`, [targetId, newRole, granted]);
-    await audit(actor, "user_role_changed", "user", targetId, { role: target.role }, { role: newRole, reason });
+    await client.query(`update public.users set role = $2, staff_permissions = $3::text[], updated_at = now() where id = $1`, [targetId, newRole, granted]);
+    await audit(actor, "user_role_changed", "user", targetId, { role: target.role }, { role: newRole, reason }, client);
     return { success: true, message: `Role changed to ${newRole} for @${target.handle || "user"}.` };
   }
 
   return { error: "Unsupported moderation action.", status: 400 };
+  });
 }
 
 async function adjustUserBalance(actor, targetId, params = {}) {
@@ -277,7 +280,7 @@ async function listCreators(user, options = {}) {
       const withdrawn = Number(r.stars_withdrawn) || 0;
       const templates = (Number(r.pub_templates) || 0) + (Number(r.pub_designs) || 0);
       const rawHandle = (r.handle || "").replace(/^@+/, "");
-      const emailPrefix = r.email ? r.email.split("@")[0] : "";
+      const emailPrefix = isOwner(user) && r.email ? r.email.split("@")[0] : "";
       const safeHandle = rawHandle ? `@${rawHandle}` : (emailPrefix ? `@${emailPrefix}` : `@creator_${r.id.slice(0, 6)}`);
       const safeDisplayName = r.display_name || rawHandle || emailPrefix || `Creator #${r.id.slice(0, 6)}`;
       return {
@@ -538,6 +541,9 @@ async function saveStarPack(actor, packData) {
 // ── 7. AI & Convert-to-Editable Jobs ─────────────────────────
 async function listAiJobs(user, options = {}) {
   if (!can(user, "ai_jobs.view")) return denied();
+  const requestedStatus = String(options.status || "all");
+  const status = requestedStatus === "completed" ? "complete" : requestedStatus;
+  if (!["all", "queued", "analyzing", "detecting_text", "segmenting_objects", "reconstructing_background", "processing", "complete", "failed", "cancelled"].includes(status)) return { error: "Choose a valid job status.", status: 400 };
 
   let jobs = [];
   try {
@@ -547,7 +553,8 @@ async function listAiJobs(user, options = {}) {
               u.display_name, u.handle
          from public.design_conversion_jobs j
          left join public.users u on u.id = j.user_id
-        order by j.created_at desc limit 150`
+        where ($1 = 'all' or j.status = $1 or ($1 = 'processing' and j.status in ('queued','analyzing','detecting_text','segmenting_objects','reconstructing_background')))
+        order by j.created_at desc limit 150`, [status]
     );
     jobs = rows.map(r => {
       const uH = String(r.handle || "").replace(/^@+/, "");
@@ -645,13 +652,15 @@ async function broadcastNotification(actor, data = {}) {
 // ── 9. Audit Logs ────────────────────────────────────────────
 async function listAuditLogs(user, options = {}) {
   if (!can(user, "audit.view")) return denied();
+  const search = String(options.q || "").trim().slice(0, 150);
 
   const { rows } = await db.query(
     `select a.id, a.actor_id, a.action, a.entity_type, a.entity_id, a.before_data, a.after_data, a.created_at,
             u.display_name as actor_name, u.handle as actor_handle
        from public.admin_audit_log a
        left join public.users u on u.id = a.actor_id
-      order by a.created_at desc limit 250`
+      where ($1 = '' or strpos(lower(concat_ws(' ', a.action, a.entity_type, a.entity_id, u.display_name, u.handle)), lower($1)) > 0)
+      order by a.created_at desc, a.id desc limit 250`, [search]
   );
 
   return { success: true, logs: rows };
@@ -701,7 +710,7 @@ async function listContent(user) {
     success: true,
     templates: allRows.map((r) => {
       const rawHandle = (r.author_handle || "").replace(/^@+/, "");
-      const emailPrefix = r.author_email ? r.author_email.split("@")[0] : "";
+      const emailPrefix = isOwner(user) && r.author_email ? r.author_email.split("@")[0] : "";
       const safeHandle = rawHandle ? `@${rawHandle}` : (emailPrefix ? `@${emailPrefix}` : "");
       const safeName = r.author_name || rawHandle || emailPrefix || "Creator";
       return {
@@ -764,25 +773,44 @@ async function updateContent(user, id, data) {
 }
 
 // ── 11. Feature Flags ────────────────────────────────────────
+const previewAssetPath = value => typeof value === "string" && value.length <= 240 && /^\/api\/design-assets\/job_[a-f0-9]{32}\/(?:original\.webp|assets\/[A-Za-z0-9_-]{1,160}\.webp)$/.test(value);
+async function designPreview(user, id) {
+  if (!can(user, "templates.moderate")) return denied();
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id)) return { error: "Design not found.", status: 404 };
+  const result = await db.query("select id,title,status,author_id,canvas,elements,preview_url from public.design_templates where id=$1", [id]);
+  const row = result.rows[0];
+  if (!row) return { error: "Design not found.", status: 404 };
+  const rewrite = value => previewAssetPath(value) ? "/api/admin/design-templates/" + encodeURIComponent(id) + "/asset?src=" + encodeURIComponent(value) : value;
+  return { success: true, template: { id: row.id, title: row.title, status: row.status, canvas: row.canvas,
+    elements: Array.isArray(row.elements) ? row.elements.filter(element => element && typeof element === "object" && !Array.isArray(element)).map(element => ({ ...element, src: rewrite(element.src), dataSrc: rewrite(element.dataSrc) })) : [],
+    previewUrl: rewrite(row.preview_url) } };
+}
+async function designPreviewAsset(user, id, source) {
+  if (!can(user, "templates.moderate")) return denied();
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id) || !previewAssetPath(source)) return { error: "Preview asset not found.", status: 404 };
+  const found = await db.query("select author_id,elements,preview_url from public.design_templates where id=$1", [id]);
+  const row = found.rows[0];
+  const elements = Array.isArray(row?.elements) ? row.elements : [];
+  if (!row || (row.preview_url !== source && !elements.some(element => element && typeof element === "object" && (element.src === source || element.dataSrc === source)))) return { error: "Preview asset not found.", status: 404 };
+  const match = source.match(/^\/api\/design-assets\/(job_[a-f0-9]{32})\/(.+)$/);
+  const result = await db.query("select content from public.design_assets where job_id=$1 and asset_path=$2 and (user_id=$3 or is_public=true)", [match[1], match[2], row.author_id]);
+  return result.rows[0] ? { success: true, content: result.rows[0].content } : { error: "Preview asset not found.", status: 404 };
+}
 async function listFlags(user) {
   if (!isOwner(user) && !can(user, "flags.manage")) return denied();
   const { rows } = await db.query(
     `select key, enabled, description, updated_at from public.feature_flags order by key`
   );
-  return { success: true, flags: rows.map((r) => ({ key: r.key, enabled: r.enabled, description: r.description, updatedAt: r.updated_at })) };
+  return { success: true, flags: rows.map((r) => ({ key: r.key, enabled: r.enabled, description: r.description, updatedAt: r.updated_at,
+    runtimeSupported: false, readOnlyReason: "Legacy stored setting. Live feature availability is controlled by deployment configuration, not this switch." })) };
 }
 
 async function setFlag(user, key, enabled) {
   if (!isOwner(user) && !can(user, "flags.manage")) return denied();
-  const before = await db.query(`select * from public.feature_flags where key = $1`, [key]);
-  if (!before.rows[0]) return { error: "Feature flag not found.", status: 404 };
-  const { rows } = await db.query(
-    `update public.feature_flags set enabled = $2, updated_by = $3, updated_at = now()
-      where key = $1 returning *`,
-    [key, enabled === true, user.id]
-  );
-  await audit(user, "feature_flag_update", "feature_flag", key, before.rows[0], rows[0]);
-  return { success: true, flag: { key, enabled: rows[0].enabled, description: rows[0].description } };
+  if (typeof enabled !== "boolean") return { error: "Choose a boolean setting.", status: 400 };
+  // None of the legacy DB booleans are consumed by runtime routing. Do not
+  // report a successful live change or enable financial flows from this UI.
+  return { error: "This legacy setting does not control live features. Update deployment configuration instead; nothing was changed.", status: 409 };
 }
 
 // ── 12. Staff & Roles Management (Owner Only) ─────────────────
@@ -867,15 +895,17 @@ async function setStaff(user, targetId, data) {
   });
 }
 
-async function audit(user, action, entityType, entityId, before, after) {
+async function audit(user, action, entityType, entityId, before, after, executor = db) {
   try {
-    await db.query(
+    await executor.query(
       `insert into public.admin_audit_log
          (actor_id, action, entity_type, entity_id, before_data, after_data)
        values ($1, $2, $3, $4, $5::jsonb, $6::jsonb)`,
       [user.id, action, entityType, String(entityId || ""), JSON.stringify(before || null), JSON.stringify(after || null)]
     );
   } catch (e) {
+    // Moderation and its audit record must either both commit or both roll back.
+    if (executor !== db) throw e;
     console.error("[admin.audit error]", e.message);
   }
 }
@@ -887,6 +917,8 @@ module.exports = {
   adjustUserBalance,
   listCreators,
   listContent,
+  designPreview,
+  designPreviewAsset,
   updateContent,
   listFlags,
   setFlag,

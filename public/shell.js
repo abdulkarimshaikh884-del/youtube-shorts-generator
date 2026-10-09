@@ -125,10 +125,6 @@
         '    <div class="sh-modal-stage" id="modalStage"></div>',
         '    <a href="/editor" class="sh-modal-cta" id="modalStudioBtn">✦ Use Template →</a>',
         '    <div class="sh-modal-ctrls">',
-        '      <button type="button" class="sh-modal-act-btn" id="modalReplayBtn">',
-        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 9 9 9"/></svg>',
-        '        <span>Replay</span>',
-        '      </button>',
         '      <button type="button" class="sh-modal-act-btn sh-act-like" id="modalLikeBtn" aria-pressed="false">',
         '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.2l7.8-7.7 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
         '        <span class="sh-m-like-num">Like</span>',
@@ -325,11 +321,6 @@
     // Load comments
     loadModalComments(templateKey(t));
 
-    // Wire Replay
-    $("#modalReplayBtn").onclick = function () {
-      openTemplateModal(t);
-    };
-
     // Wire Like Button
     var mLikeBtn = $("#modalLikeBtn");
     if (mLikeBtn) {
@@ -345,16 +336,7 @@
       if (t.isCommunity && t.commId) {
         url += "&comm=1&commId=" + encodeURIComponent(t.commId);
       }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(function () {
-          recordTemplateEvent(t, "share");
-          var sp = $("#modalShareBtn");
-          sp.textContent = "Copied!";
-          setTimeout(function () { sp.textContent = "🔗 Share"; }, 2000);
-        });
-      } else {
-        SC_UI.copy(url, "Template link copied");
-      }
+      SC_UI.share({url:url, title:t.name || t.title || "ShortsCraft animation", onShared:function () { recordTemplateEvent(t, "share"); }});
     };
 
     // Wire Comment form
@@ -1413,6 +1395,7 @@
 
   /* Popular Thumbnails & Graphic Designs on the home page (3 lines / 12 items). */
   function loadHomeDesigns() {
+    if (window.SCDesignHub) return; // Home and Designs use the same interactive cards.
     var box = $("#homeDesignsGrid");
     if (!box) return;
     fetch("/api/designs/templates?limit=12", { headers: { Accept: "application/json" } })

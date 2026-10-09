@@ -71,6 +71,7 @@
       unavailable: "Google sign-in is not available yet. Please use email and password.",
       expired: "Your Google sign-in expired or your session changed. Please try again.",
       cancelled: "Google sign-in was cancelled. You can try again or use email.",
+      blocked: "This account is unavailable. Contact support if you think this is a mistake.",
       failed: "Google sign-in could not finish. Please retry or use email and password.",
       unverified: "Please use a Google account with a verified email address.",
       link_required: "This email already has an account. Log in with your password (or reset it), then connect Google in Settings.",

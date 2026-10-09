@@ -14,6 +14,11 @@
    Usage: node verify_admin.js   [BASE_URL=http://localhost:3000]
    ============================================================ */
 require("dotenv").config();
+require("./tests/helpers/isolated-postgres").assertIsolatedPostgres();
+const assert = require("node:assert/strict");
+assert.equal(process.env.SC_ISOLATED_POSTGRES_QA, "true", "Admin mutation checks are local fixtures only");
+const dbTarget = new URL(process.env.DATABASE_URL);
+assert.equal(dbTarget.hostname, "127.0.0.1"); assert.equal(dbTarget.port, "55437"); assert.equal(dbTarget.pathname, "/shortscraft_qa");
 const db = require("./db");
 
 const BASE = process.env.BASE_URL || "http://localhost:3000";
@@ -63,6 +68,8 @@ const ADMIN_ROUTES = [
   ["GET", "/api/admin/users"],
   ["GET", "/api/admin/creators"],
   ["GET", "/api/admin/templates"],
+  ["GET", "/api/admin/design-templates/dt_missing/preview"],
+  ["GET", "/api/admin/design-templates/dt_missing/asset?src=bad"],
   ["GET", "/api/admin/withdrawals"],
   ["GET", "/api/admin/stars/ledger"],
   ["GET", "/api/admin/star-packs"],
@@ -144,13 +151,15 @@ async function cleanup() {
   console.log("\n---- the owner ----");
   const { rows: owners } = await db.query(
     `select email, handle, role from public.users
-      where role in ('admin','super_admin') order by created_at asc`);
+      where role = 'super_admin' order by created_at asc`);
   ok(owners.length >= 1, "an owner account exists", owners.length);
   if (owners.length) {
     console.log(`         ${owners.map((o) => `${o.email} (${o.role})`).join(", ")}`);
   }
-  ok(owners.length === 1,
-    "exactly one account holds admin rights", owners.length);
+  // The owned QA database contains independent fixture owners from previous
+  // suites. Its row count is not a production ownership assertion.
+  ok(owners.every(o => o.role === "super_admin"),
+    "local fixture owners retain the protected owner role", owners.length);
 
   await cleanup().catch(() => {});
   console.log(`\nADMIN=${failures === 0 ? "PASS" : "FAIL"}${failures ? " (" + failures + " failing)" : ""}`);

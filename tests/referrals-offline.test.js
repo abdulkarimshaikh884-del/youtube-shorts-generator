@@ -15,6 +15,7 @@ function makeClient(draft) {
     const sql = raw.replace(/\s+/g, " ").trim();
     const rows = value => ({ rows: value ? [structuredClone(value)] : [], rowCount: value ? 1 : 0 });
     if (sql.includes("pg_advisory_xact_lock")) return rows(null);
+    if (sql.startsWith("select id from public.users") && sql.endsWith("for share")) return rows(null);
     if (sql.startsWith("delete from public.email_verification_tokens")) {
       if (sql.includes("token_hash")) {
         const found = draft.tokens.find(t => t.hash === p[0] && t.userId === p[1] && t.expires > Date.now());
@@ -36,16 +37,28 @@ function makeClient(draft) {
       return rows(null);
     }
     if (sql.startsWith("select inviter_id")) return rows(draft.referrals[p[0]]);
+    if (sql.startsWith("select r.invitee_id from public.referrals")) {
+      return { rows: Object.values(draft.referrals).filter(r => r.inviter_id === p[0] && r.status === "pending" && draft.users[r.invitee_id]?.role !== "banned" && (draft.users[r.invitee_id]?.email_verified_at || draft.users[r.invitee_id]?.google_sub) && draft.ledger.some(l => l.user_id === r.invitee_id && l.kind === "export" && l.amount < 0 && (l.id === r.first_export_id || l.metadata?.exportSucceeded) && !draft.ledger.some(f => f.idempotency_key === "refund:" + l.id))).slice(0,3) };
+    }
     if (sql.startsWith("select r.*")) {
       const r = draft.referrals[p[0]];
+      const proof = r && draft.ledger.find(l => l.id === r.first_export_id && l.user_id === p[0] && l.kind === "export" && l.amount < 0);
+      if (!proof || draft.ledger.some(l => l.idempotency_key === "refund:" + proof.id)) return rows(null);
       return rows(r && { ...r, email_verified_at: draft.users[p[0]].email_verified_at, google_sub: draft.users[p[0]].google_sub,
         invitee_role: draft.users[p[0]].role, inviter_role: draft.users[r.inviter_id].role, invitee_plan: "free", inviter_plan: "free" });
     }
     if (sql.startsWith("select count(*)::int as total")) return rows({ total: Object.values(draft.referrals).filter(r => r.inviter_id === p[0] && r.status === "rewarded" && r.rewarded_at?.slice(0, 7) === day.slice(0, 7)).length });
     if (sql.startsWith("update public.referrals set first_export_id")) {
       const r = draft.referrals[p[0]];
-      if (r && !r.first_export_id && draft.ledger.some(l => l.id === p[1] && l.user_id === p[0] && l.kind === "export" && l.amount < 0)) r.first_export_id = p[1];
+      const proof = draft.ledger.find(l => (!p[1] || l.id === p[1]) && l.user_id === p[0] && l.kind === "export" && l.amount < 0 && l.metadata?.exportSucceeded && !draft.ledger.some(f => f.idempotency_key === "refund:" + l.id));
+      if (r && !r.first_export_id && proof) r.first_export_id = proof.id;
       return rows(null);
+    }
+    if (sql.startsWith("update public.credit_transactions c set metadata")) {
+      const proof = draft.ledger.find(l => l.id === p[0] && l.user_id === p[1] && l.kind === "export" && l.amount < 0);
+      if (!proof || draft.referrals[p[1]]?.status !== "pending" || draft.ledger.some(f => f.idempotency_key === "refund:" + proof.id)) return rows(null);
+      proof.metadata = { ...proof.metadata, exportSucceeded: true };
+      return rows({ id: proof.id });
     }
     if (sql.startsWith("update public.referrals set status")) {
       const r = draft.referrals[p[0]];
@@ -92,7 +105,7 @@ function load(file, deps) {
   return module.exports;
 }
 const credits = load("credits.js", { "./db": db });
-const referrals = load("referrals.js", { "./db": db, "./credits": credits, "./email-events": { enqueueSafe: async () => false } });
+const referrals = load("referrals.js", { "./db": db, "./credits": credits, "./email-events": { enqueueSafe: async () => false }, "./notify": { toUser: async () => {} } });
 async function run() {
   state.users.owner = { role:"super_admin" }; state.users.friend = { role:"user" };
   state.codes.abcdefghijklmnop = "owner";
@@ -130,7 +143,8 @@ async function run() {
   assert.equal((await credits.state(req)).left, 15, "daily reset preserves bonus");
   for (let i = 0; i < 10; i++) {
     const id = "cap-" + i; state.users[id] = {role:"user", google_sub:"google"};
-    state.referrals[id] = {inviter_id:"owner",invitee_id:id,status:"pending",first_export_id:"proof"};
+    state.ledger.push({ id: "proof-" + id, user_id: id, kind: "export", amount: -1 });
+    state.referrals[id] = {inviter_id:"owner",invitee_id:id,status:"pending",first_export_id:"proof-" + id};
     await referrals.qualify(id);
   }
   assert.equal(state.credits["u:owner"].bonus_credits, 100, "monthly inviter cap is 10 x 10");
@@ -141,8 +155,9 @@ async function run() {
   assert.equal(referrals.readCode({headers:{cookie:header.replace("abcdefghijklmnop","badcdefghijklmnoz")}}),null);
   const emailUser = { id:"email-user", email:"verified@example.test" };
   state.users[emailUser.id] = { ...emailUser, role:"user" };
-  const older = await referrals.createVerification(emailUser);
-  const current = await referrals.createVerification(emailUser);
+  // Test explicit token replacement separately from the durable send cooldown.
+  const older = await referrals.createVerification(emailUser, { enforceCooldown: false });
+  const current = await referrals.createVerification(emailUser, { enforceCooldown: false });
   assert.equal(state.tokens.length, 1, "resend invalidates the older token");
   assert.notEqual(state.tokens[0].hash, current.token, "only the token hash is stored");
   assert.equal((await referrals.verifyEmail(emailUser, older.token)).status, 400);
@@ -150,11 +165,12 @@ async function run() {
   assert.equal((await referrals.verifyEmail(emailUser, current.token)).success, true);
   assert.ok(state.users[emailUser.id].email_verified_at);
   assert.equal((await referrals.verifyEmail(emailUser, current.token)).status, 400, "single-use verification");
-  const expired = await referrals.createVerification(emailUser); state.tokens[0].expires = 0;
+  const expired = await referrals.createVerification(emailUser, { enforceCooldown: false }); state.tokens[0].expires = 0;
   assert.equal((await referrals.verifyEmail(emailUser, expired.token)).status, 400, "expired token refused");
-  const changed = await referrals.createVerification(emailUser); state.users[emailUser.id].email = "changed@example.test";
+  const changed = await referrals.createVerification(emailUser, { enforceCooldown: false }); state.users[emailUser.id].email = "changed@example.test";
   assert.equal((await referrals.verifyEmail(emailUser, changed.token)).status, 400, "email change invalidates verification");
   env.REFERRALS_ENABLED = "false";
+  assert.equal((await credits.state(req)).bonusCredits, 10, "pausing NEW rewards keeps earned bonus spendable");
   assert.equal((await referrals.summary(null)).enabled,false,"off by default / no migration writes");
   console.log("PASS: 10 + 10 rewards, verification/export gates, forged/uncharged proof, rollback, concurrent replay, spending/refund, bonus rollover, UTC cap, signed attribution, hashed single-use verification with resend/expiry/account/email checks, disabled rollout (isolated).");
 }

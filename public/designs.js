@@ -3,6 +3,7 @@
    ============================================================ */
 (function () {
   "use strict";
+  window.SCDesignHub = true;
 
   var uploadModal = null;
   var currentJob = null;
@@ -15,6 +16,8 @@
   var returnFocus = null;
   var previousOverflow = "";
   var readVersion = 0;
+  var renderVersion = 0;
+  var likeVersions = Object.create(null);
   var activeMenu = null;
   var menuTrigger = null;
 
@@ -26,6 +29,8 @@
     setupUploadModal();
     var search = $("#designSearch");
     if (search) search.addEventListener("input", function () { renderTemplates(loadedTemplates); });
+    var filter = $("#designFilter");
+    if (filter) filter.addEventListener("change", function () { renderTemplates(loadedTemplates); });
     document.addEventListener("click", function (ev) { if (activeMenu && !activeMenu.contains(ev.target) && !menuTrigger.contains(ev.target)) closeCardMenu(false); });
     document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && activeMenu) { ev.preventDefault(); closeCardMenu(true); } });
     window.addEventListener("resize", function () { closeCardMenu(false); });
@@ -35,17 +40,21 @@
   // ── 1. Load & Render Templates ──────────────────────────────
   function loadTemplates(category) {
     var version = ++loadVersion;
-    var grid = $("#designsGrid");
+    var grid = $("#designsGrid") || $("#homeDesignsGrid");
     if (!grid) return;
     grid.setAttribute("aria-busy", "true");
     grid.innerHTML = '<div class="ds-loading" role="status"><div class="ds-spinner" aria-hidden="true"></div><p>Loading design templates...</p></div>';
 
-    fetch("/api/designs/templates" + (category && category !== "all" ? "?category=" + encodeURIComponent(category) : ""))
+    fetch("/api/designs/templates" + (grid.id === "homeDesignsGrid" ? "?limit=12" : category && category !== "all" ? "?category=" + encodeURIComponent(category) : ""))
       .then(function (r) { if (!r.ok) throw new Error("load"); return r.json(); })
       .then(function (res) {
         if (version !== loadVersion) return;
         if (!res || !res.success) throw new Error("load");
         loadedTemplates = res.templates || [];
+        var filter = $("#designFilter");
+        if (filter) Array.from(new Set(loadedTemplates.map(function (t) { return t.category; }).filter(Boolean))).sort().forEach(function (category) {
+          var option = document.createElement("option"); option.value = "category:" + category; option.textContent = category; filter.appendChild(option);
+        });
         if (!res || !res.success || !res.templates || !res.templates.length) {
           grid.innerHTML = '<div class="ds-empty"><h3>No design templates found</h3><p>Upload a design or thumbnail to create the first editable template!</p></div>';
           return;
@@ -61,15 +70,20 @@
   }
 
   function renderTemplates(templates) {
-    var grid = $("#designsGrid");
+    var version = ++renderVersion;
+    var grid = $("#designsGrid") || $("#homeDesignsGrid");
     if (!grid) return;
     closeCardMenu(false);
     grid.innerHTML = "";
-    var query = ($("#designSearch").value || "").trim().toLowerCase();
+    var query = ($("#designSearch") ? $("#designSearch").value : "").trim().toLowerCase();
+    var filter = $("#designFilter") ? $("#designFilter").value : "all";
     var seen = new Set();
     templates = templates.filter(function (tpl) {
       if (!tpl || !tpl.id || seen.has(String(tpl.id))) return false;
       seen.add(String(tpl.id));
+      var official = String(tpl.authorHandle || "").replace(/^@/, "").toLowerCase() === "shortscraft";
+      if ((filter === "free" && tpl.isPremium) || (filter === "premium" && !tpl.isPremium) || (filter === "official" && !official) || (filter === "community" && official)) return false;
+      if (filter.startsWith("category:") && tpl.category !== filter.slice(9)) return false;
       return [tpl.title, tpl.description, tpl.authorName, tpl.authorHandle].join(" ").toLowerCase().includes(query);
     });
     if (!templates.length) { grid.innerHTML = '<div class="ds-empty"><h3>No matching designs</h3><p>Try another search.</p></div>'; return; }
@@ -101,6 +115,7 @@
         '<div class="ds-card-thumb">',
         previewHtml,
         badgeHtml,
+        '<button type="button" class="ds-card-like" aria-label="Like ' + escapeHtml(tpl.title) + '" aria-pressed="false">♡</button>',
         '</div>',
         '<div class="ds-card-body">',
         '  <h3 class="ds-card-title">' + escapeHtml(tpl.title) + '</h3>',
@@ -122,6 +137,18 @@
       var avatarImage = card.querySelector(".sh-tcreator-avatar img");
       if (avatarImage) avatarImage.addEventListener("error", function () { this.parentElement.textContent = initials; }, {once:true});
       card.querySelector(".ds-card-menu-trigger").addEventListener("click", function () { openCardMenu(tpl, this, creatorUrl, authorHandle); });
+      card.dataset.reactionId = "design:" + tpl.id;
+      card.querySelector(".ds-card-like").addEventListener("click", async function () {
+        var button = this; if (button.disabled) return; button.disabled = true;
+        likeVersions[card.dataset.reactionId] = (likeVersions[card.dataset.reactionId] || 0) + 1;
+        try {
+          var r = await fetch("/api/designs/templates/" + encodeURIComponent(tpl.id) + "/like", {method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({active:button.getAttribute("aria-pressed") !== "true"})});
+          if (r.status === 401) { location.href = "/login?next=" + encodeURIComponent(location.pathname + location.hash); return; }
+          var j = await r.json(); if (!r.ok || !j.success) throw new Error(j.error || "Could not update like.");
+          paintLike(button, {like:j.active,likeCount:j.count});
+        } catch (err) { if (window.SC_UI) SC_UI.toast(err.message, true); }
+        finally { button.disabled = false; }
+      });
       var previewImage = card.querySelector(".ds-template-preview");
       if (previewImage && previewImage.tagName === "IMG") previewImage.addEventListener("error", function () {
         this.outerHTML = window.SCDesignPreview(Object.assign({}, tpl, {previewUrl:null,preview_url:null}));
@@ -137,6 +164,22 @@
 
       grid.appendChild(card);
     });
+    var initialLikeVersions = Object.assign({}, likeVersions);
+    fetch("/api/template-reactions?ids=" + encodeURIComponent(templates.slice(0,100).map(function (t) { return "design:" + t.id; }).join(",")))
+      .then(function (r) { if (!r.ok) throw new Error("reactions"); return r.json(); })
+      .then(function (j) { if (!j.success || version !== renderVersion) return; grid.querySelectorAll("[data-reaction-id]").forEach(function (card) {
+        var id = card.dataset.reactionId;
+        // A delayed discovery read must not overwrite a newer Like/Unlike.
+        if ((likeVersions[id] || 0) !== (initialLikeVersions[id] || 0)) return;
+        paintLike(card.querySelector(".ds-card-like"), (j.reactions || {})[id] || {});
+      }); })
+      .catch(function () { /* No optimistic likes or invented counts. */ });
+  }
+
+  function paintLike(button, state) {
+    button.setAttribute("aria-pressed", state.like === true ? "true" : "false");
+    button.textContent = state.like === true ? "♥" : "♡";
+    button.title = (Number(state.likeCount) || 0) + " likes";
   }
 
   function closeCardMenu(restoreFocus) {
@@ -156,6 +199,8 @@
     dialog.innerHTML = '<header><h2>' + escapeHtml(tpl.title) + '</h2><button type="button" class="ds-preview-close" aria-label="Close preview">×</button></header><div class="ds-preview-image">' + window.SCDesignPreview(tpl) + '</div><footer><span>' + escapeHtml(tpl.authorName || "Publisher unavailable") + '</span>' +
       (tpl.editable === false ? '<p>Only the preview is available. This design cannot be edited until its publisher restores the layers.</p>' : '<button type="button" class="ds-preview-edit">Edit design →</button>') + '</footer>';
     document.body.appendChild(dialog);
+    var publisher = editBtn.closest(".ds-card").querySelector(".ds-card-author").cloneNode(true);
+    dialog.querySelector("footer > span").replaceWith(publisher);
     var image = dialog.querySelector('.ds-template-preview');
     if (image && image.tagName === 'IMG') image.addEventListener('error',function () {
       this.outerHTML = window.SCDesignPreview(Object.assign({},tpl,{previewUrl:null,preview_url:null}));
@@ -174,7 +219,7 @@
     if (wasOpen) return;
     menuTrigger = trigger; trigger.setAttribute("aria-expanded", "true");
     var menu = document.createElement("div"); menu.className = "ds-design-menu"; menu.setAttribute("role", "menu");
-    menu.innerHTML = '<button type="button" role="menuitem" data-action="preview">View design</button>' + (tpl.editable === false ? '' : '<button type="button" role="menuitem" data-action="edit">Edit design</button>') + '<button type="button" role="menuitem" data-action="share">Copy design link</button>' +
+    menu.innerHTML = '<button type="button" role="menuitem" data-action="preview">View design</button>' + (tpl.editable === false ? '' : '<button type="button" role="menuitem" data-action="edit">Edit design</button>') + '<button type="button" role="menuitem" data-action="share">Share design</button>' +
       (authorHandle ? '<a role="menuitem" href="' + creatorUrl + '">View publisher</a>' : '');
     document.body.appendChild(menu); activeMenu = menu;
     var rect = trigger.getBoundingClientRect(), height = menu.getBoundingClientRect().height;
@@ -185,10 +230,8 @@
     if (edit) edit.onclick = function () { closeCardMenu(true); useTemplate(tpl.id, openBtn); };
     menu.querySelector('[data-action="preview"]').onclick = function () { showDesignPreview(tpl, openBtn); };
     menu.querySelector('[data-action="share"]').onclick = async function () {
-      try { await navigator.clipboard.writeText(location.origin + "/designs#" + encodeURIComponent("design-" + tpl.id));
-        if (window.SC_UI && SC_UI.toast) SC_UI.toast("Design link copied.");
-      } catch (err) { alert("Could not copy the link. Please allow clipboard access and retry."); }
       closeCardMenu(true);
+      SC_UI.share({url:location.origin + "/designs#" + encodeURIComponent("design-" + tpl.id), title:tpl.title});
     };
     menu.addEventListener("keydown", function (ev) {
       var items = Array.from(menu.querySelectorAll('[role="menuitem"]')), index = items.indexOf(document.activeElement);

@@ -23,6 +23,7 @@ app.stdout.on("data",d=>process.stdout.write(d)); app.stderr.on("data",d=>proces
     await new Promise(r=>setTimeout(r,250));
   }
   const suites=["verify_auth.js","verify_password_reset.js","verify_export.js","verify_credits.js","verify_admin.js","verify_projects.js","verify_social.js","verify_support.js","verify_publish.js","tests/referral-export-http.test.js","verify_staff.js","verify_notifications.js","verify_skills.js","verify_lottie.js","tests/design-storage-http.test.js","tests/free-release-http.test.js"];
+  suites.push("tests/desktop-polish-http.test.js");
   const requested=process.argv.slice(2);
   assert(requested.every(file=>suites.includes(file)),"Only registered local QA suites may be selected");
   for(const file of requested.length?requested:suites) {

@@ -26,6 +26,7 @@ const SCRYPT = { N: 16384, r: 8, p: 1, keylen: 64 };
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 200;
 const RESET_MINUTES = 30;
+const blockedAccount = () => ({ error: "This account is unavailable. Contact support for help.", status: 403, code: "ACCOUNT_BLOCKED" });
 
 /* ── helpers ──────────────────────────────────────────────── */
 const normEmail = (e) => String(e || "").trim().toLowerCase();
@@ -90,6 +91,7 @@ function publicUser(row) {
     instagram: row.instagram || "",
     website: row.website || "",
     location: row.location || "",
+    creatorDetails: require("./creator-details").publicDetails(row.creator_details),
     verified: isVerified(row),
     role: row.role || "user",
     // What this account may do in the admin console. The owner gets every
@@ -152,7 +154,12 @@ async function middleware(req, res, next) {
           where s.token_hash = $1 and s.expires_at > now()`,
         [sha(token)]
       );
-      if (rows[0]) {
+      if (rows[0]?.role === "banned") {
+        // Sessions are also revoked by the ban transaction. Fresh DB role
+        // checks deny a stale token even before that revocation is observed.
+        req.authBlocked = true;
+        setCookie(res, "", 0);
+      } else if (rows[0]) {
         /* Owner rights are not granted from an email list. Every request used
            to promote any account whose email appeared in SUPER_ADMIN_EMAILS,
            but signup does not prove someone owns the address they type — so a
@@ -172,14 +179,21 @@ async function middleware(req, res, next) {
 async function startSession(res, userId) {
   // Sessions past their expiry are dead weight; sweep opportunistically on
   // every new login rather than running a scheduled job for one small table.
+  // Sweep before locking a user so unrelated expired sessions cannot invert
+  // the user/session lock order used by an account ban.
   await db.query(`delete from public.sessions where expires_at < now()`);
-
-  const token = crypto.randomBytes(24).toString("base64url");
-  const expiresAt = new Date(Date.now() + SESSION_DAYS * 864e5);
-  await db.query(
-    `insert into public.sessions (token_hash, user_id, expires_at) values ($1, $2, $3)`,
-    [sha(token), userId, expiresAt]
-  );
+  const token = await db.tx(async client => {
+    // Share the user-row lock with account bans. A ban cannot finish deleting
+    // sessions and then have a concurrent login insert a new usable one.
+    const current = await client.query("select * from public.users where id = $1 for update", [userId]);
+    if (!current.rows[0] || current.rows[0].role === "banned") return null;
+    const value = crypto.randomBytes(24).toString("base64url");
+    const expiresAt = new Date(Date.now() + SESSION_DAYS * 864e5);
+    await client.query(`insert into public.sessions (token_hash, user_id, expires_at) values ($1, $2, $3)`,
+      [sha(value), userId, expiresAt]);
+    return value;
+  });
+  if (!token) return null;
   setCookie(res, token, SESSION_DAYS * 86400);
   return token;
 }
@@ -241,7 +255,7 @@ async function signUp(res, email, password, requestedHandle, referralCode = null
     throw err;
   }
   const user = rows[0];
-  await startSession(res, user.id);
+  if (!await startSession(res, user.id)) return blockedAccount();
   return { user: publicUser(user) };
 }
 
@@ -258,7 +272,7 @@ async function logIn(res, email, password) {
   const good = verifyPassword(String(password || ""), stored);
 
   if (!u || !good) return { error: "Wrong email or password." };
-  await startSession(res, u.id);
+  if (u.role === "banned" || !await startSession(res, u.id)) return blockedAccount();
   return { user: publicUser(u) };
 }
 
@@ -277,11 +291,13 @@ async function googleAccount(res, info, linkingUserId = null, referralCode = nul
       await client.query("select pg_advisory_xact_lock(hashtext($1))", ["google:" + info.sub]);
       const linked = await client.query("select * from public.users where google_sub = $1", [info.sub]);
       if (linked.rows[0]) {
+        if (linked.rows[0].role === "banned") return { error: "blocked" };
         if (linkingUserId && linked.rows[0].id !== linkingUserId) return { error: "conflict" };
         return { row: linked.rows[0] };
       }
       if (linkingUserId) {
         const own = await client.query("select * from public.users where id = $1 for update", [linkingUserId]);
+        if (own.rows[0]?.role === "banned") return { error: "blocked" };
         if (!own.rows[0] || normEmail(own.rows[0].email) !== email || own.rows[0].google_sub) return { error: "conflict" };
         const updated = await client.query("update public.users set google_sub = $2, updated_at = now() where id = $1 returning *", [linkingUserId, info.sub]);
         await require("./email-events").enqueueSafe({userId: linkingUserId,kind:"google_linked",eventKey:"linked"},client);
@@ -302,7 +318,7 @@ async function googleAccount(res, info, linkingUserId = null, referralCode = nul
     throw err;
   }
   if (result.error) return result;
-  await startSession(res, result.row.id);
+  if (!await startSession(res, result.row.id)) return { error: "blocked" };
   return { user: publicUser(result.row), created: result.created === true, linkedNow: result.linkedNow === true };
 }
 
@@ -383,7 +399,7 @@ async function resetPassword(res, token, password) {
   });
 
   if (!user) return { error: "That reset link is invalid or has expired." };
-  await startSession(res, user.id);
+  if (!await startSession(res, user.id)) return blockedAccount();
   return { user: publicUser(user) };
 }
 
@@ -466,6 +482,11 @@ async function updateProfile(userId, data) {
   const fields = [];
   const values = [userId];
   const push = (col, val) => { values.push(val); fields.push(`${col} = $${values.length}`); };
+  if (Object.hasOwn(data, "creatorDetails")) {
+    const details = require("./creator-details").normalise(data.creatorDetails);
+    if (details.error) return details;
+    push("creator_details", JSON.stringify(details.value));
+  }
 
   if (typeof data.displayName === "string") push("display_name", data.displayName.trim().slice(0, 50));
   if (typeof data.handle === "string") {

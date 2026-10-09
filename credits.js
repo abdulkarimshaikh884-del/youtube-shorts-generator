@@ -278,8 +278,11 @@ const TRANSACTION_KIND = {
   aiDetailed: "ai_detailed",
   aiAdvanced: "ai_advanced"
 };
-const bonusEnabled = () => process.env.REFERRALS_ENABLED === "true";
-const bonus = rec => bonusEnabled() ? Number(rec?.bonus_credits) || 0 : 0;
+// Pausing NEW referral rewards must never hide or confiscate earned credits.
+// SELECT * also keeps older, unmigrated schemas compatible: use bonus SQL only
+// when the locked row actually contains the additive column.
+const supportsBonus = rec => Object.prototype.hasOwnProperty.call(rec || {}, "bonus_credits");
+const bonus = rec => Math.max(0, Number(rec?.bonus_credits) || 0);
 
 function operationKey(req, kind) {
   req._creditOperationKeys = req._creditOperationKeys || {};
@@ -352,13 +355,13 @@ async function charge(req, kind) {
 
     const dailyCost = Math.min(cost, daily);
     const bonusCost = cost - dailyCost;
-    const updated = await client.query(bonusEnabled() ?
+    const updated = await client.query(supportsBonus(locked.rows[0]) ?
       `update public.credits set left_credits = left_credits - $2,
          spent = spent + $2, bonus_credits = bonus_credits - $3 where key = $1 returning *` :
       `update public.credits
           set left_credits = left_credits - $2, spent = spent + $2
         where key = $1 returning *`,
-      bonusEnabled() ? [req.credits.key, dailyCost, bonusCost] : [req.credits.key, dailyCost]
+      supportsBonus(locked.rows[0]) ? [req.credits.key, dailyCost, bonusCost] : [req.credits.key, dailyCost]
     );
     const balance = Number(updated.rows[0].left_credits) + bonus(updated.rows[0]);
     const inserted = await client.query(
@@ -397,14 +400,14 @@ async function refund(req, kind) {
     const metadata = original.rows[0]?.metadata || {};
     const dailyCost = metadata.day && metadata.day !== today() ? 0 : Number(metadata.dailyCost ?? cost);
     const bonusCost = Number(metadata.bonusCost || 0);
-    const updated = await client.query(bonusEnabled() ?
+    const updated = await client.query(supportsBonus(rec) ?
       `update public.credits set left_credits = least($2, left_credits + $3),
          spent = greatest(0, spent - $3), bonus_credits = bonus_credits + $4 where key = $1 returning *` :
       `update public.credits
           set left_credits = least($2, left_credits + $3),
               spent = greatest(0, spent - $3)
         where key = $1 returning *`,
-      bonusEnabled() ? [req.credits.key, plan.perDay, dailyCost, bonusCost] : [req.credits.key, plan.perDay, dailyCost]
+      supportsBonus(rec) ? [req.credits.key, plan.perDay, dailyCost, bonusCost] : [req.credits.key, plan.perDay, dailyCost]
     );
     const balance = Number(updated.rows[0]?.left_credits ?? rec.left_credits) + bonus(updated.rows[0]);
     await client.query(

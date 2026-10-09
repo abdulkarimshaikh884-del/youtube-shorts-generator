@@ -26,7 +26,7 @@
 
   // Native links load dedicated URL pages. Move existing controls only once;
   // the settings menu must never contain expandable forms or duplicate IDs.
-  var titles = {creations:"Creations",edit:"Edit profile",account:"Account & credits",appearance:"Appearance",notifications:"Notifications",stars:"Earnings & Stars",support:"Help & support",referrals:"Referral",followers:"Followers",following:"Following",logout:"Log out"};
+  var titles = {creations:"Creations",edit:"Edit profile",account:"Account & Earnings",appearance:"Appearance",notifications:"Notifications",stars:"Account & Earnings",support:"Help & support",referrals:"Referral",followers:"Followers",following:"Following",logout:"Log out"};
   var original = host.querySelector(".pf-settings-list");
   var menu = document.createElement("nav");
   menu.className = "pf-settings-list";
@@ -41,16 +41,20 @@
   pageHead.className = "pf-detail-head";
   var back = document.createElement("a");
   back.href = routes.settings;
-  back.className = "ig-btn ig-btn-secondary";
-  back.textContent = "← Back to Settings";
+  back.className = "ig-btn ig-btn-secondary pf-detail-back";
+  back.setAttribute("aria-label", "Back to Settings");
+  back.title = "Back to Settings";
+  back.textContent = "←";
   var heading = document.createElement("h1");
   heading.id = "accountPageHeading";
   pageHead.append(back, heading);
   detail.appendChild(pageHead);
   var views = {};
+  var inline = {};
   Array.from(original.children).forEach(function (group) {
     var name = group.getAttribute("data-settings-group");
     if (!name || !routes[name]) { menu.appendChild(group); return; }
+    if (name === "appearance" || name === "logout") { inline[name] = group; return; }
     var description = group.querySelector("small");
     var link = document.createElement("a");
     link.className = "pf-setting-row pf-setting-standalone pf-setting-link";
@@ -66,7 +70,7 @@
     arrow.setAttribute("aria-hidden", "true");
     arrow.textContent = "›";
     link.append(label, arrow);
-    menu.appendChild(link);
+    if (name !== "stars") menu.appendChild(link);
     var panel = document.createElement("section");
     panel.className = "pf-page-panel pf-setting-content";
     panel.setAttribute("data-settings-page", name);
@@ -83,6 +87,17 @@
     views[name] = panel;
     detail.appendChild(panel);
   });
+  // One account overview followed by earnings and the existing transaction ledger.
+  if (views.account && views.stars) {
+    var overview = document.createElement("h2"); overview.textContent = "Account overview";
+    views.account.prepend(overview);
+    while (views.stars.firstChild) views.account.appendChild(views.stars.firstChild);
+    var history = document.createElement("section"); history.className = "pf-transaction-history";
+    history.innerHTML = '<h2>Transaction history</h2><p class="pf-setting-note">Your credit activity, Stars records and purchases. Money features are Coming Soon.</p><div id="accountTransactionList" aria-live="polite"><p>Loading history…</p></div><button type="button" class="ig-btn ig-btn-secondary" id="accountTransactionMore" hidden>Show more</button>';
+    views.account.appendChild(history);
+    views.stars.remove(); views.stars = views.account;
+  }
+  ["appearance", "logout"].forEach(function (name) { if (inline[name]) menu.appendChild(inline[name]); });
   original.replaceWith(menu);
   host.after(detail);
   ["followers", "following"].forEach(function (name) {
@@ -98,6 +113,8 @@
   var referral = document.getElementById("referralSettings");
   if (referral) { referral.removeAttribute("aria-labelledby"); referral.setAttribute("aria-label", "Referral details"); }
   var current = Object.keys(routes).find(function (name) { return routes[name] === location.pathname.replace(/\/$/, ""); }) || "settings";
+  if (current === "stars") { location.replace(routes.account + location.search); return; }
+  if (current === "appearance" || current === "logout") { location.replace(routes.settings); return; }
   var legacy = location.hash.slice(1);
   if (legacy === "edit-profile" || legacy === "profile") legacy = "edit";
   if (current === "settings" && new URLSearchParams(location.search).has("verify") && !legacy) legacy = "referrals";
@@ -119,8 +136,13 @@
     var profile = document.querySelector(".ig-header");
     if (profile) profile.hidden = true;
     detail.hidden = false;
-    Object.keys(views).forEach(function (name) { views[name].hidden = name !== current; });
+    Object.keys(views).filter(function (name) { return name !== "stars"; }).forEach(function (name) { views[name].hidden = name !== current; });
     heading.textContent = titles[current];
+    if (current === "notifications") {
+      detail.classList.add("pf-notifications-page");
+      var markRead = document.getElementById("accountNotificationsRead");
+      if (markRead) pageHead.appendChild(markRead);
+    }
     document.title = titles[current] + " — ShortsCraft";
   } else Object.keys(views).forEach(function (name) { views[name].hidden = true; });
 

@@ -42,6 +42,7 @@ function register(app, { auth, rateLimit, publicSiteUrl, referrals, fetchImpl = 
     cookie(res, "", 0);
     const fail = (reason) => res.redirect("/login?google_error=" + reason);
     if (!configured()) return fail("unavailable");
+    if (req.user?.role === "banned" || req.authBlocked) return fail("blocked");
     const flow = unpack(raw?.slice(COOKIE.length + 1), config().secret);
     if (!flow || typeof req.query.state !== "string" || req.query.state !== flow.state || (req.user?.id || null) !== flow.userId) return fail("expired");
     if (req.query.error) return fail("cancelled");
@@ -57,6 +58,10 @@ function register(app, { auth, rateLimit, publicSiteUrl, referrals, fetchImpl = 
       const out = await auth.googleAccount(res, info, flow.userId, referrals?.readCode(req));
       if (out.error) return fail(out.error);
       await require("./auth-email").rememberBrowser(req, res, out.user, { baseline: out.created || out.linkedNow });
+      // Google linking can verify a pending invite AFTER its first export.
+      // Auxiliary reward recovery must not turn a successful sign-in into a
+      // failed OAuth callback, or require a second paid export.
+      if (referrals?.retryForUser) await referrals.retryForUser(out.user, { force: true }).catch(() => {});
       return res.redirect(safeNext(flow.next));
     } catch {
       // Never log authorization codes, access tokens or provider responses.

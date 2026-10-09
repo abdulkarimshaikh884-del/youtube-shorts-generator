@@ -14,6 +14,7 @@ function load(file, deps) {
     require(name) {
       if (Object.hasOwn(deps, name)) return deps[name];
       if (name === "./email-events") return { enqueueSafe: async () => false };
+      if (name === "./creator-details") return require("../creator-details");
       if (["crypto", "fs", "path"].includes(name)) return require(name);
       throw new Error("Unexpected dependency: " + name);
     }

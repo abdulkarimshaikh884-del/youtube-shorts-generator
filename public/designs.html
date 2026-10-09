@@ -37,7 +37,7 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100601">
 <link rel="stylesheet" href="/monochrome.css?v=2026100601">
-<link rel="stylesheet" href="/finishing.css?v=2026100503">
+<link rel="stylesheet" href="/finishing.css?v=2026100805">
 <script src="/finishing.js?v=2026100503" defer></script>
 </head>
 <body class="sh-body">
@@ -306,8 +306,11 @@
     <main class="sh-home sh-library">
       <div class="ds-page-container">
         <header class="ds-header">
-          <h1>Design</h1>
+          <h1>Designs</h1>
+          <div class="ds-discovery-controls">
+          <label class="ds-filter-label">Filter<select id="designFilter" aria-label="Filter designs"><option value="all">All designs</option><option value="free">Free</option><option value="premium">Premium</option><option value="official">Official creator</option><option value="community">Community creators</option></select></label>
           <label class="ds-search-label"><span class="sr-only">Search designs</span><input type="search" id="designSearch" placeholder="Search designs…" aria-label="Search designs"></label>
+          </div>
         </header>
 
         <!-- Templates Grid -->
@@ -488,9 +491,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026100601" defer></script>
+<script src="/authui.js?v=2026100805" defer></script>
 <script src="/theme.js?v=2026100601" defer></script>
 <script src="/report.js?v=2026100601" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
-<script src="/design-preview.js?v=2026100601" defer></script><script src="/designs.js?v=2026100602" defer></script></body>
+<script src="/design-preview.js?v=2026100601" defer></script><script src="/designs.js?v=2026100804" defer></script></body>
 </html>

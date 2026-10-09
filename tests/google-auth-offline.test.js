@@ -68,6 +68,7 @@ async function run() {
     if (name === "./db") return { query, tx: fn => fn({ query }) };
     if (name === "./permissions") return { permissionsOf: () => [] };
     if (name === "./email-events") return { enqueueSafe: async () => false };
+    if (name === "./creator-details") return require("../creator-details");
     if (name === "sharp") return {};
     return require(name);
   } });

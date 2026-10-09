@@ -40,7 +40,8 @@
 <link rel="stylesheet" href="/ds.css?v=2026100601">
 <link rel="stylesheet" href="/monochrome.css?v=2026092501">
 <link rel="stylesheet" href="/account-settings.css?v=2026100502">
-<link rel="stylesheet" href="/finishing.css?v=2026100503">
+<link rel="stylesheet" href="/finishing.css?v=2026100805">
+<link rel="stylesheet" href="/referrals.css?v=2026100901">
 <script src="/finishing.js?v=2026100503" defer></script>
 </head>
 <body class="sh-body">
@@ -427,7 +428,7 @@
               <div class="pf-setting-content" data-settings-slot="edit"></div>
             </details>
             <details class="pf-setting-group" data-settings-group="account">
-              <summary><span><strong>Account &amp; credits</strong><small>Email, Google sign-in, plan and credit balance</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <summary><span><strong>Account &amp; Earnings</strong><small>Account overview, credits, earnings and transaction history</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
               <div class="pf-setting-content" data-settings-slot="account">
                 <div class="pf-setting-row"><span><strong>Google sign-in</strong><small data-google-status role="status">Connect the Google account with the same email.</small></span><button type="button" class="ig-btn ig-btn-secondary" data-google-signin data-google-link disabled>Connect Google</button></div>
               </div>
@@ -436,8 +437,10 @@
             <details class="pf-setting-group" data-settings-group="notifications">
               <summary><span><strong>Notifications</strong><small>Manage notifications on this device</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
               <div class="pf-setting-content">
-                <div class="pf-setting-row" data-push-row hidden><span><strong>This device</strong><small id="pushSettingsText">Get notifications even when ShortsCraft is closed.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="pushSettingsBtn">Turn on</button></div>
-                <p class="pf-setting-note">Likes, comments, new followers, support replies and template decisions also appear in your notification bell. Device notifications depend on browser support.</p>
+                <div class="pf-setting-row pf-notification-permission" data-push-row hidden><span><strong>Allow notifications</strong><small id="pushSettingsText">Get notifications even when ShortsCraft is closed.</small></span><button type="button" class="ig-btn ig-btn-secondary" id="pushSettingsBtn">Turn on</button></div>
+                <button type="button" class="ig-btn ig-btn-secondary" id="accountNotificationsRead">Mark all read</button>
+                <div id="accountNotificationList" class="pf-notification-feed" aria-live="polite"><p>Loading notifications…</p></div>
+                <button type="button" class="ig-btn ig-btn-secondary" id="accountNotificationMore" hidden>Show more</button>
               </div>
             </details>
             <details class="pf-setting-group" data-settings-group="stars">
@@ -451,16 +454,21 @@
               </div>
             </details>
             <details class="pf-setting-group" data-settings-group="referrals">
-              <summary><span><strong id="referralHeading">Referral</strong><small>Invite friends · earn 10 bonus credits each</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
+              <summary><span><strong>Referral</strong><small>Invite friends · earn 10 bonus credits each</small></span><span class="pf-chevron" aria-hidden="true">›</span></summary>
               <section id="referralSettings" class="ig-pane is-active pf-setting-content" data-ig-pane="referrals" role="region" aria-labelledby="referralHeading">
-              <p class="pf-setting-note">10 bonus credits for both of you after your friend verifies their account and completes a successful export. Up to 10 rewarded referrals per month.</p>
-              <div id="referralReady" hidden>
-              <div class="pf-setting-row"><label for="referralLink">Your invite link<input id="referralLink" readonly /></label><button type="button" class="ig-btn ig-btn-secondary" id="copyReferralLink" disabled>Copy</button></div>
-              <p id="referralStats" class="pf-setting-note" aria-live="polite"></p>
-              <div class="pf-setting-row" id="referralVerifyRow" hidden><span>Verify your email to qualify when you join through an invite.</span><button type="button" class="ig-btn ig-btn-secondary" id="sendVerification">Verify email</button></div>
-              </div>
-              <p id="referralMessage" class="pf-setting-note" role="status">Loading referral details…</p>
-              <button type="button" class="ig-btn ig-btn-secondary" id="retryReferral" hidden>Retry</button>
+                <header class="rf-intro"><span class="rf-reward-mark" aria-hidden="true">+10</span><div><h2 id="referralHeading">Good things are better shared.</h2><p><strong id="referralRewardRule">10 bonus credits for you. 10 for your friend.</strong> After their new account is verified and they complete a successful export.</p></div></header>
+                <ol class="rf-steps" aria-label="How referrals work"><li><span>1</span>Friend joins with your link</li><li><span>2</span>Verifies their account</li><li><span>3</span>Completes an export</li></ol>
+                <div id="referralConfirmPanel" class="rf-notice" hidden><div><strong>Confirm your email</strong><p>Continue only if you opened the verification email for this account. Opening this page does not verify it.</p></div><button type="button" class="ig-btn ig-btn-primary" id="confirmReferralEmail">Confirm email</button><p id="referralConfirmMessage" role="status"></p></div>
+                <div class="rf-state" id="referralState" data-state="loading"><span class="rf-spinner" aria-hidden="true"></span><p id="referralMessage" role="status">Loading referral details…</p><button type="button" class="ig-btn ig-btn-secondary" id="retryReferral" hidden>Retry</button></div>
+                <div id="referralReady" hidden>
+                  <section class="rf-invite" id="referralInvitePanel" aria-labelledby="referralInviteHeading"><div class="rf-section-head"><h3 id="referralInviteHeading">Your invite link</h3><span class="rf-verified" id="referralVerificationBadge" hidden>Verified account</span></div><div class="rf-link-row"><label class="rf-sr-only" for="referralLink">Your invite link</label><input id="referralLink" readonly autocomplete="off" spellcheck="false" /><button type="button" class="ig-btn ig-btn-primary" id="copyReferralLink" disabled>Copy</button><button type="button" class="ig-btn ig-btn-secondary" id="shareReferralLink" disabled>Share</button></div><p id="referralFeedback" class="rf-feedback" role="status"></p></section>
+                  <div class="rf-stats" aria-label="Your referral totals"><div><span>Total invited</span><strong id="referralTotal">—</strong></div><div><span>Pending</span><strong id="referralPending">—</strong></div><div><span>Bonus earned</span><strong id="referralBonus">—</strong></div><div><span>This month</span><strong id="referralMonth">—</strong></div></div>
+                  <p id="referralStats" class="rf-sr-only" aria-live="polite"></p>
+                  <p id="referralCapNotice" class="rf-caption"></p>
+                  <div class="rf-notice" id="referralVerifyRow" hidden><div><strong>Verify your email</strong><p>Needed to receive a reward if you joined through an invite. Your friend's account must also be verified.</p></div><button type="button" class="ig-btn ig-btn-secondary" id="sendVerification">Verify email</button><p id="referralVerificationMessage" role="status"></p></div>
+                  <section class="rf-history" aria-labelledby="referralHistoryHeading"><div class="rf-section-head"><h3 id="referralHistoryHeading">Referral activity</h3><span>Private to you</span></div><p id="referralHistoryMessage" class="rf-caption" role="status">Loading activity…</p><ul id="referralHistoryList" aria-label="Referral activity"></ul><button type="button" class="ig-btn ig-btn-secondary" id="retryReferralHistory" hidden>Retry activity</button><button type="button" class="ig-btn ig-btn-secondary" id="moreReferralHistory" hidden>Show more</button></section>
+                </div>
+                <p class="rf-fine-print">Up to 10 rewarded referrals per calendar month (UTC). If the limit is reached, that referral does not earn a reward for either person; it is not queued for next month. Existing accounts and self-referrals do not qualify. Bonus credits are not cash or Stars.</p>
               </section>
             </details>
             <a class="pf-setting-row pf-setting-standalone pf-admin-link" href="/admin" data-auth="admin" hidden><span><strong>Admin Console</strong><small>Manage templates, categories and reports</small></span><span aria-hidden="true">›</span></a>
@@ -689,6 +697,19 @@
                 </div>
               </div>
 
+              <h3>Creator details &amp; social links</h3>
+              <p class="pf-setting-note">Optional. Everything below is public on your creator profile. Do not add private account or payment information.</p>
+              <div class="ig-grid-2">
+                <div class="ig-field"><label class="ig-label" for="pageCreatorType">Creator type</label><select class="ig-input" id="pageCreatorType" data-creator-detail="creatorType"><option value="">Not specified</option><option>Video creator</option><option>Motion designer</option><option>Thumbnail designer</option><option>Educator</option><option>Agency / Studio</option><option>Other</option></select></div>
+                <div class="ig-field"><label class="ig-label" for="pageNiche">Content niche / specialties</label><input class="ig-input" id="pageNiche" data-creator-detail="niche" maxlength="80" placeholder="Tech, finance, gaming, storytelling…"></div>
+                <div class="ig-field"><label class="ig-label" for="pageLanguages">Content languages</label><input class="ig-input" id="pageLanguages" data-creator-detail="languages" maxlength="100" placeholder="Hindi, English…"></div>
+                <div class="ig-field"><label class="ig-label" for="pageBusinessEmail">Public business email</label><input type="email" class="ig-input" id="pageBusinessEmail" data-creator-detail="businessEmail" maxlength="180" placeholder="collabs@example.com"></div>
+                <div class="ig-field"><label class="ig-label" for="pagePortfolio">Portfolio URL</label><input type="url" class="ig-input" id="pagePortfolio" data-creator-detail="portfolio" maxlength="300" placeholder="https://your-portfolio.com"></div>
+                <div class="ig-field"><label class="ig-label" for="pageTelegram">Telegram URL</label><input type="url" class="ig-input" id="pageTelegram" data-creator-detail="telegram" maxlength="300" placeholder="https://t.me/channel"></div>
+                <div class="ig-field"><label class="ig-label" for="pageX">X / Twitter URL</label><input type="url" class="ig-input" id="pageX" data-creator-detail="x" maxlength="300" placeholder="https://x.com/creator"></div>
+                <div class="ig-field"><label class="ig-label" for="pageLinkedin">LinkedIn URL</label><input type="url" class="ig-input" id="pageLinkedin" data-creator-detail="linkedin" maxlength="300" placeholder="https://linkedin.com/in/creator"></div>
+                <div class="ig-field"><label class="ig-label" for="pageTiktok">TikTok URL</label><input type="url" class="ig-input" id="pageTiktok" data-creator-detail="tiktok" maxlength="300" placeholder="https://tiktok.com/@creator"></div>
+              </div>
               <div class="ig-form-foot">
                 <span id="pageProfileMsg" class="ig-msg"></span>
                 <button type="button" class="ig-btn ig-btn-secondary" id="pageCancelProfileBtn">Cancel</button>
@@ -711,12 +732,11 @@
             </svg>
           </span>
           <h2>Log in to see your account</h2>
-          <p class="pg-gate-fine">Appearance is available without signing in.</p>
-          <button type="button" class="ig-btn ig-btn-secondary" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark theme</span></button>
           <div class="pg-row pg-gate-row">
             <a href="/login?next=/account" class="pg-bw">Log in</a>
             <a href="/signup?next=/account" class="pg-bo">Create an account</a>
           </div>
+          <div class="pf-guest-appearance"><span><strong>Appearance</strong><small>Choose your theme · no login needed</small></span><button type="button" class="ig-btn ig-btn-secondary" data-theme-toggle aria-pressed="false"><span data-theme-label>Dark theme</span></button></div>
           <ul class="pg-gate-list">
             <li>Your plan and daily credit balance in one place</li>            <li>Templates you publish stay tied to your creator name</li>            <li>Drafts and settings follow you to any device</li>
           </ul>
@@ -786,11 +806,11 @@
 </nav>
 
 <script src="/account-routes.js?v=2026100502" defer></script>
-<script src="/account-settings.js?v=2026100502" defer></script>
-<script src="/authui.js?v=2026100601" defer></script>
+<script src="/account-settings.js?v=2026100805" defer></script>
+<script src="/authui.js?v=2026100805" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
-<script src="/referrals.js?v=2026100502" defer></script>
+<script src="/referrals.js?v=2026100901" defer></script>
 <script src="/templates-v2.js?v=2026092501"></script></body>
 </html>

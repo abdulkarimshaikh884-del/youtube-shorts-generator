@@ -13,6 +13,7 @@
      request that may have created one; a timer catches anything else. */
 const webpush = require("web-push");
 const db = require("./db");
+const notificationControls = require("./notification-controls");
 
 /* Accounts on the reserved .invalid domain cannot receive mail, so no real
    person owns one; the test suites use them. Their activity is never
@@ -277,11 +278,12 @@ async function flush() {
          update public.notifications n set pushed_at = now()
            from batch where n.id = batch.id
          returning n.id, n.user_id, n.actor_id, n.type, n.entity_type, n.entity_id, n.message,
-                   (n.created_at > now() - interval '15 minutes') as fresh`
+                   (n.created_at > now() - interval '15 minutes') as fresh,
+                   ${notificationControls.mutedSQL("n")} as muted`
       );
       if (!rows.length) break;
       if (rows.length === 50) pending = true;
-      const fresh = rows.filter((r) => r.fresh);
+      const fresh = rows.filter((r) => r.fresh && !r.muted);
       if (!fresh.length) continue;
 
       const userIds = [...new Set(fresh.map((r) => r.user_id))];

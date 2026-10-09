@@ -12,6 +12,7 @@ const routes = require("../public/account-routes");
 let role = "user", saveFails = false, referralMode = "disabled", emailFails = false, verified = false;
 let user = {id:"qa-profile",email:"preview@example.test",handle:"preview_creator",displayName:"Preview Creator",plan:"free",role:"user",createdAt:"2026-10-01",followers:0,following:0};
 const mutations = [], errors = [], confirmations = [];
+let verificationSends = 0;
 function fixture(url, request) {
   if (url.pathname === "/api/auth/me") return {success:true,user:role ? {...user,role} : null};
   if (url.pathname === "/api/credits") return {success:true,plan:"free",planLabel:"Free",left:5,dailyLeft:5,perDay:5,bonusCredits:0,cost:{export:1,animate:2}};
@@ -20,7 +21,7 @@ function fixture(url, request) {
     if (referralMode === "disabled") return {success:true,enabled:false};
     return {success:true,enabled:true,code:"qa_code_12345678",reward:10,monthlyLimit:10,rewarded:3,pending:2,this_month:1,emailVerified:verified};
   }
-  if (url.pathname === "/api/auth/verification/send") return emailFails ? {error:"Verification email could not be sent. Please retry later."} : {success:true,message:"Check your inbox for a verification link."};
+  if (url.pathname === "/api/auth/verification/send") { verificationSends++; return emailFails ? {error:"Verification email could not be sent. Please retry later."} : {success:true,message:"Check your inbox for a verification link."}; }
   if (url.pathname === "/api/auth/verification/confirm") { confirmations.push(JSON.parse(request.postData())); verified = true; return {success:true}; }
   if (url.pathname === "/api/auth/google/config") return {enabled:false};
   if (url.pathname === "/api/auth/profile") {
@@ -31,7 +32,7 @@ function fixture(url, request) {
   }
   if (url.pathname === "/api/user/creations") return {success:true,creations:[{id:"qa-preview-template",tpl:"text-cascade",title:"Preview animation (test fixture)",status:"published"}]};
   if (url.pathname === "/api/stars/wallet") return {success:true,canWithdraw:false,balance:0};
-  return {success:true,templates:[],items:[],notifications:[],creations:[],projects:[],tickets:[],users:[],followers:[],following:[],balance:0};
+  return {success:true,templates:[],items:[],notifications:[],unread:0,total:0,creations:[],projects:[],tickets:[],users:[],followers:[],following:[],balance:0,transactions:[],hasMore:false};
 }
 (async () => {
   const canonical = ["public/account.html","public/settings.html"];
@@ -57,8 +58,12 @@ function fixture(url, request) {
       await page.goto(base+route,{waitUntil:"domcontentloaded"});
       const target = new URL(base+route);
       const legacy = ["profile","edit-profile"].includes(target.hash.slice(1)) ? "edit" : target.hash.slice(1);
-      const expected = routes[legacy] || (target.pathname === "/settings" ? "/account" : target.pathname);
-      await page.waitForFunction(path=>location.pathname===path && window.SC_ACCOUNT_NAV && window.SC_ACCOUNT && document.querySelector("#accountBox").hidden === false,{},expected);
+      const initial = routes[legacy] || (target.pathname === "/settings" ? "/account" : target.pathname);
+      const expected = initial === routes.stars ? routes.account : [routes.appearance,routes.logout].includes(initial) ? routes.settings : initial;
+      await page.waitForFunction(path=>location.pathname===path && window.SC_ACCOUNT_NAV && window.SC_ACCOUNT && document.querySelector("#accountBox").hidden === false && document.querySelector('[data-theme-toggle]').hasAttribute('aria-pressed'),{},expected);
+      // Verify the alias redirect above, then load its canonical destination.
+      // This avoids clicking the outgoing document during a client redirect.
+      if ([routes.appearance,routes.logout].includes(target.pathname)) await page.goto(base+expected,{waitUntil:"networkidle2"});
     };
     const visible = selector => page.$eval(selector,e=>e.checkVisibility({visibilityProperty:true}));
     for (const width of process.argv.includes("--flows-only") ? [] : [320,390,768,1440]) {
@@ -91,23 +96,28 @@ function fixture(url, request) {
         assert.equal(new URL(page.url()).pathname,routes.settings);
         assert.equal(await visible("#igPaneCreations"),false);
         await go(routes.appearance);
-        await page.click("#accountDetail [data-theme-toggle]");
+        await page.$eval('#igPaneSettings [data-theme-toggle]',e=>e.scrollIntoView({block:'center'}));
+        await page.click("#igPaneSettings [data-theme-toggle]");
         assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme==="light"?"dark":"light");
         await page.reload({waitUntil:"networkidle2"});
         assert.equal(await page.evaluate(()=>document.documentElement.dataset.theme),theme==="light"?"dark":"light");
         for (const [hash,name] of [["creations","creations"],["edit-profile","edit"],["account","account"],["stars","stars"],["support","support"],["referrals","referrals"]]) {
           await go("/account#"+hash);
-          assert.equal(new URL(page.url()).pathname,routes[name],"Legacy hash redirects to dedicated page");
+          const pane = name === "stars" ? "account" : name;
+          assert.equal(new URL(page.url()).pathname,routes[pane],"Legacy hash redirects to dedicated page");
           assert(await visible("#accountDetail"));
-          assert(await visible(`[data-settings-page="${name}"]`));
+          assert(await visible(`[data-settings-page="${pane}"]`));
           assert.equal(await visible("#igPaneSettings"),false);
           assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
         }
-        for (const name of ["notifications","logout"]) {
+        for (const name of ["notifications"]) {
           await go(routes[name]);
           assert(await visible(`[data-settings-page="${name}"]`));
           assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
         }
+        await go(routes.logout);
+        assert.equal(new URL(page.url()).pathname,routes.settings,"Legacy logout URL returns to the inline action without logging out");
+        assert(await visible("#igPaneSettings #accLogout"));
         console.log(`PASS profile/settings ${width}px ${theme}: links, dedicated URL pages, back/reload, legacy redirects, theme persistence, privacy, no overflow`);
       }
     }
@@ -151,10 +161,14 @@ function fixture(url, request) {
     assert.equal(await visible("#referralReady"),false);
     assert.match(await page.$eval("#referralMessage",e=>e.textContent),/not available yet/);
     assert.equal(await page.$eval("#copyReferralLink",e=>e.disabled),true);
+    assert.equal(await page.$eval("#shareReferralLink",e=>e.disabled),true);
+    assert.equal(await page.$eval("#referralLink",e=>e.value),"");
+    assert.equal(await visible("#retryReferral"),false,"A deliberately disabled feature is not a retryable outage");
     referralMode = "error";
-    await page.click("#retryReferral");
+    await go(routes.referrals);
     await page.waitForFunction(()=>document.querySelector("#referralMessage").textContent.includes("temporarily unavailable"));
     assert.equal(await visible("#referralReady"),false);
+    assert(await visible("#retryReferral"),"A temporary outage has an explicit retry action");
     referralMode = "ready";
     await page.click("#retryReferral");
     await page.waitForFunction(()=>!document.querySelector("#referralReady").hidden);
@@ -165,23 +179,37 @@ function fixture(url, request) {
     await page.waitForFunction(()=>window.qaCopied);
     assert.equal(await page.evaluate(()=>window.qaCopied),base+"/signup?ref=qa_code_12345678");
     emailFails = true;
+    const beforeSend = verificationSends;
     await page.click("#sendVerification");
-    await page.waitForFunction(()=>document.querySelector("#referralMessage").textContent.includes("could not be sent"));
-    assert.equal(await page.$eval("#sendVerification",e=>e.disabled),false);
+    await page.waitForFunction(()=>document.querySelector("#referralVerificationMessage").textContent.includes("could not be sent"));
+    assert.equal(await page.$eval("#sendVerification",e=>e.disabled),true,"Failed/ambiguous sends still respect resend cooldown");
+    assert.match(await page.$eval("#sendVerification",e=>e.textContent),/Resend in \d+s/);
+    await page.click("#sendVerification");
+    assert.equal(verificationSends,beforeSend+1,"A disabled button cannot trigger a duplicate send");
+    // Advance only the isolated browser's clock; never wait or retry a provider.
+    await page.evaluate(()=>{const original=Date.now;Date.now=()=>original()+61000;});
+    await page.waitForFunction(()=>!document.querySelector("#sendVerification").disabled);
     emailFails = false;
     await page.click("#sendVerification");
-    await page.waitForFunction(()=>document.querySelector("#referralMessage").textContent.includes("Check your inbox"));
+    await page.waitForFunction(()=>document.querySelector("#referralVerificationMessage").textContent.includes("Check your inbox"));
+    assert.equal(verificationSends,beforeSend+2,"A second send happens only after explicit action following cooldown");
     const verificationToken = "a".repeat(43);
     await go("/account?verify="+verificationToken+"#referrals");
-    // go() only establishes account-shell readiness. Confirmation continues
-    // asynchronously through auth, confirm, referral refresh and URL cleanup.
+    // Legacy URL resolves to the dedicated page; page load only strips the
+    // sensitive token. It must not consume it until explicit confirmation.
+    await page.waitForFunction(()=>!new URL(location.href).searchParams.has("verify") &&
+      document.querySelector("#referralState").dataset.state === "ready" &&
+      !document.querySelector("#confirmReferralEmail").disabled);
+    assert.deepEqual(confirmations,[],"Opening a verification link must not perform a confirmation POST");
+    assert.equal(await visible("#referralVerifyRow"),true,"An unverified account stays unverified until confirmation");
+    await page.click("#confirmReferralEmail");
     await page.waitForFunction(()=>!new URL(location.href).searchParams.has("verify") &&
       document.querySelector("#referralVerifyRow").hidden &&
-      document.querySelector("#referralMessage").textContent.includes("Your email is verified."));
+      document.querySelector("#referralConfirmMessage").textContent.includes("Your email is verified."));
     assert.deepEqual(confirmations,[{token:verificationToken}],"The verification endpoint receives the exact token once");
     assert.equal(new URL(page.url()).searchParams.has("verify"),false,"Verification token removed from address bar");
     assert.equal(await visible("#referralVerifyRow"),false);
-    assert.match(await page.$eval("#referralMessage",e=>e.textContent),/email is verified/);
+    assert.match(await page.$eval("#referralConfirmMessage",e=>e.textContent),/email is verified/);
     await page.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
     await page.evaluate(()=>document.querySelector("#referralSettings").scrollIntoView({block:"center"}));
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
@@ -191,7 +219,7 @@ function fixture(url, request) {
       document.querySelector("#referralVerifyRow").hidden &&
       document.querySelector("#referralMessage").textContent.includes("Your account is verified."));
     assert.deepEqual(confirmations,[{token:verificationToken}],"Reload after URL cleanup must not replay verification");
-    console.log("PASS referral UI fixtures: unavailable, outage/retry, actual response fields, copy, verification send/error, confirmation cleanup, mobile overflow. Provider delivery and reward grants tested separately.");
+    console.log("PASS referral UI fixtures: disabled/no Retry, outage/retry, actual response fields, copy, verification send/error/cooldown, explicit confirmation and token cleanup, mobile overflow. Provider delivery and reward grants tested separately.");
     role=null;
     await page.goto(base+"/settings",{waitUntil:"networkidle2"});
     assert.equal(await visible("#accountBox"),false);

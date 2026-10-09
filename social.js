@@ -8,6 +8,7 @@
 const crypto = require("crypto");
 const db = require("./db");
 const notify = require("./notify");
+const notificationControls = require("./notification-controls");
 const verified = require("./verified");
 const { PLANS } = require("./credits");
 const releasePolicy = require("./release-policy");
@@ -763,7 +764,7 @@ async function listNotifications(user, limit = 30) {
   const { rows } = await db.query(
     `select n.*, u.display_name as actor_name, u.handle as actor_handle,
             ${verified.sql("u")} as actor_verified, (u.avatar_bytes is not null) as actor_has_avatar,
-            ct.tpl as tpl
+            ct.tpl as tpl, ${notificationControls.mutedSQL("n")} as muted
        from public.notifications n
        left join public.users u on u.id = n.actor_id
        left join public.community_templates ct on n.entity_type = 'template' and ct.id = n.entity_id
@@ -776,8 +777,8 @@ async function listNotifications(user, limit = 30) {
   // reported ten, and "show more" had no way to know whether more existed.
   const { rows: totals } = await db.query(
     `select count(*)::int as total,
-            count(*) filter (where read_at is null)::int as unread
-       from public.notifications where user_id = $1`,
+            count(*) filter (where read_at is null and not ${notificationControls.mutedSQL("n")})::int as unread
+       from public.notifications n where user_id = $1`,
     [user.id]
   );
   return {
@@ -792,7 +793,8 @@ async function listNotifications(user, limit = 30) {
       message: row.message,
       // Where tapping it goes: the same link a phone notification opens.
       url: notify.urlFor(row),
-      read: Boolean(row.read_at),
+      read: Boolean(row.read_at) || row.muted === true,
+      muted: row.muted === true,
       createdAt: row.created_at,
       actor: row.actor_id ? {
         id: row.actor_id,
@@ -814,11 +816,11 @@ async function unreadSummary(user) {
             (u.avatar_bytes is not null) as actor_has_avatar, ct.tpl as tpl,
             ${verified.sql("u")} as actor_verified,
             (select count(*)::int from public.notifications x
-              where x.user_id = $1 and x.read_at is null) as unread
+              where x.user_id = $1 and x.read_at is null and not ${notificationControls.mutedSQL("x")}) as unread
        from public.notifications n
        left join public.users u on u.id = n.actor_id
        left join public.community_templates ct on n.entity_type = 'template' and ct.id = n.entity_id
-      where n.user_id = $1 and n.read_at is null
+      where n.user_id = $1 and n.read_at is null and not ${notificationControls.mutedSQL("n")}
       order by n.created_at desc limit 1`,
     [user.id]
   );

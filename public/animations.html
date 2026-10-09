@@ -37,7 +37,7 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100601">
 <link rel="stylesheet" href="/monochrome.css?v=2026100601">
-<link rel="stylesheet" href="/finishing.css?v=2026100503">
+<link rel="stylesheet" href="/finishing.css?v=2026100805">
 <script src="/finishing.js?v=2026100503" defer></script>
 </head>
 <body class="sh-body">
@@ -306,15 +306,15 @@
     <main class="sh-home sh-library">
     <section class="pg-head">
       <h1>Animations</h1>
+      <div class="sh-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="tplSearch" aria-label="Search animations" placeholder="Search animations…" autocomplete="off">
+        <button type="button" id="tplSearchClear" aria-label="Clear search" hidden>×</button>
+      </div>
     </section>
       <section class="sh-gallery-sec" id="templates">
         <div class="sh-ghead">
           <div class="sh-search-bar-row">
-            <div class="sh-search-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="tplSearch" placeholder="Search 59 motion templates..." autocomplete="off">
-              <button type="button" id="tplSearchClear" hidden>×</button>
-            </div>
             <div class="sh-lib-controls">
               <label class="sh-lib-select"><span>Sort</span>
                 <select id="tplSort" aria-label="Sort animations">
@@ -410,9 +410,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026100601" defer></script>
+<script src="/authui.js?v=2026100805" defer></script>
 <script src="/theme.js?v=2026100601" defer></script>
 <script src="/report.js?v=2026100601" defer></script>
 
-<script src="/templates-v2.js?v=2026100601" defer></script><script src="/shell.js?v=2026100601" defer></script></body>
+<script src="/templates-v2.js?v=2026100601" defer></script><script src="/shell.js?v=2026100804" defer></script></body>
 </html>

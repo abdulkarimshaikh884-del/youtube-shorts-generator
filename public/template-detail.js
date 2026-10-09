@@ -408,20 +408,7 @@
     if (shareBtn) {
       shareBtn.addEventListener("click", function () {
         var url = window.location.href;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url).then(function () {
-            recordEvent("share");
-            var sp = shareBtn.querySelector("span");
-            if (sp) sp.textContent = "Copied Link!";
-            shareBtn.classList.add("copied");
-            setTimeout(function () {
-              if (sp) sp.textContent = "Share";
-              shareBtn.classList.remove("copied");
-            }, 2200);
-          });
-        } else {
-          SC_UI.copy(url, "Link copied");
-        }
+        SC_UI.share({url:url,title:document.title,onShared:function () { recordEvent("share"); }});
       });
     }
 

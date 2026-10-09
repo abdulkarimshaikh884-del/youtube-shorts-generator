@@ -270,7 +270,7 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100601">
 <link rel="stylesheet" href="/monochrome.css?v=2026100601">
-<link rel="stylesheet" href="/finishing.css?v=2026100503">
+<link rel="stylesheet" href="/finishing.css?v=2026100805">
 <script src="/finishing.js?v=2026100503" defer></script>
 </head>
 <body class="sh-body">
@@ -541,6 +541,7 @@
         <div>
           <h1>Creator Tutorials</h1>
         </div>
+        <label class="sk-search"><span class="sr-only">Search creator tutorials</span><input type="search" id="tutorialSearch" aria-label="Search creator tutorials" placeholder="Search tutorials, topics or creators…"></label>
         <button type="button" class="sk-share-btn" id="skShareBtn">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
           Share a tutorial
@@ -651,7 +652,7 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026100601" defer></script>
+<script src="/authui.js?v=2026100805" defer></script>
 <script src="/theme.js?v=2026100601" defer></script>
 <script src="/report.js?v=2026100601" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
@@ -790,7 +791,7 @@
      owner — taking it down. No greyed-out entries for actions you cannot do. */
   function menu(s, platform) {
     var items =
-      '<button class="sk-mi" type="button" data-act="copy">' + ICON.link + "Copy link</button>" +
+      '<button class="sk-mi" type="button" data-act="copy">' + ICON.link + "Share tutorial</button>" +
       '<a class="sk-mi" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' +
         ICON.open + "Open on " + esc(platform) + "</a>" +
       (s.canDelete
@@ -825,19 +826,8 @@
     var copyBtn = pop.querySelector('[data-act="copy"]');
     if (copyBtn) {
       copyBtn.addEventListener("click", function () {
-        // The label is the confirmation. A toast somewhere else on the page
-        // would be feedback for a click that happened here.
-        var done = function (text) {
-          copyBtn.lastChild.textContent = text;
-          setTimeout(function () { copyBtn.lastChild.textContent = "Copy link"; closeMenu(); }, 900);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(s.url)
-            .then(function () { done("Copied"); })
-            .catch(function () { done("Could not copy"); });
-        } else {
-          done("Could not copy");
-        }
+        closeMenu();
+        SC_UI.share({url:s.url,title:s.title});
       });
     }
 
@@ -871,13 +861,21 @@
     }
   }
 
+  var tutorialItems = [];
+  var searchTutorials = document.getElementById("tutorialSearch");
+  if (searchTutorials) searchTutorials.addEventListener("input", function () { render(tutorialItems); });
   function render(list) {
+    tutorialItems = list;
+    var query = searchTutorials ? searchTutorials.value.trim().toLowerCase() : "";
+    list = list.filter(function (s) { return [s.title, s.summary, s.description, s.platform, s.author && (s.author.displayName || s.author.name), s.author && s.author.handle].join(" ").toLowerCase().includes(query); });
     // Whatever menu was open belonged to a card that is about to stop
     // existing; leaving the reference behind leaves it pointing at a
     // detached node.
     closeMenu();
     grid.innerHTML = "";
     if (!list.length) {
+      empty.querySelector("h3").textContent = query ? "No matching tutorials" : "No tutorials yet";
+      empty.querySelector("p").textContent = query ? "Try another topic or creator name." : "Share a tutorial to help other creators.";
       grid.hidden = true;
       empty.hidden = false;
       return;
@@ -891,7 +889,7 @@
 
   function load() {
     return fetch("/api/skills", { headers: { Accept: "application/json" } })
-      .then(function (r) { return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error("Tutorials unavailable"); return r.json(); })
       .then(function (j) { render((j && j.skills) || []); })
       .catch(function () {
         // A failed load must not look like an empty community.

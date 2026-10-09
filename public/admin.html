@@ -38,8 +38,8 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100601">
 <link rel="stylesheet" href="/monochrome.css?v=2026100601">
-<link rel="stylesheet" href="/admin.css?v=2026100101">
-<link rel="stylesheet" href="/finishing.css?v=2026100503">
+<link rel="stylesheet" href="/admin.css?v=2026100901">
+<link rel="stylesheet" href="/finishing.css?v=2026100805">
 <script src="/finishing.js?v=2026100503" defer></script>
 </head>
 <body class="sh-body">
@@ -324,9 +324,11 @@
           </div>
         </header>
 
-        <!-- Navigation: Scroller for Desktop, Select for Mobile -->
+        <div class="admin-workspace">
+        <!-- Persistent navigation; the same section IDs drive the mobile chooser. -->
         <nav class="admin-nav-container" aria-label="Admin Navigation">
           <div class="admin-mobile-nav">
+            <label for="adminMobileTabSelect">Admin section</label>
             <select id="adminMobileTabSelect" aria-label="Select Admin Section">
               <option value="overview">📊 Overview & Dashboard</option>
               <option value="users">👥 Users Database</option>
@@ -345,15 +347,26 @@
             </select>
           </div>
           <div class="admin-nav-scroller" id="adminTabNav">
+            <div class="admin-nav-group" data-admin-group>
+            <h2>Workspace</h2>
             <button type="button" class="admin-nav-item" data-admin-tab="overview" data-perm="overview.view" aria-pressed="true">
               <span>📊</span> Overview
             </button>
+            </div>
+            <div class="admin-nav-group" data-admin-group>
+            <h2>People</h2>
             <button type="button" class="admin-nav-item" data-admin-tab="users" data-perm="users.view" aria-pressed="false">
               <span>👥</span> Users
             </button>
             <button type="button" class="admin-nav-item" data-admin-tab="creators" data-perm="users.view" aria-pressed="false">
               <span>🎨</span> Creators
             </button>
+            <button type="button" class="admin-nav-item" data-admin-tab="team" data-perm="owner" aria-pressed="false" hidden>
+              <span>🛡️</span> Team &amp; Roles
+            </button>
+            </div>
+            <div class="admin-nav-group" data-admin-group>
+            <h2>Content</h2>
             <button type="button" class="admin-nav-item" data-admin-tab="content" data-perm="templates.moderate" aria-pressed="false">
               <span>🎬</span> Templates
             </button>
@@ -363,6 +376,9 @@
             <button type="button" class="admin-nav-item" data-admin-tab="reports" data-perm="reports.review" aria-pressed="false">
               <span>🚩</span> Reports
             </button>
+            </div>
+            <div class="admin-nav-group" data-admin-group>
+            <h2>Money <span class="admin-soon">Coming Soon</span></h2>
             <button type="button" class="admin-nav-item" data-admin-tab="withdrawals" data-perm="withdrawals.manage" aria-pressed="false">
               <span>💰</span> Withdrawals <span class="admin-nav-badge" id="adNavWithdrawalsBadge" hidden>0</span>
             </button>
@@ -372,24 +388,30 @@
             <button type="button" class="admin-nav-item" data-admin-tab="star_packs" data-perm="star_packs.manage" aria-pressed="false">
               <span>🎁</span> Star Packs
             </button>
+            </div>
+            <div class="admin-nav-group" data-admin-group>
+            <h2>Platform</h2>
             <button type="button" class="admin-nav-item" data-admin-tab="ai_jobs" data-perm="ai_jobs.view" aria-pressed="false">
               <span>⚡</span> AI Jobs
             </button>
             <button type="button" class="admin-nav-item" data-admin-tab="broadcast" data-perm="notifications.broadcast" aria-pressed="false">
               <span>📢</span> Broadcast
             </button>
-            <button type="button" class="admin-nav-item" data-admin-tab="team" data-perm="owner" aria-pressed="false" hidden>
-              <span>🛡️</span> Team &amp; Roles
-            </button>
+            </div>
+            <div class="admin-nav-group" data-admin-group>
+            <h2>Operations</h2>
             <button type="button" class="admin-nav-item" data-admin-tab="support" data-perm="support.reply" aria-pressed="false">
               <span>💬</span> Support
             </button>
-            <button type="button" class="admin-nav-item" data-admin-tab="system" data-perm="flags.manage" aria-pressed="false">
+            <button type="button" class="admin-nav-item" data-admin-tab="system" data-perm="flags.manage audit.view" aria-pressed="false">
               <span>⚙️</span> System
             </button>
+            </div>
           </div>
         </nav>
 
+        <div class="admin-content">
+        <div class="admin-section-heading"><h2 id="adminSectionTitle">Overview</h2><p id="adminSectionDescription">Account activity and operational overview.</p></div>
         <!-- 1. OVERVIEW PANEL -->
         <section class="admin-panel" data-admin-panel="overview">
           <div class="admin-kpi-grid">
@@ -444,7 +466,7 @@
           <div class="admin-quick-actions">
             <span class="admin-quick-title">Quick Actions:</span>
             <button type="button" class="admin-btn admin-btn-outline" data-admin-jump="content">🎬 Review Templates</button>
-            <button type="button" class="admin-btn admin-btn-outline" data-admin-jump="withdrawals">💰 Approve Withdrawals</button>
+            <button type="button" class="admin-btn admin-btn-outline" data-admin-jump="withdrawals">💰 View Withdrawals</button>
             <button type="button" class="admin-btn admin-btn-outline" data-admin-jump="users">👥 Manage Users</button>
             <button type="button" class="admin-btn admin-btn-outline" data-admin-jump="broadcast">📢 Send Broadcast</button>
             <button type="button" class="admin-btn admin-btn-outline" data-admin-jump="team" id="adQuickTeamBtn" hidden>🛡️ Manage Team</button>
@@ -472,6 +494,7 @@
                   <option value="sub_admin">Sub Admin</option>
                   <option value="moderator">Moderator</option>
                   <option value="user">Member (User)</option>
+                  <option value="banned">Banned</option>
                 </select>
                 <select class="admin-select" id="adminUserPlanFilter" aria-label="Filter plan">
                   <option value="all">All Plans</option>
@@ -785,7 +808,7 @@
 
         <!-- 14. SYSTEM & AUDIT LOGS PANEL -->
         <section class="admin-panel" data-admin-panel="system" hidden>
-          <div class="admin-card-panel">
+          <div class="admin-card-panel" data-admin-permission="flags.manage">
             <div class="admin-panel-toolbar">
               <h3 style="margin:0; font-size:16px;">Feature Flags</h3>
               <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="system">Refresh</button>
@@ -793,7 +816,7 @@
             <div class="admin-list" id="adminFlagList"><p>Loading feature flags…</p></div>
           </div>
 
-          <div class="admin-card-panel">
+          <div class="admin-card-panel" data-admin-permission="audit.view">
             <div class="admin-panel-toolbar">
               <h3 style="margin:0; font-size:16px;">System Audit Trail</h3>
               <input class="admin-search-input" id="adminAuditSearch" type="search" placeholder="Search audit logs…" aria-label="Search audit log">
@@ -818,6 +841,8 @@
         </section>
 
         <p class="pg-formnote" id="adminNote" role="status" aria-live="polite"></p>
+        </div><!-- /.admin-content -->
+        </div><!-- /.admin-workspace -->
 
         <!-- Modals Portal Container -->
         <div id="adminModalsContainer"></div>
@@ -884,9 +909,10 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026100601" defer></script>
+<script src="/authui.js?v=2026100805" defer></script>
 <script src="/theme.js?v=2026100601" defer></script>
 <script src="/report.js?v=2026100601" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
-<script src="/admin-console.js?v=2026100601" defer></script></body>
+<script src="/design-preview.js?v=2026100601" defer></script>
+<script src="/admin-console.js?v=2026100901" defer></script></body>
 </html>

@@ -12,23 +12,62 @@
   var PERMISSIONS = [];
   var ROLE_PRESETS = {};
   var loaded = {};
+  var allowedTabs = [];
+  var activeTab = null;
+  var pendingReads = {};
+  var readGeneration = {};
+  var loadGeneration = {};
   var modalsContainer = $("#adminModalsContainer");
 
+  function readSection(path) {
+    if (/^\/api\/support\/tickets\//.test(path)) return "support";
+    return ({dashboard:"overview",users:"users",creators:"creators",templates:"content","design-templates":"content",skills:"skills",reports:"reports",withdrawals:"withdrawals",stars:"stars_ledger","star-packs":"star_packs","ai-jobs":"ai_jobs",staff:"team",support:"support","feature-flags":"system","audit-logs":"system"})[path.split("/")[3]] || null;
+  }
+
   function api(url, options) {
-    return fetch(url, options).then(function (r) {
+    options = options || {};
+    var read = !options.method || options.method === "GET";
+    var path = url.split("?")[0];
+    var key = /^\/api\/support\/tickets\//.test(path) ? "ticket-thread" : path;
+    var generation = read ? (readGeneration[key] || 0) + 1 : 0;
+    var controller = new AbortController();
+    if (read) {
+      readGeneration[key] = generation;
+      if (pendingReads[key]) pendingReads[key].controller.abort();
+      pendingReads[key] = {controller:controller,section:readSection(path)};
+    }
+    var timedOut = false;
+    var timer = setTimeout(function () { timedOut = true; controller.abort(); }, 20000);
+    return fetch(url, Object.assign({credentials:"same-origin",cache:"no-store"}, options, {signal:controller.signal})).then(function (r) {
       return r.json().then(function (j) {
+        if (read && readGeneration[key] !== generation) { var stale = new Error(""); stale.stale = true; throw stale; }
         if (!r.ok || !j.success) throw new Error(j.error || "Request failed (" + r.status + ").");
         return j;
       });
+    }).catch(function (err) {
+      if (read && readGeneration[key] !== generation) { var stale = new Error(""); stale.stale = true; throw stale; }
+      if (timedOut) throw new Error(read ? "The request timed out. Refresh this section to retry." : "The request timed out. Refresh and check the current state before retrying the action.");
+      throw err;
+    }).finally(function () {
+      clearTimeout(timer);
+      if (read && readGeneration[key] === generation) delete pendingReads[key];
     });
   }
 
   function note(message, bad) {
+    // A superseded request is intentionally silent; only the latest result is shown.
+    if (!message) return;
     var el = $("#adminNote");
     if (!el) return;
     el.textContent = message || "";
     el.toggleAttribute("data-bad", !!bad);
     clearTimeout(el._timer);
+    var modalBody = document.querySelector(".admin-modal-body");
+    if (modalBody) {
+      var modalError = modalBody.querySelector(".admin-modal-error");
+      if (modalError) modalError.remove();
+      if (bad) { modalError = text("p", message, "admin-load-error admin-modal-error"); modalError.setAttribute("role", "alert"); modalBody.prepend(modalError); }
+    }
     var panel = document.querySelector('[data-admin-panel]:not([hidden])');
     if (panel) {
       var previous = panel.querySelector(".admin-load-error");
@@ -36,7 +75,11 @@
       if (bad) {
         var error = text("p", message + " Use Refresh to retry.", "admin-load-error");
         error.setAttribute("role", "alert"); panel.prepend(error);
-        Array.from(panel.querySelectorAll("p")).forEach(function(p) { if (/^Loading/i.test(p.textContent.trim())) p.textContent = "Data unavailable."; });
+        var retry = text("button", "Retry", "admin-btn admin-btn-outline admin-btn-sm");
+        retry.type = "button";
+        retry.addEventListener("click", function () { refreshTab(panel.getAttribute("data-admin-panel")); });
+        error.appendChild(retry);
+        Array.from(panel.querySelectorAll("p, td")).forEach(function(p) { if (/^Loading/i.test(p.textContent.trim())) p.textContent = "Data unavailable."; });
       }
     }
     if (message && !bad) {
@@ -64,6 +107,8 @@
     if (perm === "owner") return isOwner();
     return (currentUser.permissions || []).indexOf(perm) !== -1;
   }
+
+  function hasAny(perms) { return String(perms || "").split(/\s+/).some(has); }
 
   function showAccess(user) {
     var allowed = user && ((user.role === "super_admin") || (Array.isArray(user.permissions) && user.permissions.length > 0));
@@ -215,6 +260,7 @@
 
   /* ── 1. Overview ───────────────────────────────────────────── */
   function loadOverview() {
+    if (!has("overview.view")) return Promise.resolve();
     return api("/api/admin/dashboard").then(function (j) {
       var s = j.stats || {};
       $("#adUsers").textContent = (s.users || 0).toLocaleString();
@@ -299,7 +345,7 @@
 
       // Role
       var tdRole = document.createElement("td");
-      var rolePill = text("span", u.role === "super_admin" ? "Owner" : (u.role === "sub_admin" ? "Sub Admin" : (u.role === "moderator" ? "Moderator" : "Member")), "admin-pill");
+      var rolePill = text("span", u.role === "super_admin" ? "Owner" : (u.role === "sub_admin" || u.role === "admin" ? "Sub Admin" : (u.role === "moderator" ? "Moderator" : (u.role === "banned" ? "Banned" : "Member"))), "admin-pill" + (u.role === "banned" ? " is-banned" : ""));
       tdRole.appendChild(rolePill);
       tr.appendChild(tdRole);
 
@@ -402,8 +448,8 @@
           }).then(function (res) {
             note(res.message || "Role updated.");
             u.role = roleSel.value;
-            loadUsers();
-            loadOverview();
+            safeLoad(loadUsers);
+            safeLoad(loadOverview);
           }).catch(function (e) {
             note(e.message, true);
           }).finally(function () {
@@ -430,6 +476,7 @@
       var warnBtn = text("button", "Warn User", "admin-btn admin-btn-outline admin-btn-sm");
       warnBtn.style.minHeight = "38px";
       warnBtn.addEventListener("click", function () {
+        if (!has("users.manage") || u.role === "super_admin") return;
         promptModal("Warn " + cleanHandle(u.handle), "Enter warning message to notify user:", "", function (reason) {
           return api("/api/admin/users/" + encodeURIComponent(u.id) + "/moderate", {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -437,41 +484,49 @@
           }).then(function () { note("Warning delivered to " + cleanHandle(u.handle)); });
         }, "Send Warning", false);
       });
+      warnBtn.hidden = !has("users.manage") || u.role === "super_admin";
       modBtns.appendChild(warnBtn);
 
       var verifyBtn = text("button", u.verified ? "Remove Verified" : "Grant Verified", "admin-btn admin-btn-outline admin-btn-sm");
       verifyBtn.style.minHeight = "38px";
       verifyBtn.addEventListener("click", function () {
+        if (!has("creators.verify") || u.role === "super_admin") return;
         var action = u.verified ? "unverify_creator" : "verify_creator";
         api("/api/admin/users/" + encodeURIComponent(u.id) + "/moderate", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: action })
         }).then(function () {
           note("Creator verification updated.");
-          loadUsers();
-          loadOverview();
+          safeLoad(loadUsers);
+          safeLoad(loadOverview);
         }).catch(function (e) { note(e.message, true); });
       });
+      verifyBtn.hidden = !has("creators.verify") || u.role === "super_admin";
       modBtns.appendChild(verifyBtn);
 
       if (u.role !== "super_admin") {
-        var banBtn = text("button", "Suspend / Ban", "admin-btn admin-btn-danger admin-btn-sm");
+        var banned = u.role === "banned";
+        var banBtn = text("button", banned ? "Restore Account" : "Suspend / Ban", "admin-btn admin-btn-danger admin-btn-sm");
+        banBtn.hidden = !has("users.manage");
         banBtn.style.minHeight = "38px";
         banBtn.addEventListener("click", function () {
-          promptModal("Suspend / Ban " + cleanHandle(u.handle), "Enter mandatory audit reason for ban:", "", function (reason) {
+          if (!has("users.manage")) return;
+          promptModal((banned ? "Restore " : "Suspend / Ban ") + cleanHandle(u.handle), "Enter mandatory audit reason:", "", function (reason) {
             return api("/api/admin/users/" + encodeURIComponent(u.id) + "/moderate", {
               method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ action: "ban", reason: reason })
-            }).then(function () { note("Account suspended."); loadUsers(); });
-          }, "Ban Account", true);
+              body: JSON.stringify({ action: banned ? "unban" : "ban", reason: reason })
+            }).then(function () { note(banned ? "Account restored." : "Account suspended."); safeLoad(loadUsers); });
+          }, banned ? "Restore Account" : "Ban Account", true);
         });
         modBtns.appendChild(banBtn);
       }
       modSec.appendChild(modBtns);
+      modSec.hidden = u.role === "super_admin" || (!has("users.manage") && !has("creators.verify"));
       body.appendChild(modSec);
 
       // Section: Balance Adjustment
       var balSec = document.createElement("div");
+      balSec.hidden = !has("users.balance_adjust");
       balSec.style.border = "1px solid var(--sh-line)";
       balSec.style.borderRadius = "12px";
       balSec.style.padding = "14px";
@@ -509,6 +564,7 @@
       applyBalBtn.style.minHeight = "42px";
       applyBalBtn.style.width = "100%";
       applyBalBtn.addEventListener("click", function () {
+        if (!has("users.balance_adjust")) return;
         var delta = Number(amtInput.value);
         var reason = reasonInput.value.trim();
         if (!Number.isSafeInteger(delta) || !delta || Math.abs(delta) > 10000) { alert("Enter a non-zero whole amount up to 10,000."); return; }
@@ -523,8 +579,8 @@
           body: JSON.stringify(payload)
         }).then(function (res) {
           note(res.message || "Balance adjusted.");
-          loadUsers();
-          loadOverview();
+          safeLoad(loadUsers);
+          safeLoad(loadOverview);
         }).catch(function (e) {
           note(e.message, true);
         }).finally(function () {
@@ -586,11 +642,13 @@
         var tdActions = document.createElement("td");
         tdActions.style.textAlign = "right";
         var tglBtn = text("button", c.verified ? "Remove Badge" : "Verify Badge", "admin-btn admin-btn-outline admin-btn-sm");
+        tglBtn.hidden = !has("creators.verify") || (isOwner() && c.id === currentUser.id);
         tglBtn.addEventListener("click", function () {
+          if (!has("creators.verify") || (isOwner() && c.id === currentUser.id)) return;
           api("/api/admin/users/" + encodeURIComponent(c.id) + "/moderate", {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: c.verified ? "unverify_creator" : "verify_creator" })
-          }).then(function () { note("Verification updated."); loadCreators(); }).catch(function (e) { note(e.message, true); });
+          }).then(function () { note("Verification updated."); safeLoad(loadCreators); }).catch(function (e) { note(e.message, true); });
         });
         tdActions.appendChild(tglBtn);
         tr.appendChild(tdActions);
@@ -642,7 +700,7 @@
             api("/api/admin/templates/" + encodeURIComponent(t.id), {
               method: "PATCH", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "published" })
-            }).then(function () { note("Template approved and published."); loadTemplates(); loadOverview(); })
+            }).then(function () { note("Template approved and published."); safeLoad(loadTemplates); safeLoad(loadOverview); })
               .catch(function (e) { note(e.message, true); });
           });
           controls.appendChild(pubBtn);
@@ -655,20 +713,54 @@
               return api("/api/admin/templates/" + encodeURIComponent(t.id), {
                 method: "PATCH", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: "rejected", reviewNote: reason })
-              }).then(function () { note("Template rejected with note."); loadTemplates(); loadOverview(); });
+              }).then(function () { note("Template rejected with note."); safeLoad(loadTemplates); safeLoad(loadOverview); });
             }, "Reject Template", true);
           });
           controls.appendChild(rejBtn);
         }
 
-        var preview = text("a", "View template", "admin-btn admin-btn-outline admin-btn-sm");
-        preview.href = t.sourceFormat === "design_template" ? "/designs" : "/template?id=" + encodeURIComponent(t.templateId || t.id) + "&comm=1&commId=" + encodeURIComponent(t.id);
-        preview.target="_blank"; preview.rel="noopener"; controls.appendChild(preview);
+        var preview = text(t.sourceFormat === "design_template" ? "button" : "a", "View template", "admin-btn admin-btn-outline admin-btn-sm");
+        if (t.sourceFormat === "design_template") {
+          preview.type = "button";
+          preview.setAttribute("data-admin-design-preview", t.id);
+          preview.addEventListener("click", function () { openDesignPreview(t); });
+        } else {
+          preview.href = "/template?id=" + encodeURIComponent(t.templateId || t.id) + "&comm=1&commId=" + encodeURIComponent(t.id);
+          preview.target="_blank"; preview.rel="noopener";
+        }
+        controls.appendChild(preview);
 
         row.appendChild(main);
         row.appendChild(controls);
         root.appendChild(row);
       });
+    });
+  }
+
+  function openDesignPreview(template) {
+    if (!has("templates.moderate")) return;
+    var bodyRoot;
+    openModal("Design preview: " + template.title, function (body) {
+      bodyRoot = body;
+      body.appendChild(text("p", "Loading the protected design preview…", "pg-fine"));
+    });
+    api("/api/admin/design-templates/" + encodeURIComponent(template.id) + "/preview").then(function (j) {
+      if (!bodyRoot.isConnected) return;
+      var design = j.template;
+      if (!design || !design.canvas || (!design.previewUrl && !(design.elements || []).length) || typeof window.SCDesignPreview !== "function") throw new Error("This design does not have a usable preview.");
+      bodyRoot.innerHTML = "";
+      bodyRoot.appendChild(text("p", "Status: " + String(design.status || "unknown") + " · Read-only moderation preview", "pg-fine"));
+      var stage = document.createElement("div");
+      stage.className = "admin-design-preview";
+      stage.innerHTML = window.SCDesignPreview(design);
+      var image = stage.querySelector("img");
+      if (image) image.addEventListener("error", function () { stage.innerHTML = window.SCDesignPreview(Object.assign({}, design, {previewUrl:null,preview_url:null})); }, {once:true});
+      bodyRoot.appendChild(stage);
+    }).catch(function (err) {
+      if (!bodyRoot.isConnected || err.stale) return;
+      bodyRoot.innerHTML = "";
+      var error = text("p", err.message || "The protected preview could not be loaded.", "admin-load-error"); error.setAttribute("role", "alert"); bodyRoot.appendChild(error);
+      var retry = text("button", "Retry preview", "admin-btn admin-btn-outline"); retry.type = "button"; retry.addEventListener("click", function () { openDesignPreview(template); }); bodyRoot.appendChild(retry);
     });
   }
 
@@ -709,7 +801,7 @@
             api("/api/admin/skills/" + encodeURIComponent(item.id), {
               method: "PATCH", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "published" })
-            }).then(function () { note("Tutorial approved."); loadSkills(); }).catch(function (e) { note(e.message, true); });
+            }).then(function () { note("Tutorial approved."); safeLoad(loadSkills); }).catch(function (e) { note(e.message, true); });
           });
           controls.appendChild(appBtn);
         }
@@ -721,7 +813,7 @@
               return api("/api/admin/skills/" + encodeURIComponent(item.id), {
                 method: "PATCH", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: "rejected", note: reason })
-              }).then(function () { note("Tutorial taken down."); loadSkills(); });
+              }).then(function () { note("Tutorial taken down."); safeLoad(loadSkills); });
             }, "Takedown", true);
           });
           controls.appendChild(rejBtn);
@@ -775,7 +867,7 @@
             return api("/api/admin/reports/" + encodeURIComponent(r.id), {
               method: "POST", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: sel.value, resolution: res })
-            }).then(function () { note("Report resolved."); loadReports(); loadOverview(); });
+            }).then(function () { note("Report resolved."); safeLoad(loadReports); safeLoad(loadOverview); });
           }, "Save Resolution", false);
         });
         controls.appendChild(sel);
@@ -837,7 +929,7 @@
               return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "mark_paid", utr: utr })
-              }).then(function () { note("Payout marked as Paid!"); loadWithdrawals(); loadOverview(); });
+              }).then(function () { note("Payout marked as Paid!"); safeLoad(loadWithdrawals); safeLoad(loadOverview); });
             }, "Confirm Paid", false);
           });
           tdAct.appendChild(payBtn);
@@ -848,7 +940,7 @@
               return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "reject", reason: reason })
-              }).then(function () { note("Payout rejected and Stars refunded."); loadWithdrawals(); loadOverview(); });
+              }).then(function () { note("Payout rejected and Stars refunded."); safeLoad(loadWithdrawals); safeLoad(loadOverview); });
             }, "Reject & Refund", true);
           });
           tdAct.appendChild(rejBtn);
@@ -897,7 +989,7 @@
               return api("/api/admin/stars/transactions/" + encodeURIComponent(tx.id) + "/reverse", {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ reason: reason })
-              }).then(function () { note("Transaction reversed."); loadStarLedger(); loadOverview(); });
+              }).then(function () { note("Transaction reversed."); safeLoad(loadStarLedger); safeLoad(loadOverview); });
             }, "Reverse TX", true);
           });
           tdAct.appendChild(revBtn);
@@ -926,18 +1018,18 @@
         var gPrice = document.createElement("div");
         gPrice.className = "admin-form-group";
         gPrice.appendChild(text("label", "Price INR (₹)"));
-        var priceInput = document.createElement("input"); priceInput.type = "number"; priceInput.dataset.packField = "price"; priceInput.dataset.packIdx = idx; priceInput.value = Number(p.price) || 0; gPrice.appendChild(priceInput);
+        var priceInput = document.createElement("input"); priceInput.type = "number"; priceInput.dataset.packField = "price"; priceInput.dataset.packIdx = idx; priceInput.value = Number(p.price) || 0; priceInput.disabled = true; gPrice.appendChild(priceInput);
         card.appendChild(gPrice);
 
         var gStars = document.createElement("div");
         gStars.className = "admin-form-group";
         gStars.appendChild(text("label", "Stars Count"));
-        var starsInput = document.createElement("input"); starsInput.type = "number"; starsInput.dataset.packField = "stars"; starsInput.dataset.packIdx = idx; starsInput.value = Number(p.stars) || 0; gStars.appendChild(starsInput);
+        var starsInput = document.createElement("input"); starsInput.type = "number"; starsInput.dataset.packField = "stars"; starsInput.dataset.packIdx = idx; starsInput.value = Number(p.stars) || 0; starsInput.disabled = true; gStars.appendChild(starsInput);
         card.appendChild(gStars);
 
         var gPop = document.createElement("label");
         gPop.style.display = "flex"; gPop.style.alignItems = "center"; gPop.style.gap = "8px";
-        gPop.innerHTML = "<input type='checkbox' data-pack-field='popular' data-pack-idx='" + idx + "' " + (p.popular ? "checked" : "") + "> <span>Mark as Most Popular Badge</span>";
+        gPop.innerHTML = "<input type='checkbox' disabled data-pack-field='popular' data-pack-idx='" + idx + "' " + (p.popular ? "checked" : "") + "> <span>Most Popular Badge</span>";
         card.appendChild(gPop);
 
         root.appendChild(card);
@@ -961,7 +1053,7 @@
       api("/api/admin/star-packs", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ packs: starPacksCache })
-      }).then(function () { note("Star packs updated successfully."); loadStarPacks(); })
+      }).then(function () { note("Star packs updated successfully."); safeLoad(loadStarPacks); })
         .catch(function (e) { note(e.message, true); })
         .finally(function () { savePacksBtn.disabled = false; });
     });
@@ -1074,7 +1166,7 @@
           editBtn.addEventListener("click", function () {
             var open = row.nextElementSibling && row.nextElementSibling.classList.contains("admin-access");
             if (open) { row.nextElementSibling.remove(); return; }
-            row.insertAdjacentElement("afterend", staffAccessEditor(m, function () { loadTeam(); }));
+            row.insertAdjacentElement("afterend", staffAccessEditor(m, function () { safeLoad(loadTeam); }));
           });
           row.appendChild(editBtn);
         }
@@ -1089,6 +1181,12 @@
 
     box.appendChild(text("strong", "Staff Permissions for " + cleanHandle(member.handle)));
     box.appendChild(text("p", "Select a role preset or customize granular permission flags. Sub Admins have broad operations access; Moderators focus on content & safety.", "pg-fine"));
+    var roleGroup = document.createElement("label"); roleGroup.className = "admin-form-group";
+    roleGroup.appendChild(text("span", "Staff role"));
+    var staffRole = document.createElement("select"); staffRole.className = "admin-select";
+    [["moderator","Moderator"],["sub_admin","Sub Admin"]].forEach(function (item) { var option = text("option", item[1]); option.value = item[0]; staffRole.appendChild(option); });
+    staffRole.value = member.role === "sub_admin" || member.role === "admin" ? "sub_admin" : "moderator";
+    roleGroup.appendChild(staffRole); box.appendChild(roleGroup);
 
     // Preset selector buttons
     var presetBar = document.createElement("div");
@@ -1099,6 +1197,7 @@
     var modPreset = text("button", "Preset: Moderator", "admin-btn admin-btn-outline admin-btn-sm");
     modPreset.type = "button";
     modPreset.addEventListener("click", function () {
+      staffRole.value = "moderator";
       var keys = ROLE_PRESETS.moderator || [];
       all(box.querySelectorAll("input[type=checkbox]")).forEach(function (cb) {
         cb.checked = keys.indexOf(cb.value) !== -1;
@@ -1109,6 +1208,7 @@
     var subAdminPreset = text("button", "Preset: Sub Admin", "admin-btn admin-btn-outline admin-btn-sm");
     subAdminPreset.type = "button";
     subAdminPreset.addEventListener("click", function () {
+      staffRole.value = "sub_admin";
       var keys = ROLE_PRESETS.sub_admin || [];
       all(box.querySelectorAll("input[type=checkbox]")).forEach(function (cb) {
         cb.checked = keys.indexOf(cb.value) !== -1;
@@ -1161,8 +1261,7 @@
 
     save.addEventListener("click", function () {
       var perms = all(list.querySelectorAll("input:checked")).map(function (cb) { return cb.value; });
-      var role = perms.length > 10 ? "sub_admin" : "moderator";
-      submit(perms, role);
+      submit(perms, staffRole.value);
     });
     removeBtn.addEventListener("click", function () {
       promptModal("Revoke Access", "Type CONFIRM to revoke all staff access for " + cleanHandle(member.handle) + ":", "", function (val) {
@@ -1197,7 +1296,7 @@
         btn.appendChild(text("strong", t.subject));
         btn.appendChild(text("span", t.reference + " · " + (t.status || "").replace(/_/g, " ").toUpperCase()));
         btn.appendChild(text("small", t.email + " · " + (t.messageCount || 0) + " messages · " + new Date(t.createdAt).toLocaleDateString()));
-        btn.addEventListener("click", function () { openTicket(t.id); });
+        btn.addEventListener("click", function () { openTicket(t.id).catch(function (err) { note(err.message, true); }); });
         root.appendChild(btn);
       });
     });
@@ -1240,7 +1339,7 @@
         api("/api/support/tickets/" + encodeURIComponent(id) + "/messages", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: area.value })
-        }).then(function () { note("Reply sent."); openTicket(id); loadSupport(); })
+        }).then(function () { note("Reply sent."); if (activeTicketId === id) openTicket(id).catch(function (err) { note(err.message, true); }); safeLoad(loadSupport); })
           .catch(function (err) { note(err.message, true); })
           .finally(function () { send.disabled = false; });
       });
@@ -1260,7 +1359,7 @@
         api("/api/admin/support/tickets/" + encodeURIComponent(id), {
           method: "PATCH", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: sel.value })
-        }).then(function () { note("Ticket status updated."); loadSupport(); loadOverview(); })
+        }).then(function () { note("Ticket status updated."); safeLoad(loadSupport); safeLoad(loadOverview); })
           .catch(function (err) { note(err.message, true); });
       });
       stateDiv.appendChild(sel);
@@ -1289,15 +1388,19 @@
         toggle.checked = flag.enabled;
         toggle.style.width = "20px";
         toggle.style.height = "20px";
-        toggle.disabled = !has("flags.manage");
+        var supported = flag.runtimeSupported === true;
+        toggle.disabled = !has("flags.manage") || !supported;
+        toggle.setAttribute("aria-label", flag.key.replace(/_/g, " "));
+        if (!supported) main.appendChild(text("small", flag.readOnlyReason || "Read-only record. This legacy flag does not control the running service.", "pg-fine"));
         toggle.addEventListener("change", function () {
+          if (!has("flags.manage") || !supported) { toggle.checked = flag.enabled; return; }
           toggle.disabled = true;
           api("/api/admin/feature-flags/" + encodeURIComponent(flag.key), {
             method: "PATCH", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ enabled: toggle.checked })
           }).then(function () { note("Feature flag updated."); })
             .catch(function (err) { toggle.checked = !toggle.checked; note(err.message, true); })
-            .finally(function () { toggle.disabled = !has("flags.manage"); });
+            .finally(function () { toggle.disabled = !has("flags.manage") || !supported; });
         });
 
         row.appendChild(main);
@@ -1336,7 +1439,10 @@
   }
 
   function loadSystem() {
-    return Promise.all([loadFlags(), loadAuditLogs()]);
+    var tasks = [];
+    if (has("flags.manage")) tasks.push(loadFlags());
+    if (has("audit.view")) tasks.push(loadAuditLogs());
+    return Promise.all(tasks);
   }
 
   /* ── Tab Switcher & Navigation Routing ─────────────────────── */
@@ -1357,15 +1463,56 @@
     system: loadSystem
   };
 
+  var descriptions = {
+    overview:"Account activity and operational overview.", users:"Find accounts and manage only the actions your access permits.", creators:"Published creators and verification badges.", content:"Review animations and editable designs by category and status.", skills:"Review creator tutorials and learning content.", reports:"Investigate reports with a recorded moderation reason.", withdrawals:"Existing payout records. Money features remain Coming Soon.", stars_ledger:"Read-only transaction records while money features are unavailable.", star_packs:"Stored pack configuration. Purchases and changes remain Coming Soon.", ai_jobs:"Conversion history and failures; creators retry from Designs.", broadcast:"Send in-app announcements to a selected audience.", team:"Owner-managed staff roles and granular permissions.", support:"Read tickets, reply and update their status.", system:"Permitted audit records and supported runtime controls."
+  };
+
+  function refreshTab(key, loader, successMessage) {
+    if (allowedTabs.indexOf(key) === -1) return Promise.resolve();
+    var panel = document.querySelector('[data-admin-panel="' + key + '"]');
+    if (!panel) return Promise.resolve();
+    var generation = (loadGeneration[key] || 0) + 1;
+    loadGeneration[key] = generation;
+    panel.setAttribute("aria-busy", "true");
+    var previous = panel.querySelector(".admin-load-error");
+    if (previous) previous.remove();
+    if (activeTab === key) $("#adminLiveStatus").textContent = "Loading section…";
+    return Promise.resolve().then(loader || loaders[key]).then(function () {
+      if (loadGeneration[key] !== generation) return;
+      loaded[key] = true;
+      if (activeTab === key) {
+        $("#adminLiveStatus").textContent = "Server data";
+        if (successMessage) note(successMessage);
+      }
+    }).catch(function (err) {
+      if (err.stale || loadGeneration[key] !== generation) return;
+      loaded[key] = false;
+      if (activeTab === key) {
+        $("#adminLiveStatus").textContent = "Data unavailable";
+        note(err.message || "This section could not be loaded.", true);
+      }
+    }).finally(function () {
+      if (loadGeneration[key] === generation) panel.setAttribute("aria-busy", "false");
+    });
+  }
+
   function selectTab(key) {
-    if (!loaders[key]) key = "overview";
+    if (!loaders[key] || allowedTabs.indexOf(key) === -1) key = allowedTabs[0];
+    if (!key) return null;
+    // Every entry point is checked, including quick actions and browser history.
+    Object.keys(pendingReads).forEach(function (path) {
+      var pending = pendingReads[path];
+      if (pending.section && pending.section !== key) {
+        readGeneration[path] = (readGeneration[path] || 0) + 1;
+        pending.controller.abort(); delete pendingReads[path];
+      }
+    });
+    activeTab = key;
 
     all("[data-admin-tab]").forEach(function (b) {
       var on = b.getAttribute("data-admin-tab") === key;
       b.setAttribute("aria-pressed", on ? "true" : "false");
-      if (on && b.parentNode && b.parentNode.scrollWidth > b.parentNode.clientWidth) {
-        b.parentNode.scrollLeft = Math.max(0, b.offsetLeft - 16);
-      }
+      if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
 
     var mobSel = $("#adminMobileTabSelect");
@@ -1374,21 +1521,16 @@
     all("[data-admin-panel]").forEach(function (p) {
       p.hidden = p.getAttribute("data-admin-panel") !== key;
     });
+    var selected = document.querySelector('[data-admin-tab="' + key + '"]');
+    $("#adminSectionTitle").textContent = selected ? selected.textContent.trim().replace(/^[^A-Za-z]+/, "") : "Admin";
+    $("#adminSectionDescription").textContent = descriptions[key] || "";
+    if (!loaded[key]) refreshTab(key);
+    return key;
+  }
 
-    if (!loaded[key]) {
-      loaded[key] = true;
-      loaders[key]().catch(function (err) {
-        loaded[key] = false;
-        note(err.message, true);
-        var panel = document.querySelector('[data-admin-panel="' + key + '"]');
-        if (panel) {
-          var error = panel.querySelector(".admin-load-error");
-          if (!error) { error = text("p", "", "admin-load-error"); error.setAttribute("role", "alert"); panel.prepend(error); }
-          error.textContent = "Could not load this section: " + err.message + " Use Refresh to retry.";
-          Array.from(panel.querySelectorAll(".pg-fine")).forEach(function (p) { if (/^Loading/i.test(p.textContent.trim())) p.textContent = "Data unavailable."; });
-        }
-      });
-    }
+  function navigate(key, replace) {
+    var selected = selectTab(key);
+    if (selected && location.hash !== "#" + selected) history[replace ? "replaceState" : "pushState"](null, "", "#" + selected);
   }
 
   // Bind tab click events
@@ -1396,8 +1538,7 @@
     btn.addEventListener("click", function () {
       var key = btn.getAttribute("data-admin-tab");
       loaded[key] = false;
-      selectTab(key);
-      if (history.replaceState) history.replaceState(null, "", "#" + key);
+      navigate(key);
     });
   });
 
@@ -1407,8 +1548,7 @@
     mobSel.addEventListener("change", function () {
       var key = mobSel.value;
       loaded[key] = false;
-      selectTab(key);
-      if (history.replaceState) history.replaceState(null, "", "#" + key);
+      navigate(key);
     });
   }
 
@@ -1417,8 +1557,7 @@
     b.addEventListener("click", function () {
       var target = b.getAttribute("data-admin-jump");
       loaded[target] = false;
-      selectTab(target);
-      if (history.replaceState) history.replaceState(null, "", "#" + target);
+      navigate(target);
     });
   });
 
@@ -1426,18 +1565,14 @@
   all("[data-admin-refresh]").forEach(function (b) {
     b.addEventListener("click", function () {
       var k = b.getAttribute("data-admin-refresh");
-      if (loaders[k]) loaders[k]().then(function () { note("Refreshed."); }).catch(function (e) { note(e.message, true); });
+      refreshTab(k, null, "Refreshed.");
     });
   });
 
   var globRefresh = $("#adminGlobalRefreshBtn");
   if (globRefresh) {
     globRefresh.addEventListener("click", function () {
-      var activeBtn = document.querySelector("[data-admin-tab][aria-pressed='true']");
-      var activeTab = activeBtn ? activeBtn.getAttribute("data-admin-tab") : "overview";
-      if (loaders[activeTab]) {
-        loaders[activeTab]().then(function () { note("View refreshed."); }).catch(function (e) { note(e.message, true); });
-      }
+      refreshTab(activeTab, null, "View refreshed.");
     });
   }
 
@@ -1465,8 +1600,8 @@
   }
 
   var tFilter = $("#adminTemplateFilter");
-  if (tFilter) tFilter.addEventListener("change", function () { loadTemplates().catch(function(e){note(e.message,true);}); });
-  ["#adminTemplateCategory", "#adminTemplateType"].forEach(function(selector) { var el=$(selector); if(el) el.addEventListener("change", function() {loadTemplates().catch(function(e){note(e.message,true);});}); });
+  if (tFilter) tFilter.addEventListener("change", function () { safeLoad(loadTemplates); });
+  ["#adminTemplateCategory", "#adminTemplateType"].forEach(function(selector) { var el=$(selector); if(el) el.addEventListener("change", function() {safeLoad(loadTemplates);}); });
 
   var sFilter = $("#adminSkillStatus");
   if (sFilter) sFilter.addEventListener("change", function () { safeLoad(loadSkills); });
@@ -1501,21 +1636,31 @@
   }
 
   function safeLoad(loader) {
-    return Promise.resolve().then(loader).catch(function (err) { note(err.message, true); });
+    var key = Object.keys(loaders).find(function (name) { return loaders[name] === loader; });
+    if (loader === loadFlags || loader === loadAuditLogs) key = "system";
+    if (loader === loadFlags && !has("flags.manage")) return Promise.resolve();
+    if (loader === loadAuditLogs && !has("audit.view")) return Promise.resolve();
+    return refreshTab(key, loader);
   }
 
+  window.addEventListener("hashchange", function () { if (allowedTabs.length) navigate(location.hash.slice(1), true); });
+  window.addEventListener("popstate", function () { if (allowedTabs.length) navigate(location.hash.slice(1), true); });
+
   /* ── Boot Initializer ──────────────────────────────────────── */
-  api("/api/auth/me").then(function (j) {
+  function checkAccess() { return api("/api/auth/me").then(function (j) {
     currentUser = j.user;
     if (!showAccess(currentUser)) return;
 
-    var allowedTabs = [];
+    allowedTabs = [];
     all("[data-admin-tab]").forEach(function (b) {
       var perm = b.getAttribute("data-perm");
-      var ok = has(perm);
+      var ok = hasAny(perm);
       b.hidden = !ok;
       if (ok) allowedTabs.push(b.getAttribute("data-admin-tab"));
     });
+    all("[data-admin-group]").forEach(function (group) { group.hidden = !group.querySelector('[data-admin-tab]:not([hidden])'); });
+    all("[data-admin-jump]").forEach(function (button) { button.hidden = allowedTabs.indexOf(button.getAttribute("data-admin-jump")) === -1; });
+    all("[data-admin-permission]").forEach(function (section) { section.hidden = !hasAny(section.getAttribute("data-admin-permission")); });
 
     // Sync mobile select options with permissions
     if (mobSel) {
@@ -1525,13 +1670,20 @@
     }
 
     all("[data-admin-panel]").forEach(function (p) {
-      if (allowedTabs.indexOf(p.getAttribute("data-admin-panel")) === -1) p.remove();
+      if (allowedTabs.indexOf(p.getAttribute("data-admin-panel")) === -1) p.hidden = true;
     });
 
     var wanted = String(location.hash || "").replace("#", "");
-    selectTab(allowedTabs.indexOf(wanted) !== -1 ? wanted : allowedTabs[0]);
+    navigate(wanted, true);
   }).catch(function (err) {
-    showAccess(null);
-    note(err.message, true);
-  });
+    currentUser = null; allowedTabs = []; activeTab = null;
+    $("#adminApp").hidden = true;
+    var gate = $("#adminGate"); gate.hidden = false; gate.innerHTML = "";
+    gate.appendChild(text("h1", "Admin access could not be checked"));
+    var error = text("p", err.message || "The connection failed. Please retry."); error.setAttribute("role", "alert"); gate.appendChild(error);
+    var retry = text("button", "Retry access check", "admin-btn admin-btn-primary"); retry.type = "button";
+    retry.addEventListener("click", function () { retry.disabled = true; retry.textContent = "Checking access…"; checkAccess(); });
+    gate.appendChild(retry);
+  }); }
+  checkAccess();
 })();

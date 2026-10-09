@@ -24,7 +24,7 @@
       el.title = "Money features are not available in this Free release.";
       if (el.tagName === "BUTTON") el.disabled = true;
     });
-    all('option[value="premium"]').forEach(function (el) { el.disabled = true; el.textContent = "Paid templates — Coming Soon"; });
+    all('option[value="premium"]').forEach(function (el) { if (el.closest("#designFilter")) return; el.disabled = true; el.textContent = "Paid templates — Coming Soon"; });
   }
   document.addEventListener("click", function (event) {
     if (event.target.closest(moneyControls)) {
@@ -264,7 +264,7 @@
           }
         }
 
-        if (!window.SC_ACCOUNT_NAV || window.SC_ACCOUNT_NAV.current === "stars") loadStarsPane();
+        if (!window.SC_ACCOUNT_NAV || ["account", "stars"].includes(window.SC_ACCOUNT_NAV.current)) loadStarsPane();
         if (!window.SC_ACCOUNT_NAV || window.SC_ACCOUNT_NAV.current === "support") loadSupportPane();
 
         if ($("#pageDisplayName")) $("#pageDisplayName").value = dname;
@@ -274,13 +274,15 @@
         if ($("#pageInstagram")) $("#pageInstagram").value = user.instagram || "";
         if ($("#pageWebsite")) $("#pageWebsite").value = user.website || "";
         if ($("#pageLocation")) $("#pageLocation").value = user.location || "";
+        all("[data-creator-detail]").forEach(function (input) { input.value = (user.creatorDetails || {})[input.dataset.creatorDetail] || ""; });
 
         if (!window.SC_ACCOUNT_NAV || ["settings", "creations"].includes(window.SC_ACCOUNT_NAV.current)) loadUserCreations();
       }
     }
   }
 
-  function logout() {
+  async function logout() {
+    if (!await SC_UI.confirm({title:"Log out?",body:"Your saved work is kept. You will be signed out on this device.",confirmLabel:"Log out",danger:true})) return;
     // A phone left signed out must stop receiving this account's
     // notifications, so the device is forgotten before the session ends.
     PUSH.forget()
@@ -410,7 +412,7 @@
     button.dataset.ready = "1";
     var COPY = {
       "off": ["Get notifications on this device, even when ShortsCraft is closed.", "Turn on"],
-      "on": ["Notifications are on for this device.", "Turn off"],
+      "on": ["Notifications are on for this device. Manage permissions in your browser settings.", ""],
       "denied": ["Notifications are blocked for this site. Allow them in your browser's site settings.", ""],
       "ios-install": ["On iPhone and iPad, add ShortsCraft to your Home Screen first (Share → Add to Home Screen), then turn notifications on from there.", ""],
       "unsupported": ["This browser cannot show notifications.", ""]
@@ -422,7 +424,7 @@
       button.textContent = copy[1];
       button.hidden = !copy[1];
       button.dataset.state = state;
-      if (row) row.hidden = false;
+      if (row) row.hidden = state === "on";
     }
     function sync() { return PUSH.state().then(show); }
     button.addEventListener("click", function (ev) {
@@ -432,6 +434,7 @@
       textEl.textContent = turningOn ? "Asking your browser…" : "Turning off…";
       (turningOn ? PUSH.enable() : PUSH.disable())
         .then(function () {
+          document.dispatchEvent(new Event("sc-push-changed"));
           if (turningOn && window.SC_UI && SC_UI.toast) SC_UI.toast("Notifications are on. A test one is on its way.");
         })
         .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message); })
@@ -640,6 +643,7 @@
       if ($("#pageInstagram")) $("#pageInstagram").value = currentUser.instagram || "";
       if ($("#pageWebsite")) $("#pageWebsite").value = currentUser.website || "";
       if ($("#pageLocation")) $("#pageLocation").value = currentUser.location || "";
+      all("[data-creator-detail]").forEach(function (input) { input.value = (currentUser.creatorDetails || {})[input.dataset.creatorDetail] || ""; });
       if ($("#pageProfileMsg")) $("#pageProfileMsg").textContent = "";
     }
 
@@ -666,6 +670,8 @@
       var instagram = $("#pageInstagram") ? $("#pageInstagram").value.trim() : "";
       var website = $("#pageWebsite") ? $("#pageWebsite").value.trim() : "";
       var locationValue = $("#pageLocation") ? $("#pageLocation").value.trim() : "";
+      var creatorDetails = {};
+      all("[data-creator-detail]").forEach(function (input) { creatorDetails[input.dataset.creatorDetail] = input.value.trim(); });
       var saveBtn = $("#pageSaveProfileBtn");
       var msg = $("#pageProfileMsg");
 
@@ -686,7 +692,8 @@
           youtube: youtube,
           instagram: instagram,
           website: website,
-          location: locationValue
+          location: locationValue,
+          creatorDetails: creatorDetails
         })
       })
       .then(function (r) { return r.json(); })
@@ -789,6 +796,8 @@
     var badge = $("#notificationCount");
     var readButton = $("#notificationsReadBtn");
     var moreButton = $("#notificationMore");
+    var pageList = window.SC_ACCOUNT_NAV && SC_ACCOUNT_NAV.current === "notifications" ? $("#accountNotificationList") : null;
+    var pageMore = $("#accountNotificationMore");
     if (!button || !panel || !list || !currentUser || button.dataset.ready === "1") return;
     button.dataset.ready = "1";
     var unreadCount = 0;
@@ -818,6 +827,7 @@
     function render(data) {
       updateBadge(data.unread);
       setTitleCount(data.unread);
+      [list, pageList].filter(Boolean).forEach(function (list) {
       list.innerHTML = "";
       var items = data.notifications || [];
       // `total` counts every notification, not the page just fetched, so this
@@ -826,6 +836,7 @@
       if (moreButton) {
         var total = Number(data.total) || items.length;
         moreButton.hidden = items.length >= total || items.length >= 50;
+        if (pageMore) pageMore.hidden = moreButton.hidden;
       }
       if (!items.length) {
         var empty = document.createElement("p");
@@ -835,6 +846,10 @@
         return;
       }
       items.forEach(function (item) {
+        var entry = document.createElement("div");
+        entry.className = "sh-notification-entry";
+        entry.dataset.notificationId = item.id;
+        entry.dataset.read = item.read ? "true" : "false";
         var row = document.createElement("a");
         row.className = "sh-notification-item";
         row.href = targetFor(item);
@@ -852,7 +867,7 @@
                 .then(function (j) {
                   if (!j || !j.success) throw new Error("Could not mark notification read");
                   if (item.read) return;
-                  item.read = true; row.dataset.read = "true";
+                  item.read = true; row.dataset.read = "true"; entry.dataset.read = "true";
                   updateBadge(Math.max(0, unreadCount - 1)); setTitleCount(unreadCount);
                 }).catch(notificationError);
             }
@@ -879,9 +894,42 @@
         var date = new Date(item.createdAt);
         time.textContent = isNaN(date) ? "" : date.toLocaleString();
         copy.appendChild(time);
+        if (item.muted) {
+          var muted = document.createElement("small"); muted.className = "sh-notification-muted";
+          muted.textContent = "Similar alerts muted"; copy.appendChild(muted);
+        }
         row.appendChild(avatar);
         row.appendChild(copy);
-        list.appendChild(row);
+        entry.appendChild(row);
+        var actions = document.createElement("details"); actions.className = "sh-notification-actions";
+        var toggle = document.createElement("summary"); toggle.textContent = "⋯";
+        toggle.setAttribute("aria-label", "Notification options");
+        actions.appendChild(toggle);
+        var options = document.createElement("div"); options.className = "sh-notification-options";
+        function action(label, method, suffix, body) {
+          var choice = document.createElement("button"); choice.type = "button"; choice.textContent = label;
+          choice.addEventListener("click", function (ev) {
+            ev.preventDefault(); ev.stopPropagation();
+            Array.from(options.children).forEach(function (b) { b.disabled = true; });
+            fetch("/api/notifications/" + encodeURIComponent(item.id) + suffix, {
+              method:method, headers:{"Content-Type":"application/json"},
+              body:body === undefined ? undefined : JSON.stringify(body), signal:AbortSignal.timeout(10000)
+            }).then(function (r) { if (!r.ok) throw Error("Could not update notification. Please retry."); return r.json(); })
+              .then(function (j) { if (!j.success) throw Error("Could not update notification. Please retry."); return loadNotifications(); })
+              .then(function () { if (window.SC_UI && SC_UI.toast) SC_UI.toast(method === "DELETE" ? "Notification deleted" : body.active ? "Similar alerts muted. Email messages are unchanged." : "Similar alerts unmuted"); })
+              .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message); })
+              .finally(function () { Array.from(options.children).forEach(function (b) { b.disabled = false; }); });
+          });
+          options.appendChild(choice);
+        }
+        action(item.muted ? "Unmute similar alerts" : "Mute similar alerts", "PUT", "/mute", {active:!item.muted});
+        action("Delete notification", "DELETE", "");
+        actions.addEventListener("toggle", function () {
+          if (actions.open) document.querySelectorAll(".sh-notification-actions[open]").forEach(function (other) { if (other !== actions) other.open = false; });
+        });
+        actions.appendChild(options); entry.appendChild(actions);
+        list.appendChild(entry);
+      });
       });
     }
 
@@ -904,6 +952,12 @@
       var retry = document.createElement("button"); retry.type = "button"; retry.textContent = "Retry";
       retry.addEventListener("click", function () { retry.disabled = true; loadNotifications().catch(notificationError); });
       error.appendChild(retry);
+      if (pageList) {
+        pageList.innerHTML = "";
+        var notice = document.createElement("p"); notice.className = "sh-notification-empty"; notice.textContent = "Notifications could not load. "; notice.setAttribute("role", "alert");
+        var again = document.createElement("button"); again.type = "button"; again.textContent = "Retry"; again.onclick = function () { loadNotifications().catch(notificationError); };
+        notice.appendChild(again); pageList.appendChild(notice);
+      }
     }
 
     function closeNotifications(restoreFocus) {
@@ -925,6 +979,7 @@
         loadNotifications().catch(notificationError).finally(function () { moreButton.disabled = false; });
       });
     }
+    if (pageMore && moreButton) pageMore.addEventListener("click", function () { moreButton.click(); });
 
     button.addEventListener("click", function (ev) {
       ev.stopPropagation();
@@ -936,11 +991,13 @@
       if (opening) { shown = PAGE_STEP; loadNotifications().catch(notificationError); }
     });
     document.addEventListener("click", function (ev) {
+      document.querySelectorAll(".sh-notification-actions[open]").forEach(function (menu) { if (!menu.contains(ev.target)) menu.open = false; });
       if (!panel.hidden && !panel.contains(ev.target)) {
         closeNotifications(false);
       }
     });
     document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") document.querySelectorAll(".sh-notification-actions[open]").forEach(function (menu) { menu.open = false; menu.querySelector("summary").focus(); });
       if (ev.key === "Escape" && !panel.hidden) { ev.preventDefault(); closeNotifications(true); }
     });
     if (readButton) readButton.addEventListener("click", function () {
@@ -955,6 +1012,8 @@
         .then(function (j) { if (!j || !j.success) throw new Error("Could not mark notifications read"); updateBadge(0); setTitleCount(0); return loadNotifications(); })
         .catch(notificationError).finally(function () { readButton.disabled = false; });
     });
+    var pageRead = $("#accountNotificationsRead");
+    if (pageRead && readButton) pageRead.addEventListener("click", function () { readButton.click(); });
     /* Live: the bell keeps itself up to date while a page is open. It polls
        the unread count (cheap), checks again the moment the tab comes back,
        and hears from sw.js when a push arrives. A new item is announced with
@@ -1027,7 +1086,7 @@
           setTitleCount(j.unread);
           var latest = j.latest;
           if (!firstTick && latest && latest.id !== lastSeenId) {
-            if (!panel.hidden) loadNotifications().catch(notificationError);
+            if (!panel.hidden || pageList) loadNotifications().catch(notificationError);
             else showToast(latest);
           }
           lastSeenId = latest ? latest.id : lastSeenId;
@@ -1038,6 +1097,7 @@
     }
 
     tick();
+    if (pageList) loadNotifications().catch(notificationError);
     setInterval(tick, POLL_MS);
     document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
     window.addEventListener("focus", tick);
@@ -1219,8 +1279,8 @@
             share.type = "button";
             share.className = "cr-cre-icon cr-cre-share";
             share.dataset.url = o.shareUrl;
-            share.title = "Copy public link";
-            share.setAttribute("aria-label", "Copy public link to " + o.title);
+            share.title = "Share creation";
+            share.setAttribute("aria-label", "Share " + o.title);
             share.innerHTML = ICON_LINK;
             acts.appendChild(share);
           }
@@ -1326,8 +1386,8 @@
         grid.querySelectorAll(".cr-cre-share").forEach(function (btn) {
           btn.addEventListener("click", function () {
             var u = location.origin + btn.getAttribute("data-url");
-            if (window.SC_UI && SC_UI.copy) {
-              SC_UI.copy(u, "Creation link copied");
+            if (window.SC_UI && SC_UI.share) {
+              SC_UI.share({url:u, title:"ShortsCraft creation"});
             } else if (navigator.clipboard) {
               navigator.clipboard.writeText(u);
             }
@@ -1453,6 +1513,7 @@
   }
 
   function loadStarsPane() {
+    setupTransactionHistory();
     if (!$("#starsBalance") && !$("#walletAvailableInr")) return;
 
     fetch("/api/stars")
@@ -1617,6 +1678,39 @@
       .catch(function () {});
 
     setupStarPacksModal();
+  }
+
+  function setupTransactionHistory() {
+    var list = $("#accountTransactionList"), more = $("#accountTransactionMore");
+    if (!list || list.dataset.ready === "1") return;
+    list.dataset.ready = "1";
+    var offset = 0;
+    async function load() {
+      if (more) more.disabled = true;
+      try {
+        var r = await fetch("/api/account/transactions?offset=" + offset, {signal:AbortSignal.timeout(10000)});
+        var j = await r.json(); if (!r.ok || !j.success || !Array.isArray(j.transactions)) throw new Error(j.error || "History unavailable.");
+        if (!offset) list.innerHTML = "";
+        var notice = list.querySelector("[role=alert]"); if (notice) notice.remove();
+        j.transactions.forEach(function (t) {
+          var row = document.createElement("div"); row.className = "pf-transaction-row";
+          var label = document.createElement("span"); label.textContent = String(t.kind || "Activity").replace(/_/g, " ");
+          var time = document.createElement("time"); var date = new Date(t.createdAt); time.textContent = isNaN(date) ? "" : date.toLocaleString(); label.appendChild(time);
+          var amount = document.createElement("strong"); amount.textContent = (Number(t.amount) > 0 ? "+" : "") + Number(t.amount || 0) + " " + t.unit;
+          var status = document.createElement("small"); status.textContent = t.status || "recorded"; amount.appendChild(status); row.append(label,amount); list.appendChild(row);
+        });
+        if (!offset && !j.transactions.length) { var empty = document.createElement("p"); empty.textContent = "No transactions yet."; list.appendChild(empty); }
+        offset = Number(j.nextOffset) || offset + 25;
+        if (more) more.hidden = !j.hasMore;
+      } catch (err) {
+        if (!offset) list.innerHTML = "";
+        var notice = list.querySelector("[role=alert]"); if (notice) notice.remove();
+        notice = document.createElement("p"); notice.setAttribute("role", "alert"); notice.textContent = "Transaction history could not load. ";
+        var retry = document.createElement("button"); retry.type = "button"; retry.textContent = "Retry"; retry.onclick = load; notice.appendChild(retry); list.appendChild(notice);
+      } finally { if (more) more.disabled = false; }
+    }
+    if (more) more.addEventListener("click", load);
+    load();
   }
 
   function setupStarPacksModal() {
@@ -1802,7 +1896,7 @@
           ? currentUser.handle.replace(/^@/, "")
           : (currentUser && currentUser.email ? currentUser.email.split("@")[0] : "");
         var url = location.origin + "/creator?handle=" + encodeURIComponent(handle || "shortscraft");
-        if (window.SC_UI && SC_UI.copy) SC_UI.copy(url, "Profile link copied");
+        if (window.SC_UI && SC_UI.share) SC_UI.share({url:url, title:currentUser.displayName || "ShortsCraft creator"});
         else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url);
       });
     }
@@ -3507,5 +3601,54 @@
     } else fallback();
   }
 
-  window.SC_UI = { confirm: confirmDlg, prompt: promptDlg, toast: toast, copy: copy };
+  function share(opts) {
+    opts = opts || {};
+    var url;
+    try { url = new URL(opts.url, location.origin); if (!/^https?:$/.test(url.protocol)) throw new Error("protocol"); }
+    catch (err) { toast("This link cannot be shared.", true); return; }
+    var old = document.getElementById("scShareDialog");
+    if (old) old.close();
+    var trigger = document.activeElement;
+    var dialog = document.createElement("dialog");
+    dialog.id = "scShareDialog"; dialog.className = "sc-share-dialog";
+    dialog.setAttribute("aria-labelledby", "scShareHeading");
+    dialog.innerHTML = '<header><h2 id="scShareHeading">Share</h2><button type="button" data-close aria-label="Close share options">×</button></header><p class="sc-share-title"></p><div class="sc-share-options"></div><label>Link<input readonly aria-label="Share link"></label><button type="button" data-copy>Copy link</button>';
+    dialog.querySelector(".sc-share-title").textContent = opts.title || "Share this with your friends";
+    dialog.querySelector("input").value = url.href;
+    var message = [opts.title, opts.text, url.href].filter(Boolean).join("\n");
+    var options = [
+      ["WhatsApp", "https://wa.me/?text=" + encodeURIComponent(message)],
+      ["Telegram", "https://t.me/share/url?url=" + encodeURIComponent(url.href) + "&text=" + encodeURIComponent(opts.title || "")],
+      ["X / Twitter", "https://twitter.com/intent/tweet?text=" + encodeURIComponent(opts.title || "") + "&url=" + encodeURIComponent(url.href)],
+      ["Email", "mailto:?subject=" + encodeURIComponent(opts.title || "ShortsCraft") + "&body=" + encodeURIComponent(message)]
+    ];
+    var choices = dialog.querySelector(".sc-share-options");
+    options.forEach(function (option) {
+      var a = document.createElement("a"); a.textContent = option[0]; a.href = option[1];
+      if (!option[1].startsWith("mailto:")) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+      a.onclick = function () { if (opts.onShared) opts.onShared(); };
+      choices.appendChild(a);
+    });
+    if (navigator.share) {
+      var native = document.createElement("button"); native.type = "button"; native.textContent = "More apps…";
+      native.onclick = async function () {
+        try { await navigator.share({url:url.href, title:opts.title || "ShortsCraft", text:opts.text || ""}); if (opts.onShared) opts.onShared(); }
+        catch (err) { if (err.name !== "AbortError") toast("Sharing unavailable. Choose another option.", true); }
+      }; choices.appendChild(native);
+    }
+    dialog.querySelector("[data-copy]").onclick = function () { copy(url.href, "Link copied"); };
+    dialog.querySelector("[data-close]").onclick = function () { dialog.close(); };
+    dialog.addEventListener("click", function (ev) {
+      if (ev.target !== dialog) return;
+      var r = dialog.getBoundingClientRect();
+      if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) dialog.close();
+    });
+    function shareKey(ev) {
+      if (ev.key === "Escape") { ev.preventDefault(); ev.stopImmediatePropagation(); dialog.close(); }
+    }
+    document.addEventListener("keydown", shareKey, true);
+    dialog.addEventListener("close", function () { document.removeEventListener("keydown", shareKey, true); dialog.remove(); if (trigger && trigger.isConnected) trigger.focus({preventScroll:true}); });
+    document.body.appendChild(dialog); dialog.showModal();
+  }
+  window.SC_UI = { confirm: confirmDlg, prompt: promptDlg, toast: toast, copy: copy, share:share };
 })();

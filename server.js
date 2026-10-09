@@ -186,6 +186,7 @@ function rateLimit({ windowMs = 60_000, max = 20 } = {}) {
     entry.count++;
     rateLimitStore.set(key, entry);
     if (entry.count > max) {
+      res.set("Retry-After", String(Math.ceil((entry.reset - now) / 1000)));
       return res.status(429).json({
         success: false,
         error: "Too many requests. Please slow down.",
@@ -274,7 +275,7 @@ app.post("/api/auth/login", rateLimit({ windowMs: 600_000, max: 20 }), async (re
     const { email, password } = req.body || {};
     const out = await auth.logIn(res, email, password);
     // deliberately vague: never reveal whether the address exists
-    if (out.error) return res.status(401).json({ success: false, error: out.error });
+    if (out.error) return res.status(out.status || 401).json({ success: false, error: out.error, ...(out.code ? {code: out.code} : {}) });
     await authEmail.rememberBrowser(req, res, out.user);
     return res.json({ success: true, user: out.user });
   } catch (err) {
@@ -300,7 +301,7 @@ function publicSiteUrl() {
 
 require("./google-auth").register(app, { auth, rateLimit, publicSiteUrl, referrals });
 
-app.get("/api/referrals", async (req, res) => {
+app.get("/api/referrals", rateLimit({ windowMs: 60_000, max: 60 }), async (req, res) => {
   res.set("Cache-Control", "no-store");
   try {
     const out = await referrals.summary(req.user);
@@ -310,20 +311,37 @@ app.get("/api/referrals", async (req, res) => {
     return res.status(503).json({ success: false, error: "Referral details are temporarily unavailable. Please retry." });
   }
 });
+app.get("/api/referrals/history", rateLimit({ windowMs: 60_000, max: 60 }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  try {
+    const out = await referrals.history(req.user, { cursor: req.query.cursor, limit: req.query.limit });
+    return res.status(out.status || 200).json(out);
+  } catch (err) {
+    console.error("[referrals] history unavailable", err.code || err.name);
+    return res.status(503).json({ success: false, error: "Referral history is temporarily unavailable. Please retry." });
+  }
+});
 app.post("/api/auth/verification/send", rateLimit({ windowMs: 3600_000, max: 3 }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
   if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
   if (!referrals.enabled()) return res.status(503).json({ success: false, error: "Email verification is not enabled yet." });
   if (!mailer.configured()) return res.status(503).json({ success: false, error: "Verification email is not configured. Please contact support." });
   try {
-    const { token, tokenHash } = await referrals.createVerification(req.user);
+    const out = await referrals.createVerification(req.user, { enforceCooldown: true });
+    if (out.error) {
+      if (out.retryAfter) res.set("Retry-After", String(out.retryAfter));
+      return res.status(out.status || 400).json({ success: false, error: out.error, retryAfter: out.retryAfter });
+    }
+    const { token, tokenHash } = out;
     await mailer.sendEmailVerification({ to: req.user.email, verificationUrl: publicSiteUrl() + "/account?verify=" + token + "#referrals", tokenHash });
-    return res.json({ success: true, message: "Check your inbox for a verification link. It expires in 24 hours." });
+    return res.json({ success: true, retryAfter: 60, message: "Check your inbox for a verification link. It expires in 24 hours." });
   } catch (err) {
     console.error("[referrals] verification email unavailable", err.code || err.name);
     return res.status(503).json({ success: false, error: "Verification email could not be sent. Please retry later." });
   }
 });
 app.post("/api/auth/verification/confirm", rateLimit({ windowMs: 600_000, max: 10 }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
   if (!req.user) return res.status(401).json({ success: false, error: "Please log in first." });
   if (!referrals.enabled()) return res.status(503).json({ success: false, error: "Verification is not enabled yet." });
   try {
@@ -508,6 +526,7 @@ app.use((req, res, next) => {
 });
 notify.start();
 emailEvents.start();
+referrals.start();
 
 app.get("/api/credits", async (req, res) => {
   try {
@@ -585,14 +604,14 @@ app.delete("/api/skills/:id", async (req, res) => {
   return res.json(out);
 });
 
-app.get("/api/admin/skills", async (req, res) => {
+registerAdmin("get", "/api/admin/skills", async (req, res) => {
   res.set("Cache-Control", "no-store");
   const out = await skills.listForReview(req.user, req.query.status);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json({ success: true, ...out });
 });
 
-app.patch("/api/admin/skills/:id", async (req, res) => {
+registerAdmin("patch", "/api/admin/skills/:id", async (req, res) => {
   const out = await skills.review(req.user, req.params.id, req.body?.status, req.body?.note);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
@@ -773,6 +792,19 @@ app.get("/api/designs/templates/:id", async (req, res) => {
   return res.json(out);
 });
 
+app.put("/api/designs/templates/:id/like", rateLimit({ windowMs: 60_000, max: 60 }), async (req, res) => {
+  if (!req.user) return res.status(401).json({success:false,error:"Please log in first."});
+  try {
+    const found = await designs.getTemplate(req.params.id);
+    if (!found.success) return res.status(404).json({success:false,error:"Design not found."});
+    const out = await social.setReaction("design:" + req.params.id, req.user, "like", req.body?.active !== false);
+    return res.status(out.status || 200).json(out);
+  } catch (err) {
+    console.error("[design-like]", err.message);
+    return res.status(500).json({success:false,error:"Could not update like. Please retry."});
+  }
+});
+
 app.post("/api/designs/templates/:id/clone", rateLimit({ windowMs: 60_000, max: 30 }), async (req, res) => {
   const out = await designs.cloneTemplate(req.user, req.params.id);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
@@ -926,6 +958,18 @@ app.get("/api/template-reactions", async (req, res) => {
   }
 });
 
+app.get("/api/account/transactions", async (req, res) => {
+  if (!req.user) return res.status(401).json({success:false,error:"Please log in first."});
+  res.set("Cache-Control", "no-store");
+  try {
+    const out = await require("./account-ledger").list(req.user, req.query.offset || 0);
+    return res.status(out.status || 200).json(out);
+  } catch (err) {
+    console.error("[account-ledger]", err.message);
+    return res.status(503).json({success:false,error:"Transaction history unavailable. Please retry."});
+  }
+});
+
 app.get("/api/template-metrics", async (req, res) => {
   try {
     const ids = String(req.query.ids || "").split(",").filter(Boolean);
@@ -962,7 +1006,7 @@ app.post("/api/reports", rateLimit({ windowMs: 60 * 60_000, max: 12 }), async (r
   }
 });
 
-app.get("/api/admin/reports", async (req, res) => {
+registerAdmin("get", "/api/admin/reports", async (req, res) => {
   try {
     const out = await reports.list(req.user, req.query.status);
     if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
@@ -973,7 +1017,7 @@ app.get("/api/admin/reports", async (req, res) => {
   }
 });
 
-app.post("/api/admin/reports/:id", async (req, res) => {
+registerAdmin("post", "/api/admin/reports/:id", async (req, res) => {
   try {
     const out = await reports.resolve(req.user, req.params.id, req.body?.status, req.body?.resolution);
     if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
@@ -1109,6 +1153,17 @@ app.patch("/api/notifications/read", async (req, res) => {
   return res.json(out);
 });
 
+app.delete("/api/notifications/:id", async (req, res) => {
+  const out = await require("./notification-controls").remove(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({success:false,error:out.error});
+  return res.json(out);
+});
+app.put("/api/notifications/:id/mute", async (req, res) => {
+  const out = await require("./notification-controls").mute(req.user, req.params.id, req.body?.active);
+  if (out.error) return res.status(out.status || 400).json({success:false,error:out.error});
+  return res.json(out);
+});
+
 // AI Video-to-Template ("deconstruct a video into a template") is not a real
 // feature yet - it had no analysis behind it and its ffprobe path took a raw
 // client-supplied file path into a shell command (command injection). Removed
@@ -1229,7 +1284,7 @@ app.get("/api/creator", async (req, res) => {
       // billing_cycle and plan_lifetime are what decide whether an active
       // yearly subscription earns its badge; without them every paying member
       // read as unverified here.
-      `select id, email, display_name, handle, bio, youtube, instagram, website, location,
+      `select id, email, display_name, handle, bio, youtube, instagram, website, location, creator_details,
               verified, stars, plan, plan_until, plan_lifetime, billing_cycle,
               created_at, (avatar_bytes is not null) as has_avatar
        from public.users
@@ -1255,6 +1310,7 @@ app.get("/api/creator", async (req, res) => {
     bio: dbUser.bio || "",
     website: dbUser.website || "",
     location: dbUser.location || "",
+    creatorDetails: require("./creator-details").publicDetails(dbUser.creator_details),
     verified: auth.isVerified(dbUser),
     avatarUrl: dbUser.has_avatar ? `/api/users/${encodeURIComponent(dbUser.id)}/avatar` : "",
     youtube: dbUser.youtube || "",
@@ -1940,144 +1996,158 @@ app.post("/api/support/tickets/:id/messages", rateLimit({ windowMs: 60_000, max:
   return res.status(201).json(out);
 });
 
-app.get("/api/admin/support/tickets", async (req, res) => {
+registerAdmin("get", "/api/admin/support/tickets", async (req, res) => {
   const out = await support.listAdmin(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.patch("/api/admin/support/tickets/:id", async (req, res) => {
+registerAdmin("patch", "/api/admin/support/tickets/:id", async (req, res) => {
   const out = await support.updateAdmin(req.user, req.params.id, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.get("/api/admin/dashboard", async (req, res) => {
+registerAdmin("get", "/api/admin/dashboard", async (req, res) => {
   const out = await admin.dashboard(req.user);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.get("/api/admin/users", async (req, res) => {
+registerAdmin("get", "/api/admin/users", async (req, res) => {
   const out = await admin.listUsers(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.post("/api/admin/users/:id/moderate", async (req, res) => {
+registerAdmin("post", "/api/admin/users/:id/moderate", async (req, res) => {
   const out = await admin.moderateUser(req.user, req.params.id, req.body?.action, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.post("/api/admin/users/:id/balance", async (req, res) => {
+registerAdmin("post", "/api/admin/users/:id/balance", async (req, res) => {
   const out = await admin.adjustUserBalance(req.user, req.params.id, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.get("/api/admin/creators", async (req, res) => {
+registerAdmin("get", "/api/admin/creators", async (req, res) => {
   const out = await admin.listCreators(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
 // Staff: the owner appoints people and chooses exactly what they may do.
-app.get("/api/admin/staff", async (req, res) => {
+registerAdmin("get", "/api/admin/staff", async (req, res) => {
   const out = await admin.listStaff(req.user);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.patch("/api/admin/users/:id/staff", async (req, res) => {
+registerAdmin("patch", "/api/admin/users/:id/staff", async (req, res) => {
   const out = await admin.setStaff(req.user, req.params.id, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.get("/api/admin/templates", async (req, res) => {
+registerAdmin("get", "/api/admin/templates", async (req, res) => {
   const out = await admin.listContent(req.user);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
+registerAdmin("get", "/api/admin/design-templates/:id/preview", rateLimit({ windowMs: 60_000, max: 60 }), async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  const out = await admin.designPreview(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+registerAdmin("get", "/api/admin/design-templates/:id/asset", rateLimit({ windowMs: 60_000, max: 120 }), async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  const out = await admin.designPreviewAsset(req.user, req.params.id, req.query.src);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  res.set("Content-Type", "image/webp");
+  res.set("X-Content-Type-Options", "nosniff");
+  return res.end(out.content);
+});
 
-app.patch("/api/admin/templates/:id", async (req, res) => {
+registerAdmin("patch", "/api/admin/templates/:id", async (req, res) => {
   const out = await admin.updateContent(req.user, req.params.id, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
 // Money: Withdrawals, Star Ledger, Star Packs
-app.get("/api/admin/withdrawals", async (req, res) => {
+registerAdmin("get", "/api/admin/withdrawals", async (req, res) => {
   const out = await admin.listWithdrawals(req.user, req.query?.status);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.post("/api/admin/withdrawals/:id/process", async (req, res) => {
+registerAdmin("post", "/api/admin/withdrawals/:id/process", async (req, res) => {
   const out = await admin.processWithdrawal(req.user, req.params.id, req.body?.action, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.get("/api/admin/stars/ledger", async (req, res) => {
+registerAdmin("get", "/api/admin/stars/ledger", async (req, res) => {
   const out = await admin.listStarLedger(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.post("/api/admin/stars/transactions/:id/reverse", async (req, res) => {
+registerAdmin("post", "/api/admin/stars/transactions/:id/reverse", async (req, res) => {
   const out = await admin.reverseStarTransaction(req.user, req.params.id, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.get("/api/admin/star-packs", async (req, res) => {
+registerAdmin("get", "/api/admin/star-packs", async (req, res) => {
   const out = await admin.listStarPacks(req.user);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.post("/api/admin/star-packs", async (req, res) => {
+registerAdmin("post", "/api/admin/star-packs", async (req, res) => {
   const out = await admin.saveStarPack(req.user, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
 // Platform: AI Jobs & Broadcast
-app.get("/api/admin/ai-jobs", async (req, res) => {
+registerAdmin("get", "/api/admin/ai-jobs", async (req, res) => {
   const out = await admin.listAiJobs(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.post("/api/admin/ai-jobs/:id/retry", async (req, res) => {
+registerAdmin("post", "/api/admin/ai-jobs/:id/retry", async (req, res) => {
   const out = await admin.retryAiJob(req.user, req.params.id);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.post("/api/admin/notifications/broadcast", async (req, res) => {
+registerAdmin("post", "/api/admin/notifications/broadcast", async (req, res) => {
   const out = await admin.broadcastNotification(req.user, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
 // System: Audit logs & Feature flags
-app.get("/api/admin/audit-logs", async (req, res) => {
+registerAdmin("get", "/api/admin/audit-logs", async (req, res) => {
   const out = await admin.listAuditLogs(req.user, req.query);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.get("/api/admin/feature-flags", async (req, res) => {
+registerAdmin("get", "/api/admin/feature-flags", async (req, res) => {
   const out = await admin.listFlags(req.user);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
 
-app.patch("/api/admin/feature-flags/:key", async (req, res) => {
-  const out = await admin.setFlag(req.user, req.params.key, req.body?.enabled === true);
+registerAdmin("patch", "/api/admin/feature-flags/:key", async (req, res) => {
+  const out = await admin.setFlag(req.user, req.params.key, req.body?.enabled);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
@@ -2694,7 +2764,13 @@ app.post("/api/export", rateLimit({ windowMs: 120_000, max: 6 }), jsonExport, as
     await referrals.successfulExport(req.user, req._creditChargeIds?.export).catch(err => console.error("[referral export]", err.message));
     // A successful first export can add referral credits. Report the balance
     // after qualification, not the stale pre-reward amount displayed by clients.
-    res.setHeader("X-Credits-Left", String((await credits.state(req)).left));
+    try {
+      res.setHeader("X-Credits-Left", String((await credits.state(req)).left));
+    } catch (balanceErr) {
+      // Rendering already succeeded. A balance-read outage must never refund
+      // this completed export or discard its file after a committed reward.
+      console.error("[export balance]", balanceErr.code || balanceErr.name);
+    }
     return res.end(mp4);
   } catch (err) {
     await credits.refund(req, "export");
@@ -2838,6 +2914,14 @@ for (const [route, file] of Object.entries(PAGES)) {
         res.status(err.statusCode || 404).sendFile(path.join(__dirname, "public", "404.html"));
       }
     });
+  });
+}
+
+// Express 4 needs an explicit rejection boundary for async admin handlers.
+function registerAdmin(method, route, ...handlers) {
+  const handler = handlers.pop();
+  app[method](route, ...handlers, (req, res, next) => {
+    Promise.resolve().then(() => handler(req, res, next)).catch(next);
   });
 }
 

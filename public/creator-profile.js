@@ -111,6 +111,21 @@
 
     var bi = $("#creatorBio");
     if (bi) bi.textContent = c.bio;
+    if (bi) {
+      var oldDetails = document.getElementById("creatorExtraDetails"); if (oldDetails) oldDetails.remove();
+      var info = document.createElement("div"); info.id = "creatorExtraDetails"; info.className = "cp-extra-details";
+      var details = c.creatorDetails || {};
+      ["creatorType", "niche", "languages"].forEach(function (key) { if (details[key]) { var tag = document.createElement("span"); tag.textContent = details[key]; info.appendChild(tag); } });
+      var links = {website:c.website,youtube:c.youtube,instagram:c.instagram,portfolio:details.portfolio,telegram:details.telegram,x:details.x,linkedin:details.linkedin,tiktok:details.tiktok};
+      Object.keys(links).forEach(function (key) {
+        try {
+          var url = new URL(links[key]); if (!/^https?:$/.test(url.protocol)) return;
+          var a = document.createElement("a"); a.href = url.href; a.textContent = key.charAt(0).toUpperCase() + key.slice(1); a.target = "_blank"; a.rel = "noopener noreferrer"; info.appendChild(a);
+        } catch (err) {}
+      });
+      if (details.businessEmail && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(details.businessEmail)) { var email = document.createElement("a"); email.href = "mailto:" + details.businessEmail; email.textContent = "Business contact"; info.appendChild(email); }
+      bi.after(info);
+    }
     var verified = $("#creatorVerified");
     if (verified) verified.hidden = c.verified !== true;
     if ($("#creatorFollowers")) $("#creatorFollowers").textContent = String(Number(c.followers) || 0);

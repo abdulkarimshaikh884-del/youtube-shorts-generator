@@ -85,14 +85,31 @@ async function sendPasswordReset({ to, resetUrl, tokenHash }) {
 
 async function sendEmailVerification({ to, verificationUrl, tokenHash }) {
   if (!configured()) throw new Error("Verification email is not configured.");
-  const response = await fetch(RESEND_URL, {
-    method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json", "Idempotency-Key": `shortscraft-verify-${tokenHash.slice(0, 32)}` },
-    body: JSON.stringify(verificationPayload({ to, verificationUrl })),
-    signal: AbortSignal.timeout(12_000)
-  });
-  if (!response.ok) throw new Error("Verification email delivery failed. Please retry later.");
-  return response.json();
+  // Retrying the same request reuses exactly the same payload and provider key.
+  // Never log provider bodies (which can contain recipients or verification URLs).
+  const body = JSON.stringify(verificationPayload({ to, verificationUrl }));
+  const idempotencyKey = `shortscraft-verify-${String(tokenHash).slice(0, 32)}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch(RESEND_URL, {
+        method: "POST", headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+        body, signal: AbortSignal.timeout(12_000)
+      });
+      if (!response.ok) {
+        const error = new Error("Verification email provider unavailable.");
+        error.status = response.status;
+        error.permanent = response.status >= 400 && response.status < 500 && ![409, 429].includes(response.status);
+        throw error;
+      }
+      const result = await response.json();
+      if (typeof result.id !== "string" || !result.id) throw new Error("Verification email provider response missing ID.");
+      return { id: result.id };
+    } catch (error) {
+      if (error.permanent || attempt === 2) throw error;
+      await new Promise(resolve => setTimeout(resolve, 500 * 2 ** attempt));
+    }
+  }
 }
 // No arbitrary HTML, URLs or recipients are accepted from the browser. These
 // templates are built by the server from a committed business event.

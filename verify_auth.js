@@ -481,7 +481,7 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
         const box = button.getBoundingClientRect();
         return box.width >= 64 && box.height >= 36 && box.left >= 0 && box.right <= window.innerWidth;
       }),
-      logoutReachable: reachable('[data-settings-link="logout"]', "/account/logout"),
+      logoutReachable: reachable('#igPaneSettings #accLogout'),
       creationsReachable: reachable('[data-settings-link="creations"]', "/account/creations"),
       referralsReachable: reachable('[data-settings-link="referrals"]', "/account/referrals"),
       linksContained: [...document.querySelectorAll(".pf-settings-list > a")].filter(el => el.checkVisibility()).every(el => {
@@ -521,9 +521,12 @@ const uniq = () => "t" + Date.now().toString(36) + Math.random().toString(36).sl
   );
   // The account header no longer carries its own log-out button; the top bar
   // is the one control present on every page.
+  await page.click("#logoutBtn");
+  await page.waitForSelector(".sc-dlg-ok");
+  ok(await page.$eval(".sc-dlg", el => el.textContent.includes("Your saved work is kept")), "logout asks for confirmation before ending the session");
   await Promise.all([
     page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 20000 }),
-    page.click("#logoutBtn")
+    page.click(".sc-dlg-ok")
   ]);
   await page.waitForFunction(() => [...document.querySelectorAll('a[href="/login"]')].some(el => el.checkVisibility()) &&
     !document.querySelector("#logoutBtn")?.checkVisibility());
