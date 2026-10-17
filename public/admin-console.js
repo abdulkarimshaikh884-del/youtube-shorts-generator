@@ -2059,11 +2059,20 @@
       b.hidden = !ok;
       if (ok && allowedTabs.indexOf(key) === -1) allowedTabs.push(key);
     });
-    // Rail hub buttons: visible when any hub member section is allowed.
+    // Rail hub buttons: visible when any hub member section is allowed,
+    // or when the hub's own permission passes (hubs with no member tabs:
+    // Mission Control, Operations, System). Newly allowed hub keys are
+    // registered so their panels unhide and hash navigation resolves.
     all("[data-admin-tab][data-hub]").forEach(function (b) {
       var hubKeys = String(b.getAttribute("data-hub") || "").split(/\s+/).filter(Boolean);
       var ok = hubKeys.some(function (k) { return permByKey[k]; });
+      if (!ok) ok = hasAny(b.getAttribute("data-perm"));
       b.hidden = !ok;
+      if (ok) hubKeys.forEach(function (k) {
+        if (Object.prototype.hasOwnProperty.call(permByKey, k)) return; // member-tab decision stands
+        permByKey[k] = true;
+        if (allowedTabs.indexOf(k) === -1) allowedTabs.push(k);
+      });
     });
     all("[data-admin-group]").forEach(function (group) { group.hidden = !group.querySelector('[data-admin-tab]:not([hidden])'); });
     all("[data-admin-jump]").forEach(function (button) { button.hidden = allowedTabs.indexOf(button.getAttribute("data-admin-jump")) === -1; });
