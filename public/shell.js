@@ -112,7 +112,15 @@
   }
 
   /* ── Modal Dialog Logic (Compact Centered Size) ────────── */
+
+  /* Bumped on every modal open/close. Async callbacks (comments, premium
+     access check) capture the value at open time and ignore their response
+     if the modal has since moved on — otherwise a slow response for a
+     previously viewed template paints stale content into the current one. */
+  var modalSeq = 0;
+
   function openTemplateModal(t) {
+    var mySeq = ++modalSeq;
     var modal = $("#tplModal");
     if (!modal) {
       modal = document.createElement("div");
@@ -216,6 +224,7 @@
       fetch("/api/templates/" + encodeURIComponent(t.commId) + "/access")
         .then(function (r) { return r.json(); })
         .then(function (acc) {
+          if (mySeq !== modalSeq) return; // modal reopened for another template
           var stage = $("#modalStage");
           if (acc && acc.hasAccess) {
             mStudioBtn.className = "sh-modal-cta is-premium-remix";
@@ -299,8 +308,16 @@
     var lkSpan = modal.querySelector(".sh-m-like-num");
     if (lkSpan) lkSpan.textContent = String(t.likes);
 
-    // Mount live preview stage
+    // Mount live preview stage. Tear down the previous preview explicitly:
+    // the old iframe owns a live document (and running scripts), so remove
+    // the element outright before mounting the new one — no stale frame may
+    // survive into the next template's preview.
     var mStage = $("#modalStage");
+    var staleFrame = mStage.querySelector("iframe");
+    if (staleFrame) {
+      staleFrame.removeAttribute("srcdoc");
+      if (staleFrame.parentNode) staleFrame.parentNode.removeChild(staleFrame);
+    }
     mStage.innerHTML = "";
     var previewAspect = t.isCommunity ? (t.aspect || "9:16") : currentAspect;
     $("#modalAspect").textContent = aspectsOf(t);
@@ -387,6 +404,7 @@
   function closeTemplateModal() {
     var modal = $("#tplModal");
     if (modal) {
+      modalSeq++; // invalidate in-flight async updates for the closed template
       modal.classList.remove("open");
       modal.setAttribute("hidden", "");
       var mStage = $("#modalStage");
@@ -399,6 +417,7 @@
     var list = $("#modalCommList");
     var count = $("#modalCommCount");
     if (!list) return;
+    var mySeq = modalSeq;
 
     /* Comments used to render as one grey line: no author picture, no way to
        reply, and nothing to do about one posted by mistake. This draws a real
@@ -407,6 +426,7 @@
     fetch("/api/comments?tpl=" + encodeURIComponent(tplId))
       .then(function (r) { return r.json(); })
       .then(function (d) {
+        if (mySeq !== modalSeq) return; // stale response for a previously viewed template
         var comms = (d && d.comments) || [];
         if (count) count.textContent = "(" + comms.length + ")";
         list.innerHTML = "";
