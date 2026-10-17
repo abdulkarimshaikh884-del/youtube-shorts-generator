@@ -97,6 +97,33 @@
     return el;
   }
 
+  /* Inline SVG icon system — no emoji icons in the admin console. */
+  var ICONS = {
+    star: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></svg>',
+    bolt: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2Z"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>',
+    shieldCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 8.3-7 9.8-4.1-1.5-7-5.4-7-9.8V5.8L12 3Z"/><path d="m9.3 12 2 2 3.6-4.2"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 8.3-7 9.8-4.1-1.5-7-5.4-7-9.8V5.8L12 3Z"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
+  };
+  function adminIcon(name, cls) {
+    var s = document.createElement("span");
+    s.className = "admin-inline-icon" + (cls ? " " + cls : "");
+    s.setAttribute("aria-hidden", "true");
+    s.innerHTML = ICONS[name] || "";
+    return s;
+  }
+  /* Small icon + text pair, e.g. star amounts. */
+  function iconText(ic, value) {
+    var s = document.createElement("span");
+    s.className = "admin-stat";
+    s.appendChild(adminIcon(ic));
+    s.appendChild(document.createTextNode(" " + String(value == null ? "" : value)));
+    return s;
+  }
+
   function isOwner() {
     return !!currentUser && currentUser.role === "super_admin";
   }
@@ -124,13 +151,19 @@
     if (badge) {
       if (user.role === "super_admin") {
         badge.className = "admin-role-badge is-owner";
-        badge.textContent = "👑 Owner (Super Admin)";
+        badge.innerHTML = "";
+        badge.appendChild(adminIcon("shieldCheck"));
+        badge.appendChild(document.createTextNode(" Owner (Super Admin)"));
       } else if (user.role === "sub_admin" || user.role === "admin") {
         badge.className = "admin-role-badge is-sub-admin";
-        badge.textContent = "🛡️ Sub Admin";
+        badge.innerHTML = "";
+        badge.appendChild(adminIcon("shield"));
+        badge.appendChild(document.createTextNode(" Sub Admin"));
       } else {
         badge.className = "admin-role-badge is-moderator";
-        badge.textContent = "🔍 Moderator";
+        badge.innerHTML = "";
+        badge.appendChild(adminIcon("eye"));
+        badge.appendChild(document.createTextNode(" Moderator"));
       }
     }
 
@@ -173,7 +206,9 @@
     var head = document.createElement("div");
     head.className = "admin-modal-head";
     head.appendChild(text("h3", title));
-    var closeBtn = text("button", "✕", "admin-modal-close");
+    var closeBtn = document.createElement("button");
+    closeBtn.className = "admin-modal-close";
+    closeBtn.innerHTML = ICONS.x;
     closeBtn.type = "button";
     closeBtn.setAttribute("aria-label", "Close modal");
     closeBtn.addEventListener("click", close);
@@ -297,7 +332,10 @@
           acts.forEach(function (act) {
             var item = document.createElement("div");
             item.className = "admin-activity-item";
-            var icon = text("span", "📝", "admin-activity-icon");
+            var icon = document.createElement("span");
+            icon.className = "admin-activity-icon";
+            icon.setAttribute("aria-hidden", "true");
+            icon.innerHTML = ICONS.activity;
             var actStr = String(act.action || "").replace(/_/g, " ");
             var actor = act.actor_name || cleanHandle(act.actor_handle || "admin");
             var txt = document.createElement("div");
@@ -332,7 +370,9 @@
       var userBox = document.createElement("div");
       userBox.style.display = "grid";
       userBox.style.gap = "2px";
-      userBox.appendChild(text("strong", (u.displayName || u.handle || "Account") + (u.verified ? " ✓" : "")));
+      var uNameEl = text("strong", (u.displayName || u.handle || "Account"));
+      if (u.verified) { uNameEl.appendChild(document.createTextNode(" ")); uNameEl.appendChild(adminIcon("check")); }
+      userBox.appendChild(uNameEl);
       userBox.appendChild(text("small", cleanHandle(u.handle || "no-handle") + (u.email ? " · " + u.email : "")));
       tdUser.appendChild(userBox);
       tr.appendChild(tdUser);
@@ -351,13 +391,15 @@
 
       // Credits
       var tdCredits = document.createElement("td");
-      tdCredits.textContent = "⚡ " + (u.credits ?? "Unavailable");
+      tdCredits.innerHTML = "";
+      tdCredits.appendChild(iconText("bolt", (u.credits ?? "Unavailable")));
       tr.appendChild(tdCredits);
 
       // Stars
       var tdStars = document.createElement("td");
-      var starsStr = "⭐ " + (u.totalStars || 0) + " (Earned: " + (u.earnedStars || 0) + " / Out: " + (u.withdrawnStars || 0) + ")";
-      tdStars.appendChild(text("span", starsStr, "pg-fine"));
+      var starsWrap = text("span", "", "pg-fine");
+      starsWrap.appendChild(iconText("star", (u.totalStars || 0) + " (Earned: " + (u.earnedStars || 0) + " / Out: " + (u.withdrawnStars || 0) + ")"));
+      tdStars.appendChild(starsWrap);
       tr.appendChild(tdStars);
 
       // Templates
@@ -619,7 +661,11 @@
         tr.appendChild(tdCreator);
 
         var tdVer = document.createElement("td");
-        tdVer.innerHTML = c.verified ? "<span class='admin-pill is-published'>✓ Verified</span>" : "<span class='admin-pill'>Standard</span>";
+        var verPill = document.createElement("span");
+        verPill.className = "admin-pill" + (c.verified ? " is-published" : "");
+        if (c.verified) { verPill.appendChild(adminIcon("check")); verPill.appendChild(document.createTextNode(" Verified")); }
+        else { verPill.textContent = "Standard"; }
+        tdVer.appendChild(verPill);
         tr.appendChild(tdVer);
 
         var tdPub = document.createElement("td");
@@ -627,15 +673,19 @@
         tr.appendChild(tdPub);
 
         var tdEarned = document.createElement("td");
-        tdEarned.textContent = "⭐ " + (c.starsEarned || 0);
+        tdEarned.innerHTML = "";
+        tdEarned.appendChild(iconText("star", (c.starsEarned || 0)));
         tr.appendChild(tdEarned);
 
         var tdWithdrawn = document.createElement("td");
-        tdWithdrawn.textContent = "⭐ " + (c.withdrawnStars || 0);
+        tdWithdrawn.innerHTML = "";
+        tdWithdrawn.appendChild(iconText("star", (c.withdrawnStars || 0)));
         tr.appendChild(tdWithdrawn);
 
         var tdBal = document.createElement("td");
-        tdBal.appendChild(text("b", "⭐ " + (c.withdrawableStars || 0)));
+        var balB = document.createElement("b");
+        balB.appendChild(iconText("star", (c.withdrawableStars || 0)));
+        tdBal.appendChild(balB);
         tdBal.appendChild(text("small", " (₹" + ((c.withdrawableStars || 0) * 3.50).toFixed(2) + ")", "pg-fine"));
         tr.appendChild(tdBal);
 
@@ -685,10 +735,23 @@
 
         var main = document.createElement("div");
         main.className = "admin-row-main";
-        main.appendChild(text("strong", t.title + (t.isFeatured ? " ✦ Featured" : "")));
+        var tTitle = text("strong", t.title);
+        if (t.isFeatured) {
+          tTitle.appendChild(document.createTextNode(" "));
+          var featPill = document.createElement("span");
+          featPill.className = "admin-pill is-pro";
+          featPill.appendChild(adminIcon("star"));
+          featPill.appendChild(document.createTextNode(" Featured"));
+          tTitle.appendChild(featPill);
+        }
+        main.appendChild(tTitle);
         var authorLabel = (t.authorName ? t.authorName + (t.authorHandle ? " (" + cleanHandle(t.authorHandle) + ")" : "") : cleanHandle(t.authorHandle)) || "Creator";
         main.appendChild(text("span", authorLabel + " · " + (t.category || "Uncategorized") + " · Status: " + String(t.status || "unknown").toUpperCase()));
-        main.appendChild(text("small", (t.priceStars > 0 ? "⭐ " + t.priceStars + " Stars" : "Free") + " · " + (t.likes || 0) + " likes · " + (t.exports || 0) + " uses"));
+        var tMeta = text("small", "");
+        if (t.priceStars > 0) { tMeta.appendChild(iconText("star", t.priceStars + " Stars")); }
+        else { tMeta.appendChild(document.createTextNode("Free")); }
+        tMeta.appendChild(document.createTextNode(" · " + (t.likes || 0) + " likes · " + (t.exports || 0) + " uses"));
+        main.appendChild(tMeta);
         if (t.reviewNote) main.appendChild(text("small", "Note: " + t.reviewNote, "pg-formnote"));
 
         var controls = document.createElement("div");
@@ -717,6 +780,21 @@
             }, "Reject Template", true);
           });
           controls.appendChild(rejBtn);
+        }
+
+        if (t.status !== "archived") {
+          var archBtn = text("button", "Archive", "admin-btn admin-btn-outline admin-btn-sm");
+          archBtn.addEventListener("click", function () {
+            openModal("Archive Template", function (body) {
+              body.appendChild(text("p", "Archive \"" + t.title + "\"? It will be hidden from the public listing. You can restore it later from the Archived filter.", "pg-fine"));
+            }, function () {
+              return api("/api/admin/templates/" + encodeURIComponent(t.id), {
+                method: "PATCH", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "archived" })
+              }).then(function () { note("Template archived."); safeLoad(loadTemplates); safeLoad(loadOverview); });
+            }, "Archive Template");
+          });
+          controls.appendChild(archBtn);
         }
 
         var preview = text(t.sourceFormat === "design_template" ? "button" : "a", "View template", "admin-btn admin-btn-outline admin-btn-sm");
@@ -908,7 +986,9 @@
         tr.appendChild(tdCreator);
 
         tr.appendChild(text("td", w.upiId || w.accountDetails || "UPI Not Specified"));
-        tr.appendChild(text("td", "⭐ " + starAmt));
+        var tdStarsW = document.createElement("td");
+        tdStarsW.appendChild(iconText("star", starAmt));
+        tr.appendChild(tdStarsW);
         tr.appendChild(text("td", "₹" + grossAmt));
         tr.appendChild(text("td", "₹" + netAmt));
 
@@ -976,7 +1056,9 @@
         tr.appendChild(text("td", (tx.kind || "transaction").toUpperCase()));
         tr.appendChild(text("td", tx.senderHandle ? cleanHandle(tx.senderHandle) : (tx.sender || "System")));
         tr.appendChild(text("td", tx.receiverHandle ? cleanHandle(tx.receiverHandle) : (tx.receiver || "Platform")));
-        tr.appendChild(text("td", "⭐ " + (tx.amount || 0)));
+        var tdTxAmt = document.createElement("td");
+        tdTxAmt.appendChild(iconText("star", (tx.amount || 0)));
+        tr.appendChild(tdTxAmt);
         tr.appendChild(text("td", tx.balanceAfter != null ? tx.balanceAfter : "—"));
         tr.appendChild(text("td", tx.note ? String(tx.note).slice(0, 60) : "—"));
 
@@ -1153,11 +1235,17 @@
 
         var main = document.createElement("div");
         main.className = "admin-row-main";
-        main.appendChild(text("strong", (m.displayName || cleanHandle(m.handle) || "Staff") + (m.owner ? " · 👑 Owner" : "")));
+        var mName = text("strong", (m.displayName || cleanHandle(m.handle) || "Staff"));
+        if (m.owner) { mName.appendChild(document.createTextNode(" · ")); mName.appendChild(adminIcon("shieldCheck")); mName.appendChild(document.createTextNode(" Owner")); }
+        main.appendChild(mName);
         main.appendChild(text("span", cleanHandle(m.handle || "no-handle") + (m.email ? " · " + m.email : "")));
-        main.appendChild(text("small", m.owner
-          ? "Unrestricted Super Admin. Immune to changes."
-          : (m.role === "sub_admin" ? "🛡️ Sub Admin" : "🔍 Moderator") + " · " + (m.permissions || []).length + " active permissions"));
+        var mRole = text("small", "");
+        if (m.owner) { mRole.textContent = "Unrestricted Super Admin. Immune to changes."; }
+        else {
+          mRole.appendChild(adminIcon(m.role === "sub_admin" ? "shield" : "eye"));
+          mRole.appendChild(document.createTextNode(" " + (m.role === "sub_admin" ? "Sub Admin" : "Moderator") + " · " + (m.permissions || []).length + " active permissions"));
+        }
+        main.appendChild(mRole);
 
         row.appendChild(main);
 
