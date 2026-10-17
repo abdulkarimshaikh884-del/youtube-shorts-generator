@@ -52,9 +52,25 @@
         if (!res || !res.success) throw new Error("load");
         loadedTemplates = res.templates || [];
         var filter = $("#designFilter");
-        if (filter) Array.from(new Set(loadedTemplates.map(function (t) { return t.category; }).filter(Boolean))).sort().forEach(function (category) {
-          var option = document.createElement("option"); option.value = "category:" + category; option.textContent = category; filter.appendChild(option);
-        });
+        if (filter) {
+          // Build category options deduped case-insensitively with human-readable labels.
+          // Templates may carry raw slugs ("youtube-thumbnail") or mixed-case values
+          // ("Premium" vs "premium") since the publish flow stores category verbatim.
+          var seenCat = {};
+          loadedTemplates.forEach(function (t) {
+            var raw = String(t.category || "").trim();
+            if (!raw) return;
+            var key = raw.toLowerCase();
+            if (!seenCat[key]) seenCat[key] = raw;
+          });
+          Object.keys(seenCat).sort().forEach(function (key) {
+            var label = seenCat[key].replace(/-/g, " ").replace(/(^|\s)\S/g, function (c) { return c.toUpperCase(); });
+            var option = document.createElement("option");
+            option.value = "category:" + key;
+            option.textContent = label;
+            filter.appendChild(option);
+          });
+        }
         if (!res || !res.success || !res.templates || !res.templates.length) {
           grid.innerHTML = '<div class="ds-empty"><h3>No design templates found</h3><p>Upload a design or thumbnail to create the first editable template!</p></div>';
           return;
@@ -83,7 +99,7 @@
       seen.add(String(tpl.id));
       var official = String(tpl.authorHandle || "").replace(/^@/, "").toLowerCase() === "shortscraft";
       if ((filter === "free" && tpl.isPremium) || (filter === "premium" && !tpl.isPremium) || (filter === "official" && !official) || (filter === "community" && official)) return false;
-      if (filter.startsWith("category:") && tpl.category !== filter.slice(9)) return false;
+      if (filter.startsWith("category:") && String(tpl.category || "").toLowerCase() !== filter.slice(9)) return false;
       return [tpl.title, tpl.description, tpl.authorName, tpl.authorHandle].join(" ").toLowerCase().includes(query);
     });
     if (!templates.length) { grid.innerHTML = '<div class="ds-empty"><h3>No matching designs</h3><p>Try another search.</p></div>'; return; }
