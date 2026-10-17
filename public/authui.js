@@ -119,6 +119,8 @@
   }
 
   function paint(user) {
+    // Auth state resolved: drop the neutral loading skeleton in both branches.
+    all('[data-auth="loading"]').forEach(function (el) { el.setAttribute("hidden", ""); });
     all('[data-auth="in"]').forEach(function (el) { show(el, !!user); });
     all('[data-auth="out"]').forEach(function (el) { show(el, !user); });
     // The owner and anyone the owner gave admin permissions. The server
@@ -3387,11 +3389,12 @@
     setupUserTrigger();
     setupMenuOutsideClose();
     setupInstagramTabs();
-    fetch("/api/auth/me", { headers: { Accept: "application/json" } })
+    fetch("/api/auth/me", { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(10000) })
       .then(function (r) { return r.json(); })
       .then(function (j) {
         currentUser = j && j.user;
         paint(currentUser);
+        window.SC_AUTH_READY = true;
         setupEditProfile();
         setupPageProfileForm();
         setupAvatarUpload();
@@ -3403,6 +3406,7 @@
       .catch(function () {
         currentUser = null;
         paint(null);
+        window.SC_AUTH_READY = true;
         setupUploadModal();
       });
   }
