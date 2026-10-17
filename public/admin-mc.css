@@ -211,6 +211,14 @@ table.mc-t tbody tr:hover{background:#fafaf7}
 /* hub panels keep breathing room under the tab strip */
 .mc-panel-card{margin-bottom:0}
 
+/* Deterministic guard: legacy inline icons inside table cells keep their size
+   even if a stale cached admin.css is served (cache-buster discipline: bump ?v=
+   whenever a stylesheet's content changes). Presentation attributes on the SVGs
+   themselves provide a second layer; this rule is the third. */
+.mc-app table td .admin-inline-icon{width:14px;height:14px;display:inline-flex;align-items:center;
+  justify-content:center;flex:none;vertical-align:-2px}
+.mc-app table td .admin-inline-icon svg{width:14px;height:14px;display:block}
+
 /* ---------- responsive ---------- */
 @media (max-width:1100px){
   .mc-metrics{grid-template-columns:repeat(2,1fr)}
