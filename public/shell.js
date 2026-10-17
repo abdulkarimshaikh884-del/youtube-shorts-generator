@@ -244,6 +244,12 @@
                 if (window.SC_UI) SC_UI.toast("Paid template unlocks are Coming Soon.");
                 return;
               }
+              if (!window.SC_AUTH_READY) {
+                // Auth still hydrating: ignore the click rather than bouncing a
+                // possibly signed-in user to /login (see authui.js).
+                if (window.SC_UI) SC_UI.toast("Loading your account\u2026");
+                return;
+              }
               if (!signedIn()) {
                 location.href = "/login?next=" + encodeURIComponent(location.pathname + location.search);
                 return;
@@ -943,6 +949,12 @@
         heart.addEventListener("click", function (ev) {
           ev.preventDefault();
           ev.stopPropagation();
+          if (!window.SC_AUTH_READY) {
+            // Auth still hydrating: ignore the click rather than bouncing a
+            // possibly signed-in user to /login (see authui.js).
+            if (window.SC_UI) SC_UI.toast("Loading your account\u2026");
+            return;
+          }
           if (!signedIn()) {
             location.href = "/login?next=" + encodeURIComponent(location.pathname + "#templates");
             return;
