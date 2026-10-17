@@ -106,7 +106,22 @@
     activity: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>',
     shieldCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 8.3-7 9.8-4.1-1.5-7-5.4-7-9.8V5.8L12 3Z"/><path d="m9.3 12 2 2 3.6-4.2"/></svg>',
     shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 8.3-7 9.8-4.1-1.5-7-5.4-7-9.8V5.8L12 3Z"/></svg>',
-    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>'
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+    film: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg>',
+    banknote: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01" stroke-linecap="round"/></svg>',
+    headset: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="4" height="7" rx="1.5"/><rect x="18" y="13" width="4" height="7" rx="1.5"/><path d="M20 20a4 4 0 0 1-4 2h-2"/></svg>',
+    gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1v1c0 .35-.08.69-.22 1Z"/></svg>',
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+    refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>',
+    archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4.5h12l-2.5 3.8L17 12H5"/></svg>',
+    trendUp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17.5h.01"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 8.3v7.4l6-3.7-6-3.7Z"/></svg>',
+    mega: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5v14l-8-2.7V8.7L21 5Z"/><path d="M13 8.7H8.5L3 10v5l5.5 1.3H13"/><path d="M9 16.5V21h3v-4"/></svg>'
   };
   function adminIcon(name, cls) {
     var s = document.createElement("span");
@@ -146,25 +161,21 @@
     $("#adminGate").hidden = true;
     $("#adminApp").hidden = false;
 
-    // Role badge
-    var badge = $("#adminRoleBadge");
+    // Role badge (top command bar) + rail avatar
+    var badge = $("#mcRoleBadge");
+    var roleText = "Moderator", roleCls = "mc-owner-badge is-moderator", roleIcon = "eye";
+    if (user.role === "super_admin") { roleText = "Owner (Super Admin)"; roleCls = "mc-owner-badge"; roleIcon = "shield"; }
+    else if (user.role === "sub_admin" || user.role === "admin") { roleText = "Sub Admin"; roleCls = "mc-owner-badge is-sub-admin"; roleIcon = "shield"; }
     if (badge) {
-      if (user.role === "super_admin") {
-        badge.className = "admin-role-badge is-owner";
-        badge.innerHTML = "";
-        badge.appendChild(adminIcon("shieldCheck"));
-        badge.appendChild(document.createTextNode(" Owner (Super Admin)"));
-      } else if (user.role === "sub_admin" || user.role === "admin") {
-        badge.className = "admin-role-badge is-sub-admin";
-        badge.innerHTML = "";
-        badge.appendChild(adminIcon("shield"));
-        badge.appendChild(document.createTextNode(" Sub Admin"));
-      } else {
-        badge.className = "admin-role-badge is-moderator";
-        badge.innerHTML = "";
-        badge.appendChild(adminIcon("eye"));
-        badge.appendChild(document.createTextNode(" Moderator"));
-      }
+      badge.className = roleCls;
+      badge.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-' + roleIcon + '"/></svg><span id="mcRoleLabel"></span>';
+      setText("#mcRoleLabel", roleText.toUpperCase());
+    }
+    var av = $("#mcRailAvatar");
+    if (av) {
+      var nm = user.display_name || user.handle || "Admin";
+      av.textContent = String(nm).trim().split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0, 2).toUpperCase() || "A";
+      av.title = nm + " \u00B7 " + roleText;
     }
 
     // Quick team action button only for owner
@@ -306,51 +317,160 @@
       $("#adStarsPurchasedSub").textContent = (s.stars_purchased_total || 0).toLocaleString() + " Stars bought";
       $("#adRevenueFee").textContent = s.platformFeeINR == null ? "Unavailable" : "₹" + Number(s.platformFeeINR).toLocaleString();
       $("#adPendingWithdrawals").textContent = (s.pending_withdrawals || 0).toLocaleString();
-      $("#adPublished").textContent = (s.published_templates || 0).toLocaleString();
+      setText("#adPublished", (s.published_templates || 0).toLocaleString());
       $("#adPendingTemplatesSub").textContent = (s.pending_templates || 0) + " awaiting review";
       $("#adAiToday").textContent = (s.ai_jobs_today || 0) + " today";
       $("#adAiFailedSub").textContent = (s.ai_jobs_failed_30d || 0) + " failed (30d)";
       $("#adTickets").textContent = (s.open_tickets || 0).toLocaleString();
       $("#adReportsSub").textContent = (s.open_reports || 0) + " open reports";
 
-      // Update badge on withdrawals tab
-      var wBadge = $("#adNavWithdrawalsBadge");
-      if (wBadge) {
-        var count = Number(s.pending_withdrawals || 0);
-        wBadge.textContent = count;
-        wBadge.hidden = count <= 0;
-      }
+      /* Mission Control dashboard extras. */
+      var pendT = Number(s.pending_templates || 0);
+      var pendW = Number(s.pending_withdrawals || 0);
+      setText("#adPendingTemplates", pendT.toLocaleString());
+      var tplSub = $("#adPendingTemplatesSub");
+      if (tplSub) tplSub.textContent = "of " + (Number(s.published_templates || 0) + pendT).toLocaleString() + " total templates";
+      setDot("#mcDotContent", pendT);
+      setDot("#mcDotMoney", pendW);
+      setText("#adQaTemplates", pendT);
+      setText("#adQaWithdrawals", pendW);
+      setText("#adQaUsers", Number(s.users || 0).toLocaleString());
+      setText("#mcCntWithdrawals", pendW || "");
+      setText("#adNewUsersDelta", "+" + Number(s.new_users_30d || 0));
+      mcSpark("#mcSparkUsers", s.users || 0, "#15803d");
+      mcSpark("#mcSparkCreators", s.creators_count || 0, "#15803d");
+      mcSpark("#mcSparkTemplates", (s.pending_templates || 0) + 1, "#b45309");
+      mcSpark("#mcSparkPayouts", (s.pending_withdrawals || 0) + 1, "#b45309");
+      loadAttention();
 
-      // Recent Activity Stream
+      /* Recent activity feed (Mission Control). */
       var list = $("#adminRecentActivityList");
       if (list) {
         list.innerHTML = "";
-        var acts = j.recentActivity || [];
+        var acts = (j.recentActivity || []).slice(0, 8);
         if (!acts.length) {
           list.appendChild(text("p", "No recorded administrative actions yet.", "pg-fine"));
         } else {
           acts.forEach(function (act) {
             var item = document.createElement("div");
-            item.className = "admin-activity-item";
-            var icon = document.createElement("span");
-            icon.className = "admin-activity-icon";
-            icon.setAttribute("aria-hidden", "true");
-            icon.innerHTML = ICONS.activity;
-            var actStr = String(act.action || "").replace(/_/g, " ");
+            item.className = "mc-feed-item";
+            var dot = document.createElement("span");
+            dot.className = "mc-feed-dot " + actTone(act.action);
+            var body = document.createElement("div");
             var actor = act.actor_name || cleanHandle(act.actor_handle || "admin");
-            var txt = document.createElement("div");
-            txt.className = "admin-activity-text";
-            txt.appendChild(text("b", actor));
-            txt.appendChild(document.createTextNode(" performed " + actStr + " on " + (act.entity_type || "item") + (act.entity_id ? " (#" + String(act.entity_id).slice(0, 8) + ")" : "")));
-            var time = text("span", new Date(act.created_at).toLocaleString(), "admin-activity-time");
-            item.appendChild(icon);
-            item.appendChild(txt);
-            item.appendChild(time);
+            var actStr = String(act.action || "").replace(/_/g, " ");
+            var who = document.createElement("span"); who.className = "who"; who.textContent = actor;
+            body.appendChild(who);
+            body.appendChild(document.createTextNode(" " + actStr + " " + (act.entity_type || "item") + (act.entity_id ? " (#" + String(act.entity_id).slice(0, 8) + ")" : "")));
+            var time = document.createElement("span"); time.className = "ft";
+            time.textContent = mcTime(act.created_at);
+            item.appendChild(dot); item.appendChild(body); item.appendChild(time);
             list.appendChild(item);
           });
         }
       }
     });
+  }
+
+  /* ── Attention queue (Mission Control dashboard) ─────────────── */
+  function renderAttentionCards(cards) {
+    var root = $("#mcAttentionList");
+    if (!root) return;
+    root.innerHTML = "";
+    if (!cards.length) {
+      var ok = document.createElement("div"); ok.className = "mc-allclear";
+      ok.appendChild(mcSvg("check"));
+      ok.appendChild(document.createTextNode("All clear — nothing needs your attention right now."));
+      root.appendChild(ok); return;
+    }
+    cards.forEach(function (c) {
+      var item = document.createElement("div"); item.className = "mc-attn-item";
+      var ico = document.createElement("div"); ico.className = "mc-attn-ico" + (c.tone === "ok" ? " ok" : "");
+      ico.appendChild(mcSvg(c.icon)); item.appendChild(ico);
+      var body = document.createElement("div"); body.className = "mc-attn-body";
+      var t = document.createElement("div"); t.className = "t"; t.textContent = c.title; body.appendChild(t);
+      var m = document.createElement("div"); m.className = "m"; m.textContent = c.meta; body.appendChild(m);
+      item.appendChild(body);
+      var acts = document.createElement("div"); acts.className = "mc-attn-actions";
+      c.buttons.forEach(function (b) {
+        var btn = document.createElement("button"); btn.type = "button"; btn.className = "mc-btn " + b.cls;
+        btn.appendChild(mcSvg(b.icon)); btn.appendChild(document.createTextNode(b.label));
+        btn.addEventListener("click", b.onClick); acts.appendChild(btn);
+      });
+      item.appendChild(acts); root.appendChild(item);
+    });
+  }
+  function loadAttention() {
+    var root = $("#mcAttentionList");
+    if (!root) return;
+    root.innerHTML = '<p class="pg-fine">Checking what needs you\u2026</p>';
+    var cards = [];
+    var pending = 0;
+    function finish() { if (--pending <= 0) renderAttentionCards(cards); }
+    if (has("templates.moderate")) {
+      pending++;
+      api("/api/admin/templates").then(function (j) {
+        (j.templates || []).filter(function (t) { return t.status === "review"; }).slice(0, 3).forEach(function (t) {
+          cards.push({ icon: "film", tone: "",
+            title: "\u201C" + (t.title || "Untitled") + "\u201D is waiting for review",
+            meta: (t.authorHandle || t.authorName || "Creator") + " \u00B7 " + (t.category || "Uncategorized") + " \u00B7 submitted " + mcTime(t.createdAt),
+            buttons: [
+              { label: "Approve", cls: "mc-btn-green", icon: "check", onClick: function () { templateApprove(t); } },
+              { label: "Reject", cls: "mc-btn-red", icon: "x", onClick: function () { templateReject(t); } },
+              { label: "Archive", cls: "mc-btn-amber", icon: "archive", onClick: function () { templateArchive(t); } }
+            ]});
+        });
+      }).catch(function () {}).then(finish);
+    }
+    if (has("withdrawals.manage")) {
+      pending++;
+      api("/api/admin/withdrawals?status=pending").then(function (j) {
+        (j.withdrawals || []).slice(0, 2).forEach(function (w) {
+          var payoutId = w.txId || w.id;
+          var netAmt = w.netAmountINR != null ? w.netAmountINR : (w.payoutINR || 0);
+          var starAmt = w.starAmount != null ? w.starAmount : (w.stars || 0);
+          var btns;
+          if (window.SC_RELEASE && SC_RELEASE.monetizationEnabled) {
+            btns = [
+              { label: "Mark paid", cls: "mc-btn-dark", icon: "check", onClick: function () {
+                promptModal("Process Payout", "Enter Bank Reference Number / UTR for this \u20B9" + netAmt + " payout:", "", function (utr) {
+                  return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "mark_paid", utr: utr })
+                  }).then(function () { note("Payout marked as Paid!"); safeLoad(loadOverview); });
+                }, "Confirm Paid", false);
+              } },
+              { label: "Reject", cls: "mc-btn-red", icon: "x", onClick: function () {
+                promptModal("Reject Payout & Refund", "Enter mandatory rejection reason (Stars will be auto-refunded to creator):", "", function (reason) {
+                  return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "reject", reason: reason })
+                  }).then(function () { note("Payout rejected and Stars refunded."); safeLoad(loadOverview); });
+                }, "Reject & Refund", true);
+              } }
+            ];
+          } else {
+            btns = [{ label: "View", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("withdrawals"); } }];
+          }
+          cards.push({ icon: "banknote", tone: "",
+            title: "Withdrawal #" + String(payoutId).slice(0, 8) + " \u2014 " + starAmt + " stars (\u20B9" + netAmt + ")",
+            meta: (w.creatorName || cleanHandle(w.creatorHandle)) + " \u00B7 requested " + mcTime(w.requestedAt),
+            buttons: btns });
+        });
+      }).catch(function () {}).then(finish);
+    }
+    if (has("reports.review")) {
+      pending++;
+      api("/api/admin/reports?status=open").then(function (j) {
+        var n = (j.reports || []).length;
+        setText("#mcCntReports", n || "");
+        if (n > 0) cards.push({ icon: "flag", tone: "ok",
+          title: n + " open report" + (n === 1 ? "" : "s") + " need" + (n === 1 ? "s" : "") + " review",
+          meta: "Safety queue \u00B7 oldest first",
+          buttons: [{ label: "View reports", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("reports"); } }] });
+      }).catch(function () {}).then(finish);
+    }
+    if (!pending) renderAttentionCards(cards);
   }
 
   /* ── 2. Users ──────────────────────────────────────────────── */
@@ -708,6 +828,106 @@
     });
   }
 
+  /* ── Mission Control helpers ─────────────────────────────────── */
+  function setText(sel, v) { var el = $(sel); if (el) el.textContent = v; }
+  function setDot(sel, n) { var el = $(sel); if (!el) return; el.textContent = n > 99 ? "99+" : String(n); el.hidden = n <= 0; }
+  function mcSvg(name) {
+    var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("class", "mc-ic"); s.setAttribute("aria-hidden", "true");
+    var u = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    u.setAttribute("href", "#mc-i-" + name); s.appendChild(u); return s;
+  }
+  function mcIconBtn(tip, icon, cls, onClick) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "mc-icon-btn" + (cls ? " " + cls : "");
+    b.setAttribute("data-tip", tip); b.setAttribute("aria-label", tip);
+    b.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-' + icon + '"/></svg>';
+    b.addEventListener("click", onClick);
+    return b;
+  }
+  function mcTime(iso) {
+    if (!iso) return "date unknown";
+    var d = new Date(iso); if (isNaN(d.getTime())) return "date unknown";
+    var mins = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + "m ago";
+    if (mins < 1440) return Math.floor(mins / 60) + "h ago";
+    if (mins < 10080) return Math.floor(mins / 1440) + "d ago";
+    return d.toLocaleDateString();
+  }
+  function mcSpark(sel, seed, color) {
+    var svg = $(sel); if (!svg) return;
+    var poly = svg.querySelector("polyline"); if (!poly) return;
+    var h = 0; var s = String(seed);
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    var pts = [];
+    for (var k = 0; k < 8; k++) { h = (h * 1103515245 + 12345) >>> 0; pts.push((2 + k * 12) + "," + (5 + (h % 200) / 10).toFixed(1)); }
+    poly.setAttribute("points", pts.join(" "));
+    svg.setAttribute("stroke", color);
+  }
+  function actTone(action) {
+    var a = String(action || "").toLowerCase();
+    if (/reject|takedown|refund|dismiss|revok|delet/.test(a)) return "red";
+    if (/approv|publish|paid|resolv|actioned|broadcast/.test(a)) return "green";
+    if (/submit|request|pending|review|flag/.test(a)) return "amber";
+    return "";
+  }
+  /* Shared template moderation actions (table + attention queue use these). */
+  function templateSetStatus(t, status, extraBody, successMsg) {
+    return api("/api/admin/templates/" + encodeURIComponent(t.id), {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({ status: status }, extraBody || {}))
+    }).then(function () { note(successMsg); safeLoad(loadTemplates); safeLoad(loadOverview); });
+  }
+  function templateApprove(t) { return templateSetStatus(t, "published", null, "Template approved and published."); }
+  function templateReject(t) {
+    promptModal("Reject Template", "Enter mandatory rejection reason for " + cleanHandle(t.authorHandle || "creator") + ":", "", function (reason) {
+      return templateSetStatus(t, "rejected", { reviewNote: reason }, "Template rejected with note.");
+    }, "Reject Template", true);
+  }
+  function templateArchive(t) {
+    openModal("Archive Template", function (body) {
+      body.appendChild(text("p", "Archive \"" + t.title + "\"? It will be hidden from the public listing. You can restore it later from the Archived filter.", "pg-fine"));
+    }, function () { return templateSetStatus(t, "archived", null, "Template archived."); }, "Archive Template");
+  }
+  function templateOpenView(t) {
+    if (t.sourceFormat === "design_template") { openDesignPreview(t); return; }
+    window.open("/template?id=" + encodeURIComponent(t.templateId || t.id) + "&comm=1&commId=" + encodeURIComponent(t.id), "_blank", "noopener");
+  }
+  /* Bulk selection state for the templates table. */
+  var mcTplSelected = {};
+  function mcUpdateBulkbar() {
+    var n = Object.keys(mcTplSelected).length;
+    var bar = $("#mcBulkbar"); if (!bar) return;
+    bar.classList.toggle("show", n > 0);
+    setText("#mcBulkCount", n);
+  }
+  function mcClearTplSelection() {
+    mcTplSelected = {};
+    all(".mc-tpl-sel").forEach(function (cb) { cb.checked = false; });
+    var sa = $("#mcTplSelAll"); if (sa) sa.checked = false;
+    mcUpdateBulkbar();
+  }
+  function mcBulkSetStatus(status, reason) {
+    var ids = Object.keys(mcTplSelected);
+    if (!ids.length) return Promise.resolve();
+    var chain = Promise.resolve(); var okN = 0; var failN = 0;
+    ids.forEach(function (id) {
+      chain = chain.then(function () {
+        var body = { status: status };
+        if (reason != null) body.reviewNote = reason;
+        return api("/api/admin/templates/" + encodeURIComponent(id), {
+          method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
+        }).then(function () { okN++; }).catch(function (e) { failN++; note("Bulk " + status + " failed for " + String(id).slice(0, 12) + ": " + e.message, true); });
+      });
+    });
+    return chain.then(function () {
+      mcClearTplSelection();
+      if (okN) note(okN + " template(s) " + status + (failN ? " (" + failN + " failed)" : "") + ".", failN > 0);
+      safeLoad(loadTemplates); safeLoad(loadOverview);
+    });
+  }
+
   /* ── 4. Templates Moderation ───────────────────────────────── */
   function loadTemplates() {
     var root = $("#adminTemplateList");
@@ -729,89 +949,89 @@
         root.appendChild(text("p", "No templates match this filter.", "pg-fine"));
         return;
       }
+      /* Table-first moderation view (Mission Control). */
+      mcTplSelected = {};
+      var card = document.createElement("div");
+      card.className = "mc-table-card";
+      var twrap = document.createElement("div");
+      twrap.className = "mc-table-wrap";
+      var table = document.createElement("table");
+      table.className = "mc-t";
+      var thead = document.createElement("thead");
+      var thr = document.createElement("tr");
+      thr.innerHTML = '<th style="width:40px"><input type="checkbox" id="mcTplSelAll" aria-label="Select all templates"></th><th>Template</th><th>Creator</th><th>Category</th><th>Status</th><th>Uploaded</th><th style="text-align:right">Actions</th>';
+      thead.appendChild(thr); table.appendChild(thead);
+      var tbody = document.createElement("tbody");
+      var STATUS_LABEL = { review: "Pending", published: "Published", rejected: "Rejected", archived: "Archived" };
+      function thumbVariant(id) {
+        var h = 0; var s = String(id);
+        for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 4;
+        return h ? "mc-tpl-thumb v" + (h + 1) : "mc-tpl-thumb";
+      }
       templates.forEach(function (t) {
-        var row = document.createElement("article");
-        row.className = "admin-row";
-
-        var main = document.createElement("div");
-        main.className = "admin-row-main";
-        var tTitle = text("strong", t.title);
+        var tr = document.createElement("tr");
+        tr.setAttribute("data-title", String(t.title || "").toLowerCase());
+        tr.setAttribute("data-creator", String(t.authorHandle || t.authorName || "").toLowerCase());
+        var tdSel = document.createElement("td");
+        var cb = document.createElement("input");
+        cb.type = "checkbox"; cb.className = "mc-tpl-sel";
+        cb.setAttribute("aria-label", "Select " + (t.title || "template"));
+        cb.addEventListener("change", function () {
+          if (cb.checked) mcTplSelected[t.id] = t; else delete mcTplSelected[t.id];
+          mcUpdateBulkbar();
+        });
+        tdSel.appendChild(cb); tr.appendChild(tdSel);
+        var tdT = document.createElement("td");
+        var cell = document.createElement("div"); cell.className = "mc-tpl-cell";
+        var thumb = document.createElement("span"); thumb.className = thumbVariant(t.id);
+        thumb.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-play"/></svg>';
+        cell.appendChild(thumb);
+        var idwrap = document.createElement("span");
+        var nm = document.createElement("span"); nm.className = "mc-tpl-name"; nm.textContent = t.title || "Untitled";
         if (t.isFeatured) {
-          tTitle.appendChild(document.createTextNode(" "));
-          var featPill = document.createElement("span");
-          featPill.className = "admin-pill is-pro";
-          featPill.appendChild(adminIcon("star"));
-          featPill.appendChild(document.createTextNode(" Featured"));
-          tTitle.appendChild(featPill);
+          var feat = document.createElement("span"); feat.className = "mc-pill published"; feat.style.marginLeft = "8px";
+          feat.textContent = "Featured"; nm.appendChild(feat);
         }
-        main.appendChild(tTitle);
-        var authorLabel = (t.authorName ? t.authorName + (t.authorHandle ? " (" + cleanHandle(t.authorHandle) + ")" : "") : cleanHandle(t.authorHandle)) || "Creator";
-        main.appendChild(text("span", authorLabel + " · " + (t.category || "Uncategorized") + " · Status: " + String(t.status || "unknown").toUpperCase()));
-        var tMeta = text("small", "");
-        if (t.priceStars > 0) { tMeta.appendChild(iconText("star", t.priceStars + " Stars")); }
-        else { tMeta.appendChild(document.createTextNode("Free")); }
-        tMeta.appendChild(document.createTextNode(" · " + (t.likes || 0) + " likes · " + (t.exports || 0) + " uses"));
-        main.appendChild(tMeta);
-        if (t.reviewNote) main.appendChild(text("small", "Note: " + t.reviewNote, "pg-formnote"));
-
-        var controls = document.createElement("div");
-        controls.className = "admin-row-controls";
-
-        if (t.status !== "published") {
-          var pubBtn = text("button", "Approve", "admin-btn admin-btn-success admin-btn-sm");
-          pubBtn.addEventListener("click", function () {
-            api("/api/admin/templates/" + encodeURIComponent(t.id), {
-              method: "PATCH", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: "published" })
-            }).then(function () { note("Template approved and published."); safeLoad(loadTemplates); safeLoad(loadOverview); })
-              .catch(function (e) { note(e.message, true); });
-          });
-          controls.appendChild(pubBtn);
-        }
-
-        if (t.status !== "rejected") {
-          var rejBtn = text("button", "Reject", "admin-btn admin-btn-danger admin-btn-sm");
-          rejBtn.addEventListener("click", function () {
-            promptModal("Reject Template", "Enter mandatory rejection reason for " + cleanHandle(t.authorHandle || "creator") + ":", "", function (reason) {
-              return api("/api/admin/templates/" + encodeURIComponent(t.id), {
-                method: "PATCH", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "rejected", reviewNote: reason })
-              }).then(function () { note("Template rejected with note."); safeLoad(loadTemplates); safeLoad(loadOverview); });
-            }, "Reject Template", true);
-          });
-          controls.appendChild(rejBtn);
-        }
-
-        if (t.status !== "archived") {
-          var archBtn = text("button", "Archive", "admin-btn admin-btn-outline admin-btn-sm");
-          archBtn.addEventListener("click", function () {
-            openModal("Archive Template", function (body) {
-              body.appendChild(text("p", "Archive \"" + t.title + "\"? It will be hidden from the public listing. You can restore it later from the Archived filter.", "pg-fine"));
-            }, function () {
-              return api("/api/admin/templates/" + encodeURIComponent(t.id), {
-                method: "PATCH", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "archived" })
-              }).then(function () { note("Template archived."); safeLoad(loadTemplates); safeLoad(loadOverview); });
-            }, "Archive Template");
-          });
-          controls.appendChild(archBtn);
-        }
-
-        var preview = text(t.sourceFormat === "design_template" ? "button" : "a", "View template", "admin-btn admin-btn-outline admin-btn-sm");
-        if (t.sourceFormat === "design_template") {
-          preview.type = "button";
-          preview.setAttribute("data-admin-design-preview", t.id);
-          preview.addEventListener("click", function () { openDesignPreview(t); });
-        } else {
-          preview.href = "/template?id=" + encodeURIComponent(t.templateId || t.id) + "&comm=1&commId=" + encodeURIComponent(t.id);
-          preview.target="_blank"; preview.rel="noopener";
-        }
-        controls.appendChild(preview);
-
-        row.appendChild(main);
-        row.appendChild(controls);
-        root.appendChild(row);
+        idwrap.appendChild(nm); idwrap.appendChild(document.createElement("br"));
+        var tid = document.createElement("span"); tid.className = "mc-tpl-id";
+        var sid = String(t.id); tid.textContent = sid.length > 16 ? sid.slice(0, 16) + "\u2026" : sid;
+        idwrap.appendChild(tid); cell.appendChild(idwrap); tdT.appendChild(cell); tr.appendChild(tdT);
+        var tdC = document.createElement("td"); tdC.textContent = t.authorHandle || t.authorName || "Creator"; tr.appendChild(tdC);
+        var tdCat = document.createElement("td"); tdCat.textContent = t.category || "Uncategorized"; tr.appendChild(tdCat);
+        var tdS = document.createElement("td");
+        var pill = document.createElement("span"); pill.className = "mc-pill " + (t.status || "review");
+        pill.textContent = STATUS_LABEL[t.status] || t.status || "Unknown";
+        tdS.appendChild(pill); tr.appendChild(tdS);
+        var tdU = document.createElement("td"); tdU.className = "mc-mono";
+        tdU.textContent = t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "\u2014"; tr.appendChild(tdU);
+        var tdA = document.createElement("td");
+        var acts = document.createElement("div"); acts.className = "mc-row-actions";
+        acts.appendChild(mcIconBtn("View", "eye", "", function () { templateOpenView(t); }));
+        if (t.status !== "published") acts.appendChild(mcIconBtn("Approve", "check", "ok", function () { templateApprove(t); }));
+        if (t.status !== "rejected") acts.appendChild(mcIconBtn("Reject", "x", "no", function () { templateReject(t); }));
+        if (t.status !== "archived") acts.appendChild(mcIconBtn("Archive", "archive", "", function () { templateArchive(t); }));
+        tdA.appendChild(acts); tr.appendChild(tdA);
+        tbody.appendChild(tr);
       });
+      table.appendChild(tbody); twrap.appendChild(table); card.appendChild(twrap);
+      var foot = document.createElement("div"); foot.className = "mc-table-foot";
+      var showing = document.createElement("span"); showing.id = "mcTplShowing";
+      showing.textContent = "Showing " + templates.length + " of " + templates.length + " templates";
+      var syncNote = document.createElement("span"); syncNote.className = "mc-mono";
+      syncNote.textContent = "Statuses sync with the public Designs page";
+      foot.appendChild(showing); foot.appendChild(syncNote); card.appendChild(foot);
+      root.appendChild(card);
+      mcUpdateBulkbar();
+      var sa = document.getElementById("mcTplSelAll");
+      if (sa) sa.addEventListener("change", function () {
+        mcTplSelected = {};
+        all(".mc-tpl-sel").forEach(function (c) { c.checked = sa.checked; });
+        if (sa.checked) templates.forEach(function (t) { mcTplSelected[t.id] = t; });
+        mcUpdateBulkbar();
+      });
+      var pend = templates.filter(function (x) { return x.status === "review"; }).length;
+      setText("#mcTplHeadSub", templates.length + " in moderation \u00B7 " + pend + " awaiting review");
+      setText("#mcCntTemplates", templates.length || "");
     });
   }
 
@@ -1552,7 +1772,7 @@
   };
 
   var descriptions = {
-    overview:"Account activity and operational overview.", users:"Find accounts and manage only the actions your access permits.", creators:"Published creators and verification badges.", content:"Review animations and editable designs by category and status.", skills:"Review creator tutorials and learning content.", reports:"Investigate reports with a recorded moderation reason.", withdrawals:"Existing payout records. Money features remain Coming Soon.", stars_ledger:"Read-only transaction records while money features are unavailable.", star_packs:"Stored pack configuration. Purchases and changes remain Coming Soon.", ai_jobs:"Conversion history and failures; creators retry from Designs.", broadcast:"Send in-app announcements to a selected audience.", team:"Owner-managed staff roles and granular permissions.", support:"Read tickets, reply and update their status.", system:"Permitted audit records and supported runtime controls."
+    overview:"Mission Control \u2014 live operations overview.", users:"Find accounts and manage only the actions your access permits.", creators:"Published creators and verification badges.", content:"Review animations and editable designs by category and status.", skills:"Review creator tutorials and learning content.", reports:"Investigate reports with a recorded moderation reason.", withdrawals:"Existing payout records. Money features remain Coming Soon.", stars_ledger:"Read-only transaction records while money features are unavailable.", star_packs:"Stored pack configuration. Purchases and changes remain Coming Soon.", ai_jobs:"Conversion history and failures; creators retry from Designs.", broadcast:"Send in-app announcements to a selected audience.", team:"Owner-managed staff roles and granular permissions.", support:"Read tickets, reply and update their status.", system:"Permitted audit records and supported runtime controls."
   };
 
   function refreshTab(key, loader, successMessage) {
@@ -1610,7 +1830,7 @@
       p.hidden = p.getAttribute("data-admin-panel") !== key;
     });
     var selected = document.querySelector('[data-admin-tab="' + key + '"]');
-    $("#adminSectionTitle").textContent = selected ? selected.textContent.trim().replace(/^[^A-Za-z]+/, "") : "Admin";
+    $("#adminSectionTitle").textContent = selected ? (selected.getAttribute("data-label") || selected.textContent.trim().replace(/^[^A-Za-z]+/, "")) : "Admin";
     $("#adminSectionDescription").textContent = descriptions[key] || "";
     if (!loaded[key]) refreshTab(key);
     return key;
@@ -1621,10 +1841,16 @@
     if (selected && location.hash !== "#" + selected) history[replace ? "replaceState" : "pushState"](null, "", "#" + selected);
   }
 
-  // Bind tab click events
+  // Bind tab click events (rail hub buttons jump to the first allowed hub section)
   all("[data-admin-tab]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var key = btn.getAttribute("data-admin-tab");
+      var hub = btn.getAttribute("data-hub");
+      if (hub) {
+        var keys = String(hub).split(/\s+/).filter(Boolean);
+        var first = keys.filter(function (k) { return allowedTabs.indexOf(k) !== -1; })[0];
+        if (first) key = first;
+      }
       loaded[key] = false;
       navigate(key);
     });
@@ -1723,6 +1949,88 @@
     });
   }
 
+  /* Mission Control: command search (jump to any allowed section). */
+  var MC_SEARCH_INDEX = [
+    { key: "overview", label: "Mission Control", hint: "dashboard", keys: "dashboard home overview stats activity" },
+    { key: "users", label: "Users", hint: "accounts", keys: "users accounts database search" },
+    { key: "creators", label: "Creators", hint: "directory", keys: "creators directory verified badges" },
+    { key: "team", label: "Team & Roles", hint: "staff", keys: "team staff roles permissions" },
+    { key: "content", label: "Templates", hint: "moderation", keys: "templates moderation animations designs review approve" },
+    { key: "skills", label: "Tutorials", hint: "learning", keys: "tutorials skills learning creator" },
+    { key: "reports", label: "Reports", hint: "safety", keys: "reports safety abuse review" },
+    { key: "withdrawals", label: "Withdrawals", hint: "payouts", keys: "withdrawals payouts money upi stars" },
+    { key: "stars_ledger", label: "Star Ledger", hint: "transactions", keys: "ledger transactions stars history" },
+    { key: "star_packs", label: "Star Packs", hint: "pricing", keys: "star packs pricing setup" },
+    { key: "ai_jobs", label: "AI Jobs", hint: "conversion", keys: "ai conversion jobs history failures" },
+    { key: "broadcast", label: "Broadcast", hint: "notify", keys: "broadcast notifications announce message" },
+    { key: "support", label: "Support", hint: "tickets", keys: "support tickets help reply" },
+    { key: "system", label: "System", hint: "flags", keys: "system feature flags audit logs" }
+  ];
+  (function mcWireSearch() {
+    var inp = $("#mcSearch"), box = $("#mcSearchResults");
+    if (!inp || !box) return;
+    function close() { box.hidden = true; box.innerHTML = ""; }
+    function go(s) { close(); inp.value = ""; loaded[s.key] = false; navigate(s.key); inp.blur(); }
+    inp.addEventListener("input", function () {
+      var q = inp.value.trim().toLowerCase();
+      box.innerHTML = "";
+      if (!q) { close(); return; }
+      var hits = MC_SEARCH_INDEX.filter(function (s) {
+        return allowedTabs.indexOf(s.key) !== -1 &&
+          (s.label.toLowerCase().indexOf(q) > -1 || s.keys.indexOf(q) > -1);
+      }).slice(0, 7);
+      if (!hits.length) { close(); return; }
+      hits.forEach(function (s) {
+        var b = document.createElement("button"); b.type = "button";
+        b.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-search"/></svg>';
+        var lb = document.createElement("span"); lb.textContent = s.label; b.appendChild(lb);
+        var sm = document.createElement("small"); sm.textContent = s.hint; b.appendChild(sm);
+        b.addEventListener("mousedown", function (e) { e.preventDefault(); go(s); });
+        box.appendChild(b);
+      });
+      box.hidden = false;
+    });
+    inp.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { var first = box.querySelector("button"); if (first && !box.hidden) { e.preventDefault(); first.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })); } }
+      if (e.key === "Escape") { close(); inp.blur(); }
+    });
+    inp.addEventListener("blur", function () { setTimeout(close, 150); });
+    document.addEventListener("keydown", function (e) {
+      if ((e.metaKey || e.ctrlKey) && String(e.key || "").toLowerCase() === "k") { e.preventDefault(); inp.focus(); inp.select(); }
+    });
+  })();
+
+  /* Mission Control: templates bulk actions + client-side search. */
+  (function mcWireTemplates() {
+    var bArch = $("#mcBulkArchive");
+    if (bArch) bArch.addEventListener("click", function () {
+      var n = Object.keys(mcTplSelected).length; if (!n) return;
+      openModal("Archive " + n + " template(s)", function (body) {
+        body.appendChild(text("p", "Archive the selected templates? They will be hidden from the public listing.", "pg-fine"));
+      }, function () { return mcBulkSetStatus("archived"); }, "Archive selected");
+    });
+    var bRej = $("#mcBulkReject");
+    if (bRej) bRej.addEventListener("click", function () {
+      var n = Object.keys(mcTplSelected).length; if (!n) return;
+      promptModal("Reject " + n + " template(s)", "Enter rejection reason (applied to all selected):", "", function (reason) {
+        return mcBulkSetStatus("rejected", reason);
+      }, "Reject selected", true);
+    });
+    var bClr = $("#mcBulkClear");
+    if (bClr) bClr.addEventListener("click", mcClearTplSelection);
+    var tSearch = $("#mcTplSearch");
+    if (tSearch) tSearch.addEventListener("input", function () {
+      var q = tSearch.value.trim().toLowerCase();
+      var shown = 0, total = 0;
+      all("#adminTemplateList tbody tr").forEach(function (tr) {
+        total++;
+        var ok = !q || (tr.getAttribute("data-title") || "").indexOf(q) > -1 || (tr.getAttribute("data-creator") || "").indexOf(q) > -1;
+        tr.style.display = ok ? "" : "none"; if (ok) shown++;
+      });
+      setText("#mcTplShowing", "Showing " + shown + " of " + total + " templates");
+    });
+  })();
+
   function safeLoad(loader) {
     var key = Object.keys(loaders).find(function (name) { return loaders[name] === loader; });
     if (loader === loadFlags || loader === loadAuditLogs) key = "system";
@@ -1740,11 +2048,20 @@
     if (!showAccess(currentUser)) return;
 
     allowedTabs = [];
+    var permByKey = {};
     all("[data-admin-tab]").forEach(function (b) {
-      var perm = b.getAttribute("data-perm");
-      var ok = hasAny(perm);
+      if (b.hasAttribute("data-hub")) return; // rail hubs evaluated below
+      var key = b.getAttribute("data-admin-tab");
+      var ok = hasAny(b.getAttribute("data-perm"));
+      if (permByKey[key] == null) permByKey[key] = ok; else permByKey[key] = permByKey[key] || ok;
       b.hidden = !ok;
-      if (ok) allowedTabs.push(b.getAttribute("data-admin-tab"));
+      if (ok && allowedTabs.indexOf(key) === -1) allowedTabs.push(key);
+    });
+    // Rail hub buttons: visible when any hub member section is allowed.
+    all("[data-admin-tab][data-hub]").forEach(function (b) {
+      var hubKeys = String(b.getAttribute("data-hub") || "").split(/\s+/).filter(Boolean);
+      var ok = hubKeys.some(function (k) { return permByKey[k]; });
+      b.hidden = !ok;
     });
     all("[data-admin-group]").forEach(function (group) { group.hidden = !group.querySelector('[data-admin-tab]:not([hidden])'); });
     all("[data-admin-jump]").forEach(function (button) { button.hidden = allowedTabs.indexOf(button.getAttribute("data-admin-jump")) === -1; });
