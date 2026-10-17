@@ -38,8 +38,8 @@
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100601">
 <link rel="stylesheet" href="/monochrome.css?v=2026100601">
-<link rel="stylesheet" href="/admin.css?v=2026101801">
-<link rel="stylesheet" href="/admin-mc.css?v=2026101801">
+<link rel="stylesheet" href="/admin.css?v=2026101802">
+<link rel="stylesheet" href="/admin-mc.css?v=2026101802">
 <link rel="stylesheet" href="/finishing.css?v=2026100805">
 <script src="/finishing.js?v=2026100503" defer></script>
 </head>
@@ -345,18 +345,26 @@
     <symbol id="mc-i-mega" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5v14l-8-2.7V8.7L21 5Z"/><path d="M13 8.7H8.5L3 10v5l5.5 1.3H13"/><path d="M9 16.5V21h3v-4"/></symbol>
   </defs>
 </svg>
-        <!-- ============ SLIM ICON RAIL (replaces wide text sidebar) ============ -->
-        <aside class="mc-rail" aria-label="Admin hubs">
-          <div class="mc-rail-logo" title="ShortsCraft"><svg class="mc-ic"><use href="#mc-i-bolt"/></svg></div>
-          <button type="button" class="mc-rail-btn" data-admin-tab="overview" data-hub="overview" data-label="Mission Control" data-perm="overview.view" data-tip="Mission Control — dashboard" aria-pressed="true"><svg class="mc-ic"><use href="#mc-i-grid"/></svg></button>
-          <button type="button" class="mc-rail-btn" data-admin-tab="users" data-hub="users creators team" data-label="People" data-perm="users.view" data-tip="People — Users, Creators, Team &amp; Roles" aria-pressed="false"><svg class="mc-ic"><use href="#mc-i-users"/></svg></button>
-          <button type="button" class="mc-rail-btn" data-admin-tab="content" data-hub="content skills reports" data-label="Content" data-perm="templates.moderate" data-tip="Content — Templates, Tutorials, Reports" aria-pressed="false"><svg class="mc-ic"><use href="#mc-i-film"/></svg><span class="mc-dot" id="mcDotContent" hidden>0</span></button>
-          <button type="button" class="mc-rail-btn" data-admin-tab="withdrawals" data-hub="withdrawals stars_ledger star_packs" data-label="Money" data-perm="withdrawals.manage" data-tip="Money — Withdrawals, Star Ledger, Star Packs" aria-pressed="false"><svg class="mc-ic"><use href="#mc-i-banknote"/></svg><span class="mc-dot" id="mcDotMoney" hidden>0</span></button>
-          <button type="button" class="mc-rail-btn" data-admin-tab="ai_jobs" data-hub="ai_jobs broadcast" data-label="Platform" data-perm="ai_jobs.view" data-tip="Platform — AI Jobs, Broadcast" aria-pressed="false"><svg class="mc-ic"><use href="#mc-i-bolt"/></svg></button>
-          <button type="button" class="mc-rail-btn" data-admin-tab="support" data-hub="support" data-label="Operations" data-perm="support.reply" data-tip="Operations — Support queue" aria-pressed="false"><svg class="mc-ic"><use href="#mc-i-headset"/></svg></button>
-          <button type="button" class="mc-rail-btn" data-admin-tab="system" data-hub="system" data-label="System" data-perm="flags.manage audit.view" data-tip="System — Feature flags, Audit log" aria-pressed="false"><svg class="mc-ic"><use href="#mc-i-gear"/></svg></button>
+        <!-- ============ WIDE LABELED SIDEBAR ============ -->
+        <aside class="mc-side" aria-label="Admin navigation">
+          <div class="mc-side-brand">
+            <span class="mc-side-logo" title="ShortsCraft"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-bolt"/></svg></span>
+            <span class="mc-side-brand-text"><b>ShortsCraft</b><small>ADMINISTRATION</small></span>
+          </div>
+          <nav class="mc-side-nav" aria-label="Admin sections">
+            <button type="button" class="mc-side-btn" data-admin-tab="overview" data-hub="overview" data-label="Mission Control" data-perm="overview.view" aria-label="Mission Control &#8212; dashboard" aria-pressed="true"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-grid"/></svg><span class="mc-side-tx"><span class="mc-side-label">Mission Control</span><span class="mc-side-sub">Dashboard</span></span></button>
+            <button type="button" class="mc-side-btn" data-admin-tab="users" data-hub="users creators team" data-label="People" data-perm="users.view" aria-label="People &#8212; Users, Creators, Team and Roles" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-users"/></svg><span class="mc-side-tx"><span class="mc-side-label">People</span><span class="mc-side-sub">Users &#183; Creators &#183; Team</span></span></button>
+            <button type="button" class="mc-side-btn" data-admin-tab="content" data-hub="content skills reports" data-label="Content" data-perm="templates.moderate" aria-label="Content &#8212; Templates, Tutorials, Reports" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-film"/></svg><span class="mc-side-tx"><span class="mc-side-label">Content</span><span class="mc-side-sub">Templates &#183; Tutorials &#183; Reports</span></span><span class="mc-dot" id="mcDotContent" hidden>0</span></button>
+            <button type="button" class="mc-side-btn" data-admin-tab="withdrawals" data-hub="withdrawals stars_ledger star_packs" data-label="Money" data-perm="withdrawals.manage" aria-label="Money &#8212; Withdrawals, Star Ledger, Star Packs" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-banknote"/></svg><span class="mc-side-tx"><span class="mc-side-label">Money</span><span class="mc-side-sub">Withdrawals &#183; Star Ledger &#183; Packs</span></span><span class="mc-dot" id="mcDotMoney" hidden>0</span></button>
+            <button type="button" class="mc-side-btn" data-admin-tab="ai_jobs" data-hub="ai_jobs broadcast" data-label="Platform" data-perm="ai_jobs.view" aria-label="Platform &#8212; AI Jobs, Broadcast" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-bolt"/></svg><span class="mc-side-tx"><span class="mc-side-label">Platform</span><span class="mc-side-sub">AI Jobs &#183; Broadcast</span></span></button>
+            <button type="button" class="mc-side-btn" data-admin-tab="support" data-hub="support" data-label="Operations" data-perm="support.reply" aria-label="Operations &#8212; Support queue" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-headset"/></svg><span class="mc-side-tx"><span class="mc-side-label">Operations</span><span class="mc-side-sub">Support queue</span></span></button>
+            <button type="button" class="mc-side-btn" data-admin-tab="system" data-hub="system" data-label="System" data-perm="flags.manage audit.view" aria-label="System &#8212; Feature flags, Audit log" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-gear"/></svg><span class="mc-side-tx"><span class="mc-side-label">System</span><span class="mc-side-sub">Flags &#183; Audit log</span></span></button>
+          </nav>
           <div class="mc-spacer"></div>
-          <div class="mc-rail-avatar" id="mcRailAvatar" title="Admin">A</div>
+          <div class="mc-side-user">
+            <span class="mc-side-avatar" id="mcRailAvatar" title="Admin">A</span>
+            <span class="mc-side-tx"><span class="mc-side-label" id="mcSideUserName">Administrator</span><span class="mc-side-sub" id="mcSideUserRole">Owner</span></span>
+          </div>
         </aside>
 
         <div class="mc-main">
@@ -976,5 +984,5 @@
 <script src="/report.js?v=2026100601" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
 <script src="/design-preview.js?v=2026100601" defer></script>
-<script src="/admin-console.js?v=2026101801" defer></script></body>
+<script src="/admin-console.js?v=2026101802" defer></script></body>
 </html>

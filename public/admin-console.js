@@ -176,6 +176,8 @@
       var nm = user.display_name || user.handle || "Admin";
       av.textContent = String(nm).trim().split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0, 2).toUpperCase() || "A";
       av.title = nm + " \u00B7 " + roleText;
+      setText("#mcSideUserName", nm);
+      setText("#mcSideUserRole", roleText);
     }
 
     // Quick team action button only for owner
