@@ -336,7 +336,7 @@ html[data-theme="dark"] .admin-role-badge.is-moderator { color:#6ee7b7; }
 
 .admin-table {
   width: 100%;
-  min-width: 820px;
+  min-width: 920px;
   border-collapse: collapse;
   text-align: left;
   font-size: 13.5px;
@@ -367,20 +367,25 @@ html[data-theme="dark"] .admin-role-badge.is-moderator { color:#6ee7b7; }
   background: color-mix(in srgb, var(--sh-bg) 60%, transparent);
 }
 
+/* ACTIONS / last column: intentionally NOT sticky. A right-pinned sticky
+   column painted its solid background over the middle columns whenever the
+   admin console was squeezed (it renders inside the main site shell, so the
+   content area is narrower than the window), hiding those columns in a way
+   no amount of horizontal scrolling could reveal. Every column now stays
+   reachable via the .admin-table-wrap horizontal scroll. */
 .admin-table th:last-child,
 .admin-table td:last-child {
-  position: sticky;
-  right: 0;
-  background: var(--sh-bg2);
-  box-shadow: -8px 0 16px rgba(0, 0, 0, 0.08);
-  z-index: 5;
   text-align: right;
   min-width: 170px;
   white-space: nowrap;
 }
-.admin-table th:last-child {
-  background: var(--sh-bg3, var(--sh-bg2));
-  z-index: 6;
+
+/* Audit trail: the Details column holds long JSON strings — let them wrap
+   instead of overlapping neighbouring cells. */
+#adminAuditLogList td:last-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 220px;
 }
 
 /* ── Status Pills ─────────────────────────────────────────── */
