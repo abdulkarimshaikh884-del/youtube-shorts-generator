@@ -1354,9 +1354,18 @@
     }
 
     text.addEventListener("input", sync);
+    Array.prototype.forEach.call((form.parentElement || form).querySelectorAll('[data-home-prompt]'), function (idea) {
+      idea.addEventListener('click', function () {
+        if (attachedVideo || imagePending || referenceBusy) return;
+        text.value = idea.getAttribute('data-home-prompt').slice(0, text.maxLength > 0 ? text.maxLength : 500);
+        sync(); text.focus();
+      });
+    });
     sync();
 
     if (img) {
+      var imageButton = $('#composerImageButton');
+      if (imageButton) imageButton.addEventListener('click', function () { if (!imagePending && !referenceBusy) img.click(); });
       img.addEventListener("change", function () {
         var file = img.files && img.files[0];
         var version = ++imageVersion;
@@ -1393,11 +1402,11 @@
       referenceAvailable = true; referenceStatus = status;
       var input = document.createElement('input'); input.type = 'file'; input.accept = 'video/mp4,video/webm,.mp4,.webm'; input.hidden = true; input.id = 'composerReferenceVideo';
       input.setAttribute('aria-label', 'Reference animation video');
-      var button = document.createElement('button'); button.type = 'button'; button.className = 'sh-imgbtn'; button.textContent = 'Add reference video'; button.setAttribute('aria-label', 'Add reference video');
-      button.style.cssText = 'width:auto;padding:0 10px;min-height:40px;white-space:nowrap;font:inherit;font-size:12px';
-      var imageLabel = form.querySelector('label[for="composerImg"]');
-      if (!imageLabel) return;
-      imageLabel.insertAdjacentElement('afterend', button); button.insertAdjacentElement('afterend', input);
+      var button = document.createElement('button'); button.type = 'button'; button.className = 'sh-imgbtn sh-attachment-button'; button.setAttribute('aria-label', 'Add reference video'); button.title = 'Add reference video';
+      button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="13" height="14" rx="3"/><path d="m16 10 5-3v10l-5-3z"/></svg>';
+      var imageControl = $('#composerImageButton') || form.querySelector('label[for="composerImg"]');
+      if (!imageControl) return;
+      imageControl.insertAdjacentElement('afterend', button); button.insertAdjacentElement('afterend', input);
       button.addEventListener('click', function () {if (!referenceBusy) input.click();});
       input.addEventListener('change', function () {
         var file = input.files && input.files[0]; input.value = '';

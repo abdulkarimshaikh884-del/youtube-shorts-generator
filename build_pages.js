@@ -229,7 +229,7 @@ ${p.head || ""}
 <!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
 <link rel="stylesheet" href="/mobile.css?v=${V}">
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
-<link rel="stylesheet" href="/ds.css?v=${V}">
+<link rel="stylesheet" href="/ds.css?v=${p.bodyClass === "page-home" ? "2026102102" : V}">
 <link rel="stylesheet" href="/monochrome.css?v=${V}">
 <link rel="stylesheet" href="/finishing.css?v=2026100503">
 <script src="/finishing.js?v=2026100503" defer></script>
@@ -2259,44 +2259,27 @@ const indexPage = {
   noPageJs: true,
   title: "ShortsCraft — Create and customize motion templates",
   desc: "Create short-form animations from a prompt or customize motion templates in a focused browser editor. Preview freely and export a real MP4 when it is ready.",
-  // Only the two words the hero's handwriting uses, so the font is a few KB.
   head: `<link rel="stylesheet" href="/designs.css?v=2026100602">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&text=AnimateAnything&display=swap" rel="stylesheet">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"ShortsCraft","url":"https://shortscraft.online/","description":"AI motion graphics video generator for YouTube Shorts"}</script>`,
   body: `    <main class="sh-home">
-      <!-- The owner's mobile design: a headline with the product's promise
-           beside a drawn illustration. The drawing is inline SVG and CSS, so
-           the first screen costs no image request. -->
-      <section class="sh-hero sh-hero-v2">
+      <section class="sh-hero sh-hero-v2 sh-motion-hero" aria-labelledby="homeMotionHeading">
         <div class="sh-hero-copy">
-          <h1>Turn your ideas into <em>scroll-stopping videos</em></h1>
-        </div>
-        <div class="sh-hero-art" aria-hidden="true">
-          <span class="sh-ha-note">Animate<br>Anything</span>
-          <svg class="sh-ha-arrow" viewBox="0 0 40 46" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 3C4 12 3 27 20 40"/><path d="M11 38l9 3 1-9"/></svg>
-          <span class="sh-ha-card">
-            <span class="sh-ha-play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></span>
-            <i></i><i></i>
-          </span>
-          <span class="sh-ha-chip sh-ha-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg></span>
-          <span class="sh-ha-chip sh-ha-text">T</span>
-          <span class="sh-ha-chip sh-ha-spark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></svg></span>
-          <span class="sh-ha-rays"><i></i><i></i><i></i></span>
+          <p class="sh-studio-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="m10 8 6 4-6 4z" fill="currentColor" stroke="none"/></svg> SHORTSCRAFT STUDIO</p>
+          <h1 id="homeMotionHeading">Make your next idea <span class="sh-motion-word">move.<svg viewBox="0 0 156 12" fill="none" aria-hidden="true"><path d="M3 8C46 1 103 1 153 7" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></span></h1>
+          <p class="sh-studio-sub">Start with a prompt. Add your inspiration. Make it your own.</p>
         </div>
       </section>
 
       <form class="sh-composer" id="composer" action="/editor" method="GET">
         <div class="sh-ctop">
-          <label class="sh-prompt-label" for="composerPrompt">What would you like to animate?</label>
-          <textarea id="composerPrompt" name="topic" rows="3" maxlength="500" placeholder="Try a pricing card that flips to reveal ₹199, with a blue accent…"></textarea>
+          <textarea id="composerPrompt" name="topic" aria-label="Animation prompt" rows="1" maxlength="500" placeholder="What do you want to animate here?"></textarea>
           <span class="sh-ccount" id="composerCount">0/500</span>
         </div>
         <div class="sh-cbar">
-          <input type="file" id="composerImg" accept="image/png,image/jpeg,image/webp,image/gif" class="ed-sr">
-          <label class="sh-imgbtn" for="composerImg" title="Attach image to animate">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
-            <span class="sh-imgbtn-label">Add image</span>
-          </label>
+          <input type="file" id="composerImg" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+          <button class="sh-imgbtn sh-attachment-button" id="composerImageButton" type="button" aria-label="Add image" title="Add image">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4.5 4 3.5 3-2.5 4 3.5"/></svg>
+          </button>
           <button class="sh-imgchip" type="button" id="composerImgClear" hidden>
             <span id="composerImgName">image</span> <b>×</b>
           </button>
@@ -2329,6 +2312,12 @@ const indexPage = {
           <button class="sh-cgo" id="composerGo" type="submit"><svg class="sh-cgo-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3l1.8 5.2L17 10l-5.2 1.8L10 17l-1.8-5.2L3 10l5.2-1.8z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></svg>Create animation <span aria-hidden="true">→</span></button>
         </div>
       </form>
+      <div class="sh-prompt-ideas" aria-label="Prompt ideas">
+          <span>Try an idea</span>
+          <button type="button" data-home-prompt="Create a blue animated subscriber growth chart from 1K to 100K using sample data.">Growth chart <span aria-hidden="true">↗</span></button>
+          <button type="button" data-home-prompt="Create a bold kinetic typography title reveal with the words MAKE IT HAPPEN.">Bold title reveal <span aria-hidden="true">↗</span></button>
+          <button type="button" data-home-prompt="Create a clean product highlight animation with a headline and three feature callouts.">Product highlight <span aria-hidden="true">↗</span></button>
+      </div>
 
 
       <!-- Ten animations fill two desktop rows. Search, every category and the
@@ -2539,7 +2528,7 @@ const indexPage = {
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/image-input.js?v=${V}" defer></script><script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/reference-handoff.js?v=2026102001" defer></script><script src="/shell.js?v=2026102001" defer></script>`
+  scripts: `<script src="/image-input.js?v=${V}" defer></script><script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/reference-handoff.js?v=2026102001" defer></script><script src="/shell.js?v=2026102102" defer></script>`
 };
 
 /* ── ANIMATIONS ─────────────────────────────────────────────

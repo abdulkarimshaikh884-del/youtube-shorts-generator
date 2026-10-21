@@ -273,30 +273,62 @@ body.page-home .sh-frow { justify-content: center; margin-top: 22px !important; 
 
 /* Home intro: a focused prompt workspace, separate from the wider library.
    Native placeholder text scrolls with the field and cannot overlap input. */
-body.page-home .sh-home { padding-top: 28px !important; }
+body.page-home .sh-home { padding-top: 26px !important; }
 body.page-home .sh-home > .sh-hero-v2,
-body.page-home .sh-home > form.sh-composer { width: min(860px, 100%) !important; }
-body.page-home .sh-hero-v2 { display: block !important; padding: 6px 0 !important; }
+body.page-home .sh-home > form.sh-composer { width: min(780px, 100%) !important; }
+body.page-home .sh-hero-v2 { display: block !important; padding: 4px 0 !important; }
 body.page-home .sh-hero-v2 .sh-hero-copy { display: block; }
-body.page-home .sh-hero-v2 h1 { margin: 0 !important; font-size: clamp(28px, 3vw, 40px) !important; line-height: 1.18 !important; letter-spacing: -.035em !important; text-align: center !important; }
+body.page-home .sh-hero-v2 h1 { margin: 13px 0 12px !important; font-size: clamp(32px, 3.5vw, 46px) !important; line-height: 1.16 !important; letter-spacing: -.045em !important; text-align: center !important; font-weight: 650 !important; }
+body.page-home .sh-studio-label { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; font-size: 10px; font-weight: 600; letter-spacing: .16em; color: var(--sc-muted); }
+body.page-home .sh-studio-label svg { width: 21px; height: 21px; color: var(--sc-text); }
+body.page-home .sh-motion-word { display: inline-block; position: relative; color: var(--sc-text); font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 500; }
+body.page-home .sh-motion-word svg { position: absolute; left: -2%; bottom: -6px; width: 104%; height: 9px; color: var(--sc-accent, #0f766e); }
+body.page-home .sh-studio-sub { margin: 0; color: var(--sc-muted); font-size: 14px; line-height: 1.55; text-align: center; }
 body.page-home .sh-hero-art { display: none !important; }
-body.page-home .sh-home > form.sh-composer { margin-top: 22px !important; margin-bottom: 0; padding: 18px !important; }
-body.page-home .sh-home > form.sh-composer:focus-within { border-color: var(--sc-brand) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--sc-brand) 12%, transparent) !important; }
-body.page-home .sh-composer .sh-ctop { padding: 0 !important; }
-body.page-home .sh-prompt-label { display: block; margin-bottom: 8px; color: var(--sc-text); font-size: 14px; font-weight: 600; }
-body.page-home .sh-composer #composerPrompt { width: 100%; min-height: 80px !important; height: 80px; max-height: 240px; padding: 0 0 24px !important; font-size: 16px; line-height: 1.5; resize: vertical; }
-body.page-home .sh-composer .sh-ccount { right: 18px; bottom: 3px !important; font-size: 11px; pointer-events: none; }
-body.page-home .sh-composer .sh-cbar { margin-top: 10px !important; padding-top: 12px !important; gap: 8px; }
+body.page-home .sh-home > form.sh-composer { margin-top: 24px !important; margin-bottom: 0; padding: 16px !important; border-radius: 18px !important; border-color: var(--sc-border-strong); box-shadow: 0 6px 24px #00000006 !important; }
+body.page-home .sh-home > form.sh-composer:focus-within { border-color: var(--sc-text) !important; box-shadow: 0 0 0 2px color-mix(in srgb, var(--sc-text) 7%, transparent) !important; }
+body.page-home .sh-composer .sh-ctop { padding: 0 !important; margin-bottom: 0; }
+body.page-home .sh-composer #composerPrompt { width: 100%; min-height: 56px !important; max-height: 180px; padding: 2px 4px 22px !important; font-size: 16px; line-height: 1.5; resize: none; overflow-y: auto; }
+body.page-home .sh-composer #composerPrompt::placeholder { color: var(--sc-muted); opacity: 1; }
+body.page-home .sh-composer .sh-ccount { right: 4px; bottom: 3px !important; font-size: 10px; pointer-events: none; }
+body.page-home .sh-composer .sh-cbar { margin-top: 6px !important; padding-top: 10px !important; gap: 8px; flex-wrap: wrap; }
+body.page-home .sh-composer .sh-attachment-button { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 10px; color: var(--sc-text); }
+body.page-home .sh-composer .sh-attachment-button svg { width: 19px; height: 19px; }
+body.page-home .sh-composer .sh-attachment-button:focus-visible { outline: 2px solid var(--sc-text); outline-offset: 3px; }
+body.page-home .sh-composer .sh-csel-btn { min-height: 44px; height: 44px; padding-inline: 12px; }
+body.page-home .sh-composer #composerGo { min-height: 44px; height: 44px; border-radius: 10px; }
+body.page-home .sh-composer .sh-cnote { font-size: 11px; }
+body.page-home .sh-composer .sh-imgchip:not([hidden]) { max-width: 100%; order: -1; flex-basis: 100%; justify-content: space-between; height: 32px; }
+body.page-home .sh-composer .sh-imgchip #composerImgName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.page-home .sh-home > .sh-prompt-ideas { display: flex; align-items: center; justify-content: center; gap: 7px; width: min(780px, 100%); margin: 10px auto 0 !important; overflow-x: auto; scrollbar-width: none; }
+body.page-home .sh-prompt-ideas > span { flex: none; padding-right: 3px; color: var(--sc-muted); font-size: 11px; }
+body.page-home .sh-prompt-ideas button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: none; min-height: 32px; padding: 4px 11px; border: 1px solid var(--sc-border); border-radius: 7px; background: transparent; color: var(--sc-muted); font: inherit; font-size: 11px; cursor: pointer; }
+body.page-home .sh-prompt-ideas button:hover { background: var(--sc-surface-2); color: var(--sc-text); border-color: var(--sc-border-strong); }
+body.page-home .sh-prompt-ideas button:focus-visible { outline: 2px solid var(--sc-text); outline-offset: -2px; }
+body.page-home .sh-prompt-ideas button span { font-size: 13px; }
+body.page-home .sh-composer:has(.sh-reference-hint:not([hidden])) + .sh-prompt-ideas { display: none; }
 body.page-home .sh-home > .sh-gallery-sec { margin-top: 32px !important; }
 @media (min-width: 1280px) {
   body.page-home .sh-popular #gallery { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
 }
 @media (max-width: 640px) {
-  body.page-home .sh-home { padding-top: 16px !important; }
-  body.page-home .sh-hero-v2 h1 { font-size: clamp(24px, 6.2vw, 28px) !important; }
-  body.page-home .sh-home > form.sh-composer { margin-top: 16px !important; padding: 12px !important; border-radius: 14px !important; }
-  body.page-home .sh-composer #composerPrompt { min-height: 94px !important; height: 94px; }
+  body.page-home .sh-home { padding-top: 20px !important; }
+  body.page-home .sh-hero-v2 h1 { max-width: 350px; margin: 12px auto !important; font-size: clamp(30px, 8vw, 36px) !important; }
+  body.page-home .sh-studio-label { font-size: 9px; letter-spacing: .14em; }
+  body.page-home .sh-studio-label svg { width: 18px; height: 18px; }
+  body.page-home .sh-studio-sub { max-width: 300px; margin-inline: auto; font-size: 12px; }
+  body.page-home .sh-home > form.sh-composer { margin-top: 20px !important; padding: 12px !important; border-radius: 14px !important; }
+  body.page-home .sh-composer #composerPrompt { min-height: 56px !important; }
+  body.page-home .sh-composer .sh-cbar { gap: 6px; }
+  body.page-home .sh-composer .sh-csel-btn { padding-inline: 8px; font-size: 12px; }
+  body.page-home .sh-composer #composerGo { flex: 1; width: auto; padding-inline: 10px; font-size: 12px; }
+  body.page-home .sh-home > .sh-prompt-ideas { justify-content: flex-start; gap: 6px; }
+  body.page-home .sh-prompt-ideas > span { display: none; }
+  body.page-home .sh-prompt-ideas button { min-height: 44px; font-size: 10.5px; padding-inline: 9px; }
   body.page-home .sh-home > .sh-gallery-sec { margin-top: 24px !important; }
+}
+@media (max-width: 360px) {
+  body.page-home .sh-composer #composerGo { flex-basis: 100%; }
 }
 
 /* ── Template cards on a phone: the same card as on a computer (owner, 19 Sep) ── */

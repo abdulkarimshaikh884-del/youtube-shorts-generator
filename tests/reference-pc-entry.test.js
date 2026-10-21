@@ -109,8 +109,11 @@ function composerHarness(status = pc(false)) {
   const source = fs.readFileSync(path.join(root, 'public/shell.js'), 'utf8');
   const start = source.indexOf('  function wireComposer() {'), end = source.indexOf('  /* ── Library sort', start);
   const elements = new Map(), created = [], calls = [], toasts = [];
-  function element(name) {return {name, style: {}, hidden: false, innerHTML: 'Create animation', value: '', files: [], maxLength: 500, scrollHeight: 80, listeners: {}, classList: {toggle() {}}, addEventListener(event, fn) {this.listeners[event] = fn;}, setAttribute() {}, appendChild(child) {created.push(child);}, closest() {return null;}, focus() {}, insertAdjacentElement(position, child) {created.push(child);}};}
-  for (const id of ['composer', 'composerPrompt', 'composerGo', 'composerImg', 'composerImgClear', 'composerImgName']) elements.set('#' + id, element(id));
+  function element(name) {return {name, style: {}, attributes: {}, hidden: false, innerHTML: 'Create animation', value: '', files: [], maxLength: 500, scrollHeight: 80, listeners: {}, classList: {toggle() {}}, addEventListener(event, fn) {this.listeners[event] = fn;}, setAttribute(key, value) {this.attributes[key] = value;}, getAttribute(key) {return this.attributes[key] || null;}, click() {calls.push({kind:'click',name}); this.listeners.click?.();}, appendChild(child) {created.push(child);}, closest() {return null;}, focus() {this.focused = true;}, insertAdjacentElement(position, child) {created.push(child);}};}
+  for (const id of ['composer', 'composerPrompt', 'composerGo', 'composerImg', 'composerImageButton', 'composerImgClear', 'composerImgName', 'composerCount']) elements.set('#' + id, element(id));
+  const ideas = [element('growth'), element('title'), element('product')];
+  ideas.forEach((idea, i) => idea.setAttribute('data-home-prompt', ['A subscriber growth chart using sample data', 'Bold title reveal', 'Clean product highlight'][i]));
+  elements.get('#composer').querySelectorAll = selector => selector === '[data-home-prompt]' ? ideas : [];
   const label = element('imageLabel'); elements.get('#composer').querySelector = selector => selector === 'label[for="composerImg"]' ? label : null;
   const sandbox = {
     $: selector => elements.get(selector) || null,
@@ -121,8 +124,40 @@ function composerHarness(status = pc(false)) {
     encodeURIComponent, Event
   };
   vm.createContext(sandbox); vm.runInContext(source.slice(start, end) + '\nwireComposer();', sandbox);
-  return {sandbox, elements, created, calls, toasts};
+  return {sandbox, elements, created, calls, toasts, ideas};
 }
+
+test('compact home has one native prompt and real keyboard-accessible attachment buttons', () => {
+  const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
+  assert.equal((html.match(/placeholder="What do you want to animate here\?"/g) || []).length, 1);
+  assert.doesNotMatch(html, /sh-prompt-label|sh-cph|Try a pricing card that flips/);
+  assert.match(html, /<textarea[^>]*aria-label="Animation prompt"[^>]*rows="1"/);
+  assert.match(html, /<button[^>]*id="composerImageButton"[^>]*type="button"[^>]*aria-label="Add image"/);
+  assert.match(html, /\/ds\.css\?v=2026102102/);
+});
+
+test('icon controls preserve the file picker and reference availability guard', async () => {
+  const h = composerHarness(); await flush();
+  h.elements.get('#composerImageButton').listeners.click();
+  assert.equal(h.calls.filter(call => call.kind === 'click' && call.name === 'composerImg').length, 1);
+  const video = h.created.find(node => node.attributes?.['aria-label'] === 'Add reference video');
+  assert.ok(video); assert.equal(video.type, 'button'); assert.equal(video.title, 'Add reference video');
+  assert.match(video.innerHTML, /<svg[^>]*aria-hidden="true"/);
+  assert.equal(video.style.cssText, undefined, 'shared CSS owns icon sizing');
+});
+
+test('prompt ideas fill and focus without starting generation or replacing a reference', async () => {
+  const h = composerHarness(); await flush();
+  h.ideas[0].listeners.click();
+  assert.equal(h.elements.get('#composerPrompt').value, h.ideas[0].getAttribute('data-home-prompt'));
+  assert.equal(h.elements.get('#composerPrompt').focused, true);
+  assert.equal(h.elements.get('#composerCount').textContent, h.elements.get('#composerPrompt').value.length + '/500');
+  assert.equal(h.sandbox.window.location.href, '');
+  const input = h.created.find(node => node.id === 'composerReferenceVideo');
+  input.files = [sampleFile]; input.listeners.change();
+  h.ideas[1].listeners.click();
+  assert.equal(h.elements.get('#composerPrompt').value, h.ideas[0].getAttribute('data-home-prompt'));
+});
 
 test('home attachment uses local account-bound handoff, never uploads or routes video into legacy generator', async () => {
   const h = composerHarness(); await flush();
