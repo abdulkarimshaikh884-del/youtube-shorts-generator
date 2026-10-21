@@ -143,8 +143,8 @@ ${p.scripts || ""}</body>
 const BOTTOM_TABS = [
   { key: "home", href: "/", label: "Home",
     icon: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>' },
-  { key: "templates", href: "/animations", label: "Templates",
-    icon: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>' },
+  { key: "designs", href: "/designs", label: "Designs",
+    icon: '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>' },
   { key: "create", href: "/editor", label: "Create",
     icon: '<path d="M12 5v14M5 12h14"/>' },
   { key: "community", href: "/community", label: "Learn",
@@ -154,7 +154,7 @@ const BOTTOM_TABS = [
 ];
 function bottomNav(p) {
   const current = p.route === "/" ? "home"
-    : ["/animations", "/designs", "/template", "/creator"].includes(p.route) ? "templates"
+    : p.route === "/designs" ? "designs"
     : p.active === "community" ? "community"
     : ["/account", "/settings", "/drafts", "/uploads", "/pricing", "/tutorials", "/contact", "/about", "/admin"].includes(p.route) ? "profile"
     : "";
