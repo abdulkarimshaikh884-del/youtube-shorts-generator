@@ -66,3 +66,7 @@ supabase/.temp/
 public/storage/designs/job_*/
 scratch/
 tools/
+!tools/
+tools/*
+!tools/start-reference-pc-worker.ps1
+!tools/stop-reference-pc-worker.ps1

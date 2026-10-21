@@ -1251,7 +1251,12 @@
     var qMenu = $("#qualityMenu");
     var qVal  = $("#qualityVal");
     var tier  = $("#qualitySelect");
-    var attached = null;
+    var attached = null, attachedVideo = null;
+    var referenceBusy = false, referenceAvailable = false, referenceStatus = null;
+    var originalGo = go.innerHTML;
+    var referenceHint = document.createElement('p'); referenceHint.className = 'sh-reference-hint'; referenceHint.hidden = true;
+    referenceHint.style.cssText = 'font-size:12px;line-height:1.5;margin:8px 0 0;color:inherit';
+    form.appendChild(referenceHint);
     var imageVersion = 0, imagePending = false;
 
     if (qBtn && qMenu && tier) {
@@ -1335,7 +1340,15 @@
       text.style.height = Math.min(text.scrollHeight, 180) + "px";
       /* The button stays blue and ready; pressing it with nothing typed puts
          the cursor in the box instead (see the submit handler). */
-      go.disabled = imagePending;
+      go.disabled = imagePending || referenceBusy;
+      text.readOnly = !!attachedVideo;
+      if (qBtn) qBtn.disabled = !!attachedVideo;
+      referenceHint.hidden = !attachedVideo;
+      if (attachedVideo) {
+        var pcOffline = referenceStatus && referenceStatus.processingLocation === 'OWNER_PC' && referenceStatus.workerOnline !== true;
+        referenceHint.textContent = 'Reference beta · Free 5s / Pro 10s · grouped card layers, not individually editable card text · no audio reconstruction. You will review the private operator-PC processing notice before upload. Prompt edits are not applied in this mode.' + (pcOffline ? ' Processing PC is offline; you can keep the selected video and open the editor.' : '');
+        go.textContent = referenceBusy ? 'Preparing reference…' : 'Review reference →';
+      } else go.innerHTML = originalGo;
       if (counter) counter.textContent = text.value.length + "/" + (text.maxLength > 0 ? text.maxLength : 500);
       if (field) field.classList.toggle("has-text", text.value.length > 0);
     }
@@ -1352,6 +1365,7 @@
         window.SC_IMAGE_INPUT.read(file).then(function (value) {
           if (version !== imageVersion) return;
           attached = value;
+          attachedVideo = null;
           var nameEl = $("#composerImgName");
           if (nameEl) nameEl.textContent = file.name;
           chip.hidden = false;
@@ -1366,10 +1380,34 @@
       if (chip) {
         chip.addEventListener("click", function () {
           imageVersion++; imagePending = false;
-          attached = null; img.value = ""; chip.hidden = true; sync();
+          attached = null; attachedVideo = null; img.value = ""; chip.hidden = true; sync();
         });
       }
     }
+
+    // The selected video stays in an account-bound, short-lived local Blob
+    // handoff. No video is uploaded from this composer and no video is sent to
+    // the legacy image reader or prompt-to-code generator.
+    if (img && window.SC_REFERENCE_HANDOFF) fetch('/api/reference-motion/status', {credentials: 'same-origin'}).then(function (response) {return response.ok ? response.json() : null;}).then(function (status) {
+      if (!status || !status.enabled || !['SUPPORTED_PLANAR_CARDS_ONLY', 'SUPPORTED_PLANAR_CARDS_OR_FLAT_VECTORS'].includes(status.reconstruction)) return;
+      referenceAvailable = true; referenceStatus = status;
+      var input = document.createElement('input'); input.type = 'file'; input.accept = 'video/mp4,video/webm,.mp4,.webm'; input.hidden = true; input.id = 'composerReferenceVideo';
+      input.setAttribute('aria-label', 'Reference animation video');
+      var button = document.createElement('button'); button.type = 'button'; button.className = 'sh-imgbtn'; button.textContent = 'Add reference video'; button.setAttribute('aria-label', 'Add reference video');
+      button.style.cssText = 'width:auto;padding:0 10px;min-height:40px;white-space:nowrap;font:inherit;font-size:12px';
+      var imageLabel = form.querySelector('label[for="composerImg"]');
+      if (!imageLabel) return;
+      imageLabel.insertAdjacentElement('afterend', button); button.insertAdjacentElement('afterend', input);
+      button.addEventListener('click', function () {if (!referenceBusy) input.click();});
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0]; input.value = '';
+        if (!file) return;
+        if (!/\.(mp4|webm)$/i.test(file.name) || file.size <= 0 || file.size > window.SC_REFERENCE_HANDOFF.MAX_BYTES) {SC_UI.toast('Choose an MP4/WebM below 20 MiB.', true); return;}
+        imageVersion++; imagePending = false; attached = null; img.value = ''; attachedVideo = file;
+        var name = $('#composerImgName'); if (name) name.textContent = file.name;
+        if (chip) chip.hidden = false; sync();
+      });
+    }).catch(function () {/* Existing prompt/image generation stays unchanged. */});
 
     text.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -1381,7 +1419,17 @@
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
+      if (referenceBusy) return;
       if (imagePending) { SC_UI.toast("Please wait while the image is checked."); return; }
+      if (attachedVideo) {
+        if (!referenceAvailable || !window.SC_REFERENCE_HANDOFF) {SC_UI.toast('Reference mode is unavailable.', true); return;}
+        referenceBusy = true; sync();
+        fetch('/api/auth/me', {credentials: 'same-origin'}).then(function (response) {return response.json();}).then(function (me) {
+          if (!me.user || !me.user.id) throw new Error('Sign in before using a private video reference.');
+          return window.SC_REFERENCE_HANDOFF.put(me.user.id, attachedVideo);
+        }).then(function (token) {window.location.href = '/reference-motion?handoff=' + encodeURIComponent(token);}).catch(function (error) {referenceBusy = false; sync(); SC_UI.toast(error.message, true, 5000);});
+        return;
+      }
       var topic = text.value.trim();
       if (topic.length < 2) { text.focus(); return; }
 

@@ -50,6 +50,14 @@ function cleanClips(value) {
   return clips.length ? clips : null;
 }
 
+async function prepareClips(user, clips) {
+  if (!clips.some(clip => clip.tpl === 'reference-motion')) return clips;
+  if (clips.length !== 1 || clips[0].tpl !== 'reference-motion') {
+    const error = Error('Open reference reconstructions in the dedicated Reference Motion editor.'); error.status = 422; throw error;
+  }
+  return [await require('./reference-motion/project').normaliseClip(user, clips[0], {enforcePlan: true})];
+}
+
 async function list(user) {
   if (!user?.id) return { error: "Please log in first.", status: 401 };
   const { rows } = await db.query(
@@ -77,8 +85,10 @@ async function save(user, id, body) {
     return { error: "That project id is not valid.", status: 400 };
   }
 
-  const clips = cleanClips(body?.clips);
+  let clips = cleanClips(body?.clips);
   if (!clips) return { error: "A project needs at least one clip.", status: 400 };
+  try { clips = await prepareClips(user, clips); }
+  catch (error) { return {error: error.status === 403 ? 'Private reference media is unavailable to this account.' : error.message, status: error.status || 422}; }
 
   const name = String(body?.name || "Untitled animation").trim().slice(0, MAX_NAME) || "Untitled animation";
   const aspect = ["9:16", "16:9", "1:1", "4:5"].includes(body?.aspect) ? body.aspect : "9:16";
@@ -140,9 +150,11 @@ async function adopt(user, drafts) {
 
   let adopted = 0;
   for (const draft of drafts.slice(0, MAX_PER_USER)) {
-    const clips = cleanClips(draft?.clips);
+    let clips = cleanClips(draft?.clips);
     const projectId = String(draft?.id || "").trim().slice(0, 64);
     if (!clips || !/^[A-Za-z0-9_-]{3,64}$/.test(projectId)) continue;
+    try { clips = await prepareClips(user, clips); } catch { continue; }
+    if (Buffer.byteLength(JSON.stringify(clips)) > MAX_BYTES) continue;
     const { rowCount } = await db.query(
       `insert into public.projects (id, user_id, name, aspect, clips)
        values ($1, $2, $3, $4, $5::jsonb)

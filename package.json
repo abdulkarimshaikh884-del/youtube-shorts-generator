@@ -7,6 +7,9 @@
     "node": ">=20.9.0"
   },
   "scripts": {
+    "build:reference-motion": "node reference-motion/build-editor.js",
+    "test:reference-pc": "node --test tests/reference-pc-*.test.js",
+    "reference:worker": "node reference-motion/pc-worker.js",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "build": "node generate-favicons.js",

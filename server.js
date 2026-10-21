@@ -163,6 +163,13 @@ app.use((req, res, next) => {
 });
 
 // ── Body parsing ────────────────────────────────────────────
+// PC beta worker calls are authenticated before *any* body parser, account
+// session lookup, or guest-credit middleware. They carry no browser cookies.
+const referencePC = process.env.SC_REFERENCE_PROCESSOR === 'pc'
+  ? require('./reference-motion/pc-client').createPCClient() : null;
+if (referencePC?.broker) require('./reference-motion/pc-worker-routes').install(app, {
+  broker: referencePC.broker, enabled: () => process.env.SC_REFERENCE_MOTION === 'true'
+});
 const jsonSmall = express.json({ limit: "100kb" });
 app.use((req, res, next) => {
   if (usesRouteJsonParser(req)) return next();
@@ -631,7 +638,7 @@ app.get("/api/projects", async (req, res) => {
   return res.json(out);
 });
 
-app.put("/api/projects/:id", rateLimit({ windowMs: 60_000, max: 120 }), async (req, res) => {
+app.put("/api/projects/:id", rateLimit({ windowMs: 60_000, max: 120 }), express.json({limit: '512kb', strict: true}), async (req, res) => {
   const out = await projects.save(req.user, req.params.id, req.body);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
@@ -650,6 +657,20 @@ app.post("/api/projects/adopt", rateLimit({ windowMs: 60_000, max: 10 }), async 
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });
+
+// Keep all existing generator/template/image routes on their committed path.
+// Only this bounded reference slice is delegated to the opt-in owner PC.
+if (referencePC?.broker) app.use([
+  '/api/reference-motion/analyze', '/api/reference-motion/export', '/api/reference-motion/assets'
+], require('./reference-motion/pc-request-gate').createRequestGate({
+  busy: () => referencePC.broker.status().busy, online: () => referencePC.broker.online()
+}));
+require('./reference-motion/routes').install(app, {credits, rateLimit,
+  ...(referencePC ? {processReference: referencePC.processReference, availability: referencePC.status} : {})});
+require('./reference-motion/web').install(app, {credits, rateLimit, projects, referrals,
+  serialise: referencePC ? job => job() : serialise,
+  json: {image: express.json({limit: '6mb', strict: true}), export: express.json({limit: '512kb', strict: true})},
+  ...(referencePC ? {render: referencePC.exportReference, availability: referencePC.status, chargeAfterRender: true} : {})});
 
 // ── Design Studio & Convert to Editable APIs ────────────────
 const jsonDesignUpload = express.json({ limit: "20mb" });

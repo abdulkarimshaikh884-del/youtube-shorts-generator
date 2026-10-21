@@ -2258,6 +2258,12 @@
     var draftId = q.get("draft");
     var restored = null;
     if (draftId && window.SC_DRAFTS) restored = SC_DRAFTS.get(draftId);
+    if (restored && Array.isArray(restored.clips) && restored.clips.some(function (c) { return c.tpl === "reference-motion"; })) {
+      sourceUnavailable = true;
+      if (restored.clips.length === 1) location.replace("/reference-motion?draft=" + encodeURIComponent(restored.id));
+      else status("This mixed reference project cannot open in the legacy editor. Its saved clips were not changed.");
+      return;
+    }
     if (restored && Array.isArray(restored.clips) && restored.clips.length) {
       state.clips = restored.clips.map(function (c) {
         var base = newClip(meta[c.tpl] ? c.tpl : "blank");

@@ -50,6 +50,13 @@
   function preview(draft) {
     var e = window.SC_TPL2;
     var first = draft.clips && draft.clips[0];
+    if (first && first.tpl === "reference-motion") {
+      var reference = document.createElement("div");
+      reference.className = "cr-cre-poster";
+      reference.textContent = draft.name || "Reference animation";
+      reference.title = "Saved editable reference project — open to preview";
+      return reference;
+    }
     if (e && first && typeof e.build === "function") {
       try {
         var html = e.build(first.tpl || "text-cascade", {
@@ -112,7 +119,8 @@
       var card = document.createElement("article");
       card.className = "cr-cre-card";
 
-      var openUrl = "/editor?draft=" + encodeURIComponent(d.id);
+      var referenceProject = clips.length === 1 && clips[0].tpl === "reference-motion";
+      var openUrl = (referenceProject ? "/reference-motion?draft=" : "/editor?draft=") + encodeURIComponent(d.id);
       var name = d.name || "Untitled animation";
 
       // The whole preview opens the project, as a template tile does on the

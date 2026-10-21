@@ -2539,7 +2539,7 @@ const indexPage = {
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/image-input.js?v=${V}" defer></script><script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
+  scripts: `<script src="/image-input.js?v=${V}" defer></script><script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/reference-handoff.js?v=2026102001" defer></script><script src="/shell.js?v=2026102001" defer></script>`
 };
 
 /* ── ANIMATIONS ─────────────────────────────────────────────
@@ -2962,7 +2962,7 @@ ${pageHead("My Projects")}
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=${V}" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}"></script><script src="/drafts-store.js?v=${V}" defer></script><script src="/drafts-page.js?v=2026102001" defer></script>`
 };
 
 /* ── SETTINGS ─────────────────────────────────────────────── */
