@@ -129,7 +129,7 @@ ${p.body}
   </nav>
 </div>
 
-<script src="/authui.js?v=2026100601" defer></script>
+<script src="/authui.js?v=2026102103" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
 ${p.scripts || ""}</body>
@@ -233,6 +233,7 @@ ${p.head || ""}
 <link rel="stylesheet" href="/monochrome.css?v=${V}">
 <link rel="stylesheet" href="/finishing.css?v=2026100503">
 <script src="/finishing.js?v=2026100503" defer></script>
+<link rel="stylesheet" href="/mobile-20261021.css?v=1">
 </head>
 `;
 
@@ -494,7 +495,7 @@ ${p.body}
 
 ${bottomNav(p)}
 
-<script src="/authui.js?v=2026100601" defer></script>
+<script src="/authui.js?v=2026102103" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
 <script src="/report.js?v=${V}" defer></script>
 ${p.noPageJs ? "" : `<script src="/page.js?v=2026100503" defer></script>`}

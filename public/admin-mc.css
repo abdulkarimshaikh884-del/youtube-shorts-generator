@@ -232,20 +232,117 @@ table.mc-t th:last-child,table.mc-t td:last-child{white-space:nowrap;text-align:
 
 /* ---------- responsive ---------- */
 @media (max-width:1100px){
-  .mc-metrics{grid-template-columns:repeat(2,1fr)}
-  .mc-strip{grid-template-columns:repeat(3,1fr)}
-  .mc-cols{grid-template-columns:1fr}
-  .mc-quick{grid-template-columns:repeat(2,1fr)}
+  .mc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mc-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mc-cols{grid-template-columns:minmax(0,1fr)}
+  .mc-quick{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mc-cmdk{min-width:0}
+  .mc-topbar{flex-wrap:wrap;gap:10px}
+  .mc-top-right{flex-wrap:wrap}
 }
 @media (max-width:760px){
-  .mc-side{width:64px;flex-basis:64px;padding:14px 10px;align-items:stretch}
-  .mc-side-brand{padding:2px 0 12px;justify-content:center}
-  .mc-side-brand-text,.mc-side-btn .mc-side-tx{display:none}
-  .mc-side-btn{justify-content:center;padding:10px 0}
-  .mc-side-user{justify-content:center;padding:10px 0 2px}
-  .mc-page{padding:14px 14px 40px}
-  .mc-topbar{padding:10px 14px}
+  /* The existing section chooser uses the same permission-aware navigation
+     handlers as the desktop rail. Do not shrink 14 sections into unlabeled
+     icons or take 64px away from every record on a phone. */
+  .mc-app{display:block;min-height:0;width:100%;max-width:100%}
+  .mc-side{display:none}
+  .mc-main,.mc-page,.mc-topbar,.mc-card,.mc-metric,.mc-stat,.mc-qa{min-width:0;box-sizing:border-box}
+  .mc-main{width:100%;max-width:100%}
+  .mc-page{padding:14px 12px 32px}
+  .mc-topbar{position:relative;top:auto;display:grid;grid-template-columns:minmax(0,1fr);padding:12px;gap:8px}
+  .mc-cmdk{width:100%;max-width:none;min-height:44px;padding:0 11px;box-sizing:border-box}
+  .mc-cmdk input{width:100%;min-width:0;min-height:44px;font-size:16px}
+  .mc-cmdk kbd{display:none}
+  .mc-top-right{width:100%;margin:0;justify-content:space-between;gap:8px}
+  .mc-refresh-btn{min-height:44px;padding:8px 13px;justify-content:center}
+  .mc-search-results{max-height:min(320px,50dvh);overflow-y:auto;overscroll-behavior:contain}
+  .mc-search-results button{min-height:44px;flex-wrap:wrap;overflow-wrap:anywhere}
   .mc-ws,.mc-live{display:none}
-  .mc-strip{grid-template-columns:repeat(2,1fr)}
-  .mc-owner-badge{font-size:10px;padding:5px 9px}
+  .mc-owner-badge{font-size:11px;padding:7px 10px}
+  .mc-mobile-nav{display:grid;gap:7px;margin-bottom:18px;padding:12px;background:#fff;border:1px solid #e7e7e1;border-radius:12px}
+  .mc-mobile-nav label{font-size:12px;font-weight:650;color:#5c5c57}
+  .mc-mobile-nav select{width:100%;min-width:0;min-height:44px;padding:9px 10px;box-sizing:border-box;border:1px solid #d9d9d2;border-radius:9px;background:#fff;color:#141414;font:inherit;font-size:16px}
+  .mc-page-head{margin-bottom:16px}
+  .mc-page-head h1{font-size:24px;overflow-wrap:anywhere}
+  .mc-page-head p{line-height:1.5}
+  .mc-metrics,.mc-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .mc-metric,.mc-stat{padding:13px}
+  .mc-m-label{font-size:10px;line-height:1.45;letter-spacing:.035em;overflow-wrap:anywhere}
+  .mc-m-val{font-size:29px;overflow-wrap:anywhere}
+  .mc-spark{display:none}
+  .mc-stat .mc-s-val{font-size:21px;overflow-wrap:anywhere}
+  .mc-m-sub,.mc-stat .mc-s-sub{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+  .mc-card{padding:15px}
+  .mc-attn-item{flex-wrap:wrap;gap:10px}
+  .mc-attn-body{flex:1 1 calc(100% - 52px)}
+  .mc-attn-actions{width:100%;justify-content:flex-end}
+  .mc-feed-item{flex-wrap:wrap;overflow-wrap:anywhere}
+  .mc-feed-item .ft{margin-left:21px;padding-left:0;white-space:normal}
+  .mc-hub-tabs{display:flex;width:100%;box-sizing:border-box;scrollbar-width:thin;overscroll-behavior-inline:contain}
+  .mc-hub-tabs button{flex:none;min-height:44px;padding:9px 14px}
+  .mc-toolbar{padding:12px;gap:8px}
+  .mc-t-search{flex:1 1 100%;min-width:0;min-height:44px;padding:0 10px}
+  .mc-t-search input{min-width:0;min-height:44px;font-size:16px}
+  .mc-toolbar select{flex:1 1 140px;min-width:0;min-height:44px;font-size:16px}
+  .mc-bulkbar.show{width:100%;box-sizing:border-box;flex-wrap:wrap}
+  .mc-bulkbar button{min-height:44px}
+  .mc-page :is(.admin-btn,.mc-btn){min-height:44px;max-width:100%;box-sizing:border-box;white-space:normal;justify-content:center}
+  .mc-page :is(.mc-icon-btn,.admin-icon-btn){min-width:44px;min-height:44px}
+  .mc-page :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){font-size:16px;min-width:0;max-width:100%;box-sizing:border-box}
+  .mc-page .pg-accsec-head{flex-wrap:wrap;gap:10px}
+  .mc-page .pg-accsec-head h2{overflow-wrap:anywhere}
+  .mc-page :is(.admin-table-wrap,.mc-table-wrap){max-width:100%;overscroll-behavior-inline:contain;scrollbar-width:thin}
+  .mc-page :is(.admin-table-wrap,.mc-table-wrap):focus-visible{outline:2px solid #1d4ed8;outline-offset:2px}
+  .mc-mobile-table-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid #e7e7e1;background:#fafaf8;font-size:12px;color:#5c5c57}
+  .mc-mobile-table-tools[hidden]{display:none}
+  .mc-mobile-table-tools button{flex:none;min-height:44px;padding:8px 11px;border:1px solid #d9d9d2;border-radius:8px;background:#fff;color:#141414;font:inherit;font-weight:650;cursor:pointer}
+  .mc-mobile-table-tools span{min-width:0;line-height:1.4}
+  /* Only simple, labeled tables opt into cards. Complex tables keep their
+     native table and horizontal scroll; users can choose that view for any
+     enhanced table. No data, controls or permission checks are duplicated. */
+  .mc-mobile-cards{overflow:visible}
+  .mc-mobile-cards table[data-mobile-labels="ready"]{display:block;min-width:0;width:100%;border-collapse:separate}
+  .mc-mobile-cards table[data-mobile-labels="ready"] thead{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  /* Bulk selection stays visible: the original checkbox and its listener
+     remain in the header, rather than creating an unsynchronized copy. */
+  .mc-mobile-cards table[data-mobile-labels="ready"] thead:has(input[type="checkbox"]){position:static;width:auto;height:auto;margin:0;overflow:visible;clip-path:none;white-space:normal}
+  .mc-mobile-cards table[data-mobile-labels="ready"] thead:has(input[type="checkbox"]) tr{display:block}
+  .mc-mobile-cards table[data-mobile-labels="ready"] thead:has(input[type="checkbox"]) th{display:none}
+  .mc-mobile-cards table[data-mobile-labels="ready"] thead th:has(input[type="checkbox"]){display:flex;align-items:center;gap:10px;min-height:44px;width:auto!important;padding:10px 14px}
+  .mc-mobile-cards table[data-mobile-labels="ready"] thead th:has(input[type="checkbox"])::after{content:"Select all records";font-size:12px;font-weight:600;letter-spacing:0;text-transform:none}
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody{display:block}
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:7px 6px;border-bottom:1px solid #e7e7e1}
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody tr:last-child{border-bottom:0}
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody td{display:block;min-width:0;max-width:100%;padding:9px 8px;border:0;text-align:left;white-space:normal;overflow-wrap:anywhere}
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody td::before{content:attr(data-label);display:block;margin-bottom:5px;color:#6f6f6a;font-size:11px;font-weight:650;line-height:1.4}
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody td:first-child,
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody td:last-child,
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody td[colspan]{grid-column:1/-1}
+  .mc-mobile-cards table[data-mobile-labels="ready"]:has(thead input[type="checkbox"]) tbody td:nth-child(2){grid-column:1/-1}
+  .mc-mobile-cards table[data-mobile-labels="ready"] tbody td[colspan]::before{display:none}
+  .mc-mobile-cards :is(.mc-row-actions,.admin-row-controls,.admin-actions){display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start}
+  .mc-mobile-cards :is(.mc-tpl-cell,.admin-user-cell){min-width:0;max-width:100%}
+  .mc-mobile-cards :is(.mc-tpl-name,.mc-tpl-id){white-space:normal;overflow-wrap:anywhere}
+  .mc-mobile-cards .mc-tpl-cell>div{min-width:0}
+  .mc-mobile-cards .admin-stat{display:inline;white-space:normal;overflow-wrap:anywhere}
+  .mc-table-foot{padding:12px;line-height:1.5}
+  .admin-modal-backdrop{padding:8px}
+  .admin-modal-backdrop .admin-modal-box{max-height:calc(100dvh - 16px - env(safe-area-inset-bottom,0px));max-width:100%;min-width:0}
+  .admin-modal-backdrop :is(.admin-modal-head,.admin-modal-body,.admin-modal-foot){min-width:0;padding-inline:14px}
+  .admin-modal-backdrop .admin-modal-head{gap:12px}
+  .admin-modal-backdrop .admin-modal-head h3{overflow-wrap:anywhere}
+  .admin-modal-backdrop .admin-modal-close{width:44px;height:44px;flex:none}
+  .admin-modal-backdrop .admin-modal-body{min-height:0;overscroll-behavior:contain}
+  .admin-modal-backdrop .admin-modal-body :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){font-size:16px!important;min-height:44px;min-width:0;max-width:100%;box-sizing:border-box}
+  .admin-modal-backdrop .admin-modal-foot{flex-wrap:wrap;gap:8px}
+  .admin-modal-backdrop .admin-btn{min-height:44px;max-width:100%;white-space:normal;box-sizing:border-box}
+}
+@media (min-width:761px){
+  .mc-mobile-table-tools{display:none}
+}
+@media (max-width:480px){
+  .mc-quick{grid-template-columns:minmax(0,1fr);gap:10px}
+  .mc-qa{padding:14px;gap:12px}
+  .mc-qa>div{min-width:0}
+  .mc-qa .n{font-size:20px}
 }

@@ -1,0 +1,151 @@
+/* Final responsive contract: loaded AFTER page/theme styles. Desktop is unchanged.
+   Keep scrollable collections explicit; never hide overflowing controls to pass QA. */
+@media (max-width: 900px) {
+  body.sh-body .sh-wrap, body.sh-body .sh-main { width: 100%; max-width: 100%; min-width: 0; }
+  body.sh-body .sh-main { margin-left: 0; }
+  body.sh-body .sh-topbar { min-width: 0; }
+}
+@media (max-width: 640px) {
+  body.sh-body { --phone-space: 14px; padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+  body.sh-body.pg-bare { padding: 32px 16px 24px; }
+  body.sh-body :is(main,section,article,form,fieldset) { min-width: 0; }
+  body.sh-body :is(.pg,.cp-wrap,.ds-page-container) { width: 100%; max-width: 100%; box-sizing: border-box; }
+  body.sh-body :is(p,li,h1,h2,h3,.ig-acc-val,.pf-transaction-row) { overflow-wrap: anywhere; }
+  body.sh-body button { min-height: 44px; min-width: 44px; }
+  body.sh-body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea) { font-size: 16px; max-width: 100%; min-width: 0; }
+  body.sh-body :is(.pg-bw,.pg-bo,.pg-cardlink,.ig-btn,.st-btn,.sh-ge-btn,.sh-chip,.sh-seeall,.sh-m-comm-btn,.ds-card-menu-trigger,.ds-card-like,.sk-share-btn,.sk-more-btn,.pf-detail-back) { min-height: 44px; height: auto; }
+  body.sh-body :is(.pg-bw,.pg-bo,.ig-btn,.st-btn) { padding: 10px 14px; line-height: 1.3; }
+  body.sh-body :is(.ds-card-like,.ds-card-menu-trigger,.sh-card-btn,.sh-modal-close,.sh-theart,.sh-notification-actions summary) { min-width: 44px; width: 44px; height: 44px; min-height: 44px; }
+  body.sh-body .sh-stage .sh-theart { width: 44px; height: 44px; }
+  body.sh-body .sh-stage .sh-theart svg { width: 18px; height: 18px; }
+  /* One compact, predictable header. Upload and Log out remain in Menu/Profile. */
+  body.sh-body .sh-topbar { height: 56px; min-height: 56px; padding: 0 10px; gap: 6px; }
+  body.sh-body .sh-topbrand { flex: 1 1 auto; max-width: 150px; min-width: 0; gap: 6px; }
+  body.sh-body .sh-topbrand .sh-brand-name { overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+  body.sh-body .sh-topbrand :is(img,.sh-brand-mark) { width: 26px; height: 26px; flex: none; }
+  body.sh-body .sh-top-actions { flex: none; margin-left: auto; gap: 4px; }
+  body.sh-body .sh-credit-chip { min-width: 0; height: 40px; max-width: 94px; padding: 0 8px; font-size: 12px; }
+  body.sh-body .sh-credit-balance { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.sh-body .sh-top-actions > :is(.sh-tupload-btn,.sh-tlink):not([hidden]),
+  body.sh-body:has(.ds-page-container) .sh-top-actions > .sh-tupload-btn { display: none !important; }
+  body.sh-body :is(#navBurger,.sh-notification-btn) { width: 44px; height: 44px; flex: none; }
+  body.sh-body #navMobile:not([hidden]), body.sh-body .sh-notification-panel { top: 56px; max-height: calc(100dvh - 128px - env(safe-area-inset-bottom, 0px)); }
+  body.sh-body #navMobile :is(a,button), body.sh-body .sh-notification-panel header button { min-height: 44px; }
+  body.sh-body #navMobile :is(a.sh-mfill,.sh-m-upload-btn) { background: var(--sc-brand) !important; color: var(--sc-on-brand) !important; }
+  body.sh-body #navMobile :is(a.sh-mfill,.sh-m-upload-btn) :is(span,svg) { color: inherit !important; }
+  body.sh-body .sh-bottomnav { height: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  body.sh-body .sh-bn-tab { min-width: 0; height: 60px; min-height: 44px; }
+  /* The old 360px flex-basis became HEIGHT after switching this row to a column. */
+  body.sh-body .sh-library .pg-head { padding: 16px 0 8px; gap: 12px; }
+  body.sh-body .sh-library .sh-search-bar-row { flex-direction: column; gap: 10px; }
+  body.sh-body .sh-library .sh-search-bar-row .sh-filters-scroll { flex: 0 0 auto; height: auto; min-height: 44px; width: 100%; }
+  body.sh-body .sh-lib-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+  body.sh-body .sh-lib-select { flex: 1 1 130px; min-width: 0; min-height: 44px; }
+  body.sh-body .sh-lib-select select { width: 100%; min-width: 0; font-size: 16px; }
+  body.sh-body .sh-filters-scroll { scroll-padding-inline: 2px; overscroll-behavior-x: contain; }
+  body.sh-body .sh-chip { flex-shrink: 0; padding-inline: 12px; }
+  body.sh-body .sh-gallery { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  /* Home is a discovery page, not three full catalogues stacked on a phone. */
+  body.page-home :is(#gallery,#homeDesignsGrid,#homeTutList) {
+    display: grid; grid-auto-flow: column; grid-template-columns: none; grid-template-rows: auto;
+    grid-auto-columns: 46%; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity; scroll-padding-inline: 2px; padding: 2px 2px 12px;
+    scrollbar-width: thin; align-items: start;
+  }
+  body.page-home :is(#homeDesignsGrid,#homeTutList) { grid-auto-columns: 82%; }
+  body.page-home :is(#gallery,#homeDesignsGrid,#homeTutList) > * { min-width: 0; scroll-snap-align: start; }
+  body.page-home #homeTutList .sh-tut-title { font-size: 14px; -webkit-line-clamp: 3; }
+  body.page-home .sh-gallery-title { gap: 10px; align-items: center !important; }
+  body.page-home .sh-gallery-title > div { min-width: 0; flex: 1; }
+  body.page-home .sh-gallery-title h2 { font-size: 20px !important; }
+  body.page-home .sh-gallery-title .sh-seeall { display: inline-flex; align-items: center; flex: none; }
+  body.page-home .sh-home > :is(.sh-home-sec,.sh-gallery-sec) { margin-top: 26px !important; }
+  body.page-home .sh-prompt-ideas { flex-wrap: wrap; }
+  body.sh-body .sh-sec-more :is(a,button) { min-height: 44px; }
+  /* Design search is a complete row, not squeezed beside its page title. */
+  body.sh-body .ds-page-container .ds-header { flex-wrap: wrap; align-items: stretch; gap: 14px; margin-bottom: 18px; }
+  body.sh-body .ds-header-main { flex: 1 1 100%; }
+  body.sh-body .ds-discovery-controls { flex: 1 1 100%; display: grid; grid-template-columns: minmax(0,1fr); gap: 10px; }
+  body.sh-body .ds-discovery-controls .ds-search-label { width: 100%; max-width: none; }
+  body.sh-body .ds-filter-label select { min-height: 44px; }
+  body.sh-body .ds-page-container .ds-card-body { padding: 12px; }
+  body.sh-body .ds-card .ds-card-author { min-height: 44px; }
+  /* Account panes are moved into .pf-detail at runtime, so scope both homes. */
+  body.sh-body :is(.pf-settings,.pf-detail) :is(.ig-account-grid,.ig-grid-2) { grid-template-columns: minmax(0,1fr); }
+  body.sh-body :is(.pf-settings,.pf-detail) .ig-form-foot { display: flex; flex-wrap: wrap; gap: 10px; }
+  body.sh-body :is(.pf-settings,.pf-detail) .ig-form-foot .ig-btn { flex: 1 1 100px; }
+  body.sh-body :is(.pf-settings,.pf-detail) .ig-form-foot .ig-msg { flex-basis: 100%; }
+  body.sh-body .pf-detail-head { flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
+  body.sh-body .pf-detail-head h1 { margin: 0; font-size: 21px; flex: 1; }
+  body.sh-body .pf-detail-head #accountNotificationsRead { margin-left: auto; }
+  body.sh-body .pf-detail [data-settings-page="followers"] .ig-pane-head,
+  body.sh-body .pf-detail [data-settings-page="following"] .ig-pane-head { display: none; }
+  body.sh-body .ig-header { grid-template-columns: 56px minmax(0,1fr); }
+  body.sh-body .ig-story-ring { width: 54px; height: 54px; box-sizing: border-box; }
+  body.sh-body .ig-header .ig-avatar { width: 48px; height: 48px; }
+  body.sh-body .ig-actions-row { flex-wrap: wrap; gap: 6px; }
+  body.sh-body .ig-actions-row .ig-btn { min-height: 44px; padding: 8px 10px; font-size: 12px; }
+  body.sh-body .ig-stats-row { flex-wrap: wrap; }
+  body.sh-body .ig-stat > button { min-height: 44px; font-size: 12px; padding: 6px; }
+  body.sh-body .pf-setting-link { padding: 14px; }
+  body.sh-body .pf-setting-row { flex-wrap: wrap; }
+  body.sh-body .cr-cre-body { min-width: 0; width: 100%; }
+  body.sh-body .cr-cre-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; min-width: 0; width: 100%; }
+  body.sh-body .cr-cre-actions .cr-cre-open { grid-column: 1/-1; min-height: 44px; }
+  body.sh-body .cr-cre-actions .cr-cre-icon { width: 100%; min-height: 44px; }
+  body.sh-body .sh-notification-actions { margin-right: 4px; }
+  body.sh-body .pf-transaction-row { align-items: flex-start; }
+  body.sh-body .pf-transaction-row > :first-child { min-width: 0; flex: 1; }
+  body.sh-body .pf-transaction-row > :last-child { flex: none; }
+  body.sh-body .cp-wrap { padding: 18px 14px 32px; }
+  body.sh-body .cp-hero { padding: 18px; margin-bottom: 24px; align-items: flex-start; text-align: left; gap: 14px; }
+  body.sh-body .cp-avatar { width: 64px; height: 64px; }
+  body.sh-body .cp-info h1 { font-size: 22px; }
+  body.sh-body .cp-stat-btn { min-height: 44px; }
+  body.sh-body .cp-stats { gap: 6px 14px; }
+  /* Footer: every destination stays visible, in two clear columns. */
+  body.sh-body .sh-footer { padding: 24px 16px 20px; }
+  body.sh-body .sh-fgrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 12px; }
+  body.sh-body .sh-fbrand { grid-column: 1/-1; }
+  body.sh-body .sh-fcol { min-width: 0; gap: 0; }
+  body.sh-body .sh-fcol a { display: flex; align-items: center; min-height: 44px; line-height: 1.4; padding-block: 6px; }
+  body.sh-body .sh-fbot { margin-top: 20px; padding-top: 16px; flex-wrap: wrap; justify-content: flex-start; gap: 10px 16px; font-size: 12px; }
+  body.sh-body .sh-fbot > :first-child { flex-basis: 100%; }
+  body.sh-body .pg-screenfoot a { display: inline-flex; align-items: center; min-height: 44px; }
+  /* Sheets must scroll independently, including with the virtual keyboard. */
+  body.sh-body :is(.sc-share-dialog,.ds-preview-dialog) { max-height: calc(100dvh - 24px); max-width: calc(100% - 24px); overflow-y: auto; }
+  body.sh-body .sc-publish-card { width: 100%; max-height: calc(100dvh - 16px); }
+  body.sh-body .sc-publish-steps button { min-height: 44px; }
+  body.sh-body .sc-publish-foot { display: flex; flex-wrap: wrap; gap: 8px; }
+  body.sh-body .sc-publish-foot button { min-height: 44px; flex: 1 1 100px; }
+  body.sh-body .sh-modal-act-btn { min-height: 44px; }
+  body.sh-body :is(.sc-modal-card,.yt-modal-card) { max-width: 100%; max-height: calc(100dvh - 24px); }
+  /* Existing editors retain their panel logic, timeline and live preview. */
+  .ed-top { height: 56px; min-height: 56px; }
+  :is(.ed-back,.ed-credits,.ed-export,.ed-mobile-tab,.ed-mobile-publish,.ed-pbtn) { min-height: 44px; height: 44px; }
+  .ed-back,.ed-pbtn { min-width: 44px; width: 44px; }
+  .ed-name { min-width: 0; }
+  .ed-mobile-tabs { gap: 3px; }
+  .ed-mobile-tab { font-size: 11px; padding-inline: 7px; }
+  .ed-mobile-publish { padding-inline: 7px; font-size: 11px; }
+  .ed-pop { top: 60px; bottom: auto; height: auto; max-height: calc(100dvh - 126px); }
+  :is(.ed-pop-close,.ed-pop-cancel,.ed-pop-go) { min-height: 44px; }
+  .ed-pop-close { min-width: 44px; }
+  .de-btn-icon { min-width: 44px; width: 44px; min-height: 44px; height: 44px; }
+  .de-top-right button { min-height: 44px; padding-inline: 10px; }
+  .de-top-left { min-width: 0; }
+  .de-mob-btn { min-height: 48px; }
+  .de-panel-close { min-height: 44px; }
+}
+@media (max-width: 359px) {
+  body.sh-body .sh-topbar { padding-inline: 8px; gap: 3px; }
+  body.sh-body .sh-topbrand { gap: 4px; }
+  body.sh-body .sh-topbrand .sh-brand-name { font-size: 14px; }
+  body.sh-body .sh-credit-chip { padding-inline: 6px; font-size: 11px; max-width: 76px; }
+  body.sh-body .sh-credit-ico { display: none; }
+  body.sh-body .pf-detail-head #accountNotificationsRead { margin-left: 54px; }
+  body.sh-body .ig-header { grid-template-columns: 48px minmax(0,1fr); gap: 8px; }
+  body.sh-body .ig-story-ring { width: 46px; height: 46px; }
+  body.sh-body .ig-header .ig-avatar { width: 40px; height: 40px; }
+  .de-top-right button { padding-inline: 7px; font-size: 11px; }
+}

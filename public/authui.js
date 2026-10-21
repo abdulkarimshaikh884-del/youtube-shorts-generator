@@ -3394,6 +3394,12 @@
       .then(function (j) {
         currentUser = j && j.user;
         paint(currentUser);
+        // Dedicated follow pages are opened before /auth/me settles. The
+        // initial tab setup cannot fetch an owner's list without their handle.
+        if (currentUser && window.SC_ACCOUNT_NAV &&
+            ["followers", "following"].includes(window.SC_ACCOUNT_NAV.current)) {
+          loadPeoplePane(window.SC_ACCOUNT_NAV.current);
+        }
         window.SC_AUTH_READY = true;
         setupEditProfile();
         setupPageProfileForm();
