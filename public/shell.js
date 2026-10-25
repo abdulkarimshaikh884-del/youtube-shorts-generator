@@ -711,7 +711,7 @@
     var cat = currentCategory;
 
     var count = 0;
-    Array.prototype.forEach.call(grid.children, function (tile) {
+    Array.prototype.forEach.call(grid.querySelectorAll(".sh-tile"), function (tile) {
       var name = (tile.dataset.name || "").toLowerCase();
       var desc = (tile.dataset.desc || "").toLowerCase();
       var tCat = tile.dataset.cat || "";
@@ -1506,9 +1506,12 @@
 
           var previewHtml = (window.SCDesignPreview && window.SCDesignPreview(tpl)) || "";
           var badgeHtml = "";
+          var mobilePriceHtml = "";
           if (tpl.isPremium) {
-            var stars = tpl.starPrice || 1;
+            var priceValue = Number(tpl.starPrice);
+            var stars = Number.isFinite(priceValue) && priceValue > 0 ? Math.max(1, Math.floor(priceValue)) : 1;
             badgeHtml = "<span class=\"ds-card-prem-badge\">★ " + stars + " Star" + (stars > 1 ? "s" : "") + "</span>";
+            mobilePriceHtml = '<span class="ds-card-mobile-price" aria-label="Unlock for ' + stars + ' Star' + (stars > 1 ? 's' : '') + '"><span class="ds-card-price-icon" aria-hidden="true">★</span><span class="ds-card-price-value">' + stars + ' Star' + (stars > 1 ? 's' : '') + '</span></span>';
           }
 
           var authorName = tpl.authorName || "Creator";
@@ -1527,7 +1530,10 @@
             badgeHtml,
             "</div>",
             "<div class=\"ds-card-body\">",
+            '<div class="ds-card-heading">',
             "  <h3 class=\"ds-card-title\">" + (escapeHtml(tpl.title) || "Untitled Design") + "</h3>",
+            mobilePriceHtml,
+            '</div>',
             "  <a href=\"" + creatorUrl + "\" class=\"sh-tcreator-row\" title=\"View profile of " + escapeHtml(authorName) + "\">",
             "    <div class=\"sh-tcreator-avatar\"" + (avStyle ? " style=\"" + avStyle + "\"" : "") + ">" + (tpl.authorAvatarUrl ? "" : escapeHtml(initials)) + "</div>",
             "    <div class=\"sh-tcreator-info\">",
@@ -1617,8 +1623,88 @@
       });
   }
 
-  /* Four newest Creator Tutorials on the home page. Each card links out to
-     the video on its own platform. */
+  // API records are still validated at the display boundary: a malformed
+  // video/avatar URL must not become an executable link or broken identity.
+  function homeTutorialLink(value) {
+    try {
+      var url = new URL(String(value || ""));
+      if (url.protocol !== "https:" || url.username || url.password) return "";
+      var host = url.hostname.toLowerCase().replace(/^www\./, "");
+      return ["youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be", "instagram.com", "instagr.am"].includes(host) ? url.href : "";
+    } catch (err) { return ""; }
+  }
+
+  function homeTutorialAsset(value) {
+    var raw = String(value || "").trim();
+    if (!raw || /[\u0000-\u0020\\]/.test(raw) || raw.slice(0, 2) === "//") return "";
+    try {
+      var url = new URL(raw, location.origin);
+      if (url.username || url.password) return "";
+      return url.protocol === "https:" || (raw.charAt(0) === "/" && url.origin === location.origin) ? url.href : "";
+    } catch (err) { return ""; }
+  }
+
+  function renderHomeTutorialCard(t) {
+    var href = homeTutorialLink(t && t.url);
+    if (!href) return null;
+    var platform = t.platform === "instagram" ? "Instagram" : "YouTube";
+    var author = t.author || {};
+    var authorName = String(author.name || "Creator").trim() || "Creator";
+    var initials = Array.from(authorName).slice(0, 2).join("").toUpperCase();
+    var card = document.createElement("a");
+    card.className = "sh-tut-card sh-tut-card--creator";
+    card.href = href;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+    var thumb = document.createElement("span");
+    thumb.className = "sh-tut-thumb sh-tut-" + (platform === "Instagram" ? "instagram" : "youtube");
+    var thumbnail = homeTutorialAsset(t.thumbnail);
+    if (thumbnail) {
+      var img = document.createElement("img");
+      img.src = thumbnail; img.alt = ""; img.loading = "lazy";
+      img.addEventListener("error", function () { this.remove(); }, { once: true });
+      thumb.appendChild(img);
+    }
+    var title = document.createElement("span");
+    title.className = "sh-tut-title";
+    title.textContent = String(t.title || "Creator tutorial");
+    var who = document.createElement("span");
+    who.className = "sh-tut-author";
+    var avatar = document.createElement("span");
+    avatar.className = "sh-tut-avatar";
+    avatar.setAttribute("aria-hidden", "true");
+    avatar.textContent = initials;
+    var avatarUrl = homeTutorialAsset(author.avatarUrl);
+    if (avatarUrl) {
+      var face = document.createElement("img");
+      face.src = avatarUrl; face.alt = ""; face.loading = "lazy";
+      face.width = 22; face.height = 22;
+      face.addEventListener("error", function () { avatar.textContent = initials; }, { once: true });
+      avatar.textContent = "";
+      avatar.appendChild(face);
+    }
+    who.appendChild(avatar);
+    var name = document.createElement("span");
+    name.className = "sc-name-text";
+    name.textContent = authorName;
+    who.appendChild(name);
+    if (author.verified === true) {
+      var tick = document.createElement("span");
+      tick.className = "sh-verified";
+      tick.title = "Verified creator";
+      tick.setAttribute("aria-label", "Verified creator");
+      tick.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      who.appendChild(tick);
+    }
+    var watch = document.createElement("span");
+    watch.className = "sh-tut-watch";
+    watch.textContent = "Watch on " + platform + " \u2197";
+    card.appendChild(thumb); card.appendChild(title); card.appendChild(who); card.appendChild(watch);
+    return card;
+  }
+
+  /* Recent Creator Tutorials on the home page. Each card links out to the
+     video on its own platform, with the actual creator photo when available. */
   function loadHomeTutorials() {
     var box = $("#homeTutList");
     if (!box) return;
@@ -1635,41 +1721,10 @@
           return;
         }
         list.forEach(function (t) {
-          var platform = t.platform === "instagram" ? "Instagram" : "YouTube";
-          var card = document.createElement("a");
-          card.className = "sh-tut-card";
-          card.href = t.url;
-          card.target = "_blank";
-          card.rel = "noopener noreferrer";
-          var thumb = document.createElement("span");
-          thumb.className = "sh-tut-thumb sh-tut-" + (t.platform || "youtube");
-          if (t.thumbnail) {
-            var img = document.createElement("img");
-            img.src = t.thumbnail; img.alt = ""; img.loading = "lazy";
-            thumb.appendChild(img);
-          }
-          var title = document.createElement("span");
-          title.className = "sh-tut-title";
-          title.textContent = t.title;
-          var who = document.createElement("span");
-          who.className = "sh-tut-author";
-          var name = document.createElement("span");
-          name.className = "sc-name-text";
-          name.textContent = (t.author && t.author.name) || "Creator";
-          who.appendChild(name);
-          if (t.author && t.author.verified) {
-            var tick = document.createElement("span");
-            tick.className = "sh-verified";
-            tick.title = "Verified creator";
-            tick.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.25l2.08 1.49 2.55-.05.74 2.44 2.1 1.45-.84 2.41.84 2.41-2.1 1.45-.74 2.44-2.55-.05L12 17.75l-2.08-1.49-2.55.05-.74-2.44-2.1-1.45.84-2.41-.84-2.41 2.1-1.45.74-2.44 2.55.05L12 2.25z"/><path d="M8.3 10.15l2.35 2.35 5.05-5.05" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-            who.appendChild(tick);
-          }
-          var watch = document.createElement("span");
-          watch.className = "sh-tut-watch";
-          watch.textContent = "Watch on " + platform + " \u2197";
-          card.appendChild(thumb); card.appendChild(title); card.appendChild(who); card.appendChild(watch);
-          box.appendChild(card);
+          var card = renderHomeTutorialCard(t);
+          if (card) box.appendChild(card);
         });
+        if (!box.children.length) box.innerHTML = '<p class="sh-tut-empty">No available tutorials. <a href="/community">Open Creator Tutorials</a>.</p>';
       })
       .catch(function () {
         box.innerHTML = '<p class="sh-tut-empty">Tutorials could not load. <a href="/community">Open Creator Tutorials</a>.</p>';

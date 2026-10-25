@@ -13,6 +13,62 @@
   var $ = function (s) { return document.querySelector(s); };
   var all = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
 
+  // A mobile wallet shows spendable Stars separately from generation credits.
+  // Preserve the existing desktop chip and its established credit-fetch flow.
+  all('.sh-credit-chip').forEach(function (chip) {
+    var group = document.createElement('div');
+    group.className = 'mc-balances';
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-label', 'Stars and credits');
+    var stars = document.createElement('a');
+    stars.className = 'mc-stars-balance';
+    stars.href = '/pricing#stars';
+    stars.setAttribute('aria-label', 'Star balance loading');
+    stars.innerHTML = '<span class="mc-balance-star" aria-hidden="true">★</span><b class="mc-stars-value">—</b><span class="mc-balance-label">Stars</span>';
+    chip.before(group);
+    group.append(stars, chip);
+    var value = document.createElement('b');
+    value.className = 'mc-credit-value';
+    value.textContent = '—';
+    var label = document.createElement('span');
+    label.className = 'mc-balance-label';
+    label.textContent = 'Credits';
+    chip.append(value, label);
+  });
+
+  if ($('.mc-stars-value')) {
+    var starRequestOptions = {headers: {Accept: 'application/json'}};
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') starRequestOptions.signal = AbortSignal.timeout(10000);
+    fetch('/api/stars', starRequestOptions)
+      .then(function (response) {
+        if (response.status === 401) {
+          all('.mc-stars-balance').forEach(function (link) {
+            link.href = '/login?next=%2Faccount%2Fcredits';
+            link.title = 'Sign in to view your Stars';
+            link.setAttribute('aria-label', link.title);
+          });
+          return null;
+        }
+        if (!response.ok) throw new Error('Stars unavailable');
+        return response.json();
+      })
+      .then(function (data) {
+        if (data === null) return;
+        if (!data || data.success !== true || !Number.isSafeInteger(data.balance) || data.balance < 0) throw new Error('Stars unavailable');
+        all('.mc-stars-value').forEach(function (el) { el.textContent = data.balance.toLocaleString('en-IN'); });
+        all('.mc-stars-balance').forEach(function (link) {
+          link.title = data.balance + ' spendable Stars' + (data.monetizationEnabled === true ? '' : ' · paid unlocks Coming Soon');
+          link.setAttribute('aria-label', link.title);
+        });
+      })
+      .catch(function () {
+        all('.mc-stars-balance').forEach(function (link) {
+          link.title = 'Star balance unavailable. Reload to retry.';
+          link.setAttribute('aria-label', link.title);
+        });
+      });
+  }
+
   // Same reviewed Free-only release policy as the server. Fail closed even
   // when config cannot load. The API independently refuses money mutations.
   window.SC_RELEASE = { monetizationEnabled: false };
@@ -40,15 +96,19 @@
   window.SC_CREDIT_UI = {
     state: function (state) {
       var text = state === "loading" ? "Loading…" : "Unavailable";
+      all('.mc-credit-value').forEach(function (el) { el.textContent = '—'; });
       all('.sh-credit-balance,.sh-plan-credits,.sh-upop-credits-pill,#accCredits,#igCreditsCount').forEach(function (el) { el.textContent = text; });
       all('.sh-credit-chip,.sh-plan-badge').forEach(function (el) {
         el.dataset.creditState = state;
         el.title = state === "loading" ? "Loading your balance" : "Credits could not load. Reload to retry.";
+        if (el.classList.contains('sh-credit-chip')) el.setAttribute('aria-label', el.title);
       });
     },
     validate: function (data) {
       if (!data || !data.success || !Number.isSafeInteger(data.left) || data.left < 0 || !Number.isSafeInteger(data.perDay) || data.perDay < 0) throw new Error("Credits unavailable");
       if (!data.planLabel) data.planLabel = {free:"Free",pro:"Pro",promax:"Pro Max"}[data.plan] || "Plan";
+      all('.mc-credit-value').forEach(function (el) { el.textContent = data.left.toLocaleString('en-IN'); });
+      all('.mc-balances > .sh-credit-chip').forEach(function (el) { el.setAttribute('aria-label', data.left + ' available credits. View plan and credits.'); });
       all('.sh-credit-chip,.sh-plan-badge').forEach(function (el) { el.dataset.creditState = "ready"; el.removeAttribute("title"); });
       return data;
     }
@@ -307,11 +367,32 @@
       navigator.standalone === true;
 
     function keyBytes(base64) {
+      if (typeof base64 !== "string" || !/^[A-Za-z0-9_-]{87}=?$/.test(base64)) {
+        throw new Error("Device notifications are unavailable right now. In-app notifications still work.");
+      }
       var pad = "=".repeat((4 - base64.length % 4) % 4);
       var raw = atob((base64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
       var out = new Uint8Array(raw.length);
       for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+      if (out.length !== 65 || out[0] !== 4) throw new Error("Device notifications are unavailable right now. In-app notifications still work.");
       return out;
+    }
+    var configPromise = null, configTime = 0;
+    function configuration() {
+      if (configPromise && Date.now() - configTime < 30000) return configPromise;
+      configTime = Date.now();
+      configPromise = fetch("/api/push/key", {headers: {Accept: "application/json"}, signal: AbortSignal.timeout(10000)})
+        .then(json).then(function (config) {
+          if (config.enabled === false) throw new Error("Push unavailable");
+          var bytes = keyBytes(config.publicKey);
+          // A correctly sized string can still be an invalid P-256 point.
+          return crypto.subtle.importKey("raw", bytes, {name: "ECDSA", namedCurve: "P-256"}, false, ["verify"])
+            .then(function () { return bytes; });
+        }).catch(function () {
+          configPromise = null;
+          throw new Error("Device notifications are unavailable right now. In-app notifications still work.");
+        });
+      return configPromise;
     }
     function sameKey(sub, bytes) {
       var have = sub && sub.options && sub.options.applicationServerKey;
@@ -340,12 +421,8 @@
       }).then(json);
     }
     // Subscribe (or re-subscribe when the server's key changed) and store it.
-    function connect() {
-      return Promise.all([
-        navigator.serviceWorker.register("/sw.js", { scope: "/" }),
-        fetch("/api/push/key", { headers: { Accept: "application/json" } }).then(json)
-      ]).then(function (res) {
-        var bytes = keyBytes(res[1].publicKey);
+    function connect(bytes) {
+      return navigator.serviceWorker.register("/sw.js", { scope: "/" }).then(function () {
         return navigator.serviceWorker.ready.then(function (reg) {
           return reg.pushManager.getSubscription().then(function (sub) {
             if (sub && sameKey(sub, bytes)) return sub;
@@ -358,21 +435,23 @@
     }
 
     return {
-      /* "unsupported" | "ios-install" | "denied" | "on" | "off" */
+      /* "unsupported" | "ios-install" | "denied" | "unavailable" | "on" | "off" */
       state: function () {
         if (!supported) return Promise.resolve(ios && !standalone ? "ios-install" : "unsupported");
         if (Notification.permission === "denied") return Promise.resolve("denied");
-        return existing().then(function (sub) {
+        return configuration().then(existing).then(function (sub) {
           return sub && Notification.permission === "granted" ? "on" : "off";
-        }).catch(function () { return "off"; });
+        }).catch(function () { return "unavailable"; });
       },
       enable: function () {
         if (!supported) return Promise.reject(new Error("This browser cannot show notifications."));
-        return Promise.resolve(Notification.requestPermission()).then(function (p) {
-          if (p !== "granted") throw new Error(p === "denied"
-            ? "Notifications are blocked for this site in your browser settings."
-            : "Notifications were not allowed.");
-          return connect();
+        return configuration().then(function (bytes) {
+          return Promise.resolve(Notification.requestPermission()).then(function (p) {
+            if (p !== "granted") throw new Error(p === "denied"
+              ? "Notifications are blocked for this site in your browser settings."
+              : "Notifications were not allowed.");
+            return connect(bytes);
+          });
         }).then(function () {
           return fetch("/api/push/test", { method: "POST" }).catch(function () {});
         });
@@ -403,7 +482,7 @@
       // is signed in now, with the server's current key.
       refresh: function () {
         if (!supported || Notification.permission !== "granted") return Promise.resolve();
-        return existing().then(function (sub) { if (sub) return connect(); }).catch(function () {});
+        return existing().then(function (sub) { if (sub) return configuration().then(connect); }).catch(function () {});
       }
     };
   })();
@@ -417,7 +496,8 @@
       "on": ["Notifications are on for this device. Manage permissions in your browser settings.", ""],
       "denied": ["Notifications are blocked for this site. Allow them in your browser's site settings.", ""],
       "ios-install": ["On iPhone and iPad, add ShortsCraft to your Home Screen first (Share → Add to Home Screen), then turn notifications on from there.", ""],
-      "unsupported": ["This browser cannot show notifications.", ""]
+      "unsupported": ["This browser cannot show notifications.", ""],
+      "unavailable": ["Device notifications are unavailable here. In-app notifications still work.", ""]
     };
     var row = button.closest("[data-push-row]");
     function show(state) {
@@ -437,7 +517,7 @@
       (turningOn ? PUSH.enable() : PUSH.disable())
         .then(function () {
           document.dispatchEvent(new Event("sc-push-changed"));
-          if (turningOn && window.SC_UI && SC_UI.toast) SC_UI.toast("Notifications are on. A test one is on its way.");
+          if (turningOn && window.SC_UI && SC_UI.toast) SC_UI.toast("Notifications are on for this device.");
         })
         .catch(function (err) { if (window.SC_UI && SC_UI.toast) SC_UI.toast(err.message); })
         .then(sync)
@@ -3363,15 +3443,15 @@
        Log out came before Settings. Anything not named keeps its place. */
     var ORDER = [
       ".sh-mfill",
-      'a[href="/animations"]', 'a[href="/designs"]', 'a[href="/community"]', 'a[href="/drafts"]', 'a[href="/uploads"]', ".sh-m-upload-btn",
+      'a[href="/animations"]', 'a[href="/designs"]', 'a[href="/community"]', 'a[href="/drafts"]', 'a[href="/uploads"]',
       'a[href="/pricing"]', 'a[href="/tutorials"]', 'a[href="/contact"]', 'a[href="/about"]',
-      'a[href="/account"]', 'a[href="/settings"]', ".sh-m-theme", "#navMobileLogout"
+      'a[href="/settings"]', ".sh-m-theme", "#navMobileLogout"
     ];
     ORDER.forEach(function (selector) {
       var el = menu.querySelector(selector);
       if (el) menu.appendChild(el);
     });
-    var groupStarts = ['a[href="/animations"]', 'a[href="/pricing"]', 'a[href="/account"]'];
+    var groupStarts = ['a[href="/animations"]', 'a[href="/pricing"]'];
     groupStarts.forEach(function (selector) {
       var el = menu.querySelector(selector);
       if (el) el.classList.add("sh-m-group");

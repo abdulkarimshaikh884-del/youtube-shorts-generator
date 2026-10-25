@@ -30,7 +30,7 @@
     var search = $("#designSearch");
     if (search) search.addEventListener("input", function () { renderTemplates(loadedTemplates); });
     var filter = $("#designFilter");
-    if (filter) filter.addEventListener("change", function () { renderTemplates(loadedTemplates); });
+    if (filter) filter.addEventListener("change", function () { syncDesignCategories(); renderTemplates(loadedTemplates); });
     document.addEventListener("click", function (ev) { if (activeMenu && !activeMenu.contains(ev.target) && !menuTrigger.contains(ev.target)) closeCardMenu(false); });
     document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && activeMenu) { ev.preventDefault(); closeCardMenu(true); } });
     window.addEventListener("resize", function () { closeCardMenu(false); });
@@ -38,6 +38,48 @@
   }
 
   // ── 1. Load & Render Templates ──────────────────────────────
+  function designCategoryLabel(value) {
+    var key = String(value || "").replace(/^category:/, "").trim().toLowerCase();
+    var labels = {all:"All", premium:"Premium", "youtube-thumbnail":"Thumbnails", "social-post":"Social posts", poster:"Posters", logo:"Logos"};
+    if (Object.prototype.hasOwnProperty.call(labels, key)) return labels[key];
+    return key.replace(/[-_]/g, " ").replace(/(^|\s)\S/g, function (letter) { return letter.toUpperCase(); }) || "Other";
+  }
+
+  function syncDesignCategories() {
+    var bar = $("#designCategories"), filter = $("#designFilter");
+    if (!bar || !filter) return;
+    $$(".ds-category-chip", bar).forEach(function (button) {
+      button.setAttribute("aria-pressed", String(button.dataset.filter === filter.value));
+    });
+  }
+
+  function renderDesignCategories() {
+    var bar = $("#designCategories"), filter = $("#designFilter");
+    if (!bar || !filter) return;
+    bar.textContent = "";
+    var categoryOrder = {all:0, premium:1, "category:youtube-thumbnail":2, "category:social-post":3, "category:poster":4, "category:logo":5};
+    Array.prototype.slice.call(filter.options).sort(function (a, b) {
+      var aRank = Object.prototype.hasOwnProperty.call(categoryOrder, a.value) ? categoryOrder[a.value] : 6;
+      var bRank = Object.prototype.hasOwnProperty.call(categoryOrder, b.value) ? categoryOrder[b.value] : 6;
+      return aRank - bRank || a.value.localeCompare(b.value);
+    }).forEach(function (option) {
+      if (option.value !== "all" && option.value !== "premium" && !option.value.startsWith("category:")) return;
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "ds-category-chip";
+      button.dataset.filter = option.value;
+      button.textContent = designCategoryLabel(option.value);
+      button.addEventListener("click", function () {
+        if (filter.value === option.value) return;
+        filter.value = option.value;
+        filter.dispatchEvent(new Event("change", {bubbles:true}));
+      });
+      bar.appendChild(button);
+    });
+    bar.hidden = !bar.children.length;
+    syncDesignCategories();
+  }
+
   function loadTemplates(category) {
     var version = ++loadVersion;
     var grid = $("#designsGrid") || $("#homeDesignsGrid");
@@ -56,7 +98,9 @@
           // Build category options deduped case-insensitively with human-readable labels.
           // Templates may carry raw slugs ("youtube-thumbnail") or mixed-case values
           // ("Premium" vs "premium") since the publish flow stores category verbatim.
-          var seenCat = {};
+          var previousFilter = filter.value;
+          $$("option", filter).forEach(function (option) { if (option.value.startsWith("category:")) option.remove(); });
+          var seenCat = Object.create(null);
           loadedTemplates.forEach(function (t) {
             var raw = String(t.category || "").trim();
             if (!raw) return;
@@ -70,7 +114,9 @@
             option.textContent = label;
             filter.appendChild(option);
           });
+          if ($$("option", filter).some(function (option) { return option.value === previousFilter; })) filter.value = previousFilter;
         }
+        renderDesignCategories();
         if (!res || !res.success || !res.templates || !res.templates.length) {
           grid.innerHTML = '<div class="ds-empty"><h3>No design templates found</h3><p>Upload a design or thumbnail to create the first editable template!</p></div>';
           return;
@@ -99,7 +145,7 @@
       seen.add(String(tpl.id));
       var official = String(tpl.authorHandle || "").replace(/^@/, "").toLowerCase() === "shortscraft";
       if ((filter === "free" && tpl.isPremium) || (filter === "premium" && !tpl.isPremium) || (filter === "official" && !official) || (filter === "community" && official)) return false;
-      if (filter.startsWith("category:") && String(tpl.category || "").toLowerCase() !== filter.slice(9)) return false;
+      if (filter.startsWith("category:") && String(tpl.category || "").trim().toLowerCase() !== filter.slice(9)) return false;
       return [tpl.title, tpl.description, tpl.authorName, tpl.authorHandle].join(" ").toLowerCase().includes(query);
     });
     if (!templates.length) { grid.innerHTML = '<div class="ds-empty"><h3>No matching designs</h3><p>Try another search.</p></div>'; return; }
@@ -112,9 +158,14 @@
 
       var previewHtml = window.SCDesignPreview(tpl);
       var badgeHtml = "";
+      var mobilePriceHtml = "";
       if (tpl.isPremium) {
-        var stars = Math.max(1, Math.floor(Number(tpl.starPrice) || 1));
+        var priceValue = Number(tpl.starPrice);
+        var stars = Number.isFinite(priceValue) && priceValue > 0 ? Math.max(1, Math.floor(priceValue)) : 1;
         badgeHtml = '<span class="ds-card-prem-badge">★ ' + stars + ' Star' + (stars > 1 ? 's' : '') + '</span>';
+        // The desktop overlay stays intact. Mobile places its price beside
+        // the title instead, so it never covers the actual design artwork.
+        mobilePriceHtml = '<span class="ds-card-mobile-price" aria-label="Unlock for ' + stars + ' Star' + (stars > 1 ? 's' : '') + '"><span class="ds-card-price-icon" aria-hidden="true">★</span><span class="ds-card-price-value">' + stars + ' Star' + (stars > 1 ? 's' : '') + '</span></span>';
       }
 
       var authorName = String(tpl.authorName || "Publisher unavailable");
@@ -134,7 +185,10 @@
         '<button type="button" class="ds-card-like" aria-label="Like ' + escapeHtml(tpl.title) + '" aria-pressed="false">♡</button>',
         '</div>',
         '<div class="ds-card-body">',
+        '<div class="ds-card-heading">',
         '  <h3 class="ds-card-title">' + escapeHtml(tpl.title) + '</h3>',
+        mobilePriceHtml,
+        '</div>',
         (tpl.editable === false ? '<span class="ds-card-unavailable">Editable layers unavailable</span>' : ''),
         '<div class="ds-card-footer">',
         '  <a href="' + creatorUrl + '" class="ds-card-author" title="View profile of ' + escapeHtml(authorName) + '">',

@@ -129,7 +129,7 @@ ${p.body}
   </nav>
 </div>
 
-<script src="/authui.js?v=2026102103" defer></script>
+<script src="/authui.js?v=2026102301" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
 ${p.scripts || ""}</body>
@@ -231,9 +231,10 @@ ${p.head || ""}
 <!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=${p.bodyClass === "page-home" ? "2026102102" : V}">
 <link rel="stylesheet" href="/monochrome.css?v=${V}">
-<link rel="stylesheet" href="/finishing.css?v=2026100503">
+<link rel="stylesheet" href="/finishing.css?v=${p.finishVersion || "2026100503"}">
 <script src="/finishing.js?v=2026100503" defer></script>
 <link rel="stylesheet" href="/mobile-20261021.css?v=1">
+<link rel="stylesheet" href="/mobile-compact-20261023.css?v=1">
 </head>
 `;
 
@@ -430,7 +431,7 @@ ${nav}
       </div>
     </header>
 
-    <div id="navMobile" hidden>
+<div id="navMobile" hidden>
       <a href="/animations">Animations</a>
       <a href="/designs">Designs</a>
       <a href="/community">Creator Tutorials</a>
@@ -441,13 +442,8 @@ ${nav}
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
       <a href="/settings">Settings</a>
-      <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Publish Template</span>
-      </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
-      <a href="/account" data-auth="in" hidden>Profile</a>
 
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
 
@@ -495,7 +491,7 @@ ${p.body}
 
 ${bottomNav(p)}
 
-<script src="/authui.js?v=2026102103" defer></script>
+<script src="/authui.js?v=2026102301" defer></script>
 <script src="/theme.js?v=${V}" defer></script>
 <script src="/report.js?v=${V}" defer></script>
 ${p.noPageJs ? "" : `<script src="/page.js?v=2026100503" defer></script>`}
@@ -584,7 +580,7 @@ ${pageHead("Pricing")}
         <button type="button" data-cycle="yearly" aria-pressed="false">Yearly <span>Save ${Math.round((1 - P.pro.yearlyPrice / (P.pro.price * 12)) * 100)}%</span></button>
       </div>
 
-      <div class="pg-plans pg-plans3">
+      <div class="pg-plans pg-plans3" id="plans">
         <article class="pg-plan">
           <span class="pg-tier">Free</span>
           <div class="pg-amt">₹0</div>
@@ -1251,6 +1247,14 @@ scripts: `<script>
     if (ev.key === "Escape" && openMenu) { var b = openMenu.btn; closeMenu(); b.focus(); }
   });
 
+  function wireCreatorAvatar(el, name) {
+    var image = el.querySelector(".sk-av img");
+    if (!image) return;
+    var fallback = function () { if (image.parentElement) image.parentElement.textContent = String(name || "Creator").trim().charAt(0).toUpperCase() || "C"; };
+    image.addEventListener("error", fallback, {once:true});
+    if (image.complete && !image.naturalWidth) fallback();
+  }
+
   function card(s) {
     var el = document.createElement("article");
     el.className = "sk-card";
@@ -1302,6 +1306,7 @@ scripts: `<script>
         menu(s, platform) +
       "</div>";
 
+    wireCreatorAvatar(el, name);
     wireMenu(el, s);
     return el;
   }
@@ -1882,7 +1887,7 @@ const account = {
              This leads with who the person is and what they have, and
              surfaces the profile fields the product already stores but
              never showed - location, website and channel links. -->
-        <header class="ig-header">
+<header class="ig-header ig-profile-ordered">
           <div class="ig-avatar-col">
             <div class="ig-story-ring" title="Profile photo">
               <div class="ig-avatar" id="crAvatarChar">KA</div>
@@ -1902,18 +1907,16 @@ const account = {
                 </div>
               </div>
 
-              <div class="ig-actions-row">
-                <!-- Stars sit with the actions, not in the count row: it is
-                     the one figure here you act on (open it to see what you
-                     have left to give), so it belongs beside Edit profile. -->
-                <button type="button" class="ig-btn ig-btn-secondary ig-stars-btn" data-jump="stars" title="Stars received — open to see Stars you can give">
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
-                  <strong id="crStarsCount">0</strong><span>Stars</span>
-                </button>
-                <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
-                <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
-              </div>
             </div>
+
+            <ul class="ig-stats-row">
+              <!-- Each stat opens the tab behind it. A count you cannot open is
+                   a claim rather than a fact, which is the thing this product
+                   is not supposed to print. -->
+              <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
+            </ul>
 
             <p class="ig-bio" id="crBio"></p>
 
@@ -1936,17 +1939,18 @@ const account = {
               </a>
             </div>
 
-            <!-- Credits were a stat here as well as in the rail and the top
-                 bar. They belong to the plan, not to the profile, so they
-                 now appear once - under Plan and credits. -->
-            <ul class="ig-stats-row">
-              <!-- Each stat opens the tab behind it. A count you cannot open is
-                   a claim rather than a fact, which is the thing this product
-                   is not supposed to print. -->
-              <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
-              <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
-              <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
-            </ul>
+
+            <div class="ig-actions-row">
+              <!-- Stars sit with the actions, not in the count row: it is
+                   the one figure here you act on (open it to see what you
+                   have left to give), so it belongs beside Edit profile. -->
+              <button type="button" class="ig-btn ig-btn-secondary ig-stars-btn" data-jump="stars" title="Stars received — open to see Stars you can give">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+                <strong id="crStarsCount">0</strong><span>Stars</span>
+              </button>
+              <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
+              <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
+            </div>
           </div>
         </header>
 
@@ -2329,7 +2333,7 @@ const indexPage = {
           <a href="/animations" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <div class="sh-filters-scroll" id="filters" data-links></div>
-        <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="10"></div>
+        <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="10" tabindex="0" role="region" aria-label="Popular animation templates"></div>
         <div class="sh-sec-more">
           <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse All Animations</a>
         </div>
@@ -2338,7 +2342,7 @@ const indexPage = {
       <!-- Popular Thumbnails & Designs (3 lines / 12 items) -->
       <section class="sh-home-sec" id="homeDesigns">
         <div class="sh-gallery-title">
-          <div><h2>Popular Thumbnails &amp; Designs</h2></div>
+          <div><h2>Popular Designs</h2></div>
           <a href="/designs" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <div class="ds-home-grid" id="homeDesignsGrid" aria-live="polite"></div>
@@ -2365,6 +2369,11 @@ const indexPage = {
           <span class="sh-ce-badge-pill">★ Creator Economy</span>
           <h2 class="sh-ce-heading">Create Content, Build Audience &amp; Earn Income</h2>
           <p class="sh-ce-subhead">Turn your video skills, motion templates, and thumbnails into a recurring revenue stream with fair creator payouts.</p>
+        </div>
+        <div class="mc-benefits">
+          <article class="mc-benefit"><span class="mc-benefit-icon" aria-hidden="true">✦</span><div><h3>Create Content</h3><p>Pick a template, customize your animation or design, and make it your own.</p></div></article>
+          <article class="mc-benefit"><span class="mc-benefit-icon" aria-hidden="true">↗</span><div><h3>Build Audience</h3><p>Share your work and tutorials. Help creators discover your profile and channel.</p></div></article>
+          <article class="mc-benefit"><span class="mc-benefit-icon" aria-hidden="true">★</span><div><h3>Earn Income</h3><p>Publish reusable templates. Paid unlocks and creator payouts are Coming Soon.</p></div></article>
         </div>
         <div class="sh-ce-grid">
           <div class="sh-ce-card">
@@ -2512,6 +2521,20 @@ const indexPage = {
       </section>
 
       <!-- 4. Final CTA Hero Banner -->
+      <section class="sh-home-sec" id="homeStarPricing" aria-labelledby="homeStarPricingTitle">
+        <div class="sh-gallery-title"><h2 id="homeStarPricingTitle">Star Pricing</h2></div>
+        <div class="mc-star-grid" tabindex="0" aria-label="Star packs, swipe to browse">
+${CREDITS.STAR_PACKS.map(pack => `          <article class="mc-star-card${pack.popular ? ' mc-star-popular' : ''}">
+            <span class="mc-star-pack-name">${pack.label}</span>
+            <h3><span aria-hidden="true">★</span> ${pack.stars} <small>Stars</small></h3>
+            <p class="mc-star-pack-price">${pack.inr}<small> / pack</small></p>
+            <p>For creator appreciation and paid template unlocks.</p>
+            <button type="button" class="pg-buy-stars" data-star-pack="${pack.id}" disabled aria-disabled="true">Coming Soon</button>
+          </article>`).join('\n')}
+        </div>
+      </section>
+
+      <!-- Final mobile CTA keeps the same editor and library destinations. -->
       <section class="sh-finale">
         <div class="sh-finale-card">
           <div class="sh-finale-glow" aria-hidden="true"></div>
@@ -2529,7 +2552,7 @@ const indexPage = {
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/image-input.js?v=${V}" defer></script><script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/reference-handoff.js?v=2026102001" defer></script><script src="/shell.js?v=2026102102" defer></script>`
+  scripts: `<script src="/image-input.js?v=${V}" defer></script><script src="/design-preview.js?v=${V}" defer></script><script src="/templates-v2.js?v=${V}" defer></script><script src="/reference-handoff.js?v=2026102001" defer></script><script src="/shell.js?v=2026102301" defer></script><script src="/mobile-home-rows.js?v=2026102501" defer></script>`
 };
 
 /* ── ANIMATIONS ─────────────────────────────────────────────
@@ -2538,19 +2561,19 @@ const indexPage = {
 const animationsPage = {
   route: "/animations",
   active: "templates",
+  finishVersion: "2026100805",
   noPageJs: true,
   title: "Animations — ShortsCraft",
   desc: `Browse ${TPL_COUNT} editable animation templates for YouTube Shorts and Reels. Preview free, customise in the Studio and export an MP4.`,
   body: `    <main class="sh-home sh-library">
-${pageHead("Animations")}
+${pageHead("Animations", `      <div class="sh-search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="tplSearch" aria-label="Search animations" placeholder="Search animations…" autocomplete="off">
+        <button type="button" id="tplSearchClear" aria-label="Clear search" hidden>×</button>
+      </div>\n`)}
       <section class="sh-gallery-sec" id="templates">
         <div class="sh-ghead">
           <div class="sh-search-bar-row">
-            <div class="sh-search-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="tplSearch" placeholder="Search ${TPL_COUNT} motion templates..." autocomplete="off">
-              <button type="button" id="tplSearchClear" hidden>×</button>
-            </div>
             <div class="sh-lib-controls">
               <label class="sh-lib-select"><span>Sort</span>
                 <select id="tplSort" aria-label="Sort animations">
@@ -2585,7 +2608,7 @@ ${pageHead("Animations")}
         </div>
       </section>
     </main>`,
-  scripts: `<script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=${V}" defer></script>`
+  scripts: `<script src="/templates-v2.js?v=${V}" defer></script><script src="/shell.js?v=2026102301" defer></script><script src="/mobile-catalog.js?v=2026102301" defer></script>`
 };
 
 /* ── DESIGNS ────────────────────────────────────────────────
@@ -2600,9 +2623,14 @@ const designsPage = {
   body: `    <main class="sh-home sh-library">
       <div class="ds-page-container">
         <header class="ds-header">
-          <h1>Design</h1>
-          <label class="ds-search-label"><span class="sr-only">Search designs</span><input type="search" id="designSearch" placeholder="Search designs…" aria-label="Search designs"></label>
+          <h1>Designs</h1>
+          <div class="ds-discovery-controls">
+          <label class="ds-filter-label">Filter<select id="designFilter" aria-label="Filter designs"><option value="all">All designs</option><option value="free">Free</option><option value="premium">Premium</option><option value="official">Official creator</option><option value="community">Community creators</option></select></label>
+          <label class="ds-search-label"><span class="sr-only">Search designs</span><svg class="ds-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4" stroke-linecap="round"/></svg><input type="search" id="designSearch" placeholder="Search designs…" aria-label="Search designs"></label>
+          </div>
         </header>
+
+        <div class="ds-category-bar" id="designCategories" role="group" aria-label="Design categories" hidden></div>
 
         <!-- Templates Grid -->
         <div class="ds-grid" id="designsGrid">
@@ -2699,7 +2727,7 @@ const designsPage = {
 
       </div>
     </div>`,
-  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/designs.js?v=2026100602" defer></script>`
+  scripts: `<script src="/design-preview.js?v=${V}" defer></script><script src="/designs.js?v=2026102301" defer></script><script src="/mobile-catalog.js?v=2026102301" defer></script>`
 };
 
 const templatePage = {

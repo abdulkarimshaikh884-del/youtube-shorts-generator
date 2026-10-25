@@ -122,7 +122,8 @@ app.get("/api/*", (req, res) => {
   if (route === "/api/notifications") return json(res, {notifications: guest ? [] : notifications, unread: guest ? 0 : 1, total: guest ? 0 : notifications.length});
   if (route === "/api/notifications/unread") return json(res, {unread: guest ? 0 : 1});
   if (route === "/api/push/key") return json(res, {enabled: false, publicKey: ""});
-  if (route === "/api/stars") return json(res, {balance: 0, received: 0, sent: 0, allowance: 0, monetizationEnabled: false});
+  if (route === "/api/stars") return guest ? json(res, {error: "Sign in to view Stars."}, 401) :
+    json(res, {balance: 7, received: 999, sent: 3, allowance: 10, monetizationEnabled: false});
   if (route === "/api/stars/packs") return json(res, {packs: [], monetizationEnabled: false});
   if (route === "/api/stars/wallet") return json(res, {availableINR: 0, availableStars: 0, totalEarnedINR: 0,
     totalReceivedStars: 0, canWithdraw: false, monetizationEnabled: false, history: []});

@@ -41,6 +41,7 @@
 <link rel="stylesheet" href="/finishing.css?v=2026100503">
 <script src="/finishing.js?v=2026100503" defer></script>
 <link rel="stylesheet" href="/mobile-20261021.css?v=1">
+<link rel="stylesheet" href="/mobile-compact-20261023.css?v=1">
 </head>
 <body class="sh-body page-home">
 
@@ -282,7 +283,7 @@
       </div>
     </header>
 
-    <div id="navMobile" hidden>
+<div id="navMobile" hidden>
       <a href="/animations">Animations</a>
       <a href="/designs">Designs</a>
       <a href="/community">Creator Tutorials</a>
@@ -293,13 +294,8 @@
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
       <a href="/settings">Settings</a>
-      <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Publish Template</span>
-      </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
-      <a href="/account" data-auth="in" hidden>Profile</a>
 
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
 
@@ -373,7 +369,7 @@
           <a href="/animations" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <div class="sh-filters-scroll" id="filters" data-links></div>
-        <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="10"></div>
+        <div class="sh-gallery" id="gallery" data-ar="9:16" data-limit="10" tabindex="0" role="region" aria-label="Popular animation templates"></div>
         <div class="sh-sec-more">
           <a href="/animations" class="sh-ge-btn sh-ge-primary">Browse All Animations</a>
         </div>
@@ -382,7 +378,7 @@
       <!-- Popular Thumbnails & Designs (3 lines / 12 items) -->
       <section class="sh-home-sec" id="homeDesigns">
         <div class="sh-gallery-title">
-          <div><h2>Popular Thumbnails &amp; Designs</h2></div>
+          <div><h2>Popular Designs</h2></div>
           <a href="/designs" class="sh-seeall">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
         <div class="ds-home-grid" id="homeDesignsGrid" aria-live="polite"></div>
@@ -409,6 +405,11 @@
           <span class="sh-ce-badge-pill">★ Creator Economy</span>
           <h2 class="sh-ce-heading">Create Content, Build Audience &amp; Earn Income</h2>
           <p class="sh-ce-subhead">Turn your video skills, motion templates, and thumbnails into a recurring revenue stream with fair creator payouts.</p>
+        </div>
+        <div class="mc-benefits">
+          <article class="mc-benefit"><span class="mc-benefit-icon" aria-hidden="true">✦</span><div><h3>Create Content</h3><p>Pick a template, customize your animation or design, and make it your own.</p></div></article>
+          <article class="mc-benefit"><span class="mc-benefit-icon" aria-hidden="true">↗</span><div><h3>Build Audience</h3><p>Share your work and tutorials. Help creators discover your profile and channel.</p></div></article>
+          <article class="mc-benefit"><span class="mc-benefit-icon" aria-hidden="true">★</span><div><h3>Earn Income</h3><p>Publish reusable templates. Paid unlocks and creator payouts are Coming Soon.</p></div></article>
         </div>
         <div class="sh-ce-grid">
           <div class="sh-ce-card">
@@ -556,6 +557,41 @@
       </section>
 
       <!-- 4. Final CTA Hero Banner -->
+      <section class="sh-home-sec" id="homeStarPricing" aria-labelledby="homeStarPricingTitle">
+        <div class="sh-gallery-title"><h2 id="homeStarPricingTitle">Star Pricing</h2></div>
+        <div class="mc-star-grid" tabindex="0" aria-label="Star packs, swipe to browse">
+          <article class="mc-star-card">
+            <span class="mc-star-pack-name">Starter Pack</span>
+            <h3><span aria-hidden="true">★</span> 10 <small>Stars</small></h3>
+            <p class="mc-star-pack-price">₹49<small> / pack</small></p>
+            <p>For creator appreciation and paid template unlocks.</p>
+            <button type="button" class="pg-buy-stars" data-star-pack="stars_10" disabled aria-disabled="true">Coming Soon</button>
+          </article>
+          <article class="mc-star-card mc-star-popular">
+            <span class="mc-star-pack-name">Creator Fan Pack</span>
+            <h3><span aria-hidden="true">★</span> 45 <small>Stars</small></h3>
+            <p class="mc-star-pack-price">₹199<small> / pack</small></p>
+            <p>For creator appreciation and paid template unlocks.</p>
+            <button type="button" class="pg-buy-stars" data-star-pack="stars_45" disabled aria-disabled="true">Coming Soon</button>
+          </article>
+          <article class="mc-star-card">
+            <span class="mc-star-pack-name">Superfan Pack</span>
+            <h3><span aria-hidden="true">★</span> 120 <small>Stars</small></h3>
+            <p class="mc-star-pack-price">₹499<small> / pack</small></p>
+            <p>For creator appreciation and paid template unlocks.</p>
+            <button type="button" class="pg-buy-stars" data-star-pack="stars_120" disabled aria-disabled="true">Coming Soon</button>
+          </article>
+          <article class="mc-star-card">
+            <span class="mc-star-pack-name">Mega Pack</span>
+            <h3><span aria-hidden="true">★</span> 260 <small>Stars</small></h3>
+            <p class="mc-star-pack-price">₹999<small> / pack</small></p>
+            <p>For creator appreciation and paid template unlocks.</p>
+            <button type="button" class="pg-buy-stars" data-star-pack="stars_260" disabled aria-disabled="true">Coming Soon</button>
+          </article>
+        </div>
+      </section>
+
+      <!-- Final mobile CTA keeps the same editor and library destinations. -->
       <section class="sh-finale">
         <div class="sh-finale-card">
           <div class="sh-finale-glow" aria-hidden="true"></div>
@@ -634,9 +670,9 @@
   </a>
 </nav>
 
-<script src="/authui.js?v=2026102103" defer></script>
+<script src="/authui.js?v=2026102301" defer></script>
 <script src="/theme.js?v=2026100601" defer></script>
 <script src="/report.js?v=2026100601" defer></script>
 
-<script src="/image-input.js?v=2026100601" defer></script><script src="/design-preview.js?v=2026100601" defer></script><script src="/templates-v2.js?v=2026100601" defer></script><script src="/reference-handoff.js?v=2026102001" defer></script><script src="/shell.js?v=2026102102" defer></script></body>
+<script src="/image-input.js?v=2026100601" defer></script><script src="/design-preview.js?v=2026100601" defer></script><script src="/templates-v2.js?v=2026100601" defer></script><script src="/reference-handoff.js?v=2026102001" defer></script><script src="/shell.js?v=2026102301" defer></script><script src="/mobile-home-rows.js?v=2026102501" defer></script></body>
 </html>

@@ -11,7 +11,7 @@ const root = path.resolve(__dirname, "..");
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
 const server = read("server.js");
 const accountRoutes = require("../public/account-routes");
-const mobileStyle = "/mobile-20261021.css";
+const mobileStyle = "/mobile-compact-20261023.css";
 
 // The finite route matrix includes aliases deliberately. It is not a count of
 // unique designs, and query/hash editor states are audited separately.

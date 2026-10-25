@@ -3,11 +3,15 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
-const root = path.resolve(__dirname, '../audit_results/mobile-20261021');
+const auditFolder = process.argv[3] || 'mobile-20261021';
+if (!/^mobile-[a-z0-9-]+$/.test(auditFolder)) throw new Error('Use a named mobile audit folder');
+const root = path.resolve(__dirname, '../audit_results', auditFolder);
 async function run() {
   const phase = process.argv[2] || 'before';
   const dir = path.join(root, phase);
-  const files = (await fs.readdir(dir)).filter(x => x.endsWith('.jpg')).sort();
+  const requested = process.argv[4] ? new Set(process.argv[4].split(',')) : null;
+  if (requested && [...requested].some(name => !/^[a-z0-9-]+$/.test(name))) throw new Error('Use simple screenshot names');
+  const files = (await fs.readdir(dir)).filter(x => x.endsWith('.jpg') && (!requested || requested.has(x.slice(0, -4)))).sort();
   for (let start = 0; start < files.length; start += 6) {
     const pieces = [];
     for (const [i, file] of files.slice(start, start + 6).entries()) {

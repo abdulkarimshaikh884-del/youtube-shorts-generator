@@ -44,6 +44,7 @@
 <link rel="stylesheet" href="/referrals.css?v=2026100901">
 <script src="/finishing.js?v=2026100503" defer></script>
 <link rel="stylesheet" href="/mobile-20261021.css?v=1">
+<link rel="stylesheet" href="/mobile-compact-20261023.css?v=1">
 </head>
 <body class="sh-body">
 
@@ -285,7 +286,7 @@
       </div>
     </header>
 
-    <div id="navMobile" hidden>
+<div id="navMobile" hidden>
       <a href="/animations">Animations</a>
       <a href="/designs">Designs</a>
       <a href="/community">Creator Tutorials</a>
@@ -296,13 +297,8 @@
       <a href="/about">About</a>
       <a href="/contact">Feedback</a>
       <a href="/settings">Settings</a>
-      <button type="button" class="sh-m-upload-btn js-open-upload" data-auth="in" hidden>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Publish Template</span>
-      </button>
       <a href="/login" data-auth="out">Log in</a>
       <a href="/signup" data-auth="out">Sign up</a>
-      <a href="/account" data-auth="in" hidden>Profile</a>
 
       <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
 
@@ -321,7 +317,7 @@
              This leads with who the person is and what they have, and
              surfaces the profile fields the product already stores but
              never showed - location, website and channel links. -->
-        <header class="ig-header">
+<header class="ig-header ig-profile-ordered">
           <div class="ig-avatar-col">
             <div class="ig-story-ring" title="Profile photo">
               <div class="ig-avatar" id="crAvatarChar">KA</div>
@@ -341,18 +337,16 @@
                 </div>
               </div>
 
-              <div class="ig-actions-row">
-                <!-- Stars sit with the actions, not in the count row: it is
-                     the one figure here you act on (open it to see what you
-                     have left to give), so it belongs beside Edit profile. -->
-                <button type="button" class="ig-btn ig-btn-secondary ig-stars-btn" data-jump="stars" title="Stars received — open to see Stars you can give">
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
-                  <strong id="crStarsCount">0</strong><span>Stars</span>
-                </button>
-                <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
-                <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
-              </div>
             </div>
+
+            <ul class="ig-stats-row">
+              <!-- Each stat opens the tab behind it. A count you cannot open is
+                   a claim rather than a fact, which is the thing this product
+                   is not supposed to print. -->
+              <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
+              <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
+            </ul>
 
             <p class="ig-bio" id="crBio"></p>
 
@@ -375,17 +369,18 @@
               </a>
             </div>
 
-            <!-- Credits were a stat here as well as in the rail and the top
-                 bar. They belong to the plan, not to the profile, so they
-                 now appear once - under Plan and credits. -->
-            <ul class="ig-stats-row">
-              <!-- Each stat opens the tab behind it. A count you cannot open is
-                   a claim rather than a fact, which is the thing this product
-                   is not supposed to print. -->
-              <li class="ig-stat"><button type="button" data-jump="creations"><strong id="igCreationsCount">0</strong> <span>creations</span></button></li>
-              <li class="ig-stat"><button type="button" data-jump="followers"><strong id="crFollowersCount">0</strong> <span>followers</span></button></li>
-              <li class="ig-stat"><button type="button" data-jump="following"><strong id="crFollowingCount">0</strong> <span>following</span></button></li>
-            </ul>
+
+            <div class="ig-actions-row">
+              <!-- Stars sit with the actions, not in the count row: it is
+                   the one figure here you act on (open it to see what you
+                   have left to give), so it belongs beside Edit profile. -->
+              <button type="button" class="ig-btn ig-btn-secondary ig-stars-btn" data-jump="stars" title="Stars received — open to see Stars you can give">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+                <strong id="crStarsCount">0</strong><span>Stars</span>
+              </button>
+              <button type="button" class="ig-btn ig-btn-secondary" id="shareProfileBtn" title="Copy your public profile link">Share profile</button>
+              <button type="button" class="ig-btn ig-btn-primary" id="openEditProfileBtn">Edit profile</button>
+            </div>
           </div>
         </header>
 
@@ -809,7 +804,7 @@
 
 <script src="/account-routes.js?v=2026100502" defer></script>
 <script src="/account-settings.js?v=2026100805" defer></script>
-<script src="/authui.js?v=2026102103" defer></script>
+<script src="/authui.js?v=2026102301" defer></script>
 <script src="/theme.js?v=2026092501" defer></script>
 <script src="/report.js?v=2026092501" defer></script>
 <script src="/page.js?v=2026100503" defer></script>

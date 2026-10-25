@@ -1,0 +1,834 @@
+/* Requested phone-only density pass. Keep desktop component rules unchanged.
+   These additive helpers are invisible until the phone breakpoint below. */
+.mc-balances { display: contents; }
+.ds-card-heading { display: contents; }
+.mc-stars-balance,
+.sh-credit-chip > .mc-credit-value,
+.sh-credit-chip > .mc-balance-label,
+.mc-benefits,
+#homeStarPricing,
+.ds-card-mobile-price,
+.ds-search-icon,
+.ds-category-bar,
+.sh-tut-avatar,
+.mcatalog-filter-toggle,
+.mcatalog-filter-panel { display: none; }
+
+@media (max-width: 640px) {
+  /* Both balances are real wallet data; neither label stands in for a number. */
+  body.sh-body .sh-topbar { height: 50px; min-height: 50px; gap: 5px; padding-inline: 10px; }
+  body.sh-body .sh-topbrand { gap: 5px; min-width: 0; }
+  body.sh-body .sh-topbrand .sh-brand-name { font-size: 14px; }
+  body.sh-body .sh-topbrand :is(img,.sh-brand-mark) { width: 24px; height: 24px; }
+  body.sh-body .sh-top-actions { gap: 3px; }
+  body.sh-body .mc-balances {
+    display: flex; align-items: stretch; flex: 0 1 114px; width: 114px; min-width: 104px;
+    border: 1px solid var(--sc-border); border-radius: 9px;
+    background: var(--sc-surface-2); overflow: hidden;
+  }
+  body.sh-body .mc-balances > :is(.mc-stars-balance,.sh-credit-chip) {
+    display: grid !important; grid-template-columns: auto auto;
+    align-content: center; align-items: center; justify-content: center;
+    gap: 1px 4px; min-width: 50px; max-width: none; min-height: 34px;
+    height: 34px; padding: 3px 6px; border: 0; border-radius: 0;
+    box-shadow: none; background: transparent; color: var(--sc-text);
+    text-decoration: none; line-height: 1.1; box-sizing: border-box;
+  }
+  body.sh-body .mc-balances > :is(.mc-stars-balance,.sh-credit-chip) { flex: 1; min-width: 0; width: 0; }
+  body.sh-body .mc-balances > .sh-credit-chip { border: 0 !important; border-left: 1px solid var(--sc-border) !important; border-radius: 0 !important; background: transparent !important; }
+  body.sh-body .mc-balances :is(.mc-stars-value,.mc-credit-value) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.sh-body .mc-balances > .sh-credit-chip :is(.sh-credit-ico,.sh-credit-plan,.sh-credit-balance) { display: none; }
+  body.sh-body .mc-balances .mc-credit-value { display: block; grid-column: 1 / -1; font-size: 12px; font-weight: 750; color: var(--sc-accent); }
+  body.sh-body .mc-stars-value { font-size: 12px; font-weight: 750; }
+  body.sh-body .mc-balance-star { color: var(--sc-amber); font-size: 11px; }
+  body.sh-body .mc-balances .mc-balance-label { display: block; grid-column: 1 / -1; font-size: 9px; font-weight: 550; color: var(--sc-muted); }
+  body.sh-body :is(#navBurger,.sh-notification-btn) { width: 32px; min-width: 32px; height: 34px; min-height: 34px; border-radius: 8px; }
+  body.sh-body :is(#navBurger,.sh-notification-btn) svg { width: 18px; height: 18px; }
+  body.sh-body #navMobile:not([hidden]), body.sh-body .sh-notification-panel { top: 50px; }
+
+  /* Short phone popovers, with their own scroll space above the bottom tabs. */
+  body.sh-body #navMobile:not([hidden]) {
+    width: min(214px,calc(100vw - 16px)); height: auto;
+    max-height: min(398px,calc(100dvh - 122px - env(safe-area-inset-bottom,0px)));
+    padding: 5px; overflow-y: auto; overscroll-behavior: contain;
+  }
+  body.sh-body #navMobile :is(a,button,#navMobileLogout) {
+    min-height: 32px; height: auto; padding: 6px 9px;
+    font-size: 12px; line-height: 18px; border-radius: 7px;
+  }
+  body.sh-body #navMobile .sh-mfill { min-height: 34px; margin-bottom: 3px; }
+  body.sh-body #navMobile .sh-m-group { margin-top: 4px; }
+  body.sh-body #notificationPanel {
+    width: min(320px,calc(100% - 16px)); box-sizing: border-box;
+    max-height: min(370px,calc(100dvh - 122px - env(safe-area-inset-bottom,0px)));
+    overflow: hidden; border-radius: 11px;
+  }
+  body.sh-body #notificationPanel:not([hidden]) { display: flex; flex-direction: column; }
+  body.sh-body #notificationPanel > header {
+    flex: none; position: static; gap: 8px; padding: 7px 10px; font-size: 13px;
+  }
+  body.sh-body #notificationPanel header button {
+    min-height: 32px; height: auto; padding: 4px 0 4px 6px; font-size: 11px;
+  }
+  body.sh-body #notificationPanel .sh-push-row { flex: none; gap: 8px; padding: 8px 10px; }
+  body.sh-body #notificationPanel .sh-push-row span { min-width: 0; font-size: 11px; line-height: 1.4; }
+  body.sh-body #notificationPanel .sh-push-row button {
+    flex: none; min-height: 32px; padding: 5px 9px; border-radius: 7px; font-size: 11px;
+  }
+  body.sh-body #notificationPanel #notificationList {
+    min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+  }
+  body.sh-body #notificationPanel .sh-notification-item { gap: 7px; padding: 9px 7px 9px 10px; }
+  body.sh-body #notificationPanel .sh-notification-item-avatar { width: 26px; height: 26px; font-size: 9px; }
+  body.sh-body #notificationPanel .sh-notification-item p { min-width: 0; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+  body.sh-body #notificationPanel .sh-notification-item time { margin-top: 3px; font-size: 10px; }
+  body.sh-body #notificationPanel .sh-notification-actions { margin-right: 6px; }
+  body.sh-body #notificationPanel .sh-notification-actions summary {
+    min-width: 30px; min-height: 32px; width: 30px; height: 32px; font-size: 21px;
+  }
+  /* Expanding options inline keeps the final row's actions inside the scroll area. */
+  body.sh-body #notificationPanel .sh-notification-entry:has(.sh-notification-actions[open]) { flex-direction: column; }
+  body.sh-body #notificationPanel .sh-notification-entry:has(.sh-notification-actions[open]) .sh-notification-item { padding-right: 42px; }
+  body.sh-body #notificationPanel .sh-notification-actions[open] { position: static; align-self: stretch; margin: 0; padding: 0 8px 8px 43px; }
+  body.sh-body #notificationPanel .sh-notification-actions[open] summary { position: absolute; top: 8px; right: 6px; }
+  body.sh-body #notificationPanel .sh-notification-options { position: static; min-width: 0; padding: 4px; box-shadow: none; border-radius: 7px; }
+  body.sh-body #notificationPanel .sh-notification-options button { min-height: 32px; padding: 6px 8px; font-size: 11px; }
+  body.sh-body #notificationPanel .sh-notification-more { flex: none; position: static; min-height: 32px; padding: 7px 10px; font-size: 11px; }
+  body.sh-body #notificationPanel .sh-notification-empty { padding: 18px 10px; font-size: 12px; }
+
+  /* One short hero and a compact composer; no repeated helper lines. */
+  body.page-home .sh-home { padding-top: 10px !important; padding-bottom: 16px !important; }
+  body.page-home .sh-home .sh-motion-hero { padding: 8px 0 12px !important; min-height: 0; margin: 0 !important; }
+  body.page-home .sh-motion-hero .sh-hero-copy { gap: 9px; }
+  body.page-home .sh-motion-hero .sh-studio-label { font-size: 8px; gap: 5px; }
+  body.page-home .sh-motion-hero .sh-studio-label svg { width: 15px; height: 15px; }
+  body.page-home .sh-motion-hero #homeMotionHeading { margin: 10px auto 4px !important; font-size: clamp(26px,7.5vw,31px) !important; line-height: 1.12 !important; }
+  body.page-home .sh-motion-word svg { bottom: -4px; height: 6px; }
+  body.page-home .sh-studio-sub,
+  body.page-home .sh-home > .sh-prompt-ideas { display: none !important; }
+  body.page-home .sh-home #composer { width: 100%; margin: 0 0 14px !important; padding: 10px !important; border-radius: 12px !important; }
+  body.page-home #composer .sh-ctop { min-height: 68px; }
+  body.page-home #composer #composerPrompt { min-height: 60px !important; padding: 3px 2px 19px !important; font-size: 16px; line-height: 1.4; }
+  body.page-home #composer .sh-ccount { right: 2px; bottom: 5px; font-size: 10px; }
+  body.page-home #composer .sh-cbar { gap: 5px; padding-top: 8px !important; margin-top: 0 !important; flex-wrap: nowrap; }
+  body.page-home #composer :is(.sh-imgbtn,.sh-attachment-button,.sh-reference-btn,.sh-csel-btn,.sh-cgo) {
+    min-height: 36px; height: 36px; min-width: 32px; padding: 0 8px; font-size: 11px; border-radius: 8px;
+  }
+  body.page-home #composer :is(.sh-imgbtn,.sh-attachment-button,.sh-reference-btn) { width: 34px; min-width: 34px; padding: 0; flex: none; }
+  body.page-home #composer :is(.sh-imgbtn,.sh-attachment-button,.sh-reference-btn) svg { width: 16px; height: 16px; }
+  body.page-home #composer .sh-custom-select { flex: none; }
+  body.page-home #composer .sh-csel-btn { gap: 4px; padding-inline: 7px; }
+  body.page-home #composer .sh-csel-arrow { width: 11px; }
+  body.page-home #composer .sh-cgo { width: auto; margin: 0 0 0 auto; order: 0; flex: 1 1 auto; justify-content: center; gap: 4px; white-space: nowrap; font-size: 11px; }
+  body.page-home #composer .sh-cgo-spark { width: 12px; height: 12px; }
+  body.page-home #composer .sh-cgo > span { display: none; }
+  body.page-home #composer :is(.sh-cnote,.sh-cgrow) { display: none; }
+
+  /* Short section rhythm; intentional partial cards make swiping discoverable. */
+  body.page-home .sh-home > :is(.sh-home-sec,.sh-gallery-sec) { margin-top: 18px !important; padding: 0 0 2px; }
+  body.page-home .sh-home > .sh-popular { margin-top: 0 !important; }
+  body.page-home .sh-gallery-title { margin: 0 0 7px !important; gap: 8px; }
+  body.page-home .sh-gallery-title h2 { margin: 0; font-size: 18px !important; line-height: 1.25; letter-spacing: -.035em; }
+  body.page-home .sh-gallery-title .sh-seeall { min-height: 32px; padding: 0; font-size: 11px; gap: 4px; }
+  body.page-home .sh-gallery-title .sh-seeall svg { width: 13px; height: 13px; }
+  body.sh-body :is(.sh-home,.sh-library) .sh-filters-scroll { gap: 5px; min-height: 32px; margin-bottom: 8px; padding-block: 0; }
+  body.sh-body .sh-library .sh-search-bar-row .sh-filters-scroll { min-height: 32px; }
+  body.sh-body :is(.sh-home,.sh-library) .sh-chip { min-height: 32px; height: 32px; min-width: 32px; font-size: 11px; line-height: 1; padding: 0 9px; border-radius: 8px; }
+  body.sh-body :is(.sh-home,.sh-library) .sh-chip svg { width: 13px; height: 13px; }
+  body.page-home :is(#gallery,#homeDesignsGrid,#homeTutList) { grid-auto-columns: 43%; gap: 8px !important; padding: 1px 1px 4px; align-items: stretch; scrollbar-width: none; }
+  body.page-home :is(#gallery,#homeDesignsGrid,#homeTutList)::-webkit-scrollbar { height: 0; }
+  body.page-home :is(#homeDesignsGrid,#homeTutList) { grid-auto-columns: 72%; }
+  body.page-home :is(#gallery,#homeDesignsGrid,#homeTutList).mc-independent-rows {
+    display: block !important; overflow: visible; padding: 0; min-width: 0;
+  }
+  body.page-home .mc-card-row {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 43%;
+    grid-template-rows: auto; gap: 8px; align-items: stretch;
+    min-width: 0; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity; padding: 1px 1px 5px; margin-bottom: 8px;
+    scrollbar-width: none;
+  }
+  body.page-home .mc-card-row[hidden] { display: none !important; }
+  body.page-home .mc-card-row::-webkit-scrollbar { height: 0; }
+  body.page-home .mc-card-row > * { min-width: 0; scroll-snap-align: start; }
+  body.page-home :is(#homeDesignsGrid,#homeTutList) .mc-card-row { grid-auto-columns: 72%; }
+  body.page-home .mc-card-row:focus-visible { outline: 2px solid var(--sc-text); outline-offset: 2px; }
+  body.page-home .sh-sec-more { margin-top: 9px; gap: 6px; }
+  body.page-home .sh-sec-more :is(a,button) { min-height: 34px; padding: 7px 12px; font-size: 11px; border-radius: 8px; box-shadow: none; }
+  body.page-home #gallery .sh-tile { height: 100%; }
+  body.page-home #gallery .sh-tmeta { padding: 7px 2px 2px !important; }
+  body.page-home #gallery .sh-ttitle { font-size: 12px !important; line-height: 1.3; }
+  body.page-home #gallery .sh-tcreator-name { font-size: 10px !important; }
+  body.page-home #gallery .sh-tcreator-handle { font-size: 9px !important; }
+  body.page-home #gallery .sh-tcreator-avatar { width: 19px; height: 19px; }
+  body.sh-body :is(#gallery,#homeDesignsGrid,.ds-page-container) :is(.sh-theart,.ds-card-like) { width: 32px; min-width: 32px; height: 32px; min-height: 32px; }
+  body.sh-body :is(#gallery,#homeDesignsGrid,.ds-page-container) :is(.sh-theart,.ds-card-like) svg { width: 15px; height: 15px; }
+
+  /* Design information lives below the artwork, including the unlock price. */
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card { height: 100%; border-radius: 12px; overflow: hidden; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-thumb { aspect-ratio: 16 / 9; min-height: 0; height: auto; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-body { display: flex; flex-direction: column; gap: 7px; padding: 9px; min-height: 0; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-heading { display: flex; align-items: flex-start; gap: 6px; min-width: 0; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-title { flex: 1; min-width: 0; min-height: 0; margin: 0; font-size: 13px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-prem-badge { display: none; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-mobile-price {
+    display: inline-flex; align-items: center; gap: 3px; flex: none;
+    padding: 4px 6px; border: 1px solid color-mix(in srgb,var(--sc-amber) 25%,var(--sc-border));
+    border-radius: 6px; background: var(--sc-amber-soft); color: var(--sc-amber);
+    font-size: 10px; font-weight: 700; line-height: 1.2; white-space: nowrap;
+  }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-price-icon { font-size: 11px; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-footer { gap: 4px; margin-top: 0; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-author { gap: 6px; min-height: 28px; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .ds-card-menu-trigger { width: 32px; min-width: 32px; height: 32px; min-height: 32px; font-size: 21px; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .sh-tcreator-avatar { width: 23px; height: 23px; font-size: 9px; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .sh-tcreator-name { font-size: 11px; }
+  body.sh-body :is(#homeDesignsGrid,.ds-page-container) .sh-tcreator-handle { font-size: 9.5px; }
+  body.sh-body .ds-page-container { padding: 12px 12px 16px !important; }
+  body.sh-body .ds-page-container .ds-grid { gap: 12px; }
+  body.sh-body .ds-category-bar { display: flex; gap: 5px; overflow-x: auto; overscroll-behavior-x: contain; margin: 0 0 10px; padding: 1px 0 3px; scrollbar-width: none; }
+  body.sh-body .ds-category-bar[hidden] { display: none !important; }
+  body.sh-body .ds-category-bar::-webkit-scrollbar { height: 0; }
+  body.sh-body .ds-category-chip { flex: none; min-height: 30px; padding: 5px 9px; border: 1px solid var(--sc-border); border-radius: 7px; background: var(--sc-surface); color: var(--sc-text); font-family: inherit; font-size: 11px; font-weight: 600; line-height: 1.2; white-space: nowrap; cursor: pointer; }
+  body.sh-body .ds-category-chip[aria-pressed="true"] { background: var(--sc-brand); color: var(--sc-on-brand); border-color: var(--sc-brand); }
+  body.sh-body .ds-category-chip:focus-visible { outline: 2px solid var(--sc-text); outline-offset: 1px; }
+
+  /* Designs catalog: two complete cards, without shrinking the Home carousel.
+     Separate title, creator and action rows keep names clear of the menu. */
+  body.sh-body .ds-page-container #designsGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 8px; align-items: stretch; }
+  body.sh-body #designsGrid .ds-card { min-width: 0; border-radius: 9px; }
+  body.sh-body #designsGrid .ds-card-body { display: grid; grid-template-columns: minmax(0,1fr) 28px; grid-template-rows: 32px 28px 28px; align-content: start; gap: 4px; padding: 8px; }
+  body.sh-body #designsGrid :is(.ds-card-heading,.ds-card-footer) { display: contents; }
+  body.sh-body #designsGrid .ds-card-title { grid-column: 1 / -1; grid-row: 1; min-height: 32px; height: 32px; font-size: 12px; line-height: 16px; }
+  body.sh-body #designsGrid .ds-card-mobile-price { grid-column: 1; grid-row: 3; align-self: center; justify-self: start; max-width: 100%; box-sizing: border-box; padding: 4px 6px; font-size: 10px; gap: 3px; }
+  body.sh-body #designsGrid .ds-card-price-icon { font-size: 11px; }
+  body.sh-body #designsGrid .ds-card-price-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.sh-body #designsGrid .ds-card-author { grid-column: 1 / -1; grid-row: 2; width: 100%; min-height: 28px; gap: 5px; }
+  body.sh-body #designsGrid .sh-tcreator-avatar { width: 20px; height: 20px; min-width: 20px; font-size: 8px; }
+  body.sh-body #designsGrid .sh-tcreator-info { flex: 1; min-width: 0; }
+  body.sh-body #designsGrid .sh-tcreator-name { font-size: 10.5px; line-height: 14px; gap: 3px; }
+  body.sh-body #designsGrid .sh-tcreator-name .sh-verified { width: 11px; height: 11px; }
+  body.sh-body #designsGrid .sh-tcreator-handle { display: none; }
+  body.sh-body #designsGrid .ds-card-menu-trigger { grid-column: 2; grid-row: 3; width: 28px; min-width: 28px; height: 28px; min-height: 28px; font-size: 21px; border-radius: 6px; }
+  body.sh-body #designsGrid .ds-card-like { top: 4px; right: 4px; width: 28px; min-width: 28px; height: 28px; min-height: 28px; padding: 0; justify-content: center; }
+  body.sh-body #designsGrid .ds-card-like svg { width: 13px; height: 13px; }
+  body.sh-body #designsGrid .ds-card-unavailable { grid-column: 1 / -1; grid-row: 4; font-size: 9px; }
+
+  /* Fixed title slots and equal-height cards keep tutorial creator rows aligned. */
+  body.page-home #homeTutList .sh-tut-card { height: 100%; padding: 7px; gap: 7px; box-sizing: border-box; border-radius: 12px; }
+  body.page-home #homeTutList .sh-tut-thumb { aspect-ratio: 16 / 9; border-radius: 7px; flex: none; }
+  body.page-home #homeTutList .sh-tut-title { -webkit-line-clamp: 2; height: 34px; min-height: 34px; margin: 0; font-size: 13px; line-height: 17px; }
+  body.page-home #homeTutList .sh-tut-author { min-height: 26px; gap: 6px; font-size: 11px; }
+  body.page-home #homeTutList .sh-tut-avatar { display: grid; place-items: center; overflow: hidden; width: 22px; height: 22px; border-radius: 50%; flex: none; background: var(--sc-surface-2); border: 1px solid var(--sc-border); font-size: 8px; font-weight: 700; color: var(--sc-text); }
+  body.page-home #homeTutList .sh-tut-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  body.page-home #homeTutList .sh-tut-author .sc-name-text { flex: 0 1 auto; }
+  body.page-home #homeTutList .sh-tut-author .sh-verified { width: 12px; height: 12px; }
+  body.page-home #homeTutList .sh-tut-watch { min-height: 20px; margin-top: 0; font-size: 11px; line-height: 20px; }
+
+  /* Three clear benefits and a short three-step workflow instead of tall tiles. */
+  body.page-home :is(#creatorEconomy,#howItWorks,#homePricing,#homeStarPricing) .sh-sec-header-center { margin: 0 0 10px; }
+  body.page-home :is(#creatorEconomy,#howItWorks,#homePricing) :is(.sh-ce-badge-pill,.sh-ce-subhead) { display: none; }
+  body.page-home :is(#creatorEconomy,#howItWorks,#homePricing,#homeStarPricing) .sh-ce-heading { font-size: 20px; line-height: 1.25; margin: 0; }
+  body.page-home #creatorEconomy .sh-ce-grid { display: none; }
+  body.page-home .mc-benefits { display: grid; gap: 8px; }
+  body.page-home .mc-benefit { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 3px 10px; padding: 12px; border: 1px solid var(--sc-border); border-radius: 12px; background: var(--sc-surface); min-width: 0; }
+  body.page-home .mc-benefit > :is(svg,.mc-benefit-icon) { grid-column: 1; grid-row: 1 / 3; display: grid; place-items: center; width: 32px; height: 32px; padding: 7px; box-sizing: border-box; border-radius: 9px; color: var(--sc-accent); background: var(--sc-accent-soft); }
+  body.page-home .mc-benefit .mc-benefit-icon svg { display: block; width: 18px; height: 18px; }
+  body.page-home .mc-benefit h3 { grid-column: 2; margin: 0; font-size: 14px; line-height: 1.25; color: var(--sc-text); }
+  body.page-home .mc-benefit p { grid-column: 2; margin: 0; color: var(--sc-muted); font-size: 12px; line-height: 1.45; }
+  body.page-home .sh-home > #howItWorks { margin: 18px 0 0 !important; padding: 0 0 2px; }
+  body.page-home #howItWorks .sh-workflow-grid { grid-template-columns: minmax(0,1fr); gap: 8px !important; }
+  body.page-home #howItWorks .sh-workflow-card { position: relative; padding: 12px 12px 12px 54px; gap: 5px; min-height: 0; border-radius: 12px; }
+  body.page-home #howItWorks .sh-wf-top { position: absolute; top: 12px; left: 12px; margin: 0; }
+  body.page-home #howItWorks .sh-workflow-num { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; font-size: 15px; }
+  body.page-home #howItWorks .sh-workflow-icon { display: none; }
+  body.page-home #howItWorks h3 { margin: 0; font-size: 14px; line-height: 1.3; }
+  body.page-home #howItWorks .sh-workflow-card p { margin: 0; font-size: 12px; line-height: 1.45; }
+
+  /* Swipe between plans; retain every actual feature and every actual price. */
+  body.page-home #homePricing .sh-pp-grid,
+  body.page-home #homeStarPricing .mc-star-grid {
+    display: grid; grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 76%;
+    gap: 10px; align-items: stretch; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity; padding: 2px 1px 4px; scrollbar-width: none;
+  }
+  body.page-home #homePricing .sh-pp-grid::-webkit-scrollbar,
+  body.page-home #homeStarPricing .mc-star-grid::-webkit-scrollbar { height: 0; }
+  body.page-home #homePricing .sh-pp-card { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 16px 14px 14px; border-radius: 15px; border: 1px solid var(--sc-border); background: var(--sc-surface); scroll-snap-align: start; gap: 0; box-shadow: none; }
+  body.page-home #homePricing .sh-pp-card.sh-pp-featured { border-color: var(--sc-accent); background: linear-gradient(155deg,var(--sc-brand-soft),var(--sc-surface) 48%); }
+  body.page-home #homePricing .sh-pp-name { align-self: flex-start; font-size: 14px; font-weight: 750; color: var(--sc-text); margin-bottom: 12px; }
+  body.page-home #homePricing .sh-pp-price { display: flex; align-items: baseline; align-self: flex-start; gap: 4px; text-align: left; font-size: 32px; margin-bottom: 8px; line-height: 1.1; }
+  body.page-home #homePricing .sh-pp-price small { font-size: 11px; }
+  body.page-home #homePricing .sh-pp-desc { font-size: 11px; line-height: 1.45; min-height: 0; margin: 0 0 12px; }
+  body.page-home #homePricing .sh-pp-list { display: grid; flex: 0 0 auto; gap: 7px; margin: 0 0 14px; padding-top: 12px; border-top: 1px solid var(--sc-border); }
+  body.page-home #homePricing .sh-pp-list li { font-size: 11px; line-height: 1.4; padding-left: 16px; }
+  body.page-home #homePricing .sh-pp-list li::before { width: 7px; height: 4px; top: 4px; }
+  body.page-home #homePricing .sh-pp-pop-badge { position: absolute; top: 16px; right: 12px; left: auto; transform: none; margin: 0; padding: 4px 6px; font-size: 8px; line-height: 1.2; border-radius: 5px; }
+  body.page-home #homePricing .sh-plan-cta { min-height: 36px; margin-top: auto; padding: 8px; font-size: 11px; border-radius: 9px; box-shadow: none; }
+  body.page-home #homePricing .sh-stars-strip { display: none; }
+  body.page-home .sh-home > #homeStarPricing { display: block; }
+  body.page-home #homeStarPricing .mc-star-grid { grid-auto-columns: 76%; }
+  body.page-home #homeStarPricing .mc-star-card { display: grid; grid-template-columns: minmax(0,1fr) auto; align-content: start; align-items: baseline; gap: 10px 5px; min-width: 0; padding: 14px; border: 1px solid var(--sc-border); border-radius: 15px; background: linear-gradient(155deg,var(--sc-amber-soft),var(--sc-surface) 62%); scroll-snap-align: start; }
+  body.page-home #homeStarPricing .mc-star-card > :is(.mc-star-pack-name,p:not(.mc-star-pack-price),button) { grid-column: 1 / -1; }
+  body.page-home #homeStarPricing .mc-star-card :is(h3,p) { margin: 0; }
+  body.page-home #homeStarPricing .mc-star-card h3 { font-size: 14px; line-height: 1.25; }
+  body.page-home #homeStarPricing .mc-star-card p { font-size: 11px; line-height: 1.4; color: var(--sc-muted); }
+  body.page-home #homeStarPricing .mc-star-pack-name { font-size: 11px; font-weight: 650; color: var(--sc-muted); }
+  body.page-home #homeStarPricing .mc-star-card h3 { font-size: 23px; font-weight: 800; letter-spacing: -.035em; color: var(--sc-amber); }
+  body.page-home #homeStarPricing .mc-star-card h3 small { font-size: 11px; font-weight: 600; letter-spacing: 0; }
+  body.page-home #homeStarPricing .mc-star-card .mc-star-pack-price { align-self: center; text-align: right; font-size: 21px; font-weight: 750; color: var(--sc-text); }
+  body.page-home #homeStarPricing .mc-star-card .mc-star-pack-price small { display: block; }
+  body.page-home #homeStarPricing .mc-star-pack-price small { font-size: 10px; color: var(--sc-muted); font-weight: 500; }
+  body.page-home #homeStarPricing .mc-star-card :is(a,button) { display: flex; align-items: center; justify-content: center; min-height: 34px; margin-top: auto; padding: 6px 9px; border: 1px solid var(--sc-border); border-radius: 8px; background: var(--sc-surface-2); font-size: 11px; font-weight: 650; color: var(--sc-text); text-decoration: none; }
+
+  /* Two real actions fit side by side without recreating a second hero. */
+  body.page-home .sh-home > .sh-finale { margin: 18px 0 16px !important; padding: 0 !important; border: 0 !important; background: none !important; border-radius: 0 !important; }
+  body.page-home .sh-finale-card { padding: 17px 12px 13px; border-radius: 13px; box-shadow: none; }
+  body.page-home .sh-finale-card h2 { margin: 0 0 6px !important; font-size: 19px !important; line-height: 1.2; }
+  body.page-home .sh-finale-card p { margin: 0 0 11px !important; font-size: 12px; line-height: 1.4; }
+  body.page-home .sh-finale-card .sh-frow { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px !important; margin: 0 !important; }
+  body.page-home .sh-finale-card .sh-frow a { width: 100%; min-width: 0; min-height: 36px; height: auto; padding: 7px 5px; font-size: 10px; line-height: 1.3; border-radius: 8px; white-space: normal; }
+  body.page-home .sh-finale-card .sh-frow a span { display: none; }
+  body.page-home .sh-finale-trust { margin-top: 9px; gap: 3px 9px; font-size: 9px; line-height: 1.4; }
+  body.sh-body .sh-library .sh-gallery-end { margin: 16px 0 0; padding: 15px 12px; border-radius: 13px; }
+  body.sh-body .sh-library .sh-gallery-end h3 { font-size: 17px; line-height: 1.25; margin: 0 0 6px; }
+  body.sh-body .sh-library .sh-gallery-end p { font-size: 12px; line-height: 1.4; margin: 0 0 11px; }
+  body.sh-body .sh-library .sh-gallery-end-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+  body.sh-body .sh-library .sh-gallery-end-actions a { min-width: 0; width: 100%; min-height: 36px; padding: 7px 5px; font-size: 10.5px; line-height: 1.3; border-radius: 8px; white-space: normal; }
+  body.sh-body .sh-library .sh-gallery-sec { padding-bottom: 18px; }
+
+  /* Shared catalog header: original controls move into this popover, not copies. */
+  body.sh-body :is(.pg-head,.ds-header).mcatalog-header-active { display: grid; grid-template-columns: auto minmax(0,1fr) 36px; position: relative; align-items: center; gap: 7px; flex-wrap: nowrap; margin: 0 0 10px; padding: 12px 0 0; }
+  body.sh-body .mcatalog-header-active :is(h1,.ds-header-main) { margin: 0; min-width: 0; }
+  body.sh-body .mcatalog-header-active h1 { font-size: 20px; line-height: 1.25; letter-spacing: -.04em; }
+  body.sh-body .mcatalog-header-active :is(.sh-search-box,.ds-search-label) { min-width: 0; width: 100%; max-width: none; min-height: 36px; height: 36px; margin: 0; flex: none; }
+  body.sh-body .mcatalog-header-active :is(.sh-search-box input,.ds-search-label input) { width: 100%; height: 36px; min-height: 36px; font-size: 16px; padding: 7px 9px; border-radius: 8px; }
+  body.sh-body .mcatalog-header-active :is(#tplSearch,#designSearch) { height: 36px; min-height: 36px; }
+  body.sh-body .mcatalog-header-active .ds-search-label { position: relative; }
+  body.sh-body .mcatalog-header-active #designSearch { padding-left: 28px; }
+  body.sh-body .mcatalog-header-active .ds-search-icon { display: block; position: absolute; top: 50%; left: 9px; transform: translateY(-50%); width: 14px; height: 14px; color: var(--sc-muted); pointer-events: none; }
+  body.sh-body .mcatalog-header-active .sh-search-box input { padding-left: 28px; padding-right: 28px; }
+  body.sh-body .mcatalog-header-active .sh-search-box > svg { width: 14px; height: 14px; left: 9px; }
+  body.sh-body .mcatalog-header-active .sh-search-box > button { width: 30px; min-width: 30px; height: 34px; min-height: 34px; }
+  body.sh-body .mcatalog-filter-toggle { display: flex; align-items: center; justify-content: center; position: relative; width: 36px; min-width: 36px; height: 36px; min-height: 36px; padding: 0; border: 1px solid var(--sc-border); border-radius: 8px; background: var(--sc-surface); color: var(--sc-text); cursor: pointer; }
+  body.sh-body .mcatalog-filter-toggle svg { width: 17px; height: 17px; }
+  body.sh-body .mcatalog-filter-toggle[aria-expanded="true"] { background: var(--sc-surface-2); border-color: var(--sc-text); }
+  body.sh-body .mcatalog-filter-toggle[data-active]:not([data-active="0"])::after { content: attr(data-active); position: absolute; top: -5px; right: -4px; display: grid; place-items: center; min-width: 14px; height: 14px; padding-inline: 2px; background: var(--sc-brand); color: var(--sc-on-brand); border-radius: 9px; font-size: 8px; font-weight: 700; }
+  body.sh-body .mcatalog-filter-panel:not([hidden]) { display: grid; position: absolute; top: calc(100% + 6px); right: 0; z-index: 45; width: min(290px,100%); max-width: 100%; padding: 12px; border: 1px solid var(--sc-border); border-radius: 11px; background: var(--sc-surface); color: var(--sc-text); box-shadow: 0 8px 24px #0002; box-sizing: border-box; }
+  body.sh-body .mcatalog-filter-panel[hidden], body.sh-body .mcatalog-controls-empty { display: none !important; }
+  body.sh-body .mcatalog-filter-panel :is(.sh-lib-controls,.ds-filter-label) { display: grid; grid-template-columns: minmax(0,1fr); gap: 9px; width: 100%; }
+  body.sh-body .mcatalog-filter-panel :is(.sh-lib-select,.ds-filter-label) { min-width: 0; min-height: 36px; width: 100%; }
+  body.sh-body .mcatalog-filter-panel .sh-lib-select { display: grid; grid-template-columns: 45px minmax(0,1fr); align-items: center; gap: 7px; }
+  body.sh-body .mcatalog-filter-panel :is(select,.ds-filter-label select) { width: 100%; max-width: 100%; min-height: 36px; padding: 6px 7px; font-size: 16px; border-radius: 7px; }
+  body.sh-body .sh-library .sh-ghead { padding-top: 0; }
+  body.sh-body .sh-library .sh-search-bar-row { gap: 0; }
+
+  /* All footer destinations remain visible, now in roughly 250px rather than 500. */
+  body.sh-body .sh-footer { margin-top: 0; padding: 14px 14px 12px; }
+  body.sh-body .sh-fgrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px 14px; }
+  body.sh-body .sh-fbrand { grid-column: 1 / -1; }
+  body.sh-body .sh-fbrand .sh-brand { min-height: 28px; gap: 7px; }
+  body.sh-body .sh-fbrand .sh-brand-mark { width: 24px; height: 24px; }
+  body.sh-body .sh-fbrand .sh-brand-mark img { width: 24px; height: 24px; }
+  body.sh-body .sh-fbrand .sh-brand-name { font-size: 15px; }
+  body.sh-body .sh-fcol { gap: 0; }
+  body.sh-body .sh-fcol h2 { font-size: 12px; line-height: 18px; margin: 0 0 2px; }
+  body.sh-body .sh-fcol a { display: flex; align-items: center; min-height: 28px; padding: 2px 0; font-size: 12px; line-height: 20px; }
+  body.sh-body .sh-fbot { margin-top: 8px; padding-top: 8px; gap: 4px 12px; font-size: 10px; line-height: 16px; }
+  body.sh-body .sh-fbot > :first-child { flex-basis: auto; }
+  body.sh-body .sh-fbot .sh-status { gap: 4px; font-size: 10px; }
+}
+
+@media (max-width: 359px) {
+  body.sh-body .sh-topbar { padding-inline: 8px; gap: 3px; }
+  body.sh-body .sh-topbrand .sh-brand-name { font-size: 12px; }
+  body.sh-body .mc-balances { min-width: 100px; }
+  body.sh-body .mc-balances > :is(.mc-stars-balance,.sh-credit-chip) { min-width: 48px; padding-inline: 4px; }
+  body.page-home #composer .sh-cbar { gap: 4px; }
+  body.page-home #composer .sh-cgo { font-size: 10px; padding-inline: 5px; }
+  body.page-home #composer .sh-cgo-spark { display: none; }
+  body.page-home #composer .sh-csel-btn { font-size: 10px; padding-inline: 5px; }
+  body.page-home #composer :is(.sh-imgbtn,.sh-attachment-button,.sh-reference-btn) { width: 32px; min-width: 32px; }
+  body.sh-body .mcatalog-header-active h1 { font-size: 18px; }
+  body.sh-body :is(.pg-head,.ds-header).mcatalog-header-active { gap: 5px; }
+}
+
+/* Profile DOM follows identity, counts, bio, actions. Retain the desktop header. */
+@media (min-width: 641px) {
+  body.sh-body #accountBox .ig-profile-ordered .ig-info-col { grid-template-columns: minmax(0,1fr) auto; column-gap: 16px; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-user-row { grid-column: 1; grid-row: 1; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-actions-row { grid-column: 2; grid-row: 1; align-self: start; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-bio { grid-column: 1 / -1; grid-row: 2; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-links-row { grid-column: 1 / -1; grid-row: 3; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-stats-row { grid-column: 1 / -1; grid-row: 4; }
+  body.sh-body #accountBox .ig-profile-ordered #openEditProfileBtn { order: 2; }
+  body.sh-body #accountBox .ig-profile-ordered #shareProfileBtn { order: 3; }
+}
+@media (max-width: 640px) {
+  body.sh-body #accountBox .ig-header.ig-profile-ordered { align-items: start; gap: 6px 9px; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-info-col { display: contents; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-avatar-col { grid-column: 1; grid-row: 1; align-self: start; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-user-row { grid-column: 2; grid-row: 1; align-self: center; min-width: 0; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-name-block { width: 100%; }
+  body.sh-body #accountBox .ig-profile-ordered :is(.ig-fullname,.ig-username) { overflow-wrap: anywhere; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-stats-row { grid-column: 2; grid-row: 2; flex-wrap: wrap; width: auto; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-bio { grid-column: 1 / -1; grid-row: 3; margin: 0; max-width: none; overflow-wrap: anywhere; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-links-row { grid-column: 1 / -1; grid-row: 4; justify-content: flex-start; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-links-row:not(:has(> :not([hidden]))) { display: none; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-bio:empty { display: none; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-actions-row { grid-column: 1 / -1; grid-row: 5; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; width: 100%; margin: 3px 0 0; }
+  body.sh-body #accountBox .ig-profile-ordered .ig-actions-row .ig-btn { width: 100%; min-width: 0; justify-content: center; }
+}
+
+/* MOBILE_ACCOUNT_COMPACT_START */
+/* Account routes move the original panes into #accountDetail. Keep both homes
+   compact without changing the fields, balances or permission-driven states. */
+@media (max-width: 640px) {
+  body.sh-body .ig-main { padding: 12px 12px 18px; }
+  body.sh-body .ig-main .ig-prof-container { padding: 0; }
+  body.sh-body #accountBox .ig-header { grid-template-columns: 48px minmax(0,1fr); gap: 9px; padding: 4px 0 12px; margin-bottom: 12px; }
+  body.sh-body #accountBox .ig-story-ring { width: 46px; height: 46px; padding: 2px; }
+  body.sh-body #accountBox .ig-header .ig-avatar { width: 40px; height: 40px; font-size: 16px; }
+  body.sh-body #accountBox .ig-info-col { min-width: 0; gap: 7px; }
+  body.sh-body #accountBox .ig-user-row { gap: 7px; }
+  body.sh-body #accountBox .ig-fullname { font-size: 20px; line-height: 1.2; }
+  body.sh-body #accountBox .ig-handle-line { gap: 5px; }
+  body.sh-body #accountBox .ig-username { font-size: 12px; }
+  body.sh-body #accountBox .ig-badge { font-size: 10px; padding: 2px 5px; }
+  body.sh-body #accountBox .ig-actions-row { display: flex; gap: 5px; margin: 0; }
+  body.sh-body #accountBox .ig-actions-row .ig-btn { width: auto; min-height: 36px; height: auto; padding: 6px 8px; font-size: 11px; line-height: 1.25; }
+  body.sh-body #accountBox .ig-bio { font-size: 12px; line-height: 1.5; }
+  body.sh-body #accountBox .ig-links-row { gap: 5px; }
+  body.sh-body #accountBox .ig-link-pill { min-height: 28px; padding: 4px 7px; font-size: 11px; }
+  body.sh-body #accountBox .ig-stats-row { gap: 7px; justify-content: flex-start; margin: 0; }
+  body.sh-body #accountBox .ig-stat > button { min-height: 32px; padding: 4px 0; font-size: 11px; }
+  body.sh-body #accountBox .ig-stat strong { font-size: 14px; }
+  body.sh-body #accountBox :is(.pf-settings,.pf-detail) { padding-top: 12px; }
+  body.sh-body #accountBox :is(.pf-settings-head,.pf-detail-head) { margin-bottom: 10px; gap: 8px; }
+  body.sh-body #accountBox .pf-settings-head h2 { margin: 0; font-size: 18px; line-height: 1.25; }
+  body.sh-body #accountBox .pf-detail-head h1 { margin: 0; font-size: 20px; line-height: 1.25; }
+  body.sh-body #accountBox .pf-detail-back { width: 36px; min-width: 36px; height: 36px; min-height: 36px; padding: 0; font-size: 21px; }
+  body.sh-body #accountBox .pf-settings-list { gap: 6px; }
+  body.sh-body #accountBox .pf-setting-standalone { padding: 10px 12px; border-radius: 10px; }
+  body.sh-body #accountBox .pf-setting-row { gap: 8px; }
+  body.sh-body #accountBox .pf-setting-row strong { font-size: 13px; line-height: 1.35; }
+  body.sh-body #accountBox .pf-setting-row small { margin-top: 3px; font-size: 12px; line-height: 1.4; }
+  body.sh-body #accountBox .pf-setting-content { padding: 12px; }
+  body.sh-body #accountBox .pf-page-panel > .pf-setting-content { padding: 0; }
+  body.sh-body #accountBox .pf-setting-content .pf-setting-row { margin-bottom: 10px; }
+  body.sh-body #accountBox .pf-page-panel { border-radius: 10px; }
+  body.sh-body #accountBox :is(.pf-page-panel,.pf-transaction-history) > h2 { margin: 0 0 9px; font-size: 16px; line-height: 1.3; }
+  body.sh-body #accountBox :is(.pf-setting-note,.ig-acc-sub) { font-size: 12px; line-height: 1.5; }
+  body.sh-body #accountBox .ig-btn { min-height: 36px; height: auto; padding: 7px 10px; font-size: 12px; line-height: 1.3; border-radius: 8px; }
+  body.sh-body #accountBox .ig-account-grid { gap: 8px; margin-bottom: 12px; }
+  body.sh-body #accountBox .ig-account-card { padding: 12px; gap: 5px; border-radius: 10px; }
+  body.sh-body #accountBox .ig-acc-head { flex-wrap: wrap; gap: 5px; }
+  body.sh-body #accountBox .ig-acc-lbl { font-size: 11px; letter-spacing: .025em; }
+  body.sh-body #accountBox .ig-acc-val { font-size: 21px; line-height: 1.2; }
+  body.sh-body #accountBox .ig-acc-wrap { font-size: 14px; }
+  body.sh-body #accountBox .ig-card-cta { display: inline-flex; align-items: center; min-height: 28px; margin-top: 2px; font-size: 12px; }
+  body.sh-body #accountBox #igPaneStars > .ig-card { margin-top: 12px !important; padding: 12px !important; border-radius: 10px !important; }
+  body.sh-body #accountBox #igPaneStars > .ig-card > p { margin-bottom: 10px !important; font-size: 12px !important; }
+  body.sh-body #accountBox .pf-transaction-history { margin-top: 16px; }
+  body.sh-body #accountBox .pf-transaction-row { gap: 8px; padding: 10px 0; font-size: 12px; }
+  body.sh-body #accountBox .pf-transaction-row :is(time,small) { margin-top: 3px; font-size: 11px; line-height: 1.4; }
+
+  /* Editing stays usable: dense labels, but 16px input text prevents iOS zoom. */
+  body.sh-body #accountBox .ig-edit-container { padding: 0; border-radius: 10px; }
+  body.sh-body #accountBox .ig-edit-header { gap: 9px; margin-bottom: 12px; padding-bottom: 10px; }
+  body.sh-body #accountBox .ig-edit-av { width: 42px; height: 42px; flex: none; font-size: 16px; }
+  body.sh-body #accountBox .ig-edit-av-info { min-width: 0; }
+  body.sh-body #accountBox .ig-edit-av-info h3 { font-size: 14px; line-height: 1.3; }
+  body.sh-body #accountBox .ig-edit-av-info p { font-size: 12px; line-height: 1.4; }
+  body.sh-body #accountBox .ig-avatar-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+  body.sh-body #accountBox .ig-edit-form { gap: 12px; }
+  body.sh-body #accountBox .ig-field { gap: 5px; min-width: 0; }
+  body.sh-body #accountBox .ig-label { gap: 5px; flex-wrap: wrap; font-size: 12px; line-height: 1.4; }
+  body.sh-body #accountBox .ig-hint { font-size: 11px; line-height: 1.4; }
+  body.sh-body #accountBox :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { box-sizing: border-box; min-width: 0; max-width: 100%; font-size: 16px !important; }
+  body.sh-body #accountBox .ig-input { min-height: 40px; height: 40px; padding: 8px 10px; }
+  body.sh-body #accountBox .ig-textarea { height: auto; min-height: 82px; line-height: 1.45; }
+  body.sh-body #accountBox .ig-input-wrap .ig-input { padding-left: 34px; }
+  body.sh-body #accountBox .ig-input-wrap svg { left: 11px; }
+  body.sh-body #accountBox .ig-grid-2 { gap: 12px; }
+  body.sh-body #accountBox .ig-form-foot { gap: 7px; padding-top: 10px; }
+  body.sh-body #accountBox .ig-msg { font-size: 12px; line-height: 1.4; }
+
+  /* Compact lists retain full notices, follow actions and transaction facts. */
+  body.sh-body #accountBox .pf-support-links { gap: 6px; margin-bottom: 12px; }
+  body.sh-body #accountBox .ig-support-head { gap: 9px; margin-bottom: 10px; }
+  body.sh-body #accountBox .ig-support-head h3 { font-size: 15px; }
+  body.sh-body #accountBox .ig-support-list { gap: 7px; }
+  body.sh-body #accountBox .ig-ticket { flex-direction: row; flex-wrap: wrap; gap: 7px; padding: 10px; border-radius: 10px; }
+  body.sh-body #accountBox .ig-ticket-main { flex: 1 1 170px; }
+  body.sh-body #accountBox .ig-ticket-main h4 { font-size: 13px; line-height: 1.35; }
+  body.sh-body #accountBox .ig-ticket-state { font-size: 10px; padding: 4px 7px; }
+  body.sh-body #accountBox .ig-people { gap: 7px; }
+  body.sh-body #accountBox .ig-person { display: grid; grid-template-columns: 32px minmax(0,1fr) auto; align-items: center; gap: 8px; padding: 9px; border-radius: 10px; }
+  body.sh-body #accountBox .ig-person-av { width: 32px; height: 32px; font-size: 11px; }
+  body.sh-body #accountBox .ig-person-name { min-height: 24px; font-size: 13px; line-height: 1.3; overflow-wrap: anywhere; }
+  body.sh-body #accountBox .ig-person-meta { font-size: 11px; }
+  body.sh-body #accountBox .ig-person-follow { width: auto; min-height: 36px; padding-inline: 8px; font-size: 11px; }
+  body.sh-body #accountBox .pf-notification-permission { padding: 10px; border-radius: 10px; }
+  body.sh-body #accountBox .pf-notification-feed { margin: 10px 0; border-radius: 10px; }
+  body.sh-body #accountBox .pf-notification-feed .sh-notification-item { min-height: 56px; padding: 10px 9px; gap: 8px; }
+  body.sh-body #accountBox .pf-notification-feed .sh-notification-item-avatar { width: 28px; height: 28px; font-size: 10px; }
+  body.sh-body #accountBox .pf-notification-feed .sh-notification-item p { font-size: 12px; line-height: 1.45; }
+  body.sh-body #accountBox .pf-notification-feed .sh-notification-actions { margin-right: 6px; }
+  body.sh-body #accountBox .pf-notification-feed .sh-notification-actions summary { width: 28px; height: 32px; font-size: 21px; }
+
+  body.sh-body #accountBox #referralSettings { padding: 12px; }
+  body.sh-body #accountBox #referralSettings .rf-intro { gap: 9px; }
+  body.sh-body #accountBox #referralSettings .rf-intro h2 { font-size: 18px; margin-bottom: 5px; }
+  body.sh-body #accountBox #referralSettings .rf-intro p { font-size: 12px; line-height: 1.5; }
+  body.sh-body #accountBox #referralSettings .rf-reward-mark { width: 34px; height: 34px; flex-basis: 34px; border-radius: 9px; font-size: 14px; }
+  body.sh-body #accountBox #referralSettings .rf-steps { gap: 7px; margin: 12px 0; }
+  body.sh-body #accountBox #referralSettings .rf-steps li { font-size: 11px; line-height: 1.4; }
+  body.sh-body #accountBox #referralSettings :is(.rf-state,.rf-invite,.rf-notice) { padding: 10px; border-radius: 9px; }
+  body.sh-body #accountBox #referralSettings .rf-state { margin-bottom: 12px; gap: 7px; }
+  body.sh-body #accountBox #referralSettings .rf-state[data-state="ready"] { padding: 0; }
+  body.sh-body #accountBox #referralSettings #referralMessage { font-size: 12px; line-height: 1.5; }
+  body.sh-body #accountBox #referralSettings .rf-section-head { margin-bottom: 8px; }
+  body.sh-body #accountBox #referralSettings #referralLink { min-height: 40px; padding: 8px 10px; }
+  body.sh-body #accountBox #referralSettings .ig-btn { min-height: 36px; padding: 7px 10px; }
+  body.sh-body #accountBox #referralSettings .rf-link-row { gap: 6px; }
+  body.sh-body #accountBox #referralSettings .rf-stats { gap: 7px; margin: 12px 0 8px; }
+  body.sh-body #accountBox #referralSettings .rf-stats > div { padding: 10px; border-radius: 9px; }
+  body.sh-body #accountBox #referralSettings .rf-stats span { margin-bottom: 4px; line-height: 1.35; }
+  body.sh-body #accountBox #referralSettings .rf-stats strong { font-size: 21px; }
+  body.sh-body #accountBox #referralSettings .rf-notice { gap: 8px; margin: 12px 0; }
+  body.sh-body #accountBox #referralSettings .rf-history { margin-top: 16px; padding-top: 12px; }
+  body.sh-body #accountBox #referralSettings .rf-history-row { padding: 10px 0; gap: 8px; }
+  body.sh-body #accountBox #referralSettings .rf-history-row strong { font-size: 12px; }
+  body.sh-body #accountBox #referralSettings .rf-history-row small { margin-top: 3px; }
+  body.sh-body #accountBox #referralSettings .rf-fine-print { margin-top: 16px; padding-top: 12px; font-size: 11px; line-height: 1.6; }
+  body.sh-body #accountGuest .pf-guest-appearance { gap: 8px; padding: 10px; margin-top: 12px; }
+  body.sh-body #accountGuest .pf-guest-appearance strong { font-size: 13px; }
+  body.sh-body #accountGuest .pf-guest-appearance small { margin-top: 3px; font-size: 12px; line-height: 1.4; }
+  body.sh-body #accountGuest .ig-btn { min-height: 36px; height: auto; padding: 7px 10px; font-size: 12px; }
+}
+/* MOBILE_ACCOUNT_COMPACT_END */
+
+/* MOBILE_DISCOVERY_COMPACT_START */
+/* Discovery screens retain their real controls and content. Only the phone
+   presentation is condensed; the approved Home/Designs layouts are untouched. */
+@media (max-width: 640px) {
+  /* Creator tutorials: a compact header and two equally sized video cards. */
+  body.sh-body .sk-head { padding: 14px 12px 8px; gap: 8px; align-items: center; }
+  body.sh-body .sk-head h1 { font-size: 21px; line-height: 1.2; }
+  body.sh-body .sk-share-btn { height: 36px; min-height: 36px; padding: 0 10px; gap: 5px; font-size: 11px; border-radius: 9px; }
+  body.sh-body .sk-head .sk-search { flex-basis: 100%; margin: 0; }
+  body.sh-body .sk-search input { height: 36px; min-height: 36px; padding: 7px 10px; font-size: 16px; }
+  body.sh-body .sk-grid { padding: 4px 12px 14px; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 8px; align-items: stretch; }
+  body.sh-body .sk-card { padding: 5px 5px 8px; gap: 6px; border-radius: 11px; }
+  body.sh-body .sk-body { grid-template-columns: 22px minmax(0,1fr) 26px; gap: 4px; padding: 0 1px; align-content: start; }
+  body.sh-body .sk-text { display: contents; }
+  body.sh-body .sk-title { grid-column: 1 / 3; grid-row: 1; min-height: 32px; margin: 0; font-size: 12px; line-height: 16px; }
+  body.sh-body .sk-av { display: grid; grid-column: 1; grid-row: 2; width: 22px; height: 22px; font-size: 9px; }
+  body.sh-body .sk-author { grid-column: 2 / -1; grid-row: 2; min-height: 22px; font-size: 10.5px; line-height: 14px; }
+  body.sh-body .sk-author > :is(a,span) { gap: 3px; }
+  body.sh-body .sk-tick { width: 11px; height: 11px; }
+  body.sh-body .sk-meta { grid-column: 1 / -1; grid-row: 3; font-size: 10px; line-height: 15px; }
+  body.sh-body .sk-tpl { grid-column: 1 / -1; min-height: 28px; max-width: 100%; margin-top: 2px; padding: 3px 6px; font-size: 10px; box-sizing: border-box; }
+  body.sh-body .sk-menu { grid-column: 3; grid-row: 1; }
+  body.sh-body .sk-menu-btn { width: 26px; min-width: 26px; height: 28px; min-height: 28px; }
+  body.sh-body .sk-menu-pop { min-width: 170px; max-width: calc(100vw - 30px); }
+  body.sh-body .sk-mi { min-height: 36px; padding: 7px 9px; font-size: 12px; }
+  body.sh-body :is(.sk-form,.sk-empty) { margin: 4px 12px 14px; padding: 12px; border-radius: 12px; }
+  body.sh-body .sk-form { gap: 10px; }
+  body.sh-body .sk-f :is(input,textarea) { padding: 8px 10px; font-size: 16px; }
+  body.sh-body .sk-form-actions { gap: 6px; }
+  body.sh-body :is(.sk-submit,.sk-cancel) { height: 36px; min-height: 36px; padding-inline: 11px; font-size: 12px; }
+  body.sh-body .sk-empty h3 { font-size: 17px; }
+  body.sh-body .sk-empty p { margin-bottom: 10px; font-size: 13px; }
+  body.sh-body .sk-holds { padding: 4px 12px; }
+
+  /* Projects: keep readable, real preview frames and all edit actions. */
+  body.sh-body .pg:has(#draftGrid) { padding: 14px 12px 20px; }
+  body.sh-body .pg:has(#draftGrid) .pg-head { padding: 0; margin-bottom: 12px; }
+  body.sh-body .pg:has(#draftGrid) .pg-head h1 { font-size: 22px; }
+  body.sh-body .pg:has(#draftGrid) .pg-sec { margin-top: 18px; }
+  body.sh-body .pg:has(#draftGrid) .pg-accsec-head { gap: 8px; margin-bottom: 10px; align-items: center; flex-wrap: wrap; }
+  body.sh-body .pg:has(#draftGrid) :is(.pg-accsec-head h2,#published) { font-size: 16px; line-height: 1.3; margin: 0; }
+  body.sh-body .pg:has(#draftGrid) :is(.pg-bw,.pg-bo,.pg-cardlink,.cr-cre-btn-ren) { min-height: 36px; padding: 8px 10px; font-size: 12px; }
+  body.sh-body .pg:has(#draftGrid) :is(#draftGrid,#userCreationsGrid) { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 8px; align-items: stretch; }
+  body.sh-body .pg:has(#draftGrid) :is(#draftGrid,#userCreationsGrid) .cr-cre-card { padding: 5px; border-radius: 11px; }
+  body.sh-body .pg:has(#draftGrid) :is(#draftGrid,#userCreationsGrid) .cr-cre-body { padding: 7px 2px 2px; gap: 3px; }
+  body.sh-body .pg:has(#draftGrid) :is(#draftGrid,#userCreationsGrid) .cr-cre-title { font-size: 12px; line-height: 16px; }
+  body.sh-body .pg:has(#draftGrid) :is(#draftGrid,#userCreationsGrid) .cr-cre-meta { font-size: 10px; line-height: 15px; }
+  body.sh-body #draftGrid .cr-cre-actions { grid-template-columns: minmax(0,1fr) 30px 30px; gap: 4px; margin-top: 6px; }
+  body.sh-body #draftGrid .cr-cre-actions .cr-cre-open { grid-column: auto; min-height: 36px; height: 36px; padding-inline: 4px; font-size: 11px; }
+  body.sh-body #draftGrid .cr-cre-actions .cr-cre-icon { width: 30px; min-width: 30px; min-height: 36px; height: 36px; }
+  body.sh-body .pg:has(#draftGrid) .cr-cre-empty { padding: 20px 12px; gap: 8px; }
+  body.sh-body .pg:has(#draftGrid) .cr-cre-empty h3 { font-size: 17px; }
+  body.sh-body .pg:has(#draftGrid) .cr-cre-empty p { font-size: 13px; line-height: 1.5; }
+  body.sh-body .pg:has(#draftGrid) #draftNote { margin-top: 10px !important; font-size: 12px; }
+  body.sh-body .pg:has(#draftGrid) .creator-studio-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 10px 0 14px; }
+  body.sh-body .pg:has(#draftGrid) .creator-studio-stats > article { padding: 10px; }
+  body.sh-body .pg:has(#draftGrid) .creator-studio-stats strong { font-size: 23px; }
+  body.sh-body .pg:has(#draftGrid) .creator-studio-tools { gap: 8px; margin-top: 14px; }
+  body.sh-body .pg:has(#draftGrid) .creator-studio-tools .pg-card { padding: 12px; }
+
+  /* Public creator: profile information above a two-column template library. */
+  body.sh-body .cp-wrap { padding: 14px 12px 20px; }
+  body.sh-body .cp-hero { display: grid; grid-template-columns: 48px minmax(0,1fr); gap: 8px 10px; padding: 12px; border-radius: 13px; margin-bottom: 16px; text-align: left; }
+  body.sh-body .cp-avatar { width: 48px; height: 48px; font-size: 20px; }
+  body.sh-body .cp-info { min-width: 0; }
+  body.sh-body .cp-title-row { gap: 5px; align-items: flex-start; }
+  body.sh-body .cp-info h1 { margin: 0 0 3px; font-size: 20px; line-height: 1.2; overflow-wrap: anywhere; }
+  body.sh-body .cp-handle { margin-bottom: 6px; font-size: 12px; }
+  body.sh-body .cp-bio { margin-bottom: 8px; font-size: 12px; line-height: 1.5; }
+  body.sh-body .cp-stats { gap: 3px 10px; align-items: center; }
+  body.sh-body .cp-stat { font-size: 11px; line-height: 16px; }
+  body.sh-body .cp-stat-btn { min-height: 28px; min-width: 24px; padding: 2px 0; }
+  body.sh-body .cp-actions { grid-column: 1 / -1; margin: 0; width: 100%; gap: 6px; justify-content: flex-start; }
+  body.sh-body .cp-actions :is(.pg-bw,.pg-bo) { min-height: 36px; padding: 8px 12px; font-size: 12px; }
+  body.sh-body .cp-extra-details { gap: 5px; margin: 8px 0; }
+  body.sh-body .cp-extra-details > * { padding: 5px 8px; font-size: 11px; overflow-wrap: anywhere; }
+  body.sh-body .cp-sec-title { font-size: 18px; margin-bottom: 10px; }
+  body.sh-body #creatorGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 8px; }
+  body.sh-body #creatorGrid .sh-ttitle { padding-block: 6px; font-size: 12px; }
+  body.sh-body #creatorGrid .sh-tcreator-row { gap: 5px; min-height: 28px; }
+  body.sh-body #creatorGrid .sh-tcreator-avatar { width: 22px; height: 22px; font-size: 9px; }
+  body.sh-body #creatorGrid .sh-tcreator-name { font-size: 10.5px; }
+  body.sh-body #creatorGrid .sh-tcreator-handle { font-size: 10px; }
+  body.sh-body .cp-wrap .sc-modal-card { padding: 14px; border-radius: 14px; overflow-y: auto; }
+  body.sh-body .cp-wrap .sc-modal-head { margin-bottom: 12px; }
+  body.sh-body .cp-wrap .sc-modal-head h3 { font-size: 17px; }
+  body.sh-body .cp-wrap .sc-modal-close { min-width: 32px; min-height: 32px; }
+  body.sh-body .cp-wrap :is(.sc-star-pill,.sc-modal-card .pg-bw,.sc-modal-card .pg-bo) { min-height: 36px; font-size: 12px; }
+  body.sh-body .cp-wrap .sc-modal-card input { font-size: 16px !important; }
+
+  /* Prices and entitlements are unchanged. Swipe rows reveal the next plan. */
+  body.sh-body .pg-pricing { padding: 14px 12px 20px; }
+  body.sh-body .pg-pricing .pg-head { margin-bottom: 12px; padding: 0; }
+  body.sh-body .pg-pricing .pg-head h1 { font-size: 22px; }
+  body.sh-body .pg-pricing .pg-calc { display: flex; padding: 12px; gap: 10px; margin-bottom: 14px; border-radius: 12px; }
+  body.sh-body .pg-pricing .pg-calc-ask { gap: 7px; }
+  body.sh-body .pg-pricing .pg-calc-ask h2 { font-size: 16px; line-height: 1.3; }
+  body.sh-body .pg-pricing .pg-calc-read > b { font-size: 28px; }
+  body.sh-body .pg-pricing .pg-calc-read span { font-size: 12px; }
+  body.sh-body .pg-pricing .pg-calc-scale { font-size: 10px; }
+  body.sh-body .pg-pricing .pg-calc-rec { width: auto; padding: 10px 0 0; gap: 6px; }
+  body.sh-body .pg-pricing .pg-calc-plan b { font-size: 18px; }
+  body.sh-body .pg-pricing .pg-calc-plan span { font-size: 12px; }
+  body.sh-body .pg-pricing .pg-calc-rec > p { font-size: 12px; }
+  body.sh-body .pg-pricing .pg-calc-cta { min-height: 36px; height: auto; padding: 8px 10px; font-size: 12px; }
+  body.sh-body .pg-pricing .pg-billing-switch { height: auto; gap: 3px; padding: 3px; margin: 10px auto 14px; }
+  body.sh-body .pg-pricing .pg-billing-switch button { min-height: 36px; padding: 6px 12px; font-size: 12px; }
+  body.sh-body .pg-pricing .pg-plans { display: grid !important; grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: 78%; gap: 10px !important; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding-inline: 2px; padding: 14px 2px 12px; align-items: stretch; scrollbar-width: thin; }
+  body.sh-body .pg-pricing .pg-plans4 { grid-auto-columns: 68%; }
+  body.sh-body .pg-pricing #plans { scroll-margin-top: 64px; }
+  body.sh-body .pg-pricing .pg-plan { min-width: 0; padding: 14px !important; border-radius: 13px !important; scroll-snap-align: start; }
+  body.sh-body .pg-pricing .pg-plan:hover { transform: none; }
+  body.sh-body .pg-pricing .pg-tier { font-size: 10px; line-height: 15px; letter-spacing: .06em; }
+  body.sh-body .pg-pricing .pg-amt { margin: 9px 0 6px !important; font-size: 29px !important; }
+  body.sh-body .pg-pricing .pg-amt small { font-size: 12px; }
+  body.sh-body .pg-pricing .pg-planline { margin-bottom: 8px; font-size: 12px !important; line-height: 1.5; }
+  body.sh-body .pg-pricing .pg-plan ul { gap: 4px; margin: 8px 0 12px !important; padding-left: 0 !important; }
+  body.sh-body .pg-pricing .pg-plan li { font-size: 12px; line-height: 1.45; padding-block: 2px; margin: 0; }
+  body.sh-body .pg-pricing :is(.pg-bw,.pg-bo) { min-height: 36px; padding: 8px 10px; font-size: 12px; }
+  body.sh-body .pg-pricing .pg-sec { margin-top: 20px; }
+  body.sh-body .pg-pricing #stars > div:first-child { margin-bottom: 8px !important; }
+  body.sh-body .pg-pricing #stars h2 { margin: 7px 0 !important; font-size: 20px !important; }
+  body.sh-body .pg-pricing #stars > div:first-child p { font-size: 13px !important; margin-bottom: 8px; }
+  body.sh-body .pg-pricing :is(.pg-fine,.pg-note,.pg-callout) { font-size: 12px; line-height: 1.5; }
+  body.sh-body .pg-pricing #credits .pg-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  body.sh-body .pg-pricing #credits .pg-card { padding: 11px; }
+  body.sh-body .pg-pricing #credits .pg-card h3 { font-size: 13px; line-height: 1.35; }
+  body.sh-body .pg-pricing #credits .pg-card p { font-size: 12px; line-height: 1.5; }
+
+  /* Standalone template detail: normal page scrolling, compact real controls. */
+  body.sh-body main.sh-home:has(#detailStage) { min-height: 0 !important; padding: 12px !important; align-items: flex-start !important; }
+  body.sh-body .sh-modal-card:has(#detailStage) { height: auto; max-height: none; overflow: visible; border-radius: 13px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-modal-left { padding: 10px; gap: 8px; }
+  body.sh-body .sh-modal-card:has(#detailStage) #detailStage { width: min(100%,calc(40dvh * 9 / 16)); }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-modal-cta { min-height: 36px; height: 36px; font-size: 12px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-modal-ctrls { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 5px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-modal-act-btn { min-height: 36px; height: auto; min-width: 24px; padding: 5px 3px; gap: 3px; font-size: 10.5px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-modal-right { height: auto; padding: 12px; gap: 10px; overflow: visible; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-title { font-size: 20px; line-height: 1.25; margin-block: 6px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-desc { font-size: 13px; line-height: 1.5; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-specs { gap: 5px; margin-top: 8px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-spec { font-size: 10.5px; padding: 4px 7px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-creator { padding: 10px; gap: 8px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-c-av { width: 34px; height: 34px; font-size: 12px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-comm-head { font-size: 16px; margin-bottom: 9px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-comm-input { min-height: 70px; padding: 9px; font-size: 16px; }
+  body.sh-body .sh-modal-card:has(#detailStage) .sh-m-comm-btn { min-height: 36px; padding: 8px 12px; font-size: 12px; }
+}
+/* MOBILE_DISCOVERY_COMPACT_END */
+
+/* MOBILE_SUPPORT_COMPACT_START */
+@media (max-width: 640px) {
+  /* The bare auth screens retain every label, status and recovery link. */
+  body.sh-body.pg-bare { padding: 22px 14px 16px; align-items: start; }
+  body.sh-body.pg-bare .pg-screen { gap: 14px; max-width: 420px; }
+  body.sh-body.pg-bare .pg-wordmark { gap: 7px; min-height: 32px; padding: 0; font-size: 16px; }
+  body.sh-body.pg-bare .pg-wordmark :is(img,.sh-brand-mark) { width: 24px; height: 24px; }
+  body.sh-body.pg-bare .pg-head { padding: 0 0 8px; margin: 0 0 10px; }
+  body.sh-body.pg-bare .pg-head h1 { margin: 0; font-size: 24px; line-height: 1.2; }
+  body.sh-body.pg-bare .pg-auth { padding: 14px; gap: 11px; margin: 0; border-radius: 12px !important; box-shadow: none !important; }
+  body.sh-body.pg-bare .pg-auth .pg-f { gap: 5px; }
+  body.sh-body.pg-bare .pg-auth .pg-f > label { font-size: 12px; line-height: 1.4; }
+  body.sh-body.pg-bare .pg-auth :is(input,select,textarea) { min-height: 40px; padding: 8px 10px; font-size: 16px; border-radius: 8px; }
+  body.sh-body.pg-bare .pg-auth .pg-pw-wrap input { padding-right: 44px; }
+  body.sh-body.pg-bare .pg-auth .pg-pw-toggle { width: 36px; min-width: 36px; height: 36px; min-height: 36px; }
+  body.sh-body.pg-bare :is(.pg-bw,.pg-bo,.pg-google) { min-height: 36px; height: auto; padding: 8px 10px; gap: 8px; border-radius: 8px !important; font-size: 13px; line-height: 1.4; }
+  body.sh-body.pg-bare .pg-google svg { width: 17px; height: 17px; flex: none; }
+  body.sh-body.pg-bare .pg-auth-divider { margin: 2px 0; gap: 8px; font-size: 11px; }
+  body.sh-body.pg-bare :is(.pg-google-note,.pg-fine,.pg-formnote) { margin: 0; font-size: 12px; line-height: 1.5; }
+  body.sh-body.pg-bare .pg-formnote:empty { min-height: 0; }
+  body.sh-body.pg-bare .pg-screenfoot { gap: 16px; margin: 0; font-size: 12px; }
+  body.sh-body.pg-bare .pg-screenfoot a { min-height: 32px; }
+
+  /* Content signatures deliberately exclude account, discovery and studio pages. */
+  body.sh-body main.pg:has(> .pg-prose,> .pg-404,> .pg-sec > .pg-steps) { padding: 14px 14px 20px; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-sec > .pg-steps) > .pg-head { margin: 0 0 14px; padding: 0 0 10px; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-sec > .pg-steps) > .pg-head h1 { margin: 0; font-size: 24px; line-height: 1.2; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-sec > .pg-steps) > .pg-sec { margin-top: 20px; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-sec > .pg-steps) > .pg-head + .pg-sec { margin-top: 0; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-sec > h2 { margin: 0 0 9px; font-size: 18px; line-height: 1.3; }
+  body.sh-body .pg-prose h2 { margin: 22px 0 9px; font-size: 18px; line-height: 1.3; }
+  body.sh-body .pg-prose h2:first-child { margin-top: 0; }
+  body.sh-body .pg-prose h3 { margin: 18px 0 7px; font-size: 16px; line-height: 1.4; }
+  body.sh-body .pg-prose :is(p,li) { font-size: 14px; line-height: 1.6; }
+  body.sh-body .pg-prose p { margin: 0 0 10px; }
+  body.sh-body .pg-prose li { margin-bottom: 6px; }
+  body.sh-body .pg-prose :is(ul,ol) { margin: 0 0 12px; padding-left: 20px; }
+  body.sh-body .pg-legal h2 { padding-top: 14px; }
+  body.sh-body .pg-legal h2:first-child { padding-top: 0; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-steps { gap: 8px; margin: 0; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-steps > li { padding: 11px 11px 11px 44px; border-radius: 10px; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-steps > li::before { top: 11px; left: 10px; width: 25px; height: 25px; font-size: 12px; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-steps b { margin-bottom: 4px; font-size: 13px; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-steps span { font-size: 13px; line-height: 1.5; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-grid { grid-template-columns: minmax(0,1fr); gap: 8px; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-card { padding: 12px; border-radius: 10px !important; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-card h3 { margin-bottom: 5px; font-size: 14px; line-height: 1.35; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-card p { font-size: 13px; line-height: 1.5; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-faq { gap: 7px; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-faq summary { min-height: 36px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
+  body.sh-body main.pg:has(> .pg-sec > .pg-steps) .pg-faq p { padding: 0 12px 11px; font-size: 13px; line-height: 1.55; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-sec > .pg-steps) .pg-cta { margin-top: 20px; padding: 15px 12px; border-radius: 12px; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-sec > .pg-steps) .pg-cta h2 { margin-bottom: 9px; font-size: 18px; line-height: 1.3; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-404,> .pg-sec > .pg-steps) .pg-row { gap: 7px; }
+  body.sh-body main.pg:has(> .pg-prose,> .pg-404,> .pg-sec > .pg-steps) :is(.pg-bw,.pg-bo) { min-height: 36px; height: auto; padding: 8px 10px; font-size: 12px; line-height: 1.4; border-radius: 8px !important; }
+  body.sh-body .pg-404 { padding: 22px 0 20px; }
+  body.sh-body .pg-404code { font-size: 76px; }
+  body.sh-body .pg-404 h1 { margin: 8px 0 16px; font-size: 22px; line-height: 1.25; }
+  body.sh-body .pg-404links { gap: 5px 14px; margin-top: 16px; padding-top: 12px; font-size: 12px; }
+  body.sh-body .pg-404links a { display: inline-flex; align-items: center; min-height: 28px; }
+
+  /* Feedback stays a full usable form, not a collapsed decorative card. */
+  body.sh-body main.sc-contact { padding: 14px 14px 20px; }
+  body.sh-body .sc-contact-head { margin-bottom: 14px; }
+  body.sh-body .sc-contact-kicker { margin-bottom: 6px; font-size: 9px; letter-spacing: .1em; }
+  body.sh-body .sc-contact-head h1 { margin-bottom: 7px; font-size: 26px; line-height: 1.2; }
+  body.sh-body .sc-contact-head p { font-size: 13px; line-height: 1.5; }
+  body.sh-body .sc-contact-layout { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  body.sh-body .sc-contact-form { padding: 14px; gap: 12px; border-radius: 12px !important; }
+  body.sh-body .sc-contact-form-head h2 { font-size: 18px; margin-bottom: 4px; }
+  body.sh-body .sc-contact-form-head p { font-size: 12px; line-height: 1.45; }
+  body.sh-body .sc-contact-fields { grid-template-columns: minmax(0,1fr); gap: 12px; }
+  body.sh-body .sc-contact-form .pg-f { gap: 5px; }
+  body.sh-body .sc-contact-form .pg-f label { font-size: 12px; line-height: 1.4; }
+  body.sh-body .sc-contact-form :is(input,select,textarea) { font-size: 16px; line-height: 1.4; border-radius: 8px; }
+  body.sh-body .sc-contact-form :is(input,select) { min-height: 40px; padding: 8px 10px; }
+  body.sh-body .sc-contact-form select { padding-right: 30px; }
+  body.sh-body .sc-contact-form textarea { min-height: 120px; padding: 9px 10px; }
+  body.sh-body .sc-contact-actions { gap: 6px 10px; }
+  body.sh-body .sc-contact-actions .pg-bw { min-height: 36px; padding: 8px 12px; font-size: 12px; border-radius: 8px !important; }
+  body.sh-body .sc-contact-actions > span { font-size: 11px; line-height: 1.4; }
+  body.sh-body .sc-contact-form .pg-formnote { margin: 0; font-size: 12px; line-height: 1.5; }
+  body.sh-body .sc-contact-aside { padding: 14px; border-radius: 12px; box-shadow: none; }
+  body.sh-body .sc-contact-aside-head { gap: 8px; margin-bottom: 9px; }
+  body.sh-body .sc-contact-aside-head > span { width: 25px; height: 25px; font-size: 13px; }
+  body.sh-body .sc-contact-aside-head h2 { font-size: 16px; }
+  body.sh-body .sc-contact-tip { padding: 10px 0; }
+  body.sh-body .sc-contact-tip h3 { margin-bottom: 4px; font-size: 13px; }
+  body.sh-body :is(.sc-contact-tip p,.sc-contact-response) { font-size: 12px; line-height: 1.55; }
+  body.sh-body .sc-contact-response { padding-top: 10px; }
+  body.sh-body .sc-contact #supportHistory { margin-top: 18px; }
+  body.sh-body .sc-contact #supportTicketGrid { gap: 8px; grid-template-columns: minmax(0,1fr); }
+  body.sh-body .sc-contact #supportTicketGrid .pg-card { padding: 12px; }
+}
+/* MOBILE_SUPPORT_COMPACT_END */
+
+/* MOBILE_WORKSPACES_COMPACT_START */
+@media (max-width: 640px) {
+  body.sh-body .sh-library #gallery .sh-tmeta { padding: 7px 2px 2px; }
+  body.sh-body .sh-library #gallery .sh-ttitle { font-size: 12px; line-height: 16px; }
+  body.sh-body .sh-library #gallery .sh-tcreator-row { min-height: 28px; gap: 5px; }
+  body.sh-body .sh-library #gallery .sh-tcreator-avatar { width: 20px; height: 20px; font-size: 8px; }
+  body.sh-body .sh-library #gallery .sh-tcreator-name { font-size: 10.5px; }
+  body.sh-body .sh-library #gallery .sh-tcreator-handle { font-size: 9.5px; }
+  /* Keep existing panel/timeline behavior; compact only the surrounding chrome. */
+  body.ed-body .ed-top { height: 48px; min-height: 48px; gap: 5px; padding: 0 8px; }
+  body.ed-body .ed-topright { gap: 5px; }
+  body.ed-body :is(.ed-back,.ed-credits,.ed-export,.ed-pbtn) { height: 36px; min-height: 36px; border-radius: 8px; }
+  body.ed-body :is(.ed-back,.ed-pbtn) { width: 36px; min-width: 36px; }
+  body.ed-body .ed-name { height: 36px; padding-inline: 8px; font-size: 16px; }
+  body.ed-body .ed-mobile-nav:not([hidden]) { min-height: 44px; padding: 4px 8px calc(4px + env(safe-area-inset-bottom,0px)); gap: 5px; }
+  body.ed-body :is(.ed-mobile-tab,.ed-mobile-publish) { height: 34px; min-height: 34px; padding-inline: 7px; font-size: 11px; }
+  body.ed-body .ed-stagewrap { padding: 8px; }
+  body.ed-body .ed-transport { gap: 8px; padding: 4px 8px; }
+  body.ed-body .ed-tl { padding: 0 8px 6px; }
+  body.ed-body .ed-status { min-height: 24px; padding: 4px 8px; font-size: 11px; }
+  body.ed-body .ed-colhead { min-height: 32px; padding: 8px 10px; font-size: 11px; }
+  body.ed-body .ed-props { padding: 10px; gap: 10px; }
+  body.ed-body #edFields { gap: 8px; }
+  body.ed-body .ed-f label { font-size: 12px; }
+  body.ed-body .ed-f :is(input:not([type="range"]):not([type="color"]),select,textarea) { font-size: 16px; }
+  body.ed-body .ed-pop { top: 52px; max-height: calc(100dvh - 104px); padding: 12px; }
+  body.ed-body :is(.ed-pop-close,.ed-pop-cancel,.ed-pop-go) { min-height: 36px; }
+  body.ed-body .ed-pop-close { min-width: 36px; }
+  body.ed-body .ed-pop-head h3 { font-size: 17px; }
+
+  .de-app .de-topbar { padding: 5px 8px; gap: 5px 6px; }
+  .de-app .de-top-left { gap: 0 5px; }
+  .de-app :is(.de-btn-icon,.de-back-btn) { width: 34px; min-width: 34px; height: 34px; min-height: 34px; }
+  .de-app .de-top-right { gap: 4px; }
+  .de-app .de-top-right button { min-height: 34px; padding: 6px 8px; font-size: 11px; }
+  .de-app .de-top-center { gap: 6px; padding-top: 3px; }
+  .de-app .de-proj-title { font-size: 16px; }
+  .de-app .de-zoom-select { min-height: 34px; height: 34px; font-size: 16px; }
+  .de-app .de-save-status { font-size: 10px; }
+  .de-app .de-stage-wrap { padding: 8px; }
+  .de-app .de-mobile-bar { min-height: 48px; gap: 3px; padding: 3px 5px calc(3px + env(safe-area-inset-bottom,0px)); }
+  .de-app .de-mob-btn { min-height: 40px; padding: 3px 2px; gap: 2px; font-size: 10px; }
+  .de-app .de-mob-btn svg { width: 18px; height: 18px; }
+  .de-app .de-panel-close { min-height: 34px; padding: 6px 10px; font-size: 12px; }
+  .de-app .de-ctrl-label { font-size: 11px; }
+  .de-app :is(.de-input,.de-select,.de-textarea) { font-size: 16px; }
+
+  /* The reference editor remains honest about offline processing and consent. */
+  body.rm-body #root > header { padding: 10px 12px; gap: 7px; }
+  body.rm-body header .brand { font-size: 17px; }
+  body.rm-body .beta { padding: 4px 7px; font-size: 10px; }
+  body.rm-body nav { gap: 8px; font-size: 12px; }
+  body.rm-body main { padding: 14px 12px; }
+  body.rm-body .intro { margin-bottom: 12px; }
+  body.rm-body h1 { margin-bottom: 6px; font-size: 22px; line-height: 1.2; }
+  body.rm-body h2 { margin-bottom: 10px; font-size: 16px; }
+  body.rm-body :is(.panel,fieldset) { padding: 12px; margin-bottom: 12px; border-radius: 11px; }
+  body.rm-body label { gap: 5px; margin-bottom: 11px; font-size: 12px; }
+  body.rm-body :is(input,select,textarea) { font-size: 16px; }
+  body.rm-body :is(button,.download) { min-height: 36px; padding: 8px 10px; font-size: 12px; }
+  body.rm-body :is(.note,.scope,.checkbox) { font-size: 12px; line-height: 1.5; }
+  body.rm-body .panel > p { font-size: 13px; line-height: 1.5; }
+  body.rm-body .compare { gap: 10px; }
+  body.rm-body .compare .panel { padding: 10px; }
+  body.rm-body .empty { min-height: 140px; padding: 18px; font-size: 13px; }
+  body.rm-body .credit { margin-top: 8px !important; font-size: 12px; }
+
+  body.sh-body .admin-page { padding: 14px 12px 20px; }
+  body.sh-body .admin-page .admin-header { gap: 9px; margin-bottom: 12px; padding-bottom: 12px; }
+  body.sh-body .admin-page .admin-header-title h1 { font-size: 22px; }
+  body.sh-body .admin-page .admin-section-heading { margin-bottom: 12px; }
+  body.sh-body .admin-page .admin-section-heading h2 { font-size: 18px; }
+  body.sh-body .admin-page :is(.admin-btn,.admin-nav-item) { min-height: 36px; padding: 7px 9px; font-size: 12px; }
+  body.sh-body .admin-page .admin-panel-toolbar { gap: 8px; margin-bottom: 12px; }
+  body.sh-body .admin-page :is(input:not([type="checkbox"]):not([type="range"]),select,textarea) { font-size: 16px; }
+}
+/* MOBILE_WORKSPACES_COMPACT_END */
