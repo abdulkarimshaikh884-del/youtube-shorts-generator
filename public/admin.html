@@ -15,35 +15,26 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<meta name="theme-color" content="#f7f7f5">
+<meta name="theme-color" content="#f8fafc">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260725">
 <link rel="icon" href="/favicon.ico?v=20260725" sizes="any">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260725">
 <link rel="manifest" href="/site.webmanifest?v=20260725">
 
-<!-- New stack only. styles.css / premium.css / landing.css / seo-tools.css are
-     the legacy theme and are deliberately never loaded here. -->
 <link rel="stylesheet" href="/shell.css?v=2026100601">
 <link rel="stylesheet" href="/page.css?v=2026100601">
 <link rel="stylesheet" href="/redesign.css?v=2026100601">
-<!-- Motion layer. Loads last so it can add transitions to the finished
-     visual system without restating any of it. -->
 <link rel="stylesheet" href="/polish.css?v=2026100503">
 <script>(function(){try{var t=localStorage.getItem("sc_theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})();</script>
 
-<!-- Phone layer. After the page's own <style> so phone sizing wins there too. -->
 <link rel="stylesheet" href="/mobile.css?v=2026100601">
-<!-- Design system: one set of colours, buttons and cards. Loads last. -->
 <link rel="stylesheet" href="/ds.css?v=2026100601">
 <link rel="stylesheet" href="/monochrome.css?v=2026100601">
-<link rel="stylesheet" href="/admin.css?v=2026101813">
-<link rel="stylesheet" href="/admin-mc.css?v=2026102103">
+<link rel="stylesheet" href="/admin.css?v=2026102601">
 <link rel="stylesheet" href="/finishing.css?v=2026100805">
 <script src="/finishing.js?v=2026100503" defer></script>
-<link rel="stylesheet" href="/mobile-20261021.css?v=1">
-<link rel="stylesheet" href="/mobile-compact-20261023.css?v=1">
 </head>
 <body class="sh-body">
 
@@ -75,161 +66,30 @@
     </a>
 
     <nav class="sh-nav" aria-label="Workspace">
-        <div class="sh-navgroup">
-          <h2 class="sh-navgroup-title">Workspace</h2>
-          <a href="/">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
-            <span>Home</span>
-          </a>
-          <a href="/animations">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg>
-            <span>Animations</span>
-          </a>
-          <a href="/designs">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-            <span>Designs</span>
-          </a>
-          <a href="/community">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>Creator Tutorials</span>
-          </a>
-          <a href="/drafts">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-            <span>My Projects</span>
-          </a>
-        </div>
-        <div class="sh-navgroup">
-          <h2 class="sh-navgroup-title">Account</h2>
-          <a href="/settings">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-            <span>Settings</span>
-          </a>
-          <a href="/pricing">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Pricing</span>
-          </a>
-        </div>
-        <div class="sh-navgroup">
-          <h2 class="sh-navgroup-title">Support & Legal</h2>
-          <a href="/tutorials">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span>Help</span>
-          </a>
-          <a href="/contact">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
-            <span>Feedback</span>
-          </a>
-        </div>
-
-      <!-- Notifications moved to the top bar. A bell belongs next to the
-           account it belongs to, and it was the one rail row that opened a
-           panel rather than going somewhere. The theme switch stays: it is a
-           setting, and settings live with the rest of the destinations. -->
-
-    </nav>
-
-    <div class="sh-rail-foot">
-      <a href="/pricing" class="sh-plan-badge" aria-label="Upgrade to Pro Plan">
-        <div class="sh-plan-badge-head">
-          <b>Free plan</b>
-          <i class="sh-plan-arrow">↗</i>
-        </div>
-        <span class="sh-plan-credits">5 of 5 credits left today</span>
-        <span class="sh-plan-rates">Export 1 · AI scene 2</span>
-        <div class="sh-plan-upgrade-link">Upgrade to Pro · ₹199/mo</div>
-      </a>
-
-      <div class="sh-user-box" id="sidebarUserBox">
-        <div class="sh-user-trigger-wrap" data-auth="in" hidden>
-          <div class="sh-user-popover" id="sidebarUserPopover">
-            <div class="sh-upop-head">
-              <div class="sh-upop-av" data-user-avatar>KA</div>
-              <div class="sh-upop-info">
-                <span class="sh-upop-name" data-user-name>Account</span>
-                <span class="sh-upop-handle" data-user-handle>@creator</span>
-                <span class="sh-upop-email" data-user-email></span>
-              </div>
-            </div>
-
-            <div class="sh-upop-badge-row">
-              <span class="sh-upop-plan-pill" data-user-plan>✦ Free Plan</span>
-              <span class="sh-upop-credits-pill">⚡ 5 Credits</span>
-            </div>
-
-            <div class="sh-upop-menu">
-              <a href="/account" class="sh-upop-item" id="popoverProfileBtn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>My Profile &amp; Setup</b>
-                  <span>Setup bio, avatar &amp; links</span>
-                </div>
-              </a>
-
-              <button type="button" class="sh-upop-item highlight" id="popoverUploadBtn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Upload / Publish Template</b>
-                  <span>Share your custom animation</span>
-                </div>
-                <span class="sh-upop-hot-tag">NEW</span>
-              </button>
-
-
-
-              <a href="/drafts" class="sh-upop-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>My Projects</b>
-                  <span>Saved work in progress</span>
-                </div>
-              </a>
-
-              <a href="/settings" class="sh-upop-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Settings</b>
-                  <span>Account &amp; preferences</span>
-                </div>
-              </a>
-
-
-
-              <a href="/pricing" class="sh-upop-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Pricing</b>
-                  <span>Credits, up to 1440p rendering</span>
-                </div>
-              </a>
-
-              <a href="/tutorials" class="sh-upop-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <div class="sh-upop-item-txt">
-                  <b>Help</b>
-                  <span>Guides, answers and support</span>
-                </div>
-              </a>
-            </div>
-
-            <div class="sh-upop-foot">
-              <button type="button" class="sh-upop-logout" id="popoverLogoutBtn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span>Log out</span>
-              </button>
-            </div>
-          </div>
-
-          <button type="button" class="sh-user-trigger" id="sidebarUserTrigger" aria-haspopup="true" aria-expanded="false">
-            <div class="sh-user-trigger-av" data-user-avatar>KA</div>
-            <div class="sh-user-trigger-info">
-              <span class="sh-user-trigger-name" data-user-name>Account</span>
-              <span class="sh-user-trigger-handle" data-user-handle>@creator</span>
-            </div>
-            <span class="sh-user-trigger-arrow">▲</span>
-          </button>
-        </div>
+      <div class="sh-navgroup">
+        <h2 class="sh-navgroup-title">Workspace</h2>
+        <a href="/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </a>
+        <a href="/animations">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg>
+          <span>Animations</span>
+        </a>
+        <a href="/designs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span>Designs</span>
+        </a>
+        <a href="/community">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Creator Tutorials</span>
+        </a>
+        <a href="/drafts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>My Projects</span>
+        </a>
       </div>
-    </div>
+    </nav>
   </aside>
 
   <div class="sh-main" id="main" tabindex="-1">
@@ -242,745 +102,809 @@
         <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
         <span class="sh-brand-name">Shorts<i>Craft</i></span>
       </a>
-      <nav class="sh-primary-nav" aria-label="Main">
-        <a href="/animations">Animations</a>
-        <a href="/designs">Designs</a>
-        <a href="/community">Creator Tutorials</a>
-        <a href="/pricing">Pricing</a>
-      </nav>
-      <div class="sh-top-actions">
-      <a href="/pricing" class="sh-credit-chip" aria-label="View plan and credits">
-        <span class="sh-credit-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v4c0 1.66 3.13 3 7 3s7-1.34 7-3V6"/><path d="M5 10v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4"/><path d="M5 14v4c0 1.66 3.13 3 7 3s7-1.34 7-3v-4"/></svg></span>
-        <span class="sh-credit-plan">Free</span>
-        <span class="sh-credit-balance">5 Credits</span>
-      </a>
-      <div class="sh-notification-wrap" data-auth="in" hidden>
-        <button type="button" class="sh-notification-btn" id="notificationBtn" aria-label="Notifications" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
-          <span class="sh-nav-label">Notifications</span>
-          <span id="notificationCount" hidden>0</span>
-        </button>
-        <section class="sh-notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
-          <header><strong>Notifications</strong><button type="button" id="notificationsReadBtn">Mark all read</button></header>
-          <!-- Phone and desktop notifications for this device. Filled in by
-               authui.js once it knows what this browser supports. -->
-          <div class="sh-push-row" data-push-row hidden>
-            <span id="pushPanelText">Get notifications on this device.</span>
-            <button type="button" id="pushPanelBtn">Turn on</button>
-          </div>
-          <div id="notificationList"><p>Loading…</p></div>
-          <!-- Only rendered when the list is actually longer than what is on
-               screen, so the panel never offers to show more of nothing. -->
-          <button type="button" class="sh-notification-more" id="notificationMore" hidden>Show more</button>
-        </section>
-      </div>
-      <button type="button" class="sh-tupload-btn js-open-upload" id="topbarUploadBtn" title="Upload animation or design template">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload</span>
-      </button>
-      <a href="/login" class="sh-tlink" data-auth="out" hidden>Log in</a>
-      <a href="/signup" class="sh-tline" data-auth="out" hidden>Sign up</a>
-      <button type="button" class="sh-tline" id="logoutBtn" data-auth="in" hidden>Log out</button>
-      <span class="sh-auth-loading" data-auth="loading" aria-hidden="true"><i></i></span>
-      </div>
     </header>
 
-<div id="navMobile" hidden>
-      <a href="/animations">Animations</a>
-      <a href="/designs">Designs</a>
-      <a href="/community">Creator Tutorials</a>
-      <a href="/drafts">My Projects</a>
-
-      <a href="/pricing">Pricing</a>
-      <a href="/tutorials">Help</a>
-      <a href="/about">About</a>
-      <a href="/contact">Feedback</a>
-      <a href="/settings">Settings</a>
-      <a href="/login" data-auth="out">Log in</a>
-      <a href="/signup" data-auth="out">Sign up</a>
-
-      <button type="button" id="navMobileLogout" data-auth="in" hidden>Log out</button>
-
-      <a href="/editor" class="sh-mfill">Create Animation</a>
-    </div>
-
     <main class="pg admin-page">
+      <!-- Access Gate -->
       <section class="admin-gate" id="adminGate">
-        <span class="pg-kicker">Private workspace</span>
+        <div class="admin-gate-badge">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 8.3-7 9.8-4.1-1.5-7-5.4-7-9.8V5.8L12 3Z"/><path d="m9.5 11.5 2 2 3.5-4"/></svg>
+          <span>Private Workspace</span>
+        </div>
         <h1>Checking admin access…</h1>
-        <p>This console is available only to the ShortsCraft owner and the people the owner appoints.</p>
+        <p>This console is restricted to the ShortsCraft owner and appointed operations staff.</p>
       </section>
 
+      <!-- Full-Viewport Admin Console Application -->
       <div id="adminApp" hidden>
-        
+        <div class="mc-app admin-shell">
+          <!-- Shared SVG Sprite -->
+          <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+            <defs>
+              <symbol id="mc-i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2Z"/></symbol>
+              <symbol id="mc-i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.8"/></symbol>
+              <symbol id="mc-i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+              <symbol id="mc-i-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
+              <symbol id="mc-i-banknote" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01" stroke-linecap="round"/></symbol>
+              <symbol id="mc-i-headset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="4" height="7" rx="1.5"/><rect x="18" y="13" width="4" height="7" rx="1.5"/><path d="M20 20a4 4 0 0 1-4 2h-2"/></symbol>
+              <symbol id="mc-i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1v1c0 .35-.08.69-.22 1Z"/></symbol>
+              <symbol id="mc-i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+              <symbol id="mc-i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></symbol>
+              <symbol id="mc-i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 8.3-7 9.8-4.1-1.5-7-5.4-7-9.8V5.8L12 3Z"/><path d="m9.5 11.5 2 2 3.5-4"/></symbol>
+              <symbol id="mc-i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"/></symbol>
+              <symbol id="mc-i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+              <symbol id="mc-i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></symbol>
+              <symbol id="mc-i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+              <symbol id="mc-i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4.5h12l-2.5 3.8L17 12H5"/></symbol>
+              <symbol id="mc-i-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></symbol>
+              <symbol id="mc-i-trend-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></symbol>
+              <symbol id="mc-i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17.5h.01"/></symbol>
+              <symbol id="mc-i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+              <symbol id="mc-i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.3v7.4l6-3.7-6-3.7Z"/></symbol>
+              <symbol id="mc-i-mega" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5v14l-8-2.7V8.7L21 5Z"/><path d="M13 8.7H8.5L3 10v5l5.5 1.3H13"/><path d="M9 16.5V21h3v-4"/></symbol>
+              <symbol id="mc-i-ledger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></symbol>
+              <symbol id="mc-i-pack" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></symbol>
+            </defs>
+          </svg>
 
-        <div class="mc-app">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <symbol id="mc-i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2Z"/></symbol>
-    <symbol id="mc-i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
-    <symbol id="mc-i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
-    <symbol id="mc-i-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
-    <symbol id="mc-i-banknote" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01" stroke-linecap="round"/></symbol>
-    <symbol id="mc-i-headset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 13a8 8 0 0 1 16 0"/><rect x="2" y="13" width="4" height="7" rx="1.5"/><rect x="18" y="13" width="4" height="7" rx="1.5"/><path d="M20 20a4 4 0 0 1-4 2h-2"/></symbol>
-    <symbol id="mc-i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1v1c0 .35-.08.69-.22 1Z"/></symbol>
-    <symbol id="mc-i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
-    <symbol id="mc-i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></symbol>
-    <symbol id="mc-i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.8v5.4c0 4.4-2.9 8.3-7 9.8-4.1-1.5-7-5.4-7-9.8V5.8L12 3Z"/><path d="m9.5 11.5 2 2 3.5-4"/></symbol>
-    <symbol id="mc-i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"/></symbol>
-    <symbol id="mc-i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
-    <symbol id="mc-i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"/><path d="M10 12h4"/></symbol>
-    <symbol id="mc-i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
-    <symbol id="mc-i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4.5h12l-2.5 3.8L17 12H5"/></symbol>
-    <symbol id="mc-i-star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.9 5.4 5.6 1.6-4.4 3.6 1 5.9-4.1-3-4.1 3 1-5.9L4.5 9.5l5.6-1.6L12 2.5Z"/></symbol>
-    <symbol id="mc-i-trend-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></symbol>
-    <symbol id="mc-i-trend-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8"/><path d="M14 17h7v-7"/></symbol>
-    <symbol id="mc-i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4"/><path d="M12 17.5h.01"/></symbol>
-    <symbol id="mc-i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
-    <symbol id="mc-i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.3v7.4l6-3.7-6-3.7Z"/></symbol>
-    <symbol id="mc-i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8Z"/></symbol>
-    <symbol id="mc-i-mega" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5v14l-8-2.7V8.7L21 5Z"/><path d="M13 8.7H8.5L3 10v5l5.5 1.3H13"/><path d="M9 16.5V21h3v-4"/></symbol>
-  </defs>
-</svg>
-        <!-- ============ WIDE LABELED SIDEBAR ============ -->
-        <aside class="mc-side" aria-label="Admin navigation">
-          <div class="mc-side-brand">
-            <span class="mc-side-logo" title="ShortsCraft"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-bolt"/></svg></span>
-            <span class="mc-side-brand-text"><b>ShortsCraft</b><small>ADMINISTRATION</small></span>
-          </div>
-          <nav class="mc-side-nav" aria-label="Admin sections">
-            <button type="button" class="mc-side-btn" data-admin-tab="overview" data-hub="overview" data-label="Mission Control" data-perm="overview.view" aria-label="Mission Control &#8212; dashboard" aria-pressed="true"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-grid"/></svg><span class="mc-side-tx"><span class="mc-side-label">Mission Control</span><span class="mc-side-sub">Dashboard</span></span></button>
-            <button type="button" class="mc-side-btn" data-admin-tab="users" data-hub="users creators team" data-label="People" data-perm="users.view" aria-label="People &#8212; Users, Creators, Team and Roles" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-users"/></svg><span class="mc-side-tx"><span class="mc-side-label">People</span><span class="mc-side-sub">Users &#183; Creators &#183; Team</span></span></button>
-            <button type="button" class="mc-side-btn" data-admin-tab="content" data-hub="content skills reports" data-label="Content" data-perm="templates.moderate" aria-label="Content &#8212; Templates, Tutorials, Reports" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-film"/></svg><span class="mc-side-tx"><span class="mc-side-label">Content</span><span class="mc-side-sub">Templates &#183; Tutorials &#183; Reports</span></span><span class="mc-dot" id="mcDotContent" hidden>0</span></button>
-            <button type="button" class="mc-side-btn" data-admin-tab="withdrawals" data-hub="withdrawals stars_ledger star_packs" data-label="Money" data-perm="withdrawals.manage" aria-label="Money &#8212; Withdrawals, Star Ledger, Star Packs" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-banknote"/></svg><span class="mc-side-tx"><span class="mc-side-label">Money</span><span class="mc-side-sub">Withdrawals &#183; Star Ledger &#183; Packs</span></span><span class="mc-dot" id="mcDotMoney" hidden>0</span></button>
-            <button type="button" class="mc-side-btn" data-admin-tab="ai_jobs" data-hub="ai_jobs broadcast" data-label="Platform" data-perm="ai_jobs.view" aria-label="Platform &#8212; AI Jobs, Broadcast" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-bolt"/></svg><span class="mc-side-tx"><span class="mc-side-label">Platform</span><span class="mc-side-sub">AI Jobs &#183; Broadcast</span></span></button>
-            <button type="button" class="mc-side-btn" data-admin-tab="support" data-hub="support" data-label="Operations" data-perm="support.reply" aria-label="Operations &#8212; Support queue" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-headset"/></svg><span class="mc-side-tx"><span class="mc-side-label">Operations</span><span class="mc-side-sub">Support queue</span></span></button>
-            <button type="button" class="mc-side-btn" data-admin-tab="system" data-hub="system" data-label="System" data-perm="flags.manage audit.view" aria-label="System &#8212; Feature flags, Audit log" aria-pressed="false"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-gear"/></svg><span class="mc-side-tx"><span class="mc-side-label">System</span><span class="mc-side-sub">Flags &#183; Audit log</span></span></button>
-          </nav>
-          <div class="mc-spacer"></div>
-          <div class="mc-side-user">
-            <span class="mc-side-avatar" id="mcRailAvatar" title="Admin">A</span>
-            <span class="mc-side-tx"><span class="mc-side-label" id="mcSideUserName">Administrator</span><span class="mc-side-sub" id="mcSideUserRole">Owner</span></span>
-          </div>
-        </aside>
-
-        <div class="mc-main">
-        <!-- ============ TOP COMMAND BAR ============ -->
-        <header class="mc-topbar">
-          <label class="mc-cmdk">
-            <svg class="mc-ic"><use href="#mc-i-search"/></svg>
-            <input type="search" id="mcSearch" placeholder="Search users, templates, reports&#8230;" aria-label="Command search" autocomplete="off"/>
-            <kbd>&#8984;K</kbd>
-            <div class="mc-search-results" id="mcSearchResults" hidden></div>
-          </label>
-          <div class="mc-top-right">
-            <span class="mc-ws">ShortsCraft &middot; Private workspace</span>
-            <span class="mc-owner-badge" id="mcRoleBadge"><svg class="mc-ic"><use href="#mc-i-shield"/></svg><span id="mcRoleLabel">Owner</span></span>
-            <span class="mc-live" id="adminLiveStatus">Server data</span>
-            <button type="button" class="mc-refresh-btn" id="adminGlobalRefreshBtn"><svg class="mc-ic"><use href="#mc-i-refresh"/></svg><span>Refresh</span></button>
-          </div>
-        </header>
-
-        <div class="mc-page">
-        <div class="mc-mobile-nav">
-          <label for="adminMobileTabSelect">Admin section</label>
-          <select id="adminMobileTabSelect" aria-label="Select Admin Section">
-            <option value="overview">Overview &amp; Dashboard</option>
-            <option value="users">Users Database</option>
-            <option value="creators">Creators Directory</option>
-            <option value="content">Templates Moderation</option>
-            <option value="skills">Creator Tutorials</option>
-            <option value="reports">Reports &amp; Safety</option>
-            <option value="withdrawals">Creator Withdrawals</option>
-            <option value="stars_ledger">Star Transactions Ledger</option>
-            <option value="star_packs">Star Packs Setup</option>
-            <option value="ai_jobs">AI &amp; Conversion Jobs</option>
-            <option value="broadcast">Broadcast Notifications</option>
-            <option value="team">Team &amp; Roles</option>
-            <option value="support">Support Queue</option>
-            <option value="system">System &amp; Feature Flags</option>
-          </select>
-        </div>
-        <div class="mc-page-head"><h1 id="adminSectionTitle">Mission Control</h1><p id="adminSectionDescription">Live operations overview.</p></div>
-        <!-- Persistent navigation; the same section IDs drive the mobile chooser. -->
-        
-
-                
-        <!-- 1. OVERVIEW PANEL -->
-        <section class="admin-panel" data-admin-panel="overview">
-          <!-- Row 1: hero metrics -->
-          <div class="mc-metrics">
-            <div class="mc-metric">
-              <div class="mc-m-label">Total Accounts</div>
-              <div class="mc-m-val" id="adUsers">&mdash;</div>
-              <div class="mc-m-sub"><span class="mc-delta up"><svg class="mc-ic"><use href="#mc-i-trend-up"/></svg><span id="adNewUsersDelta">+0</span></span><span id="adNewUsersSub">in last 30 days</span></div>
-              <svg class="mc-spark" id="mcSparkUsers" width="86" height="30" viewBox="0 0 86 30" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points=""/></svg>
-            </div>
-            <div class="mc-metric">
-              <div class="mc-m-label">Active Creators</div>
-              <div class="mc-m-val" id="adCreators">&mdash;</div>
-              <div class="mc-m-sub">publishing templates</div>
-              <svg class="mc-spark" id="mcSparkCreators" width="86" height="30" viewBox="0 0 86 30" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points=""/></svg>
-            </div>
-            <div class="mc-metric">
-              <div class="mc-m-label">Templates Awaiting Review</div>
-              <div class="mc-m-val attn" id="adPendingTemplates">&mdash;</div>
-              <div class="mc-m-sub"><span class="mc-delta warn"><svg class="mc-ic"><use href="#mc-i-clock"/></svg>pending</span><span id="adPendingTemplatesSub">of 0 total templates</span></div>
-              <svg class="mc-spark" id="mcSparkTemplates" width="86" height="30" viewBox="0 0 86 30" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points=""/></svg>
-            </div>
-            <div class="mc-metric">
-              <div class="mc-m-label">Pending Payouts</div>
-              <div class="mc-m-val attn" id="adPendingWithdrawals">&mdash;</div>
-              <div class="mc-m-sub"><span class="mc-delta warn"><svg class="mc-ic"><use href="#mc-i-alert"/></svg>review</span>need manual approval</div>
-              <svg class="mc-spark" id="mcSparkPayouts" width="86" height="30" viewBox="0 0 86 30" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points=""/></svg>
-            </div>
-          </div>
-
-          <!-- Secondary stat strip: preserves remaining dashboard data sources -->
-          <div class="mc-strip">
-            <div class="mc-stat"><div class="mc-m-label">Pro Subscribers</div><div class="mc-s-val" id="adProUsers">&mdash;</div><div class="mc-s-sub">Active Pro / Pro Max</div></div>
-            <div class="mc-stat"><div class="mc-m-label">Star Packs Gross</div><div class="mc-s-val" id="adRevenueStarPacks">&mdash;</div><div class="mc-s-sub" id="adStarsPurchasedSub">0 Stars bought</div></div>
-            <div class="mc-stat"><div class="mc-m-label">Platform Fee (30%)</div><div class="mc-s-val" id="adRevenueFee">&mdash;</div><div class="mc-s-sub">Requires settlement receipts</div></div>
-            <div class="mc-stat"><div class="mc-m-label">AI Conversion Jobs</div><div class="mc-s-val" id="adAiToday">&mdash;</div><div class="mc-s-sub" id="adAiFailedSub">0 failed (30d)</div></div>
-            <div class="mc-stat"><div class="mc-m-label">Support &amp; Reports</div><div class="mc-s-val" id="adTickets">&mdash;</div><div class="mc-s-sub" id="adReportsSub">0 open reports</div></div>
-          </div>
-
-          <!-- Row 2: attention queue + activity feed -->
-          <div class="mc-cols">
-            <div class="mc-card">
-              <h3>Needs your attention</h3>
-              <p class="mc-p-sub">Act directly from here &mdash; no need to open each section.</p>
-              <div id="mcAttentionList"><p class="pg-fine">Loading&hellip;</p></div>
-            </div>
-            <div class="mc-card">
-              <h3>Recent activity</h3>
-              <p class="mc-p-sub">Latest actions across the console.</p>
-              <div id="adminRecentActivityList"><p class="pg-fine">Loading activity log&hellip;</p></div>
-            </div>
-          </div>
-
-          <!-- Row 3: quick actions -->
-          <div class="mc-quick">
-            <button type="button" class="mc-qa" data-admin-jump="content">
-              <span class="mc-qa-ico"><svg class="mc-ic"><use href="#mc-i-film"/></svg></span>
-              <span><span class="t">Review templates</span><br/><span class="m">Moderation queue</span></span>
-              <span class="n" id="adQaTemplates">&ndash;</span>
-            </button>
-            <button type="button" class="mc-qa" data-admin-jump="withdrawals">
-              <span class="mc-qa-ico"><svg class="mc-ic"><use href="#mc-i-banknote"/></svg></span>
-              <span><span class="t">View withdrawals</span><br/><span class="m">Payout requests</span></span>
-              <span class="n" id="adQaWithdrawals">&ndash;</span>
-            </button>
-            <button type="button" class="mc-qa" data-admin-jump="users">
-              <span class="mc-qa-ico"><svg class="mc-ic"><use href="#mc-i-users"/></svg></span>
-              <span><span class="t">Manage users</span><br/><span class="m">Accounts database</span></span>
-              <span class="n" id="adQaUsers">&ndash;</span>
-            </button>
-            <button type="button" class="mc-qa" data-admin-jump="broadcast">
-              <span class="mc-qa-ico"><svg class="mc-ic"><use href="#mc-i-mega"/></svg></span>
-              <span><span class="t">Send broadcast</span><br/><span class="m">Notify all users</span></span>
-              <span class="n">&rarr;</span>
-            </button>
-          </div>
-        </section>
-
-        <!-- 2. USERS PANEL -->
-        <section class="admin-panel" data-admin-panel="users" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="users" data-perm="users.view" data-label="Users" aria-pressed="false">Users</button>
-          <button type="button" role="tab" data-admin-tab="creators" data-perm="users.view" data-label="Creators" aria-pressed="false">Creators</button>
-          <button type="button" role="tab" data-admin-tab="team" data-perm="owner" data-label="Team & Roles" aria-pressed="false">Team & Roles</button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div class="admin-filter-group">
-                <input class="admin-search-input" id="adminUserSearch" type="search" placeholder="Search name, handle, email…" aria-label="Search users" autocomplete="off">
-                <select class="admin-select" id="adminUserRoleFilter" aria-label="Filter role">
-                  <option value="all">All Roles</option>
-                  <option value="super_admin">Owner (Super Admin)</option>
-                  <option value="sub_admin">Sub Admin</option>
-                  <option value="moderator">Moderator</option>
-                  <option value="user">Member (User)</option>
-                  <option value="banned">Banned</option>
-                </select>
-                <select class="admin-select" id="adminUserPlanFilter" aria-label="Filter plan">
-                  <option value="all">All Plans</option>
-                  <option value="free">Free</option>
-                  <option value="pro">Pro</option>
-                  <option value="promax">Pro Max</option>
-                </select>
+          <!-- ============ LEFT SIDEBAR (DESKTOP > 900px) ============ -->
+          <aside class="admin-sidebar mc-side" aria-label="Admin navigation">
+            <div class="admin-side-top">
+              <div class="admin-side-brand">
+                <span class="admin-side-logo" aria-hidden="true">
+                  <img src="/favicon.svg?v=20260725" width="22" height="22" alt="">
+                </span>
+                <div class="admin-side-brand-text">
+                  <b>ShortsCraft</b>
+                  <small>ADMIN CONSOLE</small>
+                </div>
               </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="users">Refresh</button>
+              <a class="admin-backsite" href="/" aria-label="Back to site home">
+                <span aria-hidden="true">←</span> Back to site
+              </a>
             </div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>User / Account</th>
-                    <th>Plan</th>
-                    <th>Role</th>
-                    <th>Credits</th>
-                    <th>Stars (Bal / Withdrawn)</th>
-                    <th>Templates</th>
-                    <th>Joined</th>
-                    <th class="admin-th-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="adminUserList">
-                  <tr><td colspan="8" class="admin-td-center">Loading users…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
 
-        <!-- 3. CREATORS PANEL -->
-        <section class="admin-panel" data-admin-panel="creators" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="users" data-perm="users.view" data-label="Users" aria-pressed="false">Users</button>
-          <button type="button" role="tab" data-admin-tab="creators" data-perm="users.view" data-label="Creators" aria-pressed="false">Creators</button>
-          <button type="button" role="tab" data-admin-tab="team" data-perm="owner" data-label="Team & Roles" aria-pressed="false">Team & Roles</button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div class="admin-filter-group">
-                <input class="admin-search-input" id="adminCreatorSearch" type="search" placeholder="Search creators…" aria-label="Search creators" autocomplete="off">
+            <nav class="admin-nav-tabs" id="adminTabNav" aria-label="Admin sections">
+              <div class="admin-nav-group" data-admin-group>
+                <span class="admin-nav-group-label">Command Center</span>
+                <button type="button" data-admin-tab="overview" data-perm="overview.view" aria-pressed="true">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-grid"/></svg>
+                  <span>Overview</span>
+                </button>
               </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="creators">Refresh</button>
-            </div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Creator</th>
-                    <th>Verification</th>
-                    <th>Published Templates</th>
-                    <th>Stars Earned</th>
-                    <th>Withdrawn Stars</th>
-                    <th>Withdrawable Balance</th>
-                    <th class="admin-th-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="adminCreatorList">
-                  <tr><td colspan="7" class="admin-td-center">Loading creators…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
 
-        <!-- 4. TEMPLATES PANEL -->
-        <section class="admin-panel" data-admin-panel="content" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="content" data-perm="templates.moderate" data-label="Templates" aria-pressed="false">Templates <span class="cnt" id="mcCntTemplates"></span></button>
-          <button type="button" role="tab" data-admin-tab="skills" data-perm="tutorials.moderate" data-label="Tutorials" aria-pressed="false">Tutorials</button>
-          <button type="button" role="tab" data-admin-tab="reports" data-perm="reports.review" data-label="Reports" aria-pressed="false">Reports <span class="cnt" id="mcCntReports"></span></button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="mc-page-head" style="margin-bottom:14px"><div><div class="mc-crumb">Content <b>/</b> <b>Templates</b></div>
-            <h1 style="font-size:22px;margin:0 0 4px">Templates</h1>
-            <p style="color:#6f6f6a;font-size:13px;margin:0" id="mcTplHeadSub">Moderation queue</p></div></div>
-          <div class="mc-toolbar">
-            <label class="mc-t-search">
-              <svg class="mc-ic"><use href="#mc-i-search"/></svg>
-              <input type="search" id="mcTplSearch" placeholder="Search title, creator, id&#8230;" aria-label="Search templates"/>
-            </label>
-            <select id="adminTemplateFilter" aria-label="Template status">
-              <option value="all" selected>All statuses</option>
-              <option value="review">Pending review</option>
-              <option value="published">Published</option>
-              <option value="rejected">Rejected</option>
-              <option value="archived">Archived</option>
-            </select>
-            <select id="adminTemplateCategory" aria-label="Template category"><option value="all">All categories</option></select>
-            <select id="adminTemplateType" aria-label="Template type"><option value="all">Animations &amp; designs</option><option value="animation">Animations</option><option value="design">Designs</option></select>
-            <div class="mc-bulkbar" id="mcBulkbar">
-              <span class="b-n" id="mcBulkCount">0</span> selected
-              <button type="button" id="mcBulkArchive"><svg class="mc-ic"><use href="#mc-i-archive"/></svg>Archive</button>
-              <button type="button" id="mcBulkReject"><svg class="mc-ic"><use href="#mc-i-x"/></svg>Reject</button>
-              <button type="button" id="mcBulkClear">Clear</button>
-            </div>
-            <button class="mc-btn mc-btn-ghost" type="button" data-admin-refresh="content">Refresh</button>
-          </div>
-          <div id="adminTemplateList"><p class="pg-fine">Loading templates&hellip;</p></div>
-          </div>
-        </section>
+              <div class="admin-nav-group" data-admin-group>
+                <span class="admin-nav-group-label">Directory &amp; Access</span>
+                <button type="button" data-admin-tab="users" data-perm="users.view" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-users"/></svg>
+                  <span>Users</span>
+                </button>
+                <button type="button" data-admin-tab="creators" data-perm="users.view" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-star"/></svg>
+                  <span>Creators</span>
+                </button>
+                <button type="button" data-admin-tab="team" data-perm="owner" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-shield"/></svg>
+                  <span>Team &amp; Roles</span>
+                </button>
+              </div>
 
-        <!-- 5. CREATOR TUTORIALS PANEL -->
-        <section class="admin-panel" data-admin-panel="skills" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="content" data-perm="templates.moderate" data-label="Templates" aria-pressed="false">Templates <span class="cnt" id="mcCntTemplates"></span></button>
-          <button type="button" role="tab" data-admin-tab="skills" data-perm="tutorials.moderate" data-label="Tutorials" aria-pressed="false">Tutorials</button>
-          <button type="button" role="tab" data-admin-tab="reports" data-perm="reports.review" data-label="Reports" aria-pressed="false">Reports <span class="cnt" id="mcCntReports"></span></button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div class="admin-filter-group">
-                <select class="admin-select" id="adminSkillStatus" aria-label="Tutorial status">
-                  <option value="published" selected>Published</option>
-                  <option value="pending">Held Back / Pending</option>
-                  <option value="rejected">Rejected</option>
+              <div class="admin-nav-group" data-admin-group>
+                <span class="admin-nav-group-label">Moderation &amp; Safety</span>
+                <button type="button" data-admin-tab="content" data-perm="templates.moderate" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-film"/></svg>
+                  <span>Templates</span>
+                  <span class="admin-nav-badge" id="mcCntTemplates" hidden>0</span>
+                </button>
+                <button type="button" data-admin-tab="skills" data-perm="tutorials.moderate" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-play"/></svg>
+                  <span>Tutorials</span>
+                </button>
+                <button type="button" data-admin-tab="reports" data-perm="reports.review" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-flag"/></svg>
+                  <span>Safety Reports</span>
+                  <span class="admin-nav-badge is-danger" id="mcCntReports" hidden>0</span>
+                </button>
+              </div>
+
+              <div class="admin-nav-group" data-admin-group>
+                <span class="admin-nav-group-label">Economy &amp; Stars</span>
+                <button type="button" data-admin-tab="withdrawals" data-perm="withdrawals.manage" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-banknote"/></svg>
+                  <span>Withdrawals</span>
+                  <span class="admin-nav-badge" id="adNavWithdrawalsBadge" hidden>0</span>
+                </button>
+                <button type="button" data-admin-tab="stars_ledger" data-perm="stars.view" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-ledger"/></svg>
+                  <span>Star Ledger</span>
+                </button>
+                <button type="button" data-admin-tab="star_packs" data-perm="star_packs.manage" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-pack"/></svg>
+                  <span>Star Packs</span>
+                </button>
+              </div>
+
+              <div class="admin-nav-group" data-admin-group>
+                <span class="admin-nav-group-label">Platform &amp; Comms</span>
+                <button type="button" data-admin-tab="ai_jobs" data-perm="ai_jobs.view" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-bolt"/></svg>
+                  <span>AI Jobs</span>
+                </button>
+                <button type="button" data-admin-tab="broadcast" data-perm="notifications.broadcast" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-mega"/></svg>
+                  <span>Broadcast</span>
+                </button>
+              </div>
+
+              <div class="admin-nav-group" data-admin-group>
+                <span class="admin-nav-group-label">Operations</span>
+                <button type="button" data-admin-tab="support" data-perm="support.reply" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-headset"/></svg>
+                  <span>Support Queue</span>
+                </button>
+                <button type="button" data-admin-tab="system" data-perm="flags.manage audit.view" aria-pressed="false">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-gear"/></svg>
+                  <span>System &amp; Audit</span>
+                </button>
+              </div>
+            </nav>
+
+            <div class="admin-side-foot">
+              <div class="admin-side-user">
+                <span class="admin-side-avatar" id="mcRailAvatar" title="Admin">A</span>
+                <div class="admin-side-user-meta">
+                  <strong id="mcSideUserName">Administrator</strong>
+                  <span id="mcSideUserRole">Owner</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- ============ MAIN WORKSPACE COLUMN ============ -->
+          <div class="admin-workspace mc-main">
+            <!-- Top Sticky Command Bar -->
+            <header class="admin-topbar mc-topbar">
+              <div class="admin-topbar-left">
+                <a class="admin-backsite admin-backsite-mobile" href="/" aria-label="Back to site home">← Site</a>
+                <div class="admin-topbar-titles">
+                  <h1 id="adminSectionTitle">Overview</h1>
+                  <p id="adminSectionDescription">Live platform metrics, moderation queues, and operations.</p>
+                </div>
+              </div>
+
+              <label class="admin-cmdk mc-cmdk">
+                <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-search"/></svg>
+                <input type="search" id="mcSearch" placeholder="Jump to section or tool…" aria-label="Command search" autocomplete="off"/>
+                <kbd>⌘K</kbd>
+                <div class="mc-search-results" id="mcSearchResults" hidden></div>
+              </label>
+
+              <div class="admin-topbar-actions mc-top-right">
+                <span class="admin-live-pill" id="adminLiveStatus">Server data</span>
+                <span class="mc-owner-badge" id="mcRoleBadge">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-shield"/></svg>
+                  <span id="mcRoleLabel">OWNER</span>
+                </span>
+                <span id="adminRoleBadge" hidden>Owner</span>
+                <button type="button" class="admin-theme-btn" id="adminThemeToggleBtn" aria-label="Toggle color theme" title="Switch Light / Dark theme">
+                  <svg class="admin-theme-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                  <svg class="admin-theme-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <button type="button" class="admin-refresh-btn mc-refresh-btn" id="adminGlobalRefreshBtn" aria-label="Refresh current section">
+                  <svg class="mc-ic" aria-hidden="true"><use href="#mc-i-refresh"/></svg>
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </header>
+
+            <!-- Mobile / Tablet Navigation Bar (<= 900px) -->
+            <div class="admin-mobile-bar mc-mobile-nav">
+              <div class="admin-mobile-pills" role="navigation" aria-label="Quick mobile sections">
+                <button type="button" data-admin-mobile-nav="overview" data-perm="overview.view" aria-pressed="true">Overview</button>
+                <button type="button" data-admin-mobile-nav="content" data-perm="templates.moderate" aria-pressed="false">Templates</button>
+                <button type="button" data-admin-mobile-nav="users" data-perm="users.view" aria-pressed="false">Users</button>
+                <button type="button" data-admin-mobile-nav="reports" data-perm="reports.review" aria-pressed="false">Reports</button>
+                <button type="button" data-admin-mobile-nav="support" data-perm="support.reply" aria-pressed="false">Support</button>
+              </div>
+              <div class="admin-mobile-select-wrap">
+                <label for="adminMobileTabSelect">Section</label>
+                <select id="adminMobileTabSelect" aria-label="Select Admin Section">
+                  <option value="overview">Overview &amp; Dashboard</option>
+                  <option value="users">Users Database</option>
+                  <option value="creators">Creators Directory</option>
+                  <option value="content">Templates Moderation</option>
+                  <option value="skills">Creator Tutorials</option>
+                  <option value="reports">Safety Reports</option>
+                  <option value="withdrawals">Creator Withdrawals</option>
+                  <option value="stars_ledger">Star Transactions Ledger</option>
+                  <option value="star_packs">Star Packs Setup</option>
+                  <option value="ai_jobs">AI &amp; Conversion Jobs</option>
+                  <option value="broadcast">Broadcast Notifications</option>
+                  <option value="team">Team &amp; Roles</option>
+                  <option value="support">Support Queue</option>
+                  <option value="system">System &amp; Audit Logs</option>
                 </select>
               </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="skills">Refresh</button>
             </div>
-            <div class="admin-list" id="adminSkillList"><p>Loading tutorials…</p></div>
-          </div>
-        </section>
 
-        <!-- 6. REPORTS & SAFETY PANEL -->
-        <section class="admin-panel" data-admin-panel="reports" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="content" data-perm="templates.moderate" data-label="Templates" aria-pressed="false">Templates <span class="cnt" id="mcCntTemplates"></span></button>
-          <button type="button" role="tab" data-admin-tab="skills" data-perm="tutorials.moderate" data-label="Tutorials" aria-pressed="false">Tutorials</button>
-          <button type="button" role="tab" data-admin-tab="reports" data-perm="reports.review" data-label="Reports" aria-pressed="false">Reports <span class="cnt" id="mcCntReports"></span></button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div class="admin-filter-group">
-                <select class="admin-select" id="adminReportStatus" aria-label="Report status">
-                  <option value="open" selected>Open</option>
-                  <option value="reviewing">Reviewing</option>
-                  <option value="actioned">Actioned</option>
-                  <option value="dismissed">Dismissed</option>
-                </select>
-              </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="reports">Refresh</button>
-            </div>
-            <div class="admin-list" id="adminReportList"><p>Loading reports…</p></div>
-          </div>
-        </section>
+            <!-- Page Content Container -->
+            <div class="admin-content mc-page">
+              <p class="pg-formnote admin-toast" id="adminNote" role="status" aria-live="polite"></p>
 
-        <!-- 7. WITHDRAWALS PANEL -->
-        <section class="admin-panel" data-admin-panel="withdrawals" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="withdrawals" data-perm="withdrawals.manage" data-label="Withdrawals" aria-pressed="false">Withdrawals <span class="cnt" id="mcCntWithdrawals"></span></button>
-          <button type="button" role="tab" data-admin-tab="stars_ledger" data-perm="stars.view" data-label="Star Ledger" aria-pressed="false">Star Ledger</button>
-          <button type="button" role="tab" data-admin-tab="star_packs" data-perm="star_packs.manage" data-label="Star Packs" aria-pressed="false">Star Packs</button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div class="admin-filter-group">
-                <select class="admin-select" id="adminWithdrawalStatus" aria-label="Withdrawal status">
-                  <option value="pending" selected>Pending Review</option>
-                  <option value="paid">Paid (Completed)</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-              </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="withdrawals">Refresh</button>
-            </div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Requested At</th>
-                    <th>Creator</th>
-                    <th>Payment UPI / Details</th>
-                    <th>Stars</th>
-                    <th>Gross INR</th>
-                    <th>Net INR (₹3.50/★)</th>
-                    <th>Status</th>
-                    <th>Payment Reference / UTR</th>
-                    <th class="admin-th-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="adminWithdrawalList">
-                  <tr><td colspan="9" class="admin-td-center">Loading withdrawals…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+              <!-- 1. OVERVIEW PANEL -->
+              <section class="admin-panel" data-admin-panel="overview">
+                <!-- Tier 1: 4 Consolidated Hero KPI Cards -->
+                <div class="admin-kpi-grid">
+                  <!-- KPI 1: Users & Pro -->
+                  <article class="admin-kpi-card is-indigo">
+                    <div class="admin-kpi-top">
+                      <span class="admin-kpi-icon" aria-hidden="true"><svg class="mc-ic"><use href="#mc-i-users"/></svg></span>
+                      <span class="admin-kpi-tag" id="adNewUsersSub">+0 in last 30d</span>
+                      <span id="adNewUsersDelta" hidden>+0</span>
+                    </div>
+                    <div class="admin-kpi-body">
+                      <span class="admin-kpi-label">Total Accounts</span>
+                      <strong class="admin-kpi-val" id="adUsers">—</strong>
+                    </div>
+                    <div class="admin-kpi-foot">
+                      <span>Active Pro / Pro Max</span>
+                      <b id="adProUsers">0</b>
+                    </div>
+                  </article>
 
-        <!-- 8. STAR LEDGER PANEL -->
-        <section class="admin-panel" data-admin-panel="stars_ledger" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="withdrawals" data-perm="withdrawals.manage" data-label="Withdrawals" aria-pressed="false">Withdrawals <span class="cnt" id="mcCntWithdrawals"></span></button>
-          <button type="button" role="tab" data-admin-tab="stars_ledger" data-perm="stars.view" data-label="Star Ledger" aria-pressed="false">Star Ledger</button>
-          <button type="button" role="tab" data-admin-tab="star_packs" data-perm="star_packs.manage" data-label="Star Packs" aria-pressed="false">Star Packs</button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div class="admin-filter-group">
-                <input class="admin-search-input" id="adminLedgerSearch" type="search" placeholder="Search user or tx ID…" aria-label="Search ledger">
-                <select class="admin-select" id="adminLedgerKindFilter" aria-label="Filter kind">
-                  <option value="">All Transactions</option>
-                  <option value="purchase">Purchases (Buy Stars)</option>
-                  <option value="donation">Creator Tips / Purchases</option>
-                  <option value="admin_adjustment">Admin Adjustments / Payouts</option>
-                </select>
-              </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="stars_ledger">Refresh</button>
-            </div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Date / Time</th>
-                    <th>TX ID</th>
-                    <th>Type</th>
-                    <th>Sender</th>
-                    <th>Receiver</th>
-                    <th>Stars</th>
-                    <th>Balance After</th>
-                    <th>Audit Details</th>
-                    <th class="admin-th-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="adminLedgerList">
-                  <tr><td colspan="9" class="admin-td-center">Loading ledger…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+                  <!-- KPI 2: Templates & Creators -->
+                  <article class="admin-kpi-card is-violet">
+                    <div class="admin-kpi-top">
+                      <span class="admin-kpi-icon" aria-hidden="true"><svg class="mc-ic"><use href="#mc-i-film"/></svg></span>
+                      <span class="admin-kpi-tag is-amber"><b id="adPendingTemplates">0</b> awaiting review</span>
+                      <span id="adPendingTemplatesSub" hidden>0 awaiting review</span>
+                    </div>
+                    <div class="admin-kpi-body">
+                      <span class="admin-kpi-label">Published Templates</span>
+                      <strong class="admin-kpi-val" id="adPublished">—</strong>
+                    </div>
+                    <div class="admin-kpi-foot">
+                      <span>Verified &amp; Active Creators</span>
+                      <b id="adCreators">0</b>
+                    </div>
+                  </article>
 
-        <!-- 9. STAR PACKS PANEL -->
-        <section class="admin-panel" data-admin-panel="star_packs" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="withdrawals" data-perm="withdrawals.manage" data-label="Withdrawals" aria-pressed="false">Withdrawals <span class="cnt" id="mcCntWithdrawals"></span></button>
-          <button type="button" role="tab" data-admin-tab="stars_ledger" data-perm="stars.view" data-label="Star Ledger" aria-pressed="false">Star Ledger</button>
-          <button type="button" role="tab" data-admin-tab="star_packs" data-perm="star_packs.manage" data-label="Star Packs" aria-pressed="false">Star Packs</button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div>
-                <h3 class="admin-h3">Configure Star Packs</h3>
-                <p class="pg-fine admin-subtle">Update prices, star quantities and bonus packs dynamically without redeploying.</p>
-              </div>
-              <button class="admin-btn admin-btn-primary" type="button" id="adminSaveStarPacksBtn">Save Changes</button>
-            </div>
-            <div class="admin-packs-grid" id="adminStarPacksList"><p>Loading packs…</p></div>
-          </div>
-        </section>
+                  <!-- KPI 3: Operations, AI & Support -->
+                  <article class="admin-kpi-card is-emerald">
+                    <div class="admin-kpi-top">
+                      <span class="admin-kpi-icon" aria-hidden="true"><svg class="mc-ic"><use href="#mc-i-bolt"/></svg></span>
+                      <span class="admin-kpi-tag" id="adAiFailedSub">0 failed (30d)</span>
+                    </div>
+                    <div class="admin-kpi-body">
+                      <span class="admin-kpi-label">AI Conversion Jobs</span>
+                      <strong class="admin-kpi-val" id="adAiToday">—</strong>
+                    </div>
+                    <div class="admin-kpi-foot">
+                      <span>Support: <b id="adTickets">0</b> open</span>
+                      <span id="adReportsSub">0 open reports</span>
+                    </div>
+                  </article>
 
-        <!-- 10. AI JOBS PANEL -->
-        <section class="admin-panel" data-admin-panel="ai_jobs" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="ai_jobs" data-perm="ai_jobs.view" data-label="AI Jobs" aria-pressed="false">AI Jobs</button>
-          <button type="button" role="tab" data-admin-tab="broadcast" data-perm="notifications.broadcast" data-label="Broadcast" aria-pressed="false">Broadcast</button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div class="admin-filter-group">
-                <select class="admin-select" id="adminAiJobStatus" aria-label="AI Job status">
-                  <option value="all">All Jobs</option>
-                  <option value="failed">Failed Only</option>
-                  <option value="processing">Processing</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="ai_jobs">Refresh</button>
-            </div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Job ID</th>
-                    <th>User</th>
-                    <th>Original Image</th>
-                    <th>Status</th>
-                    <th>Duration</th>
-                    <th>Error / Details</th>
-                    <th>Created At</th>
-                    <th class="admin-th-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="adminAiJobList">
-                  <tr><td colspan="8" class="admin-td-center">Loading AI jobs…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+                  <!-- KPI 4: Economy & Payouts -->
+                  <article class="admin-kpi-card is-amber">
+                    <div class="admin-kpi-top">
+                      <span class="admin-kpi-icon" aria-hidden="true"><svg class="mc-ic"><use href="#mc-i-banknote"/></svg></span>
+                      <span class="admin-kpi-tag" id="adStarsPurchasedSub">0 Stars bought</span>
+                    </div>
+                    <div class="admin-kpi-body">
+                      <span class="admin-kpi-label">Pending Withdrawals</span>
+                      <strong class="admin-kpi-val" id="adPendingWithdrawals">—</strong>
+                    </div>
+                    <div class="admin-kpi-foot">
+                      <span>Gross: <b id="adRevenueStarPacks">—</b></span>
+                      <span>Fee: <b id="adRevenueFee">—</b></span>
+                    </div>
+                  </article>
+                </div>
 
-        <!-- 11. BROADCAST NOTIFICATIONS PANEL -->
-        <section class="admin-panel" data-admin-panel="broadcast" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="ai_jobs" data-perm="ai_jobs.view" data-label="AI Jobs" aria-pressed="false">AI Jobs</button>
-          <button type="button" role="tab" data-admin-tab="broadcast" data-perm="notifications.broadcast" data-label="Broadcast" aria-pressed="false">Broadcast</button>
-          </div>
-          <div class="admin-card-panel admin-narrow">
-            <div class="admin-panel-toolbar">
-              <div>
-                <h3 class="admin-h3">Send Broadcast Notification</h3>
-                <p class="pg-fine admin-subtle">Delivers an in-app notification directly into user bells.</p>
-              </div>
-            </div>
-            <form id="adminBroadcastForm" class="admin-form-grid">
-              <div class="admin-form-group">
-                <label for="adBcTarget">Target Audience</label>
-                <select class="admin-select" id="adBcTarget" required>
-                  <option value="all">All Registered Users</option>
-                  <option value="creators">Verified Creators Only</option>
-                  <option value="pro">Pro &amp; Pro Max Subscribers Only</option>
-                  <option value="free">Free Plan Users Only</option>
-                  <option value="handle">Single User (by @handle)</option>
-                </select>
-              </div>
-              <div class="admin-form-group" id="adBcHandleGroup" hidden>
-                <label for="adBcHandle">Target Handle</label>
-                <input type="text" id="adBcHandle" placeholder="e.g. karim or @karim">
-              </div>
-              <div class="admin-form-group">
-                <label for="adBcTitle">Notification Title</label>
-                <input type="text" id="adBcTitle" placeholder="e.g. New Feature: Convert to Editable is Live!" required maxlength="120">
-              </div>
-              <div class="admin-form-group">
-                <label for="adBcMessage">Message Content</label>
-                <textarea id="adBcMessage" rows="3" placeholder="Write a clear announcement…" required maxlength="600"></textarea>
-              </div>
-              <div class="admin-form-group">
-                <label for="adBcLink">Action Link URL (Optional)</label>
-                <input type="text" id="adBcLink" placeholder="e.g. /designs or https://...">
-              </div>
-              <button type="submit" class="admin-btn admin-btn-primary" id="adBcSubmitBtn">Send Broadcast</button>
-            </form>
-          </div>
-        </section>
+                <!-- Tier 2: Operations Split Grid -->
+                <div class="admin-overview-split">
+                  <!-- Left Column: Action Center + Quick Shortcuts -->
+                  <div class="admin-overview-col">
+                    <section class="admin-card mc-card" aria-labelledby="adminAttnHeading">
+                      <div class="admin-card-head">
+                        <div>
+                          <h2 id="adminAttnHeading">Needs Your Attention</h2>
+                          <p>Review pending template submissions, payout requests, and open reports.</p>
+                        </div>
+                      </div>
+                      <div id="mcAttentionList"><p class="pg-fine">Checking moderation queues…</p></div>
+                    </section>
 
-        <!-- 12. TEAM & ROLES (OWNER ONLY) -->
-        <section class="admin-panel" data-admin-panel="team" hidden>
-          <div class="mc-hub-tabs" data-admin-group role="tablist">
-          <button type="button" role="tab" data-admin-tab="users" data-perm="users.view" data-label="Users" aria-pressed="false">Users</button>
-          <button type="button" role="tab" data-admin-tab="creators" data-perm="users.view" data-label="Creators" aria-pressed="false">Creators</button>
-          <button type="button" role="tab" data-admin-tab="team" data-perm="owner" data-label="Team & Roles" aria-pressed="false">Team & Roles</button>
-          </div>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <div>
-                <h3 class="admin-h3">Team &amp; Staff Management</h3>
-                <p class="pg-fine admin-subtle">Owner only: Appoint Sub Admins &amp; Moderators, select presets, or customize granular permissions.</p>
-              </div>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="team">Refresh</button>
-            </div>
-            <div class="admin-list" id="adminTeamList"><p>Loading team…</p></div>
-          </div>
-        </section>
+                    <section class="admin-card mc-card" aria-labelledby="adminQuickHeading">
+                      <div class="admin-card-head">
+                        <div>
+                          <h2 id="adminQuickHeading">Quick Operations</h2>
+                          <p>Jump straight into high-frequency administrative workflows.</p>
+                        </div>
+                      </div>
+                      <div class="admin-quick-grid">
+                        <button type="button" class="admin-quick-tile" data-admin-jump="content">
+                          <span class="admin-quick-ico is-violet"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-film"/></svg></span>
+                          <span class="admin-quick-txt">
+                            <strong>Moderate Templates</strong>
+                            <small>Inspect &amp; approve uploads</small>
+                          </span>
+                          <span class="admin-quick-cnt" id="adQaTemplates">0</span>
+                        </button>
 
-        <!-- 13. SUPPORT PANEL -->
-        <section class="admin-panel" data-admin-panel="support" hidden>
-          <div class="admin-card-panel">
-            <div class="admin-panel-toolbar">
-              <h3 class="admin-h3">Support Queue</h3>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="support">Refresh</button>
-            </div>
-            <div class="admin-support-layout">
-              <div class="admin-list" id="adminTicketList"><p>Loading tickets…</p></div>
-              <div class="admin-ticket-view" id="adminTicketView"><p>Select a ticket to read and reply.</p></div>
-            </div>
-          </div>
-        </section>
+                        <button type="button" class="admin-quick-tile" data-admin-jump="users">
+                          <span class="admin-quick-ico is-indigo"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-users"/></svg></span>
+                          <span class="admin-quick-txt">
+                            <strong>Manage Accounts</strong>
+                            <small>Search users, roles &amp; credits</small>
+                          </span>
+                          <span class="admin-quick-cnt" id="adQaUsers">0</span>
+                        </button>
 
-        <!-- 14. SYSTEM & AUDIT LOGS PANEL -->
-        <section class="admin-panel" data-admin-panel="system" hidden>
-          <div class="admin-card-panel" data-admin-permission="flags.manage">
-            <div class="admin-panel-toolbar">
-              <h3 class="admin-h3">Feature Flags</h3>
-              <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="system">Refresh</button>
-            </div>
-            <div class="admin-list" id="adminFlagList"><p>Loading feature flags…</p></div>
-          </div>
+                        <button type="button" class="admin-quick-tile" data-admin-jump="withdrawals">
+                          <span class="admin-quick-ico is-amber"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-banknote"/></svg></span>
+                          <span class="admin-quick-txt">
+                            <strong>Creator Payouts</strong>
+                            <small>Withdrawal queue &amp; records</small>
+                          </span>
+                          <span class="admin-quick-cnt" id="adQaWithdrawals">0</span>
+                        </button>
 
-          <div class="admin-card-panel" data-admin-permission="audit.view">
-            <div class="admin-panel-toolbar">
-              <h3 class="admin-h3">System Audit Trail</h3>
-              <input class="admin-search-input" id="adminAuditSearch" type="search" placeholder="Search audit logs…" aria-label="Search audit log">
-            </div>
-            <div class="admin-table-wrap">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Timestamp</th>
-                    <th>Actor</th>
-                    <th>Action</th>
-                    <th>Entity</th>
-                    <th>Details</th>
-                  </tr>
-                </thead>
-                <tbody id="adminAuditLogList">
-                  <tr><td colspan="5" class="admin-td-center">Loading audit trail…</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+                        <button type="button" class="admin-quick-tile" data-admin-jump="broadcast">
+                          <span class="admin-quick-ico is-emerald"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-mega"/></svg></span>
+                          <span class="admin-quick-txt">
+                            <strong>Send Broadcast</strong>
+                            <small>Notify users in-app</small>
+                          </span>
+                          <span class="admin-quick-cnt">→</span>
+                        </button>
 
-        <p class="pg-formnote" id="adminNote" role="status" aria-live="polite"></p>
-        </div><!-- /.mc-page -->
-        </div><!-- /.mc-main -->
-        </div><!-- /.mc-app -->
+                        <button type="button" class="admin-quick-tile" id="adQuickTeamBtn" data-admin-jump="team" hidden>
+                          <span class="admin-quick-ico is-indigo"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-shield"/></svg></span>
+                          <span class="admin-quick-txt">
+                            <strong>Staff &amp; Permissions</strong>
+                            <small>Configure Sub Admins &amp; Mods</small>
+                          </span>
+                          <span class="admin-quick-cnt">→</span>
+                        </button>
+                      </div>
+                    </section>
+                  </div>
 
-        <!-- Modals Portal Container -->
-        <div id="adminModalsContainer"></div>
-      </div>
+                  <!-- Right Column: New Members + Recent Activity -->
+                  <div class="admin-overview-col">
+                    <section class="admin-card mc-card admin-recent-users-card" data-admin-permission="users.view" aria-labelledby="adminRecentUsersTitle">
+                      <div class="admin-card-head">
+                        <div>
+                          <h2 id="adminRecentUsersTitle">Newest Members</h2>
+                          <p>Latest signups across ShortsCraft.</p>
+                        </div>
+                        <button class="admin-btn admin-btn-outline admin-btn-sm" type="button" data-admin-jump="users">All users →</button>
+                      </div>
+                      <div id="adminRecentUsersList"><p class="pg-fine">Loading recent members…</p></div>
+                    </section>
+
+                    <section class="admin-card mc-card" aria-labelledby="adminActivityHeading">
+                      <div class="admin-card-head">
+                        <div>
+                          <h2 id="adminActivityHeading">Recent Admin Activity</h2>
+                          <p>Latest recorded actions in the audit log.</p>
+                        </div>
+                      </div>
+                      <div id="adminRecentActivityList"><p class="pg-fine">Loading activity log…</p></div>
+                    </section>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 2. USERS PANEL -->
+              <section class="admin-panel" data-admin-panel="users" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div class="admin-filter-group">
+                      <input class="admin-search-input" id="adminUserSearch" type="search" placeholder="Search name, @handle, or email…" aria-label="Search users" autocomplete="off">
+                      <select class="admin-select" id="adminUserRoleFilter" aria-label="Filter role">
+                        <option value="all">All Roles</option>
+                        <option value="super_admin">Owner (Super Admin)</option>
+                        <option value="sub_admin">Sub Admin</option>
+                        <option value="moderator">Moderator</option>
+                        <option value="user">Member (User)</option>
+                        <option value="banned">Banned</option>
+                      </select>
+                      <select class="admin-select" id="adminUserPlanFilter" aria-label="Filter plan">
+                        <option value="all">All Plans</option>
+                        <option value="free">Free</option>
+                        <option value="pro">Pro</option>
+                        <option value="promax">Pro Max</option>
+                      </select>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="users">Refresh</button>
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="admin-table">
+                      <thead>
+                        <tr>
+                          <th>User / Account</th>
+                          <th>Plan</th>
+                          <th>Role</th>
+                          <th>Credits</th>
+                          <th>Stars (Bal / Withdrawn)</th>
+                          <th>Templates</th>
+                          <th>Joined</th>
+                          <th class="admin-th-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="adminUserList">
+                        <tr><td colspan="8" class="admin-td-center">Loading users…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 3. CREATORS PANEL -->
+              <section class="admin-panel" data-admin-panel="creators" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div class="admin-filter-group">
+                      <input class="admin-search-input" id="adminCreatorSearch" type="search" placeholder="Search creators by name or @handle…" aria-label="Search creators" autocomplete="off">
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="creators">Refresh</button>
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Creator</th>
+                          <th>Verification</th>
+                          <th>Published Templates</th>
+                          <th>Stars Earned</th>
+                          <th>Withdrawn Stars</th>
+                          <th>Withdrawable Balance</th>
+                          <th class="admin-th-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="adminCreatorList">
+                        <tr><td colspan="7" class="admin-td-center">Loading creators…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 4. TEMPLATES MODERATION PANEL -->
+              <section class="admin-panel" data-admin-panel="content" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-review-banner">
+                    <span class="admin-review-banner-icon" aria-hidden="true"><svg class="mc-ic"><use href="#mc-i-eye"/></svg></span>
+                    <div class="admin-review-banner-text">
+                      <strong>Protected In-Console Preview</strong>
+                      <p id="mcTplHeadSub">Open any submitted animation or design to inspect its exact layers and playback safely before approving. Viewing never publishes a draft.</p>
+                    </div>
+                  </div>
+
+                  <div class="admin-panel-toolbar mc-toolbar">
+                    <div class="admin-filter-group">
+                      <input class="admin-search-input" type="search" id="mcTplSearch" placeholder="Search title, creator, or ID…" aria-label="Search templates"/>
+                      <select class="admin-select" id="adminTemplateFilter" aria-label="Template status">
+                        <option value="all" selected>All Statuses</option>
+                        <option value="review">Pending Review</option>
+                        <option value="published">Published</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="archived">Archived</option>
+                      </select>
+                      <select class="admin-select" id="adminTemplateCategory" aria-label="Template category">
+                        <option value="all">All categories</option>
+                      </select>
+                      <select class="admin-select" id="adminTemplateType" aria-label="Template type">
+                        <option value="all">Animations &amp; Designs</option>
+                        <option value="animation">Animations Only</option>
+                        <option value="design">Designs Only</option>
+                      </select>
+                    </div>
+                    <div class="mc-bulkbar" id="mcBulkbar">
+                      <span class="b-n" id="mcBulkCount">0</span> selected
+                      <button type="button" id="mcBulkArchive"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-archive"/></svg>Archive</button>
+                      <button type="button" id="mcBulkReject"><svg class="mc-ic" aria-hidden="true"><use href="#mc-i-x"/></svg>Reject</button>
+                      <button type="button" id="mcBulkClear">Clear</button>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="content">Refresh</button>
+                  </div>
+
+                  <div class="admin-list" id="adminTemplateList"><p>Loading templates…</p></div>
+                </div>
+              </section>
+
+              <!-- 5. CREATOR TUTORIALS PANEL -->
+              <section class="admin-panel" data-admin-panel="skills" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div class="admin-filter-group">
+                      <select class="admin-select" id="adminSkillStatus" aria-label="Tutorial status">
+                        <option value="published" selected>Published</option>
+                        <option value="pending">Held Back / Pending</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="skills">Refresh</button>
+                  </div>
+                  <div class="admin-list" id="adminSkillList"><p>Loading tutorials…</p></div>
+                </div>
+              </section>
+
+              <!-- 6. REPORTS & SAFETY PANEL -->
+              <section class="admin-panel" data-admin-panel="reports" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div class="admin-filter-group">
+                      <select class="admin-select" id="adminReportStatus" aria-label="Report status">
+                        <option value="open" selected>Open Reports</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="actioned">Actioned</option>
+                        <option value="dismissed">Dismissed</option>
+                      </select>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="reports">Refresh</button>
+                  </div>
+                  <div class="admin-list" id="adminReportList"><p>Loading reports…</p></div>
+                </div>
+              </section>
+
+              <!-- 7. WITHDRAWALS PANEL -->
+              <section class="admin-panel" data-admin-panel="withdrawals" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div class="admin-filter-group">
+                      <select class="admin-select" id="adminWithdrawalStatus" aria-label="Withdrawal status">
+                        <option value="pending" selected>Pending Review</option>
+                        <option value="paid">Paid (Completed)</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="withdrawals">Refresh</button>
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Requested At</th>
+                          <th>Creator</th>
+                          <th>Payment UPI / Details</th>
+                          <th>Stars</th>
+                          <th>Gross INR</th>
+                          <th>Net INR (₹3.50/★)</th>
+                          <th>Status</th>
+                          <th>Payment Reference / UTR</th>
+                          <th class="admin-th-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="adminWithdrawalList">
+                        <tr><td colspan="9" class="admin-td-center">Loading withdrawals…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 8. STAR LEDGER PANEL -->
+              <section class="admin-panel" data-admin-panel="stars_ledger" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div class="admin-filter-group">
+                      <input class="admin-search-input" id="adminLedgerSearch" type="search" placeholder="Search user or TX ID…" aria-label="Search ledger">
+                      <select class="admin-select" id="adminLedgerKindFilter" aria-label="Filter kind">
+                        <option value="">All Transactions</option>
+                        <option value="purchase">Purchases (Buy Stars)</option>
+                        <option value="donation">Creator Tips / Purchases</option>
+                        <option value="admin_adjustment">Admin Adjustments / Payouts</option>
+                      </select>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="stars_ledger">Refresh</button>
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Date / Time</th>
+                          <th>TX ID</th>
+                          <th>Type</th>
+                          <th>Sender</th>
+                          <th>Receiver</th>
+                          <th>Stars</th>
+                          <th>Balance After</th>
+                          <th>Audit Details</th>
+                          <th class="admin-th-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody id="adminLedgerList">
+                        <tr><td colspan="9" class="admin-td-center">Loading ledger…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 9. STAR PACKS PANEL -->
+              <section class="admin-panel" data-admin-panel="star_packs" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div>
+                      <h3 class="admin-h3">Configure Star Packs</h3>
+                      <p class="pg-fine admin-subtle">Stored Star pack tiers and pricing configuration.</p>
+                    </div>
+                    <button class="admin-btn admin-btn-primary" type="button" id="adminSaveStarPacksBtn">Save Changes</button>
+                  </div>
+                  <div class="admin-packs-grid" id="adminStarPacksList"><p>Loading packs…</p></div>
+                </div>
+              </section>
+
+              <!-- 10. AI JOBS PANEL -->
+              <section class="admin-panel" data-admin-panel="ai_jobs" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div class="admin-filter-group">
+                      <select class="admin-select" id="adminAiJobStatus" aria-label="AI Job status">
+                        <option value="all">All Jobs</option>
+                        <option value="failed">Failed Only</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="ai_jobs">Refresh</button>
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Job ID</th>
+                          <th>User</th>
+                          <th>Original Image</th>
+                          <th>Status</th>
+                          <th>Duration</th>
+                          <th>Error / Details</th>
+                          <th>Created At</th>
+                          <th class="admin-th-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="adminAiJobList">
+                        <tr><td colspan="8" class="admin-td-center">Loading AI jobs…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 11. BROADCAST NOTIFICATIONS PANEL -->
+              <section class="admin-panel" data-admin-panel="broadcast" hidden>
+                <div class="admin-card-panel admin-narrow">
+                  <div class="admin-panel-toolbar">
+                    <div>
+                      <h3 class="admin-h3">Send Broadcast Notification</h3>
+                      <p class="pg-fine admin-subtle">Deliver an in-app announcement directly into user notification bells.</p>
+                    </div>
+                  </div>
+                  <form id="adminBroadcastForm" class="admin-form-grid">
+                    <div class="admin-form-group">
+                      <label for="adBcTarget">Target Audience</label>
+                      <select class="admin-select" id="adBcTarget" required>
+                        <option value="all">All Registered Users</option>
+                        <option value="creators">Verified Creators Only</option>
+                        <option value="pro">Pro &amp; Pro Max Subscribers Only</option>
+                        <option value="free">Free Plan Users Only</option>
+                        <option value="handle">Single User (by @handle)</option>
+                      </select>
+                    </div>
+                    <div class="admin-form-group" id="adBcHandleGroup" hidden>
+                      <label for="adBcHandle">Target Handle</label>
+                      <input type="text" id="adBcHandle" placeholder="e.g. karim or @karim">
+                    </div>
+                    <div class="admin-form-group">
+                      <label for="adBcTitle">Notification Title</label>
+                      <input type="text" id="adBcTitle" placeholder="e.g. New Feature: Convert to Editable is Live!" required maxlength="120">
+                    </div>
+                    <div class="admin-form-group">
+                      <label for="adBcMessage">Message Content</label>
+                      <textarea id="adBcMessage" rows="3" placeholder="Write a clear announcement…" required maxlength="600"></textarea>
+                    </div>
+                    <div class="admin-form-group">
+                      <label for="adBcLink">Action Link URL (Optional)</label>
+                      <input type="text" id="adBcLink" placeholder="e.g. /designs or https://...">
+                    </div>
+                    <button type="submit" class="admin-btn admin-btn-primary" id="adBcSubmitBtn">Send Broadcast</button>
+                  </form>
+                </div>
+              </section>
+
+              <!-- 12. TEAM & ROLES (OWNER ONLY) -->
+              <section class="admin-panel" data-admin-panel="team" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div>
+                      <h3 class="admin-h3">Team &amp; Staff Management</h3>
+                      <p class="pg-fine admin-subtle">Owner only: Appoint Sub Admins &amp; Moderators, select role presets, or customize granular permissions.</p>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="team">Refresh</button>
+                  </div>
+                  <div class="admin-list" id="adminTeamList"><p>Loading team…</p></div>
+                </div>
+              </section>
+
+              <!-- 13. SUPPORT PANEL -->
+              <section class="admin-panel" data-admin-panel="support" hidden>
+                <div class="admin-card-panel">
+                  <div class="admin-panel-toolbar">
+                    <div>
+                      <h3 class="admin-h3">Support Inbox</h3>
+                      <p class="pg-fine admin-subtle">Read user tickets, reply directly, and update resolution status.</p>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="support">Refresh</button>
+                  </div>
+                  <div class="admin-support-layout">
+                    <div class="admin-list" id="adminTicketList"><p>Loading tickets…</p></div>
+                    <div class="admin-ticket-view" id="adminTicketView"><p>Select a ticket from the inbox to read and reply.</p></div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- 14. SYSTEM & AUDIT LOGS PANEL -->
+              <section class="admin-panel" data-admin-panel="system" hidden>
+                <div class="admin-card-panel" data-admin-permission="flags.manage">
+                  <div class="admin-panel-toolbar">
+                    <div>
+                      <h3 class="admin-h3">Feature Flags</h3>
+                      <p class="pg-fine admin-subtle">Platform feature switches and runtime status.</p>
+                    </div>
+                    <button class="admin-btn admin-btn-outline" type="button" data-admin-refresh="system">Refresh</button>
+                  </div>
+                  <div class="admin-list" id="adminFlagList"><p>Loading feature flags…</p></div>
+                </div>
+
+                <div class="admin-card-panel" data-admin-permission="audit.view">
+                  <div class="admin-panel-toolbar">
+                    <div>
+                      <h3 class="admin-h3">System Audit Trail</h3>
+                      <p class="pg-fine admin-subtle">Immutable log of administrative actions across the platform.</p>
+                    </div>
+                    <input class="admin-search-input" id="adminAuditSearch" type="search" placeholder="Search actor, action, or entity…" aria-label="Search audit log">
+                  </div>
+                  <div class="admin-table-wrap">
+                    <table class="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Timestamp</th>
+                          <th>Actor</th>
+                          <th>Action</th>
+                          <th>Entity</th>
+                          <th>Details</th>
+                        </tr>
+                      </thead>
+                      <tbody id="adminAuditLogList">
+                        <tr><td colspan="5" class="admin-td-center">Loading audit trail…</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+            </div><!-- /.admin-content -->
+          </div><!-- /.admin-workspace -->
+
+          <!-- Modals Portal Container -->
+          <div id="adminModalsContainer"></div>
+        </div><!-- /.mc-app.admin-shell -->
+      </div><!-- /#adminApp -->
     </main>
-
-    <footer class="sh-footer">
-      <div class="sh-fgrid">
-        <div class="sh-fbrand">
-          <a href="/" class="sh-brand" aria-label="ShortsCraft home">
-            <span class="sh-brand-mark"><img src="/favicon.svg?v=20260725" width="22" height="22" alt=""></span>
-            <span class="sh-brand-name">Shorts<i>Craft</i></span>
-          </a>
-        </div>
-
-        <nav class="sh-fcol" aria-label="Product">
-          <h2>Product</h2>
-          <a href="/editor">Create Animation</a>
-          <a href="/animations">Animations</a>
-          <a href="/designs">Designs</a>
-          <a href="/community">Creator Tutorials</a>
-          <a href="/pricing">Pricing</a>
-        </nav>
-
-        <nav class="sh-fcol" aria-label="Legal and support">
-          <h2>Legal &amp; Support</h2>
-          <a href="/privacy">Privacy Policy</a>
-          <a href="/terms">Terms of Service</a>
-          <a href="/tutorials">Help</a>
-          <a href="/contact">Feedback</a>
-          <a href="/about">About Us</a>
-        </nav>
-      </div>
-
-      <div class="sh-fbot">
-        <span>© 2026 ShortsCraft. All rights reserved.</span>
-        <span class="sh-status"><i></i> Website online</span>
-      </div>
-    </footer>
 
   </div><!-- /.sh-main -->
 </div><!-- /.sh-wrap -->
-
-<nav class="sh-bottomnav" aria-label="Main">
-  <a href="/" class="sh-bn-tab sh-bn-home">
-    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
-    <span class="sh-bn-label">Home</span>
-  </a>
-  <a href="/designs" class="sh-bn-tab sh-bn-designs">
-    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
-    <span class="sh-bn-label">Designs</span>
-  </a>
-  <a href="/editor" class="sh-bn-tab sh-bn-create">
-    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
-    <span class="sh-bn-label">Create</span>
-  </a>
-  <a href="/community" class="sh-bn-tab sh-bn-community">
-    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-    <span class="sh-bn-label">Learn</span>
-  </a>
-  <a href="/account" class="sh-bn-tab sh-bn-profile" aria-current="page">
-    <span class="sh-bn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-    <span class="sh-bn-label">Profile</span>
-  </a>
-</nav>
 
 <script src="/authui.js?v=2026102301" defer></script>
 <script src="/theme.js?v=2026100601" defer></script>
 <script src="/report.js?v=2026100601" defer></script>
 <script src="/page.js?v=2026100503" defer></script>
 <script src="/design-preview.js?v=2026100601" defer></script>
-<script src="/admin-console.js?v=2026101803" defer></script>
-<script src="/admin-mobile.js?v=2026102103" defer></script></body>
+<script src="/templates-v2.js?v=2026100601" defer></script>
+<script src="/admin-console.js?v=2026102601" defer></script>
+<script src="/admin-mobile.js?v=2026102601" defer></script>
+</body>
 </html>

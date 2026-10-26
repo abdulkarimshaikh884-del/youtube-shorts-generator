@@ -18,10 +18,29 @@
   var readGeneration = {};
   var loadGeneration = {};
   var modalsContainer = $("#adminModalsContainer");
+  var modalPageOverflow = null;
+  var modalPreviewCleanup = null;
 
   function readSection(path) {
     if (/^\/api\/support\/tickets\//.test(path)) return "support";
-    return ({dashboard:"overview",users:"users",creators:"creators",templates:"content","design-templates":"content",skills:"skills",reports:"reports",withdrawals:"withdrawals",stars:"stars_ledger","star-packs":"star_packs","ai-jobs":"ai_jobs",staff:"team",support:"support","feature-flags":"system","audit-logs":"system"})[path.split("/")[3]] || null;
+    return ({
+      dashboard: "overview",
+      users: "users",
+      creators: "creators",
+      templates: "content",
+      "design-templates": "content",
+      "animation-templates": "content",
+      skills: "skills",
+      reports: "reports",
+      withdrawals: "withdrawals",
+      stars: "stars_ledger",
+      "star-packs": "star_packs",
+      "ai-jobs": "ai_jobs",
+      staff: "team",
+      support: "support",
+      "feature-flags": "system",
+      "audit-logs": "system"
+    })[path.split("/")[3]] || null;
   }
 
   function api(url, options) {
@@ -34,11 +53,11 @@
     if (read) {
       readGeneration[key] = generation;
       if (pendingReads[key]) pendingReads[key].controller.abort();
-      pendingReads[key] = {controller:controller,section:readSection(path)};
+      pendingReads[key] = { controller: controller, section: readSection(path) };
     }
     var timedOut = false;
     var timer = setTimeout(function () { timedOut = true; controller.abort(); }, 20000);
-    return fetch(url, Object.assign({credentials:"same-origin",cache:"no-store"}, options, {signal:controller.signal})).then(function (r) {
+    return fetch(url, Object.assign({ credentials: "same-origin", cache: "no-store" }, options, { signal: controller.signal })).then(function (r) {
       return r.json().then(function (j) {
         if (read && readGeneration[key] !== generation) { var stale = new Error(""); stale.stale = true; throw stale; }
         if (!r.ok || !j.success) throw new Error(j.error || "Request failed (" + r.status + ").");
@@ -55,7 +74,6 @@
   }
 
   function note(message, bad) {
-    // A superseded request is intentionally silent; only the latest result is shown.
     if (!message) return;
     var el = $("#adminNote");
     if (!el) return;
@@ -66,7 +84,11 @@
     if (modalBody) {
       var modalError = modalBody.querySelector(".admin-modal-error");
       if (modalError) modalError.remove();
-      if (bad) { modalError = text("p", message, "admin-load-error admin-modal-error"); modalError.setAttribute("role", "alert"); modalBody.prepend(modalError); }
+      if (bad) {
+        modalError = text("p", message, "admin-load-error admin-modal-error");
+        modalError.setAttribute("role", "alert");
+        modalBody.prepend(modalError);
+      }
     }
     var panel = document.querySelector('[data-admin-panel]:not([hidden])');
     if (panel) {
@@ -74,12 +96,15 @@
       if (previous) previous.remove();
       if (bad) {
         var error = text("p", message + " Use Refresh to retry.", "admin-load-error");
-        error.setAttribute("role", "alert"); panel.prepend(error);
+        error.setAttribute("role", "alert");
+        panel.prepend(error);
         var retry = text("button", "Retry", "admin-btn admin-btn-outline admin-btn-sm");
         retry.type = "button";
         retry.addEventListener("click", function () { refreshTab(panel.getAttribute("data-admin-panel")); });
         error.appendChild(retry);
-        Array.from(panel.querySelectorAll("p, td")).forEach(function(p) { if (/^Loading/i.test(p.textContent.trim())) p.textContent = "Data unavailable."; });
+        Array.from(panel.querySelectorAll("p, td")).forEach(function (p) {
+          if (/^Loading/i.test(p.textContent.trim())) p.textContent = "Data unavailable.";
+        });
       }
     }
     if (message && !bad) {
@@ -130,7 +155,6 @@
     s.innerHTML = ICONS[name] || "";
     return s;
   }
-  /* Small icon + text pair, e.g. star amounts. */
   function iconText(ic, value) {
     var s = document.createElement("span");
     s.className = "admin-stat";
@@ -152,16 +176,46 @@
 
   function hasAny(perms) { return String(perms || "").split(/\s+/).some(has); }
 
+  function setText(sel, v) { var el = $(sel); if (el) el.textContent = v; }
+  function setDot(sel, n) { var el = $(sel); if (!el) return; el.textContent = n > 99 ? "99+" : String(n); el.hidden = n <= 0; }
+  function mcSvg(name) {
+    var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("class", "mc-ic");
+    s.setAttribute("aria-hidden", "true");
+    var u = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    u.setAttribute("href", "#mc-i-" + name);
+    s.appendChild(u);
+    return s;
+  }
+  function mcTime(iso) {
+    if (!iso) return "date unknown";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "date unknown";
+    var mins = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + "m ago";
+    if (mins < 1440) return Math.floor(mins / 60) + "h ago";
+    if (mins < 10080) return Math.floor(mins / 1440) + "d ago";
+    return d.toLocaleDateString();
+  }
+  function actTone(action) {
+    var a = String(action || "").toLowerCase();
+    if (/reject|takedown|refund|dismiss|revok|delet/.test(a)) return "red";
+    if (/approv|publish|paid|resolv|actioned|broadcast/.test(a)) return "green";
+    if (/submit|request|pending|review|flag/.test(a)) return "amber";
+    return "";
+  }
+
   function showAccess(user) {
     var allowed = user && ((user.role === "super_admin") || (Array.isArray(user.permissions) && user.permissions.length > 0));
+    document.body.classList.toggle("admin-console-active", !!allowed);
     if (!allowed) {
-      $("#adminGate").innerHTML = '<span class="pg-kicker">Private Workspace</span><h1>Admin access required</h1><p>This console is restricted to the ShortsCraft Owner, Sub Admins, and appointed Moderators. If you hold an administrative role, please log in with that account.</p><a class="pg-bw" href="/login?next=%2Fadmin">Log in to continue</a>';
+      $("#adminGate").innerHTML = '<div class="admin-gate-badge"><span>Private Workspace</span></div><h1>Admin access required</h1><p>This console is restricted to the ShortsCraft Owner, Sub Admins, and appointed Moderators. If you hold an administrative role, please log in with that account.</p><a class="pg-bw" href="/login?next=%2Fadmin">Log in to continue</a>';
       return false;
     }
     $("#adminGate").hidden = true;
     $("#adminApp").hidden = false;
 
-    // Role badge (top command bar) + rail avatar
     var badge = $("#mcRoleBadge");
     var roleText = "Moderator", roleCls = "mc-owner-badge is-moderator", roleIcon = "eye";
     if (user.role === "super_admin") { roleText = "Owner (Super Admin)"; roleCls = "mc-owner-badge"; roleIcon = "shield"; }
@@ -171,16 +225,18 @@
       badge.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-' + roleIcon + '"/></svg><span id="mcRoleLabel"></span>';
       setText("#mcRoleLabel", roleText.toUpperCase());
     }
+    var legacyBadge = $("#adminRoleBadge");
+    if (legacyBadge) legacyBadge.textContent = roleText;
+
     var av = $("#mcRailAvatar");
     if (av) {
-      var nm = user.display_name || user.handle || "Admin";
+      var nm = user.displayName || user.display_name || user.handle || "Admin";
       av.textContent = String(nm).trim().split(/\s+/).map(function (w) { return w[0]; }).join("").slice(0, 2).toUpperCase() || "A";
       av.title = nm + " \u00B7 " + roleText;
       setText("#mcSideUserName", nm);
       setText("#mcSideUserRole", roleText);
     }
 
-    // Quick team action button only for owner
     var qTeam = $("#adQuickTeamBtn");
     if (qTeam) qTeam.hidden = !isOwner();
 
@@ -190,6 +246,10 @@
   /* ── Modal Manager ─────────────────────────────────────────── */
   function openModal(title, bodyBuilder, onConfirm, confirmText, isDanger) {
     if (!modalsContainer) modalsContainer = $("#adminModalsContainer");
+    if (modalPreviewCleanup) { modalPreviewCleanup(); modalPreviewCleanup = null; }
+    if (modalPageOverflow === null) modalPageOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    all(".mc-main,.mc-side").forEach(function (el) { el.inert = true; });
     modalsContainer.innerHTML = "";
 
     var backdrop = document.createElement("div");
@@ -203,7 +263,12 @@
     box.tabIndex = -1;
     var previousFocus = document.activeElement;
     function close() {
+      if (!backdrop.isConnected) return;
+      if (modalPreviewCleanup) { modalPreviewCleanup(); modalPreviewCleanup = null; }
       backdrop.remove();
+      document.body.style.overflow = modalPageOverflow || "";
+      modalPageOverflow = null;
+      all(".mc-main,.mc-side").forEach(function (el) { el.inert = false; });
       if (previousFocus && previousFocus.isConnected) previousFocus.focus();
     }
     box.addEventListener("keydown", function (event) {
@@ -263,6 +328,25 @@
     });
     modalsContainer.appendChild(backdrop);
     box.focus();
+    return { box: box, body: body, close: close };
+  }
+
+  function profileLink(label, handle) {
+    var raw = String(handle || "").trim().replace(/^@+/, "");
+    if (!raw) return text("span", label, "admin-profile-unavailable");
+    var link = text("a", label, "admin-profile-link");
+    link.href = "/creator?handle=" + encodeURIComponent(raw);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.title = "Open public profile for @" + raw;
+    return link;
+  }
+
+  function reviewButton(label, action, cls) {
+    var button = text("button", label, cls || "admin-btn admin-btn-outline admin-btn-sm admin-preview-trigger");
+    button.type = "button";
+    button.addEventListener("click", action);
+    return button;
   }
 
   function cleanHandle(h) {
@@ -284,14 +368,6 @@
       inputEl.type = "text";
       inputEl.className = "admin-input";
       inputEl.value = defaultValue || "";
-      inputEl.style.width = "100%";
-      inputEl.style.boxSizing = "border-box";
-      inputEl.style.padding = "10px 12px";
-      inputEl.style.border = "1px solid var(--sh-line2)";
-      inputEl.style.borderRadius = "9px";
-      inputEl.style.background = "var(--sh-bg)";
-      inputEl.style.color = "var(--sh-ink)";
-      inputEl.style.fontSize = "14px";
       grp.appendChild(inputEl);
       body.appendChild(grp);
       setTimeout(function () { inputEl.focus(); }, 60);
@@ -311,41 +387,57 @@
     if (!has("overview.view")) return Promise.resolve();
     return api("/api/admin/dashboard").then(function (j) {
       var s = j.stats || {};
-      $("#adUsers").textContent = (s.users || 0).toLocaleString();
-      $("#adNewUsersSub").textContent = "+" + (s.new_users_30d || 0) + " in last 30d";
-      $("#adProUsers").textContent = (s.pro_users || 0).toLocaleString();
-      $("#adCreators").textContent = (s.creators_count || 0).toLocaleString();
-      $("#adRevenueStarPacks").textContent = s.starPackGrossINR == null ? "Unavailable" : "₹" + Number(s.starPackGrossINR).toLocaleString();
-      $("#adStarsPurchasedSub").textContent = (s.stars_purchased_total || 0).toLocaleString() + " Stars bought";
-      $("#adRevenueFee").textContent = s.platformFeeINR == null ? "Unavailable" : "₹" + Number(s.platformFeeINR).toLocaleString();
-      $("#adPendingWithdrawals").textContent = (s.pending_withdrawals || 0).toLocaleString();
+      setText("#adUsers", (s.users || 0).toLocaleString());
+      setText("#adNewUsersSub", "+" + (s.new_users_30d || 0) + " in last 30d");
+      setText("#adNewUsersDelta", "+" + Number(s.new_users_30d || 0));
+      setText("#adProUsers", (s.pro_users || 0).toLocaleString());
+      setText("#adCreators", (s.creators_count || 0).toLocaleString());
+      setText("#adRevenueStarPacks", s.starPackGrossINR == null ? "Unavailable" : "₹" + Number(s.starPackGrossINR).toLocaleString());
+      setText("#adStarsPurchasedSub", (s.stars_purchased_total || 0).toLocaleString() + " Stars bought");
+      setText("#adRevenueFee", s.platformFeeINR == null ? "Unavailable" : "₹" + Number(s.platformFeeINR).toLocaleString());
+      setText("#adPendingWithdrawals", (s.pending_withdrawals || 0).toLocaleString());
       setText("#adPublished", (s.published_templates || 0).toLocaleString());
-      $("#adPendingTemplatesSub").textContent = (s.pending_templates || 0) + " awaiting review";
-      $("#adAiToday").textContent = (s.ai_jobs_today || 0) + " today";
-      $("#adAiFailedSub").textContent = (s.ai_jobs_failed_30d || 0) + " failed (30d)";
-      $("#adTickets").textContent = (s.open_tickets || 0).toLocaleString();
-      $("#adReportsSub").textContent = (s.open_reports || 0) + " open reports";
+      setText("#adPendingTemplates", Number(s.pending_templates || 0).toLocaleString());
+      setText("#adPendingTemplatesSub", (s.pending_templates || 0) + " awaiting review");
+      setText("#adAiToday", (s.ai_jobs_today || 0) + " today");
+      setText("#adAiFailedSub", (s.ai_jobs_failed_30d || 0) + " failed (30d)");
+      setText("#adTickets", (s.open_tickets || 0).toLocaleString());
+      setText("#adReportsSub", (s.open_reports || 0) + " open reports");
 
-      /* Mission Control dashboard extras. */
       var pendT = Number(s.pending_templates || 0);
       var pendW = Number(s.pending_withdrawals || 0);
-      setText("#adPendingTemplates", pendT.toLocaleString());
-      var tplSub = $("#adPendingTemplatesSub");
-      if (tplSub) tplSub.textContent = "of " + (Number(s.published_templates || 0) + pendT).toLocaleString() + " total templates";
-      setDot("#mcDotContent", pendT);
-      setDot("#mcDotMoney", pendW);
+      var openRep = Number(s.open_reports || 0);
+      setDot("#mcCntTemplates", pendT);
+      setDot("#adNavWithdrawalsBadge", pendW);
+      setDot("#mcCntReports", openRep);
       setText("#adQaTemplates", pendT);
       setText("#adQaWithdrawals", pendW);
       setText("#adQaUsers", Number(s.users || 0).toLocaleString());
-      setText("#mcCntWithdrawals", pendW || "");
-      setText("#adNewUsersDelta", "+" + Number(s.new_users_30d || 0));
-      mcSpark("#mcSparkUsers", s.users || 0, "#15803d");
-      mcSpark("#mcSparkCreators", s.creators_count || 0, "#15803d");
-      mcSpark("#mcSparkTemplates", (s.pending_templates || 0) + 1, "#b45309");
-      mcSpark("#mcSparkPayouts", (s.pending_withdrawals || 0) + 1, "#b45309");
+
       loadAttention();
 
-      /* Recent activity feed (Mission Control). */
+      var joins = $("#adminRecentUsersList");
+      if (joins && has("users.view")) {
+        joins.innerHTML = "";
+        (j.recentUsers || []).forEach(function (u) {
+          var row = text("div", "", "admin-recent-user");
+          var identity = text("div", "", "admin-recent-user-identity");
+          identity.appendChild(profileLink(u.displayName || "New member", u.profileHandle));
+          identity.appendChild(text("small", u.profileHandle ? cleanHandle(u.profileHandle) : "Public profile not set up yet"));
+          row.appendChild(identity);
+          row.appendChild(text("small", mcTime(u.createdAt), "pg-fine"));
+          if (!u.profileHandle) {
+            row.appendChild(reviewButton("View account", function () {
+              navigate("users");
+              $("#adminUserSearch").value = u.displayName || "";
+              safeLoad(loadUsers);
+            }));
+          }
+          joins.appendChild(row);
+        });
+        if (!joins.children.length) joins.appendChild(text("p", "No recent joins to show.", "pg-fine"));
+      }
+
       var list = $("#adminRecentActivityList");
       if (list) {
         list.innerHTML = "";
@@ -361,12 +453,17 @@
             var body = document.createElement("div");
             var actor = act.actor_name || cleanHandle(act.actor_handle || "admin");
             var actStr = String(act.action || "").replace(/_/g, " ");
-            var who = document.createElement("span"); who.className = "who"; who.textContent = actor;
+            var who = document.createElement("span");
+            who.className = "who";
+            who.textContent = actor;
             body.appendChild(who);
             body.appendChild(document.createTextNode(" " + actStr + " " + (act.entity_type || "item") + (act.entity_id ? " (#" + String(act.entity_id).slice(0, 8) + ")" : "")));
-            var time = document.createElement("span"); time.className = "ft";
+            var time = document.createElement("span");
+            time.className = "ft";
             time.textContent = mcTime(act.created_at);
-            item.appendChild(dot); item.appendChild(body); item.appendChild(time);
+            item.appendChild(dot);
+            item.appendChild(body);
+            item.appendChild(time);
             list.appendChild(item);
           });
         }
@@ -374,38 +471,56 @@
     });
   }
 
-  /* ── Attention queue (Mission Control dashboard) ─────────────── */
   function renderAttentionCards(cards) {
     var root = $("#mcAttentionList");
     if (!root) return;
     root.innerHTML = "";
     if (!cards.length) {
-      var ok = document.createElement("div"); ok.className = "mc-allclear";
+      var ok = document.createElement("div");
+      ok.className = "mc-allclear";
       ok.appendChild(mcSvg("check"));
       ok.appendChild(document.createTextNode("All clear — nothing needs your attention right now."));
-      root.appendChild(ok); return;
+      root.appendChild(ok);
+      return;
     }
     cards.forEach(function (c) {
-      var item = document.createElement("div"); item.className = "mc-attn-item";
-      var ico = document.createElement("div"); ico.className = "mc-attn-ico" + (c.tone === "ok" ? " ok" : "");
-      ico.appendChild(mcSvg(c.icon)); item.appendChild(ico);
-      var body = document.createElement("div"); body.className = "mc-attn-body";
-      var t = document.createElement("div"); t.className = "t"; t.textContent = c.title; body.appendChild(t);
-      var m = document.createElement("div"); m.className = "m"; m.textContent = c.meta; body.appendChild(m);
+      var item = document.createElement("div");
+      item.className = "mc-attn-item";
+      var ico = document.createElement("div");
+      ico.className = "mc-attn-ico" + (c.tone === "ok" ? " ok" : "");
+      ico.appendChild(mcSvg(c.icon));
+      item.appendChild(ico);
+      var body = document.createElement("div");
+      body.className = "mc-attn-body";
+      var t = document.createElement("div");
+      t.className = "t";
+      t.textContent = c.title;
+      body.appendChild(t);
+      var m = document.createElement("div");
+      m.className = "m";
+      m.textContent = c.meta;
+      body.appendChild(m);
       item.appendChild(body);
-      var acts = document.createElement("div"); acts.className = "mc-attn-actions";
+      var acts = document.createElement("div");
+      acts.className = "mc-attn-actions";
       c.buttons.forEach(function (b) {
-        var btn = document.createElement("button"); btn.type = "button"; btn.className = "mc-btn " + b.cls;
-        btn.appendChild(mcSvg(b.icon)); btn.appendChild(document.createTextNode(b.label));
-        btn.addEventListener("click", b.onClick); acts.appendChild(btn);
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mc-btn " + b.cls;
+        btn.appendChild(mcSvg(b.icon));
+        btn.appendChild(document.createTextNode(b.label));
+        btn.addEventListener("click", b.onClick);
+        acts.appendChild(btn);
       });
-      item.appendChild(acts); root.appendChild(item);
+      item.appendChild(acts);
+      root.appendChild(item);
     });
   }
+
   function loadAttention() {
     var root = $("#mcAttentionList");
     if (!root) return;
-    root.innerHTML = '<p class="pg-fine">Checking what needs you\u2026</p>';
+    root.innerHTML = '<p class="pg-fine">Checking moderation queues\u2026</p>';
     var cards = [];
     var pending = 0;
     function finish() { if (--pending <= 0) renderAttentionCards(cards); }
@@ -413,16 +528,26 @@
       pending++;
       api("/api/admin/templates").then(function (j) {
         (j.templates || []).filter(function (t) { return t.status === "review"; }).slice(0, 3).forEach(function (t) {
-          cards.push({ icon: "film", tone: "",
+          cards.push({
+            icon: "film",
+            tone: "",
             title: "\u201C" + (t.title || "Untitled") + "\u201D is waiting for review",
             meta: (t.authorHandle || t.authorName || "Creator") + " \u00B7 " + (t.category || "Uncategorized") + " \u00B7 submitted " + mcTime(t.createdAt),
             buttons: [
-              { label: "Approve", cls: "mc-btn-green", icon: "check", onClick: function () { templateApprove(t); } },
-              { label: "Reject", cls: "mc-btn-red", icon: "x", onClick: function () { templateReject(t); } },
-              { label: "Archive", cls: "mc-btn-amber", icon: "archive", onClick: function () { templateArchive(t); } }
-            ]});
+              { label: "Review submission", cls: "mc-btn-dark", icon: "eye", onClick: function () { templateOpenView(t); } }
+            ]
+          });
         });
-      }).catch(function () {}).then(finish);
+      }).catch(function (err) {
+        if (!err.stale) {
+          cards.push({
+            icon: "alert",
+            title: "Template review queue unavailable",
+            meta: "Open Templates and refresh before making a decision.",
+            buttons: [{ label: "Open Templates", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("content"); } }]
+          });
+        }
+      }).then(finish);
     }
     if (has("withdrawals.manage")) {
       pending++;
@@ -434,43 +559,73 @@
           var btns;
           if (window.SC_RELEASE && SC_RELEASE.monetizationEnabled) {
             btns = [
-              { label: "Mark paid", cls: "mc-btn-dark", icon: "check", onClick: function () {
-                promptModal("Process Payout", "Enter Bank Reference Number / UTR for this \u20B9" + netAmt + " payout:", "", function (utr) {
-                  return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "mark_paid", utr: utr })
-                  }).then(function () { note("Payout marked as Paid!"); safeLoad(loadOverview); });
-                }, "Confirm Paid", false);
-              } },
-              { label: "Reject", cls: "mc-btn-red", icon: "x", onClick: function () {
-                promptModal("Reject Payout & Refund", "Enter mandatory rejection reason (Stars will be auto-refunded to creator):", "", function (reason) {
-                  return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
-                    method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "reject", reason: reason })
-                  }).then(function () { note("Payout rejected and Stars refunded."); safeLoad(loadOverview); });
-                }, "Reject & Refund", true);
-              } }
+              {
+                label: "Mark paid", cls: "mc-btn-dark", icon: "check", onClick: function () {
+                  promptModal("Process Payout", "Enter Bank Reference Number / UTR for this \u20B9" + netAmt + " payout:", "", function (utr) {
+                    return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
+                      method: "POST", headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "mark_paid", utr: utr })
+                    }).then(function () { note("Payout marked as Paid!"); safeLoad(loadOverview); });
+                  }, "Confirm Paid", false);
+                }
+              },
+              {
+                label: "Reject", cls: "mc-btn-red", icon: "x", onClick: function () {
+                  promptModal("Reject Payout & Refund", "Enter mandatory rejection reason (Stars will be auto-refunded to creator):", "", function (reason) {
+                    return api("/api/admin/withdrawals/" + encodeURIComponent(payoutId) + "/process", {
+                      method: "POST", headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ action: "reject", reason: reason })
+                    }).then(function () { note("Payout rejected and Stars refunded."); safeLoad(loadOverview); });
+                  }, "Reject & Refund", true);
+                }
+              }
             ];
           } else {
             btns = [{ label: "View", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("withdrawals"); } }];
           }
-          cards.push({ icon: "banknote", tone: "",
+          cards.push({
+            icon: "banknote",
+            tone: "",
             title: "Withdrawal #" + String(payoutId).slice(0, 8) + " \u2014 " + starAmt + " stars (\u20B9" + netAmt + ")",
             meta: (w.creatorName || cleanHandle(w.creatorHandle)) + " \u00B7 requested " + mcTime(w.requestedAt),
-            buttons: btns });
+            buttons: btns
+          });
         });
-      }).catch(function () {}).then(finish);
+      }).catch(function (err) {
+        if (!err.stale) {
+          cards.push({
+            icon: "alert",
+            title: "Payout queue unavailable",
+            meta: "Open Withdrawals to retry.",
+            buttons: [{ label: "Open Withdrawals", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("withdrawals"); } }]
+          });
+        }
+      }).then(finish);
     }
     if (has("reports.review")) {
       pending++;
       api("/api/admin/reports?status=open").then(function (j) {
         var n = (j.reports || []).length;
-        setText("#mcCntReports", n || "");
-        if (n > 0) cards.push({ icon: "flag", tone: "ok",
-          title: n + " open report" + (n === 1 ? "" : "s") + " need" + (n === 1 ? "s" : "") + " review",
-          meta: "Safety queue \u00B7 oldest first",
-          buttons: [{ label: "View reports", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("reports"); } }] });
-      }).catch(function () {}).then(finish);
+        setDot("#mcCntReports", n);
+        if (n > 0) {
+          cards.push({
+            icon: "flag",
+            tone: "ok",
+            title: n + " open report" + (n === 1 ? "" : "s") + " need" + (n === 1 ? "s" : "") + " review",
+            meta: "Safety queue \u00B7 oldest first",
+            buttons: [{ label: "View reports", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("reports"); } }]
+          });
+        }
+      }).catch(function (err) {
+        if (!err.stale) {
+          cards.push({
+            icon: "alert",
+            title: "Reports queue unavailable",
+            meta: "Open Reports to retry.",
+            buttons: [{ label: "Open Reports", cls: "mc-btn-ghost", icon: "eye", onClick: function () { navigate("reports"); } }]
+          });
+        }
+      }).then(finish);
     }
     if (!pending) renderAttentionCards(cards);
   }
@@ -481,60 +636,51 @@
     var root = $("#adminUserList");
     root.innerHTML = "";
     if (!users || !users.length) {
-      root.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--sh-ink3);">No accounts found.</td></tr>';
+      root.innerHTML = '<tr><td colspan="8" class="admin-td-center">No accounts found.</td></tr>';
       return;
     }
     users.forEach(function (u) {
       var tr = document.createElement("tr");
 
-      // User info
       var tdUser = document.createElement("td");
       var userBox = document.createElement("div");
       userBox.style.display = "grid";
       userBox.style.gap = "2px";
-      var uNameEl = text("strong", (u.displayName || u.handle || "Account"));
+      var uNameEl = u.profileHandle ? profileLink(u.displayName || u.handle || "Account", u.profileHandle) : reviewButton(u.displayName || "Account", function () { openUserModal(u); }, "admin-record-open");
       if (u.verified) { uNameEl.appendChild(document.createTextNode(" ")); uNameEl.appendChild(adminIcon("check")); }
       userBox.appendChild(uNameEl);
-      userBox.appendChild(text("small", cleanHandle(u.handle || "no-handle") + (u.email ? " · " + u.email : "")));
+      userBox.appendChild(text("small", cleanHandle(u.handle || "no-handle") + (u.email ? " · " + u.email : ""), "pg-fine"));
       tdUser.appendChild(userBox);
       tr.appendChild(tdUser);
 
-      // Plan
       var tdPlan = document.createElement("td");
       var planPill = text("span", (u.plan || "free").toUpperCase(), "admin-pill" + (u.plan && u.plan !== "free" ? " is-pro" : ""));
       tdPlan.appendChild(planPill);
       tr.appendChild(tdPlan);
 
-      // Role
       var tdRole = document.createElement("td");
       var rolePill = text("span", u.role === "super_admin" ? "Owner" : (u.role === "sub_admin" || u.role === "admin" ? "Sub Admin" : (u.role === "moderator" ? "Moderator" : (u.role === "banned" ? "Banned" : "Member"))), "admin-pill" + (u.role === "banned" ? " is-banned" : ""));
       tdRole.appendChild(rolePill);
       tr.appendChild(tdRole);
 
-      // Credits
       var tdCredits = document.createElement("td");
-      tdCredits.innerHTML = "";
       tdCredits.appendChild(iconText("bolt", (u.credits ?? "Unavailable")));
       tr.appendChild(tdCredits);
 
-      // Stars
       var tdStars = document.createElement("td");
       var starsWrap = text("span", "", "pg-fine");
       starsWrap.appendChild(iconText("star", (u.totalStars || 0) + " (Earned: " + (u.earnedStars || 0) + " / Out: " + (u.withdrawnStars || 0) + ")"));
       tdStars.appendChild(starsWrap);
       tr.appendChild(tdStars);
 
-      // Templates
       var tdTemplates = document.createElement("td");
       tdTemplates.textContent = u.templateCount || 0;
       tr.appendChild(tdTemplates);
 
-      // Joined
       var tdJoined = document.createElement("td");
       tdJoined.textContent = u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—";
       tr.appendChild(tdJoined);
 
-      // Actions
       var tdActions = document.createElement("td");
       tdActions.style.textAlign = "right";
       var btn = text("button", "Manage", "admin-btn admin-btn-outline admin-btn-sm");
@@ -549,7 +695,7 @@
 
   function loadUsers() {
     var root = $("#adminUserList");
-    root.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">Loading accounts…</td></tr>';
+    root.innerHTML = '<tr><td colspan="8" class="admin-td-center">Loading accounts…</td></tr>';
     var q = ($("#adminUserSearch") || {}).value || "";
     var role = ($("#adminUserRoleFilter") || {}).value || "";
     var plan = ($("#adminUserPlanFilter") || {}).value || "";
@@ -563,27 +709,33 @@
   function openUserModal(u) {
     openModal("Manage Account: " + cleanHandle(u.handle || "user"), function (body) {
       var state = {};
+      if (u.profileHandle) body.appendChild(profileLink("View public profile ↗", u.profileHandle));
+      else body.appendChild(text("p", "This account has not set up a public profile handle yet.", "pg-fine"));
 
       var infoCard = document.createElement("div");
       infoCard.style.padding = "14px";
       infoCard.style.borderRadius = "12px";
-      infoCard.style.background = "var(--sh-bg)";
+      infoCard.style.background = "var(--ad-surface-2)";
+      infoCard.style.border = "1px solid var(--ad-border)";
       infoCard.style.display = "grid";
       infoCard.style.gridTemplateColumns = "repeat(auto-fit, minmax(130px, 1fr))";
       infoCard.style.gap = "10px";
-      [["Name",u.displayName || "—"],["Plan",u.plan || "Free"],["Credits",u.credits ?? "—"],["Withdrawable Stars",u.withdrawableStars ?? "—"]].forEach(function(pair) {
-        var item = document.createElement("div"); item.appendChild(text("small",pair[0])); item.appendChild(document.createElement("br")); item.appendChild(text("b",pair[1])); infoCard.appendChild(item);
+      [["Name", u.displayName || "—"], ["Plan", u.plan || "Free"], ["Credits", u.credits ?? "—"], ["Withdrawable Stars", u.withdrawableStars ?? "—"]].forEach(function (pair) {
+        var item = document.createElement("div");
+        item.appendChild(text("small", pair[0]));
+        item.appendChild(document.createElement("br"));
+        item.appendChild(text("b", pair[1]));
+        infoCard.appendChild(item);
       });
       body.appendChild(infoCard);
 
-      // Section: Role Assignment (Owner Only)
       if (isOwner() && u.role !== "super_admin") {
         var roleSec = document.createElement("div");
-        roleSec.style.border = "1px solid var(--sh-line)";
+        roleSec.style.border = "1px solid var(--ad-border)";
         roleSec.style.borderRadius = "12px";
         roleSec.style.padding = "14px";
         roleSec.appendChild(text("h4", "Staff Role & Access (Owner Only)", "pg-fine"));
-        
+
         var roleRow = document.createElement("div");
         roleRow.style.display = "grid";
         roleRow.style.gridTemplateColumns = "repeat(auto-fit, minmax(130px, 1fr))";
@@ -625,9 +777,8 @@
         body.appendChild(roleSec);
       }
 
-      // Section: Moderation Actions
       var modSec = document.createElement("div");
-      modSec.style.border = "1px solid var(--sh-line)";
+      modSec.style.border = "1px solid var(--ad-border)";
       modSec.style.borderRadius = "12px";
       modSec.style.padding = "14px";
       modSec.appendChild(text("h4", "Safety & Moderation", "pg-fine"));
@@ -688,10 +839,9 @@
       modSec.hidden = u.role === "super_admin" || (!has("users.manage") && !has("creators.verify"));
       body.appendChild(modSec);
 
-      // Section: Balance Adjustment
       var balSec = document.createElement("div");
       balSec.hidden = !has("users.balance_adjust");
-      balSec.style.border = "1px solid var(--sh-line)";
+      balSec.style.border = "1px solid var(--ad-border)";
       balSec.style.borderRadius = "12px";
       balSec.style.padding = "14px";
       balSec.appendChild(text("h4", "Manual Balance Adjustment", "pg-fine"));
@@ -762,13 +912,13 @@
   /* ── 3. Creators ───────────────────────────────────────────── */
   function loadCreators() {
     var root = $("#adminCreatorList");
-    root.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Loading creators…</td></tr>';
+    root.innerHTML = '<tr><td colspan="7" class="admin-td-center">Loading creators…</td></tr>';
     var q = ($("#adminCreatorSearch") || {}).value || "";
     return api("/api/admin/creators?q=" + encodeURIComponent(q)).then(function (j) {
       root.innerHTML = "";
       var creators = j.creators || [];
       if (!creators.length) {
-        root.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--sh-ink3);">No creators found.</td></tr>';
+        root.innerHTML = '<tr><td colspan="7" class="admin-td-center">No creators found.</td></tr>';
         return;
       }
       creators.forEach(function (c) {
@@ -777,7 +927,7 @@
         var cName = c.displayName || cleanHandle(c.handle) || "Creator";
         var cHandle = cleanHandle(c.handle) || (c.displayName ? "@" + c.displayName.toLowerCase().replace(/\s+/g, "") : "@creator");
         var tdCreator = document.createElement("td");
-        tdCreator.appendChild(text("strong", cName));
+        tdCreator.appendChild(profileLink(cName, c.profileHandle));
         tdCreator.appendChild(document.createElement("br"));
         tdCreator.appendChild(text("small", cHandle, "pg-fine"));
         tr.appendChild(tdCreator);
@@ -795,12 +945,10 @@
         tr.appendChild(tdPub);
 
         var tdEarned = document.createElement("td");
-        tdEarned.innerHTML = "";
         tdEarned.appendChild(iconText("star", (c.starsEarned || 0)));
         tr.appendChild(tdEarned);
 
         var tdWithdrawn = document.createElement("td");
-        tdWithdrawn.innerHTML = "";
         tdWithdrawn.appendChild(iconText("star", (c.withdrawnStars || 0)));
         tr.appendChild(tdWithdrawn);
 
@@ -830,51 +978,7 @@
     });
   }
 
-  /* ── Mission Control helpers ─────────────────────────────────── */
-  function setText(sel, v) { var el = $(sel); if (el) el.textContent = v; }
-  function setDot(sel, n) { var el = $(sel); if (!el) return; el.textContent = n > 99 ? "99+" : String(n); el.hidden = n <= 0; }
-  function mcSvg(name) {
-    var s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    s.setAttribute("class", "mc-ic"); s.setAttribute("aria-hidden", "true");
-    var u = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    u.setAttribute("href", "#mc-i-" + name); s.appendChild(u); return s;
-  }
-  function mcIconBtn(tip, icon, cls, onClick) {
-    var b = document.createElement("button");
-    b.type = "button"; b.className = "mc-icon-btn" + (cls ? " " + cls : "");
-    b.setAttribute("data-tip", tip); b.setAttribute("aria-label", tip);
-    b.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-' + icon + '"/></svg>';
-    b.addEventListener("click", onClick);
-    return b;
-  }
-  function mcTime(iso) {
-    if (!iso) return "date unknown";
-    var d = new Date(iso); if (isNaN(d.getTime())) return "date unknown";
-    var mins = Math.floor((Date.now() - d.getTime()) / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return mins + "m ago";
-    if (mins < 1440) return Math.floor(mins / 60) + "h ago";
-    if (mins < 10080) return Math.floor(mins / 1440) + "d ago";
-    return d.toLocaleDateString();
-  }
-  function mcSpark(sel, seed, color) {
-    var svg = $(sel); if (!svg) return;
-    var poly = svg.querySelector("polyline"); if (!poly) return;
-    var h = 0; var s = String(seed);
-    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    var pts = [];
-    for (var k = 0; k < 8; k++) { h = (h * 1103515245 + 12345) >>> 0; pts.push((2 + k * 12) + "," + (5 + (h % 200) / 10).toFixed(1)); }
-    poly.setAttribute("points", pts.join(" "));
-    svg.setAttribute("stroke", color);
-  }
-  function actTone(action) {
-    var a = String(action || "").toLowerCase();
-    if (/reject|takedown|refund|dismiss|revok|delet/.test(a)) return "red";
-    if (/approv|publish|paid|resolv|actioned|broadcast/.test(a)) return "green";
-    if (/submit|request|pending|review|flag/.test(a)) return "amber";
-    return "";
-  }
-  /* Shared template moderation actions (table + attention queue use these). */
+  /* ── 4. Templates Moderation ───────────────────────────────── */
   function templateSetStatus(t, status, extraBody, successMsg) {
     return api("/api/admin/templates/" + encodeURIComponent(t.id), {
       method: "PATCH", headers: { "Content-Type": "application/json" },
@@ -893,27 +997,27 @@
     }, function () { return templateSetStatus(t, "archived", null, "Template archived."); }, "Archive Template");
   }
   function templateOpenView(t) {
-    if (t.sourceFormat === "design_template") { openDesignPreview(t); return; }
-    window.open("/template?id=" + encodeURIComponent(t.templateId || t.id) + "&comm=1&commId=" + encodeURIComponent(t.id), "_blank", "noopener");
+    openContentPreview(t);
   }
-  /* Bulk selection state for the templates table. */
+
   var mcTplSelected = {};
   function mcUpdateBulkbar() {
     var n = Object.keys(mcTplSelected).length;
-    var bar = $("#mcBulkbar"); if (!bar) return;
+    var bar = $("#mcBulkbar");
+    if (!bar) return;
     bar.classList.toggle("show", n > 0);
     setText("#mcBulkCount", n);
   }
   function mcClearTplSelection() {
     mcTplSelected = {};
     all(".mc-tpl-sel").forEach(function (cb) { cb.checked = false; });
-    var sa = $("#mcTplSelAll"); if (sa) sa.checked = false;
     mcUpdateBulkbar();
   }
   function mcBulkSetStatus(status, reason) {
     var ids = Object.keys(mcTplSelected);
     if (!ids.length) return Promise.resolve();
-    var chain = Promise.resolve(); var okN = 0; var failN = 0;
+    var chain = Promise.resolve();
+    var okN = 0, failN = 0;
     ids.forEach(function (id) {
       chain = chain.then(function () {
         var body = { status: status };
@@ -926,11 +1030,11 @@
     return chain.then(function () {
       mcClearTplSelection();
       if (okN) note(okN + " template(s) " + status + (failN ? " (" + failN + " failed)" : "") + ".", failN > 0);
-      safeLoad(loadTemplates); safeLoad(loadOverview);
+      safeLoad(loadTemplates);
+      safeLoad(loadOverview);
     });
   }
 
-  /* ── 4. Templates Moderation ───────────────────────────────── */
   function loadTemplates() {
     var root = $("#adminTemplateList");
     root.innerHTML = "<p>Loading templates…</p>";
@@ -940,131 +1044,318 @@
       var categorySelect = $("#adminTemplateCategory");
       var category = categorySelect.value;
       var type = $("#adminTemplateType").value;
-      var categories = Array.from(new Set((j.templates || []).map(function(t) {return t.category;}).filter(Boolean))).sort();
+      var categories = Array.from(new Set((j.templates || []).map(function (t) { return t.category; }).filter(Boolean))).sort();
       categorySelect.innerHTML = '<option value="all">All categories</option>';
-      categories.forEach(function(cat) {var opt=text("option",cat);opt.value=cat;categorySelect.appendChild(opt);});
-      categorySelect.value = categories.indexOf(category)!==-1 ? category : "all";
+      categories.forEach(function (cat) { var opt = text("option", cat); opt.value = cat; categorySelect.appendChild(opt); });
+      categorySelect.value = categories.indexOf(category) !== -1 ? category : "all";
+
       var templates = (j.templates || []).filter(function (t) {
-        return (filter === "all" || t.status === filter) && (categorySelect.value === "all" || t.category === categorySelect.value) && (type === "all" || (type === "design") === (t.sourceFormat === "design_template"));
+        return (filter === "all" || t.status === filter) &&
+          (categorySelect.value === "all" || t.category === categorySelect.value) &&
+          (type === "all" || (type === "design") === (t.sourceFormat === "design_template"));
       });
+
+      var pend = (j.templates || []).filter(function (x) { return x.status === "review"; }).length;
+      setText("#mcTplHeadSub", templates.length + " matching templates \u00B7 " + pend + " awaiting review");
+      setDot("#mcCntTemplates", pend);
+
       if (!templates.length) {
         root.appendChild(text("p", "No templates match this filter.", "pg-fine"));
         return;
       }
-      /* Table-first moderation view (Mission Control). */
+
       mcTplSelected = {};
-      var card = document.createElement("div");
-      card.className = "mc-table-card";
-      var twrap = document.createElement("div");
-      twrap.className = "mc-table-wrap";
-      var table = document.createElement("table");
-      table.className = "mc-t";
-      var thead = document.createElement("thead");
-      var thr = document.createElement("tr");
-      thr.innerHTML = '<th style="width:40px"><input type="checkbox" id="mcTplSelAll" aria-label="Select all templates"></th><th>Template</th><th>Creator</th><th>Category</th><th>Status</th><th>Uploaded</th><th style="text-align:right">Actions</th>';
-      thead.appendChild(thr); table.appendChild(thead);
-      var tbody = document.createElement("tbody");
-      var STATUS_LABEL = { review: "Pending", published: "Published", rejected: "Rejected", archived: "Archived" };
+      mcUpdateBulkbar();
+
+      var STATUS_LABEL = { review: "Pending Review", published: "Published", rejected: "Rejected", archived: "Archived" };
       function thumbVariant(id) {
-        var h = 0; var s = String(id);
+        var h = 0, s = String(id);
         for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 4;
         return h ? "mc-tpl-thumb v" + (h + 1) : "mc-tpl-thumb";
       }
+
       templates.forEach(function (t) {
-        var tr = document.createElement("tr");
-        tr.setAttribute("data-title", String(t.title || "").toLowerCase());
-        tr.setAttribute("data-creator", String(t.authorHandle || t.authorName || "").toLowerCase());
-        var tdSel = document.createElement("td");
+        var row = document.createElement("article");
+        row.className = "admin-row admin-tpl-card";
+        row.setAttribute("data-title", String(t.title || "").toLowerCase());
+        row.setAttribute("data-creator", String(t.authorHandle || t.authorName || "").toLowerCase());
+
+        var left = document.createElement("div");
+        left.className = "admin-tpl-card-left";
+
         var cb = document.createElement("input");
-        cb.type = "checkbox"; cb.className = "mc-tpl-sel";
+        cb.type = "checkbox";
+        cb.className = "mc-tpl-sel";
         cb.setAttribute("aria-label", "Select " + (t.title || "template"));
         cb.addEventListener("change", function () {
           if (cb.checked) mcTplSelected[t.id] = t; else delete mcTplSelected[t.id];
           mcUpdateBulkbar();
         });
-        tdSel.appendChild(cb); tr.appendChild(tdSel);
-        var tdT = document.createElement("td");
-        var cell = document.createElement("div"); cell.className = "mc-tpl-cell";
-        var thumb = document.createElement("span"); thumb.className = thumbVariant(t.id);
+        left.appendChild(cb);
+
+        var thumb = reviewButton("", function () { templateOpenView(t); }, thumbVariant(t.id));
+        thumb.setAttribute("aria-label", "Preview " + (t.title || "Untitled"));
         thumb.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-play"/></svg>';
-        cell.appendChild(thumb);
-        var idwrap = document.createElement("span");
-        var nm = document.createElement("span"); nm.className = "mc-tpl-name"; nm.textContent = t.title || "Untitled";
+        left.appendChild(thumb);
+
+        var main = document.createElement("div");
+        main.className = "admin-row-main";
+
+        var titleLine = document.createElement("div");
+        titleLine.className = "admin-tpl-meta-line";
+        var nm = reviewButton(t.title || "Untitled", function () { templateOpenView(t); }, "admin-record-open");
+        titleLine.appendChild(nm);
+
+        var statusPill = text("span", STATUS_LABEL[t.status] || t.status || "Pending", "admin-pill is-" + (t.status || "review"));
+        titleLine.appendChild(statusPill);
+
+        var kindPill = text("span", t.sourceFormat === "design_template" ? "Design" : "Animation", "admin-pill");
+        titleLine.appendChild(kindPill);
+
         if (t.isFeatured) {
-          var feat = document.createElement("span"); feat.className = "mc-pill published"; feat.style.marginLeft = "8px";
-          feat.textContent = "Featured"; nm.appendChild(feat);
+          titleLine.appendChild(text("span", "Featured", "admin-pill is-pro"));
         }
-        idwrap.appendChild(nm); idwrap.appendChild(document.createElement("br"));
-        var tid = document.createElement("span"); tid.className = "mc-tpl-id";
-        var sid = String(t.id); tid.textContent = sid.length > 16 ? sid.slice(0, 16) + "\u2026" : sid;
-        idwrap.appendChild(tid); cell.appendChild(idwrap); tdT.appendChild(cell); tr.appendChild(tdT);
-        var tdC = document.createElement("td"); tdC.textContent = t.authorHandle || t.authorName || "Creator"; tr.appendChild(tdC);
-        var tdCat = document.createElement("td"); tdCat.textContent = t.category || "Uncategorized"; tr.appendChild(tdCat);
-        var tdS = document.createElement("td");
-        var pill = document.createElement("span"); pill.className = "mc-pill " + (t.status || "review");
-        pill.textContent = STATUS_LABEL[t.status] || t.status || "Unknown";
-        tdS.appendChild(pill); tr.appendChild(tdS);
-        var tdU = document.createElement("td"); tdU.className = "mc-mono";
-        tdU.textContent = t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "\u2014"; tr.appendChild(tdU);
-        var tdA = document.createElement("td");
-        var acts = document.createElement("div"); acts.className = "mc-row-actions";
-        acts.appendChild(mcIconBtn("View", "eye", "", function () { templateOpenView(t); }));
-        if (t.status !== "published") acts.appendChild(mcIconBtn("Approve", "check", "ok", function () { templateApprove(t); }));
-        if (t.status !== "rejected") acts.appendChild(mcIconBtn("Reject", "x", "no", function () { templateReject(t); }));
-        if (t.status !== "archived") acts.appendChild(mcIconBtn("Archive", "archive", "", function () { templateArchive(t); }));
-        tdA.appendChild(acts); tr.appendChild(tdA);
-        tbody.appendChild(tr);
+        main.appendChild(titleLine);
+
+        var metaLine = document.createElement("div");
+        metaLine.className = "admin-tpl-meta-line";
+        metaLine.appendChild(profileLink(t.authorHandle || t.authorName || "Creator", t.profileHandle));
+        metaLine.appendChild(text("span", "· " + (t.category || "Uncategorized")));
+        if (t.createdAt) metaLine.appendChild(text("span", "· " + new Date(t.createdAt).toLocaleDateString()));
+        main.appendChild(metaLine);
+
+        if (t.reviewNote) {
+          main.appendChild(text("small", "Review note: " + t.reviewNote, "pg-formnote"));
+        }
+
+        left.appendChild(main);
+        row.appendChild(left);
+
+        var controls = document.createElement("div");
+        controls.className = "admin-row-controls";
+
+        var previewBtn = reviewButton(t.sourceFormat === "design_template" ? "Preview design" : "Preview & review", function () {
+          templateOpenView(t);
+        });
+        if (t.sourceFormat === "design_template") {
+          previewBtn.setAttribute("data-admin-design-preview", t.id);
+        }
+        controls.appendChild(previewBtn);
+
+        if (t.status !== "rejected") {
+          var rejBtn = text("button", "Reject", "admin-btn admin-btn-danger admin-btn-sm");
+          rejBtn.type = "button";
+          rejBtn.addEventListener("click", function () { templateReject(t); });
+          controls.appendChild(rejBtn);
+        }
+        if (t.status !== "archived") {
+          var archBtn = text("button", "Archive", "admin-btn admin-btn-outline admin-btn-sm");
+          archBtn.type = "button";
+          archBtn.addEventListener("click", function () { templateArchive(t); });
+          controls.appendChild(archBtn);
+        }
+
+        row.appendChild(controls);
+        root.appendChild(row);
       });
-      table.appendChild(tbody); twrap.appendChild(table); card.appendChild(twrap);
-      var foot = document.createElement("div"); foot.className = "mc-table-foot";
-      var showing = document.createElement("span"); showing.id = "mcTplShowing";
-      showing.textContent = "Showing " + templates.length + " of " + templates.length + " templates";
-      var syncNote = document.createElement("span"); syncNote.className = "mc-mono";
-      syncNote.textContent = "Statuses sync with the public Designs page";
-      foot.appendChild(showing); foot.appendChild(syncNote); card.appendChild(foot);
-      root.appendChild(card);
-      mcUpdateBulkbar();
-      var sa = document.getElementById("mcTplSelAll");
-      if (sa) sa.addEventListener("change", function () {
-        mcTplSelected = {};
-        all(".mc-tpl-sel").forEach(function (c) { c.checked = sa.checked; });
-        if (sa.checked) templates.forEach(function (t) { mcTplSelected[t.id] = t; });
-        mcUpdateBulkbar();
-      });
-      var pend = templates.filter(function (x) { return x.status === "review"; }).length;
-      setText("#mcTplHeadSub", templates.length + " in moderation \u00B7 " + pend + " awaiting review");
-      setText("#mcCntTemplates", templates.length || "");
     });
   }
 
-  function openDesignPreview(template) {
+  function openContentPreview(template) {
     if (!has("templates.moderate")) return;
-    var bodyRoot;
-    openModal("Design preview: " + template.title, function (body) {
-      bodyRoot = body;
-      body.appendChild(text("p", "Loading the protected design preview…", "pg-fine"));
+    var isDesign = template.sourceFormat === "design_template";
+    var modal = openModal((isDesign ? "Design" : "Animation") + " review: " + template.title, function (body) {
+      body.appendChild(text("p", "Loading the submitted content…", "pg-fine"));
     });
-    api("/api/admin/design-templates/" + encodeURIComponent(template.id) + "/preview").then(function (j) {
+    modal.box.classList.add("admin-review-modal");
+    var bodyRoot = modal.body;
+    bodyRoot.tabIndex = 0;
+    var endpoint = isDesign ? "design-templates" : "animation-templates";
+    api("/api/admin/" + endpoint + "/" + encodeURIComponent(template.id) + "/preview").then(function (j) {
       if (!bodyRoot.isConnected) return;
-      var design = j.template;
-      if (!design || !design.canvas || (!design.previewUrl && !(design.elements || []).length) || typeof window.SCDesignPreview !== "function") throw new Error("This design does not have a usable preview.");
+      var content = j.template;
+      if (!content) throw new Error("This submission has no preview data.");
       bodyRoot.innerHTML = "";
-      bodyRoot.appendChild(text("p", "Status: " + String(design.status || "unknown") + " · Read-only moderation preview", "pg-fine"));
-      var stage = document.createElement("div");
-      stage.className = "admin-design-preview";
-      stage.innerHTML = window.SCDesignPreview(design);
-      var image = stage.querySelector("img");
-      if (image) image.addEventListener("error", function () { stage.innerHTML = window.SCDesignPreview(Object.assign({}, design, {previewUrl:null,preview_url:null})); }, {once:true});
-      bodyRoot.appendChild(stage);
+      var layout = text("div", "", "admin-preview-layout");
+      var media = text("div", "", "admin-preview-media");
+      var stage = text("div", "", "admin-preview-stage" + (isDesign ? " admin-design-preview" : ""));
+      var status = text("p", "Loading preview…", "admin-preview-status pg-fine");
+      status.setAttribute("role", "status");
+      media.append(stage, status);
+      var enlarge = reviewButton("Enlarge preview", function () {
+        var expanded = stage.classList.toggle("admin-preview-expanded");
+        enlarge.textContent = expanded ? "Fit preview" : "Enlarge preview";
+        enlarge.setAttribute("aria-pressed", String(expanded));
+      });
+      enlarge.setAttribute("aria-pressed", "false");
+      media.appendChild(enlarge);
+      var details = text("div", "", "admin-preview-details");
+      details.appendChild(text("h3", content.title || template.title));
+      details.appendChild(profileLink(template.authorName || template.authorHandle || "Creator", template.profileHandle));
+      var meta = text("dl", "", "admin-preview-meta");
+      [["Type", isDesign ? "Design" : "Animation"], ["Status", content.status || template.status], ["Category", template.category || "Uncategorized"], ["Submitted", template.createdAt ? new Date(template.createdAt).toLocaleString() : "Unknown"]].forEach(function (pair) {
+        meta.append(text("dt", pair[0]), text("dd", pair[1]));
+      });
+      if (isDesign && content.canvas) meta.append(text("dt", "Canvas"), text("dd", content.canvas.width + " × " + content.canvas.height));
+      if (!isDesign) meta.append(text("dt", "Timing"), text("dd", (Number(content.dur) / 1000) + " seconds · " + content.aspect));
+      details.appendChild(meta);
+      if (content.description) details.appendChild(text("p", content.description, "pg-fine"));
+      if (template.reviewNote) details.appendChild(text("p", "Review note: " + template.reviewNote, "pg-fine"));
+      details.appendChild(text("p", "Check the complete preview and creator before making a decision. Opening this preview does not publish or edit it.", "pg-fine"));
+      var actions = text("div", "", "admin-review-actions");
+      var approve;
+      if ((content.status || template.status) !== "published") {
+        approve = reviewButton("Approve & publish", function () {
+          approve.disabled = true;
+          templateApprove(template).then(modal.close).catch(function (err) { approve.disabled = false; note(err.message, true); });
+        }, "admin-btn admin-btn-success");
+        approve.disabled = true;
+        actions.appendChild(approve);
+      }
+      if ((content.status || template.status) !== "rejected") actions.appendChild(reviewButton("Reject with reason", function () { templateReject(template); }, "admin-btn admin-btn-danger"));
+      if ((content.status || template.status) !== "archived") actions.appendChild(reviewButton("Archive", function () { templateArchive(template); }));
+      details.appendChild(actions);
+      layout.append(media, details);
+      bodyRoot.appendChild(layout);
+      function ready() {
+        if (!bodyRoot.isConnected) return;
+        status.textContent = "Read-only preview loaded. Inspect the visual result before approval.";
+        status.classList.remove("admin-preview-error");
+        status.setAttribute("role", "status");
+        if (approve) approve.disabled = false;
+      }
+      function failed(message) {
+        status.textContent = message;
+        status.classList.add("admin-preview-error");
+        status.setAttribute("role", "alert");
+        if (approve) approve.disabled = true;
+      }
+      if (isDesign) {
+        if (!content.canvas || (!content.previewUrl && !(content.elements || []).length) || typeof window.SCDesignPreview !== "function") throw new Error("This design does not have a usable preview.");
+        stage.style.aspectRatio = Math.max(1, Number(content.canvas.width)) + "/" + Math.max(1, Number(content.canvas.height));
+        stage.style.setProperty("--preview-ratio", Math.max(1, Number(content.canvas.width)) / Math.max(1, Number(content.canvas.height)));
+        stage.innerHTML = window.SCDesignPreview(content);
+        var image = stage.querySelector("img");
+        if (image) {
+          image.loading = "eager";
+          image.addEventListener("load", ready, { once: true });
+          image.addEventListener("error", function () { failed("The submitted preview image could not be loaded. Do not approve until it can be inspected."); }, { once: true });
+          if (image.complete && image.naturalWidth > 0) ready();
+        } else {
+          var assets = Array.from(stage.querySelectorAll("image"));
+          if (!assets.length) ready();
+          else {
+            Promise.all(assets.map(function (asset) {
+              return new Promise(function (resolve, reject) {
+                var probe = new Image(); probe.onload = resolve; probe.onerror = reject;
+                probe.src = asset.getAttribute("href") || "";
+              });
+            })).then(ready, function () { failed("A design layer asset is unavailable. Preview is incomplete."); });
+          }
+        }
+      } else {
+        if (!window.SC_TPL2) throw new Error("The animation preview renderer is unavailable.");
+        if (window.SC_TPL2.aspects().indexOf(content.aspect) === -1 || !Number.isFinite(Number(content.dur)) || Number(content.dur) <= 0) throw new Error("The submitted animation has invalid dimensions or timing. It cannot be reviewed reliably.");
+        var html = window.SC_TPL2.build(content.tpl, { props: content.props || {}, lines: content.lines || [], accent: content.accent, font: content.font, dur: content.dur, aspect: content.aspect });
+        if (!html) throw new Error("This animation format has no supported preview renderer. Nothing was substituted.");
+        stage.style.aspectRatio = (content.aspect || "9:16").replace(":", "/");
+        var sides = (content.aspect || "9:16").split(":").map(Number);
+        stage.style.setProperty("--preview-ratio", sides[0] / sides[1]);
+        var frame = document.createElement("iframe");
+        frame.className = "admin-preview-frame";
+        frame.setAttribute("sandbox", "allow-scripts");
+        frame.title = "Submitted animation: " + (content.title || template.title);
+        var token;
+        var timeout;
+        function receivePreview(event) {
+          if (event.source !== frame.contentWindow || !event.data || event.data.type !== "sc-admin-preview" || event.data.token !== token) return;
+          clearTimeout(timeout);
+          if (event.data.ok === true) ready();
+          else failed("The animation could not render its submitted assets. Do not approve this incomplete preview.");
+        }
+        window.addEventListener("message", receivePreview);
+        modalPreviewCleanup = function () { clearTimeout(timeout); window.removeEventListener("message", receivePreview); };
+        function previewDocument() {
+          var bridge = '<script>(function(){function send(ok){parent.postMessage({type:"sc-admin-preview",token:' + JSON.stringify(token) + ',ok:ok},"*");}function loaded(image){return new Promise(function(resolve,reject){image.loading="eager";if(image.complete){image.naturalWidth?resolve():reject();}else{image.addEventListener("load",resolve,{once:true});image.addEventListener("error",reject,{once:true});}});}Promise.all([Promise.resolve(window.__scReady),Promise.all(Array.from(document.images).map(loaded)),document.fonts?document.fonts.ready:Promise.resolve()]).then(function(){requestAnimationFrame(function(){var bad=document.querySelector(".scl.is-missing"),stage=document.querySelector(".cv");send(!!stage&&!bad' + (content.tpl === "lottie" ? '&&!!document.querySelector("#scLottie svg")' : '') + ');});},function(){send(false);});})();<\/script>';
+          return html.replace(/<\/body>/i, bridge + "</body>");
+        }
+        function play() {
+          clearTimeout(timeout);
+          token = Array.from(crypto.getRandomValues(new Uint32Array(4))).join("-");
+          status.textContent = "Loading submitted animation…";
+          status.classList.remove("admin-preview-error");
+          if (approve) approve.disabled = true;
+          timeout = setTimeout(function () { failed("The animation preview timed out. Replay to retry; approval is disabled."); }, 20000);
+          frame.srcdoc = previewDocument();
+        }
+        play();
+        stage.appendChild(frame);
+        details.insertBefore(reviewButton("Replay animation", play), actions);
+      }
     }).catch(function (err) {
       if (!bodyRoot.isConnected || err.stale) return;
       bodyRoot.innerHTML = "";
-      var error = text("p", err.message || "The protected preview could not be loaded.", "admin-load-error"); error.setAttribute("role", "alert"); bodyRoot.appendChild(error);
-      var retry = text("button", "Retry preview", "admin-btn admin-btn-outline"); retry.type = "button"; retry.addEventListener("click", function () { openDesignPreview(template); }); bodyRoot.appendChild(retry);
+      var error = text("p", err.message || "The protected preview could not be loaded.", "admin-load-error");
+      error.setAttribute("role", "alert");
+      bodyRoot.appendChild(error);
+      bodyRoot.appendChild(text("p", "Preview unavailable. This submission has not been approved or changed.", "pg-fine"));
+      bodyRoot.appendChild(reviewButton("Retry preview", function () { openContentPreview(template); }));
+      if (template.status !== "rejected") bodyRoot.appendChild(reviewButton("Reject with reason", function () { templateReject(template); }, "admin-btn admin-btn-danger"));
     });
   }
 
   /* ── 5. Creator Tutorials ──────────────────────────────────── */
+  function openTutorialPreview(item) {
+    var url;
+    try { url = new URL(item.url); } catch (_) { note("This tutorial has an invalid source link.", true); return; }
+    if (!/^https?:$/.test(url.protocol)) { note("This tutorial has an unsupported source link.", true); return; }
+    var modal = openModal("Tutorial review: " + item.title, function (body) {
+      var stage = text("div", "", "admin-preview-stage");
+      stage.style.aspectRatio = "16/9";
+      var key = "", host = url.hostname.replace(/^www\./, "");
+      if (host === "youtu.be") key = url.pathname.split("/")[1];
+      if (["youtube.com", "m.youtube.com"].indexOf(host) !== -1) key = url.searchParams.get("v") || url.pathname.split("/")[2];
+      if (/^[A-Za-z0-9_-]{11}$/.test(key)) {
+        var frame = document.createElement("iframe");
+        frame.className = "admin-preview-frame";
+        frame.title = "Watch tutorial: " + item.title;
+        frame.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(key);
+        frame.allow = "fullscreen";
+        frame.setAttribute("allowfullscreen", "");
+        frame.referrerPolicy = "strict-origin-when-cross-origin";
+        stage.appendChild(frame);
+        body.appendChild(stage);
+      } else {
+        body.appendChild(text("p", "This platform does not provide an embedded preview here. Open the original video to review it.", "pg-fine"));
+      }
+      var source = text("a", "Open original video ↗", "admin-profile-link");
+      source.href = url.href; source.target = "_blank"; source.rel = "noopener noreferrer";
+      body.appendChild(source);
+      body.appendChild(profileLink((item.author || {}).name || (item.author || {}).displayName || "Creator", (item.author || {}).handle));
+      body.appendChild(text("p", "Status: " + item.status + ". If playback is restricted, use the original video link before deciding.", "pg-fine"));
+      if (item.summary) body.appendChild(text("p", item.summary, "pg-fine"));
+      if (item.reviewNote) body.appendChild(text("p", "Review note: " + item.reviewNote, "pg-fine"));
+      var actions = text("div", "", "admin-review-actions");
+      if (item.status !== "published") {
+        actions.appendChild(reviewButton("Approve & publish", function () {
+          openModal("Publish tutorial?", function (b) { b.appendChild(text("p", "Publish “" + item.title + "” after reviewing the video?")); }, function () {
+            return api("/api/admin/skills/" + encodeURIComponent(item.id), { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "published" }) }).then(function () { note("Tutorial approved."); safeLoad(loadSkills); });
+          }, "Approve & publish");
+        }, "admin-btn admin-btn-success"));
+      }
+      if (item.status !== "rejected") {
+        actions.appendChild(reviewButton("Reject with reason", function () {
+          promptModal("Reject / Takedown Tutorial", "Enter the rejection reason:", "", function (reason) {
+            return api("/api/admin/skills/" + encodeURIComponent(item.id), { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "rejected", note: reason }) }).then(function () { note("Tutorial rejected."); safeLoad(loadSkills); });
+          }, "Reject tutorial", true);
+        }, "admin-btn admin-btn-danger"));
+      }
+      body.appendChild(actions);
+    });
+    modal.box.classList.add("admin-review-modal");
+    modal.body.tabIndex = 0;
+  }
+
   function loadSkills() {
     var root = $("#adminSkillList");
     var status = ($("#adminSkillStatus") || {}).value || "published";
@@ -1082,42 +1373,21 @@
 
         var main = document.createElement("div");
         main.className = "admin-row-main";
-        main.appendChild(text("strong", item.title));
+        main.appendChild(reviewButton(item.title, function () { openTutorialPreview(item); }, "admin-record-open"));
 
         var link = document.createElement("a");
         link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+        link.className = "admin-profile-link";
         link.textContent = item.url;
         main.appendChild(link);
-        main.appendChild(text("span", cleanHandle(item.author.handle || "unknown") + " · " + item.platform));
+        main.appendChild(profileLink(cleanHandle((item.author || {}).handle || "") || (item.author || {}).name || "Creator", (item.author || {}).handle));
+        main.appendChild(text("small", item.platform));
         if (item.summary) main.appendChild(text("small", item.summary));
         if (item.reviewNote) main.appendChild(text("small", "Note: " + item.reviewNote, "pg-formnote"));
 
         var controls = document.createElement("div");
         controls.className = "admin-row-controls";
-
-        if (item.status !== "published") {
-          var appBtn = text("button", "Approve", "admin-btn admin-btn-success admin-btn-sm");
-          appBtn.addEventListener("click", function () {
-            api("/api/admin/skills/" + encodeURIComponent(item.id), {
-              method: "PATCH", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: "published" })
-            }).then(function () { note("Tutorial approved."); safeLoad(loadSkills); }).catch(function (e) { note(e.message, true); });
-          });
-          controls.appendChild(appBtn);
-        }
-
-        if (item.status !== "rejected") {
-          var rejBtn = text("button", "Reject / Takedown", "admin-btn admin-btn-danger admin-btn-sm");
-          rejBtn.addEventListener("click", function () {
-            promptModal("Reject / Takedown Tutorial", "Enter takedown / rejection note:", "", function (reason) {
-              return api("/api/admin/skills/" + encodeURIComponent(item.id), {
-                method: "PATCH", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: "rejected", note: reason })
-              }).then(function () { note("Tutorial taken down."); safeLoad(loadSkills); });
-            }, "Takedown", true);
-          });
-          controls.appendChild(rejBtn);
-        }
+        controls.appendChild(reviewButton("Preview & review", function () { openTutorialPreview(item); }));
 
         row.appendChild(main);
         row.appendChild(controls);
@@ -1147,7 +1417,7 @@
         main.appendChild(text("strong", "Report: " + (r.targetType || "content").toUpperCase() + " (" + (r.reasonLabel || r.reason) + ")"));
         if (r.link) {
           var l = document.createElement("a");
-          l.href = r.link; l.target = "_blank"; l.textContent = "View Reported Content ↗";
+          l.href = r.link; l.target = "_blank"; l.className = "admin-profile-link"; l.textContent = "View Reported Content ↗";
           main.appendChild(l);
         }
         main.appendChild(text("span", "Reported by " + (r.reporter || "visitor") + " on " + new Date(r.createdAt).toLocaleString()));
@@ -1183,13 +1453,13 @@
   /* ── 7. Withdrawals ────────────────────────────────────────── */
   function loadWithdrawals() {
     var root = $("#adminWithdrawalList");
-    root.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Loading payouts…</td></tr>';
+    root.innerHTML = '<tr><td colspan="9" class="admin-td-center">Loading payouts…</td></tr>';
     var status = ($("#adminWithdrawalStatus") || {}).value || "pending";
     return api("/api/admin/withdrawals?status=" + encodeURIComponent(status)).then(function (j) {
       root.innerHTML = "";
       var list = j.withdrawals || [];
       if (!list.length) {
-        root.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:24px; color:var(--sh-ink3);">No ' + status + ' payouts.</td></tr>';
+        root.innerHTML = '<tr><td colspan="9" class="admin-td-center">No ' + status + ' payouts.</td></tr>';
         return;
       }
       list.forEach(function (w) {
@@ -1259,7 +1529,7 @@
   /* ── 8. Star Ledger ────────────────────────────────────────── */
   function loadStarLedger() {
     var root = $("#adminLedgerList");
-    root.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Loading star ledger…</td></tr>';
+    root.innerHTML = '<tr><td colspan="9" class="admin-td-center">Loading star ledger…</td></tr>';
     var q = ($("#adminLedgerSearch") || {}).value || "";
     var kind = ($("#adminLedgerKindFilter") || {}).value || "";
     var url = "/api/admin/stars/ledger?q=" + encodeURIComponent(q) + "&kind=" + encodeURIComponent(kind);
@@ -1267,7 +1537,7 @@
       root.innerHTML = "";
       var txs = j.transactions || j.ledger || [];
       if (!txs.length) {
-        root.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:24px; color:var(--sh-ink3);">No transactions found.</td></tr>';
+        root.innerHTML = '<tr><td colspan="9" class="admin-td-center">No transactions found.</td></tr>';
         return;
       }
       txs.forEach(function (tx) {
@@ -1322,17 +1592,31 @@
         var gPrice = document.createElement("div");
         gPrice.className = "admin-form-group";
         gPrice.appendChild(text("label", "Price INR (₹)"));
-        var priceInput = document.createElement("input"); priceInput.type = "number"; priceInput.dataset.packField = "price"; priceInput.dataset.packIdx = idx; priceInput.value = Number(p.price) || 0; priceInput.disabled = true; gPrice.appendChild(priceInput);
+        var priceInput = document.createElement("input");
+        priceInput.type = "number";
+        priceInput.dataset.packField = "price";
+        priceInput.dataset.packIdx = idx;
+        priceInput.value = Number(p.price) || 0;
+        priceInput.disabled = true;
+        gPrice.appendChild(priceInput);
         card.appendChild(gPrice);
 
         var gStars = document.createElement("div");
         gStars.className = "admin-form-group";
         gStars.appendChild(text("label", "Stars Count"));
-        var starsInput = document.createElement("input"); starsInput.type = "number"; starsInput.dataset.packField = "stars"; starsInput.dataset.packIdx = idx; starsInput.value = Number(p.stars) || 0; starsInput.disabled = true; gStars.appendChild(starsInput);
+        var starsInput = document.createElement("input");
+        starsInput.type = "number";
+        starsInput.dataset.packField = "stars";
+        starsInput.dataset.packIdx = idx;
+        starsInput.value = Number(p.stars) || 0;
+        starsInput.disabled = true;
+        gStars.appendChild(starsInput);
         card.appendChild(gStars);
 
         var gPop = document.createElement("label");
-        gPop.style.display = "flex"; gPop.style.alignItems = "center"; gPop.style.gap = "8px";
+        gPop.style.display = "flex";
+        gPop.style.alignItems = "center";
+        gPop.style.gap = "8px";
         gPop.innerHTML = "<input type='checkbox' disabled data-pack-field='popular' data-pack-idx='" + idx + "' " + (p.popular ? "checked" : "") + "> <span>Most Popular Badge</span>";
         card.appendChild(gPop);
 
@@ -1366,13 +1650,13 @@
   /* ── 10. AI & Conversion Jobs ──────────────────────────────── */
   function loadAiJobs() {
     var root = $("#adminAiJobList");
-    root.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">Loading AI jobs…</td></tr>';
+    root.innerHTML = '<tr><td colspan="8" class="admin-td-center">Loading AI jobs…</td></tr>';
     var status = ($("#adminAiJobStatus") || {}).value || "all";
     return api("/api/admin/ai-jobs?status=" + encodeURIComponent(status)).then(function (j) {
       root.innerHTML = "";
       var jobs = j.jobs || [];
       if (!jobs.length) {
-        root.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--sh-ink3);">No jobs recorded yet.</td></tr>';
+        root.innerHTML = '<tr><td colspan="8" class="admin-td-center">No jobs recorded yet.</td></tr>';
         return;
       }
       jobs.forEach(function (job) {
@@ -1383,7 +1667,7 @@
 
         var tdImg = document.createElement("td");
         var imgUrl = job.originalImage || job.imageName;
-        tdImg.textContent = imgUrl || "—"; // source_image_name is a filename, not a trusted URL.
+        tdImg.textContent = imgUrl || "—";
         tr.appendChild(tdImg);
 
         var tdSt = document.createElement("td");
@@ -1491,14 +1775,20 @@
 
     box.appendChild(text("strong", "Staff Permissions for " + cleanHandle(member.handle)));
     box.appendChild(text("p", "Select a role preset or customize granular permission flags. Sub Admins have broad operations access; Moderators focus on content & safety.", "pg-fine"));
-    var roleGroup = document.createElement("label"); roleGroup.className = "admin-form-group";
+    var roleGroup = document.createElement("label");
+    roleGroup.className = "admin-form-group";
     roleGroup.appendChild(text("span", "Staff role"));
-    var staffRole = document.createElement("select"); staffRole.className = "admin-select";
-    [["moderator","Moderator"],["sub_admin","Sub Admin"]].forEach(function (item) { var option = text("option", item[1]); option.value = item[0]; staffRole.appendChild(option); });
+    var staffRole = document.createElement("select");
+    staffRole.className = "admin-select";
+    [["moderator", "Moderator"], ["sub_admin", "Sub Admin"]].forEach(function (item) {
+      var option = text("option", item[1]);
+      option.value = item[0];
+      staffRole.appendChild(option);
+    });
     staffRole.value = member.role === "sub_admin" || member.role === "admin" ? "sub_admin" : "moderator";
-    roleGroup.appendChild(staffRole); box.appendChild(roleGroup);
+    roleGroup.appendChild(staffRole);
+    box.appendChild(roleGroup);
 
-    // Preset selector buttons
     var presetBar = document.createElement("div");
     presetBar.style.display = "flex";
     presetBar.style.gap = "8px";
@@ -1722,13 +2012,13 @@
 
   function loadAuditLogs() {
     var root = $("#adminAuditLogList");
-    root.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Loading audit trail…</td></tr>';
+    root.innerHTML = '<tr><td colspan="5" class="admin-td-center">Loading audit trail…</td></tr>';
     var q = ($("#adminAuditSearch") || {}).value || "";
     return api("/api/admin/audit-logs?q=" + encodeURIComponent(q)).then(function (j) {
       root.innerHTML = "";
       var logs = j.logs || [];
       if (!logs.length) {
-        root.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:var(--sh-ink3);">No audit records found.</td></tr>';
+        root.innerHTML = '<tr><td colspan="5" class="admin-td-center">No audit records found.</td></tr>';
         return;
       }
       logs.forEach(function (log) {
@@ -1774,7 +2064,37 @@
   };
 
   var descriptions = {
-    overview:"Mission Control \u2014 live operations overview.", users:"Find accounts and manage only the actions your access permits.", creators:"Published creators and verification badges.", content:"Review animations and editable designs by category and status.", skills:"Review creator tutorials and learning content.", reports:"Investigate reports with a recorded moderation reason.", withdrawals:"Existing payout records. Money features remain Coming Soon.", stars_ledger:"Read-only transaction records while money features are unavailable.", star_packs:"Stored pack configuration. Purchases and changes remain Coming Soon.", ai_jobs:"Conversion history and failures; creators retry from Designs.", broadcast:"Send in-app announcements to a selected audience.", team:"Owner-managed staff roles and granular permissions.", support:"Read tickets, reply and update their status.", system:"Permitted audit records and supported runtime controls."
+    overview: "Live platform metrics, moderation queues, and operations.",
+    users: "Search accounts and manage roles, safety, and bonus credits.",
+    creators: "Published creators, star balances, and verification badges.",
+    content: "Inspect submitted animations and designs in a protected preview before publishing.",
+    skills: "Review creator tutorials and educational video links.",
+    reports: "Investigate safety reports with an audited moderation outcome.",
+    withdrawals: "Creator payout requests and settlement records.",
+    stars_ledger: "Read-only transaction ledger across purchases, tips, and adjustments.",
+    star_packs: "Stored Star pack tiers and pricing configuration.",
+    ai_jobs: "AI conversion job history, durations, and failure diagnostics.",
+    broadcast: "Deliver in-app announcements to all users or targeted segments.",
+    team: "Owner-managed staff roles and granular permission controls.",
+    support: "Read user support tickets, reply directly, and update status.",
+    system: "Platform feature flags and immutable administrative audit logs."
+  };
+
+  var sectionTitles = {
+    overview: "Overview",
+    users: "Users",
+    creators: "Creators",
+    content: "Template review",
+    skills: "Tutorial review",
+    reports: "Reports",
+    withdrawals: "Withdrawals",
+    stars_ledger: "Star ledger",
+    star_packs: "Star packs",
+    ai_jobs: "AI jobs",
+    broadcast: "Broadcast",
+    team: "Team & roles",
+    support: "Support",
+    system: "System"
   };
 
   function refreshTab(key, loader, successMessage) {
@@ -1786,19 +2106,19 @@
     panel.setAttribute("aria-busy", "true");
     var previous = panel.querySelector(".admin-load-error");
     if (previous) previous.remove();
-    if (activeTab === key) $("#adminLiveStatus").textContent = "Loading section…";
+    if (activeTab === key) setText("#adminLiveStatus", "Loading section…");
     return Promise.resolve().then(loader || loaders[key]).then(function () {
       if (loadGeneration[key] !== generation) return;
       loaded[key] = true;
       if (activeTab === key) {
-        $("#adminLiveStatus").textContent = "Server data";
+        setText("#adminLiveStatus", "Server data");
         if (successMessage) note(successMessage);
       }
     }).catch(function (err) {
       if (err.stale || loadGeneration[key] !== generation) return;
       loaded[key] = false;
       if (activeTab === key) {
-        $("#adminLiveStatus").textContent = "Data unavailable";
+        setText("#adminLiveStatus", "Data unavailable");
         note(err.message || "This section could not be loaded.", true);
       }
     }).finally(function () {
@@ -1809,12 +2129,12 @@
   function selectTab(key) {
     if (!loaders[key] || allowedTabs.indexOf(key) === -1) key = allowedTabs[0];
     if (!key) return null;
-    // Every entry point is checked, including quick actions and browser history.
     Object.keys(pendingReads).forEach(function (path) {
       var pending = pendingReads[path];
       if (pending.section && pending.section !== key) {
         readGeneration[path] = (readGeneration[path] || 0) + 1;
-        pending.controller.abort(); delete pendingReads[path];
+        pending.controller.abort();
+        delete pendingReads[path];
       }
     });
     activeTab = key;
@@ -1825,6 +2145,11 @@
       if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
 
+    all("[data-admin-mobile-nav]").forEach(function (b) {
+      var on = b.getAttribute("data-admin-mobile-nav") === key;
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+
     var mobSel = $("#adminMobileTabSelect");
     if (mobSel && mobSel.value !== key) mobSel.value = key;
 
@@ -1832,33 +2157,38 @@
       p.hidden = p.getAttribute("data-admin-panel") !== key;
     });
     var selected = document.querySelector('[data-admin-tab="' + key + '"]');
-    $("#adminSectionTitle").textContent = selected ? (selected.getAttribute("data-label") || selected.textContent.trim().replace(/^[^A-Za-z]+/, "")) : "Admin";
-    $("#adminSectionDescription").textContent = descriptions[key] || "";
+    setText("#adminSectionTitle", sectionTitles[key] || (selected ? selected.textContent.trim() : "Admin"));
+    setText("#adminSectionDescription", descriptions[key] || "");
+    var contentScroller = $(".mc-main");
+    if (contentScroller) contentScroller.scrollTop = 0;
+    window.scrollTo(0, 0);
     if (!loaded[key]) refreshTab(key);
     return key;
   }
 
   function navigate(key, replace) {
     var selected = selectTab(key);
-    if (selected && location.hash !== "#" + selected) history[replace ? "replaceState" : "pushState"](null, "", "#" + selected);
+    if (selected && location.hash !== "#" + selected) {
+      history[replace ? "replaceState" : "pushState"](null, "", "#" + selected);
+    }
   }
 
-  // Bind tab click events (rail hub buttons jump to the first allowed hub section)
   all("[data-admin-tab]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var key = btn.getAttribute("data-admin-tab");
-      var hub = btn.getAttribute("data-hub");
-      if (hub) {
-        var keys = String(hub).split(/\s+/).filter(Boolean);
-        var first = keys.filter(function (k) { return allowedTabs.indexOf(k) !== -1; })[0];
-        if (first) key = first;
-      }
       loaded[key] = false;
       navigate(key);
     });
   });
 
-  // Mobile select change
+  all("[data-admin-mobile-nav]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var key = btn.getAttribute("data-admin-mobile-nav");
+      loaded[key] = false;
+      navigate(key);
+    });
+  });
+
   var mobSel = $("#adminMobileTabSelect");
   if (mobSel) {
     mobSel.addEventListener("change", function () {
@@ -1868,7 +2198,6 @@
     });
   }
 
-  // Quick jump buttons
   all("[data-admin-jump]").forEach(function (b) {
     b.addEventListener("click", function () {
       var target = b.getAttribute("data-admin-jump");
@@ -1877,7 +2206,6 @@
     });
   });
 
-  // Refresh buttons
   all("[data-admin-refresh]").forEach(function (b) {
     b.addEventListener("click", function () {
       var k = b.getAttribute("data-admin-refresh");
@@ -1892,7 +2220,16 @@
     });
   }
 
-  // Filter change listeners
+  var themeBtn = $("#adminThemeToggleBtn");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      var cur = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      var next = cur === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem("sc_theme", next); } catch (_) {}
+    });
+  }
+
   var uSearch = $("#adminUserSearch");
   if (uSearch) {
     var uTimer;
@@ -1917,7 +2254,10 @@
 
   var tFilter = $("#adminTemplateFilter");
   if (tFilter) tFilter.addEventListener("change", function () { safeLoad(loadTemplates); });
-  ["#adminTemplateCategory", "#adminTemplateType"].forEach(function(selector) { var el=$(selector); if(el) el.addEventListener("change", function() {safeLoad(loadTemplates);}); });
+  ["#adminTemplateCategory", "#adminTemplateType"].forEach(function (selector) {
+    var el = $(selector);
+    if (el) el.addEventListener("change", function () { safeLoad(loadTemplates); });
+  });
 
   var sFilter = $("#adminSkillStatus");
   if (sFilter) sFilter.addEventListener("change", function () { safeLoad(loadSkills); });
@@ -1951,22 +2291,21 @@
     });
   }
 
-  /* Mission Control: command search (jump to any allowed section). */
   var MC_SEARCH_INDEX = [
-    { key: "overview", label: "Mission Control", hint: "dashboard", keys: "dashboard home overview stats activity" },
+    { key: "overview", label: "Overview", hint: "dashboard", keys: "dashboard home overview stats activity" },
     { key: "users", label: "Users", hint: "accounts", keys: "users accounts database search" },
     { key: "creators", label: "Creators", hint: "directory", keys: "creators directory verified badges" },
     { key: "team", label: "Team & Roles", hint: "staff", keys: "team staff roles permissions" },
     { key: "content", label: "Templates", hint: "moderation", keys: "templates moderation animations designs review approve" },
     { key: "skills", label: "Tutorials", hint: "learning", keys: "tutorials skills learning creator" },
-    { key: "reports", label: "Reports", hint: "safety", keys: "reports safety abuse review" },
+    { key: "reports", label: "Safety Reports", hint: "safety", keys: "reports safety abuse review" },
     { key: "withdrawals", label: "Withdrawals", hint: "payouts", keys: "withdrawals payouts money upi stars" },
     { key: "stars_ledger", label: "Star Ledger", hint: "transactions", keys: "ledger transactions stars history" },
     { key: "star_packs", label: "Star Packs", hint: "pricing", keys: "star packs pricing setup" },
     { key: "ai_jobs", label: "AI Jobs", hint: "conversion", keys: "ai conversion jobs history failures" },
     { key: "broadcast", label: "Broadcast", hint: "notify", keys: "broadcast notifications announce message" },
-    { key: "support", label: "Support", hint: "tickets", keys: "support tickets help reply" },
-    { key: "system", label: "System", hint: "flags", keys: "system feature flags audit logs" }
+    { key: "support", label: "Support Queue", hint: "tickets", keys: "support tickets help reply" },
+    { key: "system", label: "System & Audit", hint: "flags", keys: "system feature flags audit logs" }
   ];
   (function mcWireSearch() {
     var inp = $("#mcSearch"), box = $("#mcSearchResults");
@@ -1983,7 +2322,8 @@
       }).slice(0, 7);
       if (!hits.length) { close(); return; }
       hits.forEach(function (s) {
-        var b = document.createElement("button"); b.type = "button";
+        var b = document.createElement("button");
+        b.type = "button";
         b.innerHTML = '<svg class="mc-ic" aria-hidden="true"><use href="#mc-i-search"/></svg>';
         var lb = document.createElement("span"); lb.textContent = s.label; b.appendChild(lb);
         var sm = document.createElement("small"); sm.textContent = s.hint; b.appendChild(sm);
@@ -1993,27 +2333,35 @@
       box.hidden = false;
     });
     inp.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") { var first = box.querySelector("button"); if (first && !box.hidden) { e.preventDefault(); first.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })); } }
+      if (e.key === "Enter") {
+        var first = box.querySelector("button");
+        if (first && !box.hidden) { e.preventDefault(); first.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })); }
+      }
       if (e.key === "Escape") { close(); inp.blur(); }
     });
     inp.addEventListener("blur", function () { setTimeout(close, 150); });
     document.addEventListener("keydown", function (e) {
-      if ((e.metaKey || e.ctrlKey) && String(e.key || "").toLowerCase() === "k") { e.preventDefault(); inp.focus(); inp.select(); }
+      if ((e.metaKey || e.ctrlKey) && String(e.key || "").toLowerCase() === "k") {
+        e.preventDefault();
+        inp.focus();
+        inp.select();
+      }
     });
   })();
 
-  /* Mission Control: templates bulk actions + client-side search. */
   (function mcWireTemplates() {
     var bArch = $("#mcBulkArchive");
     if (bArch) bArch.addEventListener("click", function () {
-      var n = Object.keys(mcTplSelected).length; if (!n) return;
+      var n = Object.keys(mcTplSelected).length;
+      if (!n) return;
       openModal("Archive " + n + " template(s)", function (body) {
         body.appendChild(text("p", "Archive the selected templates? They will be hidden from the public listing.", "pg-fine"));
       }, function () { return mcBulkSetStatus("archived"); }, "Archive selected");
     });
     var bRej = $("#mcBulkReject");
     if (bRej) bRej.addEventListener("click", function () {
-      var n = Object.keys(mcTplSelected).length; if (!n) return;
+      var n = Object.keys(mcTplSelected).length;
+      if (!n) return;
       promptModal("Reject " + n + " template(s)", "Enter rejection reason (applied to all selected):", "", function (reason) {
         return mcBulkSetStatus("rejected", reason);
       }, "Reject selected", true);
@@ -2023,13 +2371,10 @@
     var tSearch = $("#mcTplSearch");
     if (tSearch) tSearch.addEventListener("input", function () {
       var q = tSearch.value.trim().toLowerCase();
-      var shown = 0, total = 0;
-      all("#adminTemplateList tbody tr").forEach(function (tr) {
-        total++;
-        var ok = !q || (tr.getAttribute("data-title") || "").indexOf(q) > -1 || (tr.getAttribute("data-creator") || "").indexOf(q) > -1;
-        tr.style.display = ok ? "" : "none"; if (ok) shown++;
+      all("#adminTemplateList article").forEach(function (card) {
+        var ok = !q || (card.getAttribute("data-title") || "").indexOf(q) > -1 || (card.getAttribute("data-creator") || "").indexOf(q) > -1;
+        card.style.display = ok ? "" : "none";
       });
-      setText("#mcTplShowing", "Showing " + shown + " of " + total + " templates");
     });
   })();
 
@@ -2045,61 +2390,66 @@
   window.addEventListener("popstate", function () { if (allowedTabs.length) navigate(location.hash.slice(1), true); });
 
   /* ── Boot Initializer ──────────────────────────────────────── */
-  function checkAccess() { return api("/api/auth/me").then(function (j) {
-    currentUser = j.user;
-    if (!showAccess(currentUser)) return;
+  function checkAccess() {
+    return api("/api/auth/me").then(function (j) {
+      currentUser = j.user;
+      if (!showAccess(currentUser)) return;
 
-    allowedTabs = [];
-    var permByKey = {};
-    all("[data-admin-tab]").forEach(function (b) {
-      if (b.hasAttribute("data-hub")) return; // rail hubs evaluated below
-      var key = b.getAttribute("data-admin-tab");
-      var ok = hasAny(b.getAttribute("data-perm"));
-      if (permByKey[key] == null) permByKey[key] = ok; else permByKey[key] = permByKey[key] || ok;
-      b.hidden = !ok;
-      if (ok && allowedTabs.indexOf(key) === -1) allowedTabs.push(key);
-    });
-    // Rail hub buttons: visible when any hub member section is allowed,
-    // or when the hub's own permission passes (hubs with no member tabs:
-    // Mission Control, Operations, System). Newly allowed hub keys are
-    // registered so their panels unhide and hash navigation resolves.
-    all("[data-admin-tab][data-hub]").forEach(function (b) {
-      var hubKeys = String(b.getAttribute("data-hub") || "").split(/\s+/).filter(Boolean);
-      var ok = hubKeys.some(function (k) { return permByKey[k]; });
-      if (!ok) ok = hasAny(b.getAttribute("data-perm"));
-      b.hidden = !ok;
-      if (ok) hubKeys.forEach(function (k) {
-        if (Object.prototype.hasOwnProperty.call(permByKey, k)) return; // member-tab decision stands
-        permByKey[k] = true;
-        if (allowedTabs.indexOf(k) === -1) allowedTabs.push(k);
+      allowedTabs = [];
+      all("[data-admin-tab]").forEach(function (b) {
+        var key = b.getAttribute("data-admin-tab");
+        var ok = hasAny(b.getAttribute("data-perm"));
+        b.hidden = !ok;
+        if (ok && allowedTabs.indexOf(key) === -1) allowedTabs.push(key);
       });
-    });
-    all("[data-admin-group]").forEach(function (group) { group.hidden = !group.querySelector('[data-admin-tab]:not([hidden])'); });
-    all("[data-admin-jump]").forEach(function (button) { button.hidden = allowedTabs.indexOf(button.getAttribute("data-admin-jump")) === -1; });
-    all("[data-admin-permission]").forEach(function (section) { section.hidden = !hasAny(section.getAttribute("data-admin-permission")); });
 
-    // Sync mobile select options with permissions
-    if (mobSel) {
-      all(mobSel.options).forEach(function (opt) {
-        if (allowedTabs.indexOf(opt.value) === -1) opt.remove();
+      all("[data-admin-mobile-nav]").forEach(function (b) {
+        var key = b.getAttribute("data-admin-mobile-nav");
+        b.hidden = allowedTabs.indexOf(key) === -1;
       });
-    }
 
-    all("[data-admin-panel]").forEach(function (p) {
-      if (allowedTabs.indexOf(p.getAttribute("data-admin-panel")) === -1) p.hidden = true;
+      all("[data-admin-group]").forEach(function (group) {
+        group.hidden = !group.querySelector('[data-admin-tab]:not([hidden])');
+      });
+      all("[data-admin-jump]").forEach(function (button) {
+        button.hidden = allowedTabs.indexOf(button.getAttribute("data-admin-jump")) === -1;
+      });
+      all("[data-admin-permission]").forEach(function (section) {
+        section.hidden = !hasAny(section.getAttribute("data-admin-permission"));
+      });
+
+      if (mobSel) {
+        all(mobSel.options).forEach(function (opt) {
+          if (allowedTabs.indexOf(opt.value) === -1) opt.remove();
+        });
+      }
+
+      all("[data-admin-panel]").forEach(function (p) {
+        if (allowedTabs.indexOf(p.getAttribute("data-admin-panel")) === -1) p.hidden = true;
+      });
+
+      var wanted = String(location.hash || "").replace("#", "");
+      navigate(wanted, true);
+    }).catch(function (err) {
+      currentUser = null; allowedTabs = []; activeTab = null;
+      $("#adminApp").hidden = true;
+      var gate = $("#adminGate");
+      gate.hidden = false;
+      gate.innerHTML = "";
+      gate.appendChild(text("h1", "Admin access could not be checked"));
+      var error = text("p", err.message || "The connection failed. Please retry.");
+      error.setAttribute("role", "alert");
+      gate.appendChild(error);
+      var retry = text("button", "Retry access check", "admin-btn admin-btn-primary");
+      retry.type = "button";
+      retry.addEventListener("click", function () {
+        retry.disabled = true;
+        retry.textContent = "Checking access…";
+        checkAccess();
+      });
+      gate.appendChild(retry);
     });
+  }
 
-    var wanted = String(location.hash || "").replace("#", "");
-    navigate(wanted, true);
-  }).catch(function (err) {
-    currentUser = null; allowedTabs = []; activeTab = null;
-    $("#adminApp").hidden = true;
-    var gate = $("#adminGate"); gate.hidden = false; gate.innerHTML = "";
-    gate.appendChild(text("h1", "Admin access could not be checked"));
-    var error = text("p", err.message || "The connection failed. Please retry."); error.setAttribute("role", "alert"); gate.appendChild(error);
-    var retry = text("button", "Retry access check", "admin-btn admin-btn-primary"); retry.type = "button";
-    retry.addEventListener("click", function () { retry.disabled = true; retry.textContent = "Checking access…"; checkAccess(); });
-    gate.appendChild(retry);
-  }); }
   checkAccess();
 })();

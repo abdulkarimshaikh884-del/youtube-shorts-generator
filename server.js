@@ -126,7 +126,9 @@ app.use((req, res, next) => {
       // 'self' is required for the sandboxed srcdoc iframes that render
       // animation template previews on the landing page. Those frames are
       // sandboxed WITHOUT allow-same-origin, so they get a unique origin.
-      "frame-src 'self' https://*.razorpay.com",
+      // Tutorial moderation can watch the submitted YouTube video in-console.
+      // The extra source is restricted to this page, never the public shell.
+      "frame-src 'self' https://*.razorpay.com" + (req.path === "/admin" ? " https://www.youtube-nocookie.com" : ""),
       "object-src 'none'",
       "base-uri 'self'",
     ].join("; ")
@@ -2080,6 +2082,13 @@ registerAdmin("get", "/api/admin/templates", async (req, res) => {
 registerAdmin("get", "/api/admin/design-templates/:id/preview", rateLimit({ windowMs: 60_000, max: 60 }), async (req, res) => {
   res.set("Cache-Control", "no-store");
   const out = await admin.designPreview(req.user, req.params.id);
+  if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
+  return res.json(out);
+});
+
+registerAdmin("get", "/api/admin/animation-templates/:id/preview", rateLimit({ windowMs: 60_000, max: 60 }), async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  const out = await admin.animationPreview(req.user, req.params.id);
   if (out.error) return res.status(out.status || 400).json({ success: false, error: out.error });
   return res.json(out);
 });

@@ -28,7 +28,7 @@
   if (!root || !root.document) return;
 
   function start() {
-    var app = root.document.querySelector(".mc-app");
+    var app = root.document.querySelector(".mc-app, .admin-shell, #adminApp");
     if (!app) return;
     var wrappers = new WeakMap();
     var nextId = 0;
@@ -94,8 +94,12 @@
       var label = state.cards ? "Table view" : "Card view";
       var hint = state.cards ? "Records" : "Swipe sideways to see all columns";
       if (state.toggle.textContent !== label) state.toggle.textContent = label;
-      state.toggle.setAttribute("aria-pressed", String(!state.cards));
+      togglePressed(state.toggle, !state.cards);
       if (state.hint.textContent !== hint) state.hint.textContent = hint;
+    }
+
+    function togglePressed(el, val) {
+      el.setAttribute("aria-pressed", String(val));
     }
 
     function scan() {

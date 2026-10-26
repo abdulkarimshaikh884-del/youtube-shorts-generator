@@ -55,6 +55,22 @@ async function dashboard(user) {
     recentActivity = actRows.rows || [];
   } catch (e) { console.warn("[admin activity]", e.message); }
 
+  // Joining the site is separate from publishing. Only staff who may browse
+  // accounts receive this feed; never synthesize public handles from emails.
+  let recentUsers = [];
+  if (can(user, "users.view")) {
+    const joined = await db.query(
+      `select id, display_name, handle, created_at
+         from public.users order by created_at desc, id desc limit 5`
+    );
+    recentUsers = joined.rows.map(r => ({
+      id: r.id,
+      displayName: r.display_name || r.handle || "New member",
+      profileHandle: String(r.handle || "").replace(/^@+/, ""),
+      createdAt: r.created_at
+    }));
+  }
+
   return {
     success: true,
     stats: {
@@ -63,7 +79,8 @@ async function dashboard(user) {
       creatorPayoutsINR,
       platformFeeINR
     },
-    recentActivity
+    recentActivity,
+    recentUsers
   };
 }
 
@@ -123,6 +140,7 @@ async function listUsers(user, options = {}) {
         email: owner ? (r.email || "") : "",
         displayName: safeDisplayName,
         handle: safeHandle,
+        profileHandle: rawHandle,
         plan: r.plan || "free",
         planUntil: r.plan_until,
         billingCycle: r.billing_cycle,
@@ -287,6 +305,7 @@ async function listCreators(user, options = {}) {
         id: r.id,
         displayName: safeDisplayName,
         handle: safeHandle,
+        profileHandle: rawHandle,
         verified: r.verified === true,
         createdAt: r.created_at,
         templatesCount: templates,
@@ -670,9 +689,9 @@ async function listAuditLogs(user, options = {}) {
 async function listContent(user) {
   if (!can(user, "templates.moderate")) return denied();
   const { rows: commRows } = await db.query(
-    `select ct.id, ct.title, ct.tpl, ct.category, ct.status, ct.source_format,
+    `select ct.id, ct.title, ct.tpl, ct.category, ct.status, ct.source_format, ct.author_id,
             ct.review_note, ct.scheduled_at, ct.published_at, ct.created_at,
-            u.display_name as author_name, u.handle as author_handle, u.email as author_email,
+            u.display_name as author_name, u.handle as author_handle, u.handle as profile_handle, u.email as author_email,
             (select count(*)::int from public.template_reactions tr where tr.template_id = ct.id and tr.reaction = 'like') as likes,
             (select count(*)::int from public.template_comments tc where tc.tpl_id = ct.id and coalesce(tc.status, 'visible') = 'visible') as comments,
             (select count(*)::int from public.template_events te where te.template_id = ct.id and te.event_type = 'export') as exports
@@ -691,7 +710,7 @@ async function listContent(user) {
                   and a.entity_id = dt.id order by a.created_at desc, a.id desc limit 1), '') as review_note,
               null as scheduled_at, dt.created_at as published_at, dt.created_at,
               coalesce(u.display_name, dt.author_name) as author_name,
-              coalesce(u.handle, dt.author_handle) as author_handle,
+              coalesce(u.handle, dt.author_handle) as author_handle, u.handle as profile_handle, dt.author_id,
               u.email as author_email,
               coalesce(dt.likes, 0) as likes, 0 as comments, coalesce(dt.uses, 0) as exports
          from public.design_templates dt
@@ -717,7 +736,8 @@ async function listContent(user) {
         id: r.id, title: r.title, templateId: r.tpl, category: r.category,
         status: r.status, sourceFormat: r.source_format, reviewNote: r.review_note || "",
         scheduledAt: r.scheduled_at, publishedAt: r.published_at, createdAt: r.created_at,
-        authorName: safeName, authorHandle: safeHandle,
+        authorName: safeName, authorHandle: safeHandle, authorId: r.author_id,
+        profileHandle: String(r.profile_handle || "").replace(/^@+/, ""),
         likes: Number(r.likes) || 0, comments: Number(r.comments) || 0, exports: Number(r.exports) || 0
       };
     })
@@ -774,6 +794,37 @@ async function updateContent(user, id, data) {
 
 // ── 11. Feature Flags ────────────────────────────────────────
 const previewAssetPath = value => typeof value === "string" && value.length <= 240 && /^\/api\/design-assets\/job_[a-f0-9]{32}\/(?:original\.webp|assets\/[A-Za-z0-9_-]{1,160}\.webp)$/.test(value);
+async function animationPreview(user, id) {
+  if (!can(user, "templates.moderate")) return denied();
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id)) return { error: "Animation not found.", status: 404 };
+  // Read the exact submitted state, including review/draft/rejected rows. The
+  // public endpoint retains its own published-only filter and is not bypassed.
+  const result = await db.query(
+    `select id, title, description, status, tpl, props, lines, aspect, accent, font, dur,
+            source_format, author_id from public.community_templates where id=$1`, [id]
+  );
+  const row = result.rows[0];
+  if (!row) return { error: "Animation not found.", status: 404 };
+  if (typeof row.tpl !== "string" || !/^[A-Za-z0-9_-]{1,80}$/.test(row.tpl)) return { error: "This animation format has no supported preview.", status: 409 };
+  const props = row.props && typeof row.props === "object" && !Array.isArray(row.props) ? row.props : {};
+  if (JSON.stringify(props).length > 400_000) return { error: "This animation carries too much data to preview safely.", status: 409 };
+  let lines = row.lines;
+  if (typeof lines === "string") { try { lines = JSON.parse(lines); } catch (_) { lines = []; } }
+  if (!Array.isArray(lines)) lines = [];
+  if (row.tpl === "lottie") {
+    // Uploaded docs are immutable assets. Bind moderation to the document of
+    // this submission's author; never accept a different asset id from a URL.
+    const docId = props.doc;
+    if (typeof docId !== "string" || !/^[A-Za-z0-9_-]{16,64}$/.test(docId)) return { error: "The uploaded animation is unavailable.", status: 409 };
+    const docs = await db.query("select id from public.lottie_docs where id=$1 and owner_id=$2", [docId, row.author_id]);
+    if (!docs.rows[0]) return { error: "The uploaded animation is unavailable or does not belong to this submission.", status: 409 };
+  }
+  return { success: true, template: {
+    id: row.id, title: row.title, description: row.description || "", status: row.status,
+    tpl: row.tpl, props, lines, aspect: row.aspect, accent: row.accent,
+    font: row.font, dur: row.dur, sourceFormat: row.source_format || "shortscraft_preset"
+  } };
+}
 async function designPreview(user, id) {
   if (!can(user, "templates.moderate")) return denied();
   if (typeof id !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(id)) return { error: "Design not found.", status: 404 };
@@ -917,6 +968,7 @@ module.exports = {
   adjustUserBalance,
   listCreators,
   listContent,
+  animationPreview,
   designPreview,
   designPreviewAsset,
   updateContent,

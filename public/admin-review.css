@@ -1,0 +1,192 @@
+/* Admin review workspace. No customer pages or content permissions are changed. */
+/* The workspace owns the viewport; only the content pane scrolls with the page. */
+body.admin-console-active { height:100dvh; overflow:hidden; }
+body.admin-console-active .sh-wrap { height:100dvh; min-height:0; overflow:hidden; }
+body.admin-console-active .sh-wrap > .sh-rail,
+body.admin-console-active .sh-main > :is(.sh-topbar,.sh-mobile-menu,.sh-footer) { display:none!important; }
+body.admin-console-active .sh-main { margin:0!important; padding:0!important; width:100%; min-width:0; }
+body.admin-console-active main.pg.admin-page { max-width:none; margin:0; padding:0!important; width:100%; }
+body.admin-console-active :is(.sh-main,main.pg.admin-page,#adminApp) { height:100%; min-height:0; }
+body.admin-console-active .admin-backsite { color:var(--ar-muted); text-decoration:none; font-weight:600; font-size:12px; white-space:nowrap; }
+.mc-app {
+  --ar-bg: #f6f7f9;
+  --ar-surface: #fff;
+  --ar-soft: #f1f3f6;
+  --ar-line: #e1e5eb;
+  --ar-ink: #18202c;
+  --ar-muted: #5f6978;
+  --ar-accent: #204bce;
+  --ar-accent-soft: #edf2ff;
+  background: var(--ar-bg);
+  color: var(--ar-ink);
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+}
+.mc-app .mc-side { position:relative; top:auto; height:100%; min-height:0; overscroll-behavior-y:contain; }
+.mc-app .mc-main { height:100%; min-height:0; overflow-x:hidden; overflow-y:auto; overscroll-behavior-y:contain; scrollbar-gutter:stable; }
+.mc-app .mc-topbar { flex-shrink:0; }
+.mc-app .mc-page { flex:1 0 auto; }
+.mc-app *, .mc-app *::before, .mc-app *::after { box-sizing: border-box; }
+.mc-app [hidden] { display: none !important; }
+.mc-app .mc-spark { display:none; }
+.mc-app .mc-page { max-width: 1420px; padding: 24px 28px 40px; }
+.mc-app .mc-page-head { margin: 0 0 18px; }
+.mc-app .mc-page-head h1 { font-size: 26px; letter-spacing: -.035em; color: var(--ar-ink); }
+.mc-app .mc-page-head p { max-width: 70ch; line-height: 1.5; color: var(--ar-muted); }
+.mc-app .mc-topbar { background: var(--ar-surface); border-color: var(--ar-line); }
+.mc-app :is(.mc-card,.mc-metric,.mc-stat,.mc-qa,.mc-table-card,.mc-panel-card,.admin-card-panel) { background: var(--ar-surface); border-color: var(--ar-line); color: var(--ar-ink); }
+.mc-app :is(.mc-p-sub,.mc-m-label,.mc-m-sub,.mc-s-sub,.mc-table-foot,.mc-tpl-id,.mc-feed-item .ft) { color: var(--ar-muted); }
+.mc-app .mc-cols { gap: 16px; }
+.mc-app .mc-card { padding: 18px; box-shadow: 0 2px 5px #17243b03; }
+.mc-app .mc-card h3 { font-size: 16px; letter-spacing: -.025em; }
+.mc-app .mc-attn-item { gap: 10px; border-color: var(--ar-line); }
+.mc-app .mc-attn-body .t { line-height: 1.45; }
+.mc-app .mc-attn-body .m { line-height: 1.5; color: var(--ar-muted); }
+.mc-app .mc-attn-actions { flex-shrink: 1; }
+.mc-app .mc-t-search { background: var(--ar-surface); border-color: var(--ar-line); }
+.mc-app .mc-toolbar { border-color: var(--ar-line); padding: 13px 16px; }
+.mc-app .mc-hub-tabs { margin-bottom: 16px; }
+.mc-app .mc-hub-tabs button { min-height: 38px; }
+.mc-app .admin-review-title { margin: 0 0 5px; font-size: 20px; letter-spacing: -.025em; }
+.mc-app .admin-review-guide { display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin: 0 0 14px; border: 1px solid var(--ar-line); border-radius: 11px; background: var(--ar-surface); }
+.mc-app .admin-review-guide p { margin: 0; color: var(--ar-muted); font-size: 12px; line-height: 1.55; }
+.mc-app .admin-review-guide strong { color: var(--ar-ink); }
+.mc-app .admin-review-guide-icon { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border-radius: 9px; color: var(--ar-accent); background: var(--ar-accent-soft); }
+.mc-app .admin-review-guide-icon .mc-ic { width: 18px; height: 18px; }
+.mc-app .admin-preview-trigger { border: 1px solid var(--ar-line); border-radius: 8px; padding: 8px 11px; min-height: 36px; background: var(--ar-accent-soft); color: var(--ar-accent); font: inherit; font-size: 12px; font-weight: 650; display: inline-flex; gap: 6px; align-items: center; justify-content: center; cursor: pointer; }
+.mc-app .admin-preview-trigger svg { width: 16px; height: 16px; }
+.mc-app .admin-record-open { border: 0; padding: 0; background: transparent; color: var(--ar-ink); font: inherit; font-weight: 650; text-align: left; cursor: pointer; line-height: 1.4; }
+.mc-app .admin-record-open:hover { color: var(--ar-accent); text-decoration: underline; text-underline-offset: 3px; }
+.mc-app .admin-profile-link { color: var(--ar-accent); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.mc-app .admin-profile-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.mc-app .mc-tpl-cell { min-width: 0; }
+.mc-app .mc-tpl-cell > span:last-child { min-width: 0; }
+.mc-app .mc-tpl-name { max-width: 320px; white-space: normal; overflow-wrap: anywhere; }
+.mc-app .mc-tpl-thumb { border: 0; cursor: pointer; flex-shrink: 0; }
+.mc-app table.mc-t { min-width: 850px; }
+.mc-app table.mc-t :is(td,th) { border-color: var(--ar-line); }
+.mc-app table.mc-t th { background: var(--ar-soft); color: var(--ar-muted); letter-spacing: .035em; }
+.mc-app table.mc-t tbody tr:hover { background: var(--ar-soft); }
+.mc-app .mc-row-actions { align-items: center; }
+.mc-app .admin-review-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mc-app .admin-review-heading h3 { margin: 0; }
+.mc-app .admin-recent-users-card { grid-column: 1 / -1; }
+.mc-app #adminRecentUsersList { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 0 20px; margin-top: 10px; }
+.mc-app .admin-recent-user { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px 0; border-top: 1px solid var(--ar-line); color: var(--ar-ink); text-decoration: none; }
+.mc-app .admin-recent-user:hover { color: var(--ar-accent); }
+.mc-app .admin-recent-user > :is(img,.admin-user-avatar) { width: 36px; height: 36px; flex: 0 0 36px; object-fit: cover; border-radius: 50%; background: var(--ar-soft); }
+.mc-app .admin-recent-user > :is(div,span):last-child { min-width: 0; display: grid; gap: 3px; }
+.mc-app .admin-recent-user :is(strong,b) { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 12px; }
+.mc-app .admin-recent-user :is(small,time) { color: var(--ar-muted); font-size: 11px; overflow-wrap: anywhere; }
+.mc-app :is(button,a,input,select,textarea):focus-visible { outline: 2px solid var(--ar-accent); outline-offset: 3px; }
+.mc-app .admin-quick-nav { display: none; }
+
+/* Read-only content is large enough to inspect; decisions remain separate. */
+.mc-app .admin-modal-box.admin-review-modal { width: min(1080px,100%); max-width: 1080px; max-height: calc(100dvh - 40px); background: var(--ar-surface); color: var(--ar-ink); border-color: var(--ar-line); }
+.mc-app .admin-review-modal .admin-modal-head { padding: 16px 20px; border-color: var(--ar-line); gap: 12px; }
+.mc-app .admin-review-modal .admin-modal-head h3 { color: var(--ar-ink); font-size: 17px; line-height: 1.4; overflow-wrap: anywhere; }
+.mc-app .admin-review-modal .admin-modal-close { flex: 0 0 38px; min-height: 38px; width: 38px; background: var(--ar-soft); color: var(--ar-ink); }
+.mc-app .admin-review-modal .admin-modal-body { padding: 18px 20px; min-height: 0; overscroll-behavior: contain; }
+.mc-app .admin-preview-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(240px,310px); gap: 20px; align-items: start; }
+.mc-app .admin-preview-media { min-width:0; }
+.mc-app .admin-preview-stage.admin-preview-expanded { width:min(100%,calc(74dvh * var(--preview-ratio,1.77778))); }
+.mc-app .admin-preview-stage { position:relative; display: flex; justify-content: center; align-items: center; min-width: 0; width: min(100%,calc(58dvh * var(--preview-ratio,1.77778))); min-height: 0; margin:0 auto; border: 1px solid var(--ar-line); border-radius: 12px; overflow: hidden; background: #13171e; }
+.mc-app .admin-preview-stage :is(img,svg,video,.ds-template-preview) { display: block; max-width: 100%; width: 100%; height: auto; max-height: 60dvh; object-fit: contain; }
+.mc-app .admin-preview-stage iframe.admin-preview-frame { position:absolute; inset:0; display: block; border: 0; width: 100%; height:100%; max-height:none; background: #13171e; }
+.mc-app .admin-recent-user-identity { display:grid; gap:4px; min-width:0; }
+.mc-app .admin-profile-unavailable { overflow-wrap:anywhere; }
+.mc-app .admin-preview-details { min-width: 0; display: grid; align-content: start; gap: 14px; }
+.mc-app .admin-preview-meta { margin: 0; display: grid; gap: 10px; color: var(--ar-muted); line-height: 1.5; font-size: 12px; overflow-wrap: anywhere; }
+.mc-app .admin-preview-meta :is(p,dd) { margin: 0; }
+.mc-app .admin-preview-meta :is(strong,dt) { color: var(--ar-ink); font-weight: 650; }
+.mc-app .admin-preview-meta dt { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.mc-app .admin-preview-error { border: 1px solid #e8bfbf; background: #fff5f5; padding: 13px; border-radius: 9px; color: #a32121; font-size: 13px; line-height: 1.5; }
+.mc-app .admin-review-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; border-top: 1px solid var(--ar-line); }
+.mc-app .admin-review-actions button { min-height: 40px; padding: 9px 13px; }
+.mc-app .admin-preview-details > p { margin: 0; line-height: 1.5; font-size: 12px; color: var(--ar-muted); }
+
+html[data-theme="dark"] .mc-app { --ar-bg:#11151c; --ar-surface:#191f29; --ar-soft:#242c39; --ar-line:#354052; --ar-ink:#edf1f7; --ar-muted:#aeb9ca; --ar-accent:#a9c0ff; --ar-accent-soft:#233458; }
+html[data-theme="dark"] .mc-app :is(.mc-cmdk,.mc-t-search,.mc-toolbar select,.mc-mobile-nav,.mc-mobile-nav select,.mc-mobile-table-tools,.mc-refresh-btn,.mc-btn-ghost,.mc-icon-btn,.mc-search-results,.mc-search-results button,.mc-hub-tabs) { background:var(--ar-surface); color:var(--ar-ink); border-color:var(--ar-line); }
+html[data-theme="dark"] .mc-app :is(.mc-cmdk input,.mc-t-search input,.admin-table td,.admin-table th,.mc-hub-tabs button,.mc-live,.mc-ws,.admin-review-title,.admin-review-modal .admin-modal-head h3) { color:var(--ar-ink); }
+html[data-theme="dark"] .mc-app :is(.mc-table-foot,.mc-topbar,.mc-card,.mc-metric,.mc-stat,.mc-t tbody td,.mc-feed-item,.mc-mobile-cards tbody tr) { border-color:var(--ar-line); }
+html[data-theme="dark"] .mc-app .mc-hub-tabs button.active,
+html[data-theme="dark"] .mc-app .mc-hub-tabs button[aria-pressed="true"] { background:var(--ar-soft); color:var(--ar-ink); }
+html[data-theme="dark"] .mc-app .admin-preview-error { color:#ffc4c4; background:#3c2028; border-color:#78404b; }
+
+@media (max-width:1100px) {
+  .mc-app .mc-side { width: 216px; flex-basis: 216px; padding-inline: 10px; }
+  .mc-app .mc-page { padding: 22px 20px 32px; }
+  .mc-app #adminRecentUsersList { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .mc-app .admin-preview-layout { grid-template-columns: minmax(0,1fr) minmax(210px,270px); gap: 16px; }
+}
+@media (max-width:760px) {
+  .mc-app .mc-side { display: none; }
+  .mc-app .mc-page { padding: 12px 12px 28px; }
+  .mc-app .mc-topbar { padding: 10px 12px; gap: 8px; }
+  .mc-app .mc-top-right { gap: 8px; }
+  .mc-app .mc-cmdk input { font-size: 16px; min-height: 40px; }
+  .mc-app .mc-cmdk { min-height: 40px; }
+  .mc-app .mc-owner-badge { max-width: calc(100% - 94px); overflow: hidden; font-size: 10px; padding: 7px 9px; }
+  .mc-app .mc-refresh-btn { min-height: 36px; padding: 7px 10px; font-size: 12px; }
+  .mc-app .mc-mobile-nav { display: grid; gap: 8px; margin-bottom: 14px; padding: 0; border: 0; background: transparent; }
+  .mc-app .admin-quick-nav { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+  .mc-app .admin-quick-nav button { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; min-width: 0; min-height: 59px; padding: 8px 3px; background: var(--ar-surface); color: var(--ar-muted); border: 1px solid var(--ar-line); border-radius: 10px; font: inherit; font-size: 10px; font-weight: 650; cursor: pointer; }
+  .mc-app .admin-quick-nav button[aria-pressed="true"] { color: var(--ar-accent); background: var(--ar-accent-soft); border-color: var(--ar-accent); }
+  .mc-app .admin-quick-nav .mc-ic { width: 18px; height: 18px; }
+  .mc-app .mc-mobile-nav label { font-size: 11px; color: var(--ar-muted); margin: 3px 0 -3px; }
+  .mc-app .mc-mobile-nav select { min-height: 40px; padding: 8px 10px; border-radius: 9px; font-size: 16px; background: var(--ar-surface); color: var(--ar-ink); border-color: var(--ar-line); }
+  .mc-app .mc-page-head { margin-bottom: 13px; }
+  .mc-app .mc-page-head h1 { font-size: 23px; }
+  .mc-app .mc-page-head p { font-size: 12px; }
+  .mc-app .mc-card { padding: 13px; border-radius: 11px; }
+  .mc-app .mc-metrics { gap: 8px; }
+  .mc-app .mc-metric { padding: 12px; border-radius: 11px; }
+  .mc-app .mc-m-val { font-size: 29px; margin: 7px 0 5px; }
+  .mc-app .mc-strip { gap: 8px; margin-bottom: 12px; }
+  .mc-app .mc-stat { padding: 11px; }
+  .mc-app .mc-cols { gap: 12px; }
+  .mc-app .mc-attn-actions { justify-content: flex-start; }
+  .mc-app .mc-attn-actions .mc-btn { flex: 1; min-height: 38px; }
+  .mc-app .admin-preview-trigger { min-height: 40px; }
+  .mc-app .mc-row-actions { gap: 7px; }
+  .mc-app .mc-hub-tabs { margin-bottom: 12px; }
+  .mc-app .mc-hub-tabs button { min-height: 38px; padding: 8px 12px; font-size: 12px; }
+  .mc-app .mc-toolbar { padding: 11px; }
+  .mc-app .mc-toolbar :is(select,input) { min-height: 40px; }
+  .mc-app .mc-t-search { min-height: 40px; }
+  .mc-app .admin-review-title { font-size: 18px; }
+  .mc-app .admin-review-guide { gap: 8px; padding: 10px; margin-bottom: 12px; }
+  .mc-app .admin-review-guide p { font-size: 11px; }
+  .mc-app .admin-review-guide-icon { width: 28px; height: 28px; flex-basis: 28px; }
+  .mc-app .admin-review-heading { align-items: baseline; gap: 8px; }
+  .mc-app .admin-review-heading .mc-btn { min-height: 34px; padding: 6px 8px; font-size: 11px; }
+  .mc-app #adminRecentUsersList { grid-template-columns: minmax(0,1fr); gap: 0; }
+  .mc-app .admin-recent-user { min-height: 64px; padding: 10px 0; }
+  .mc-app .mc-mobile-table-tools { padding: 8px 11px; background: var(--ar-soft); border-color: var(--ar-line); }
+  .mc-app .mc-mobile-table-tools button { min-height: 36px; padding: 7px 9px; font-size: 11px; }
+  .mc-app .mc-mobile-cards table[data-mobile-labels="ready"] { min-width: 0; }
+  .mc-app .mc-mobile-cards table[data-mobile-labels="ready"] tbody tr { padding: 8px 5px; background: var(--ar-surface); border-color: var(--ar-line); }
+  .mc-app .mc-mobile-cards table[data-mobile-labels="ready"] tbody td { padding: 7px; }
+  .mc-app .mc-mobile-cards table[data-mobile-labels="ready"] tbody td::before { color: var(--ar-muted); font-size: 10px; margin-bottom: 4px; }
+  .mc-app .mc-mobile-cards table[data-mobile-labels="ready"] tbody td[data-label="Select record"] { padding-block: 3px; }
+  .mc-app .mc-mobile-cards .mc-tpl-cell { gap: 9px; }
+  .mc-app .mc-mobile-cards .mc-tpl-thumb { width: 54px; flex-basis: 54px; height: 42px; }
+  .mc-app .mc-mobile-cards .mc-tpl-name { font-size: 13px; }
+  .mc-app .mc-mobile-cards .mc-tpl-id { font-size: 10px; }
+  .mc-app .admin-modal-backdrop { padding: 8px; }
+  .mc-app .admin-modal-box.admin-review-modal { max-height: calc(100dvh - 16px - env(safe-area-inset-bottom,0px)); border-radius: 13px; }
+  .mc-app .admin-review-modal .admin-modal-head { padding: 12px; }
+  .mc-app .admin-review-modal .admin-modal-head h3 { font-size: 15px; }
+  .mc-app .admin-review-modal .admin-modal-body { padding: 12px; }
+  .mc-app .admin-preview-layout { grid-template-columns: minmax(0,1fr); gap: 14px; }
+  .mc-app .admin-preview-stage { width:min(100%,calc(42dvh * var(--preview-ratio,1.77778))); min-height: 0; border-radius: 9px; }
+  .mc-app .admin-preview-stage.admin-preview-expanded { width:100%; }
+  .mc-app .admin-preview-stage iframe.admin-preview-frame { max-height:none; }
+  .mc-app .admin-preview-stage :is(img,svg,video,.ds-template-preview) { max-height: 52dvh; }
+  .mc-app .admin-preview-details { gap: 12px; }
+  .mc-app .admin-preview-meta { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .mc-app .admin-review-actions { gap: 7px; padding-top: 12px; }
+  .mc-app .admin-review-actions button { flex: 1 1 auto; min-height: 40px; }
+}
+@media (prefers-reduced-motion:reduce) { .mc-app .admin-modal-box { animation: none; } }
